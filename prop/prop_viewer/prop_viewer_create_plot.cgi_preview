@@ -1,0 +1,469 @@
+#!/proj/cm/Release/ots.install.DS10.11/perl-5.34.0.Linux64/bin/perl 
+use POSIX qw(strftime);
+use Sys::Hostname;
+use CGI qw( :standard );
+
+use Cwd qw( abs_path );
+use File::Basename qw( dirname );
+use lib dirname(abs_path($0));
+
+require("prop_ea_ao.pl");
+
+# prop_viewer_create_plot.cgi
+# Generic script
+
+
+
+MAIN:
+{
+
+  my  $EA_FILE_PATH = $ENV{'OBSCYCLE_DATA_PATH'} ;
+# specify paths to DS.ots for web server
+  my($otsbin) = $ENV{'OTS_BIN'};
+  if (!$otsbin) {
+     $otsbin = "/home/ascds/DS.release/ots/bin";
+  }
+  my($otslib )= $otsbin . "/../ots/lib";
+  $GNUPLOT_PATH = "$otsbin/gnuplot";
+  $LD_LIBRARY_PATH = $ENV{'LD_LIBRARY_PATH'};
+  if ($LD_LIBRARY_PATH) {
+     $LD_LIBRARY_PATH .= ":";
+  }
+  if (!$ENV{OTS_LIB} ) {
+    $LD_LIBRARY_PATH .= $otslib;
+  } else {
+    $LD_LIBRARY_PATH .= $ENV{OTS_LIB};
+  }
+  $ENV{'LD_LIBRARY_PATH'} = $LD_LIBRARY_PATH;
+  $ENV{'FONTCONFIG_FILE'} = "/etc/fonts/fonts.conf";
+  
+
+  @useColors = ();
+
+  # The type of plot is specified in the parameter string
+  $inputParamList = $ENV{'QUERY_STRING'};
+  $inputParamList =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/eg;
+  @inputParamArray = split(/,/,$inputParamList);
+  $type = $inputParamArray[0];
+
+  for ($ii=0; $ii<= $#inputParamArray; $ii++) {
+   $inputParamArray[$ii] =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/eg;
+    if ($inputParamArray[$ii] !~ /^[\w \/.!?-]/) { 
+       $inputParamArray[$ii]=0;
+    }
+    if  ($inputParamArray[$ii] =~ /\.\./) {
+       $inputParamArray[$ii]="BAD INPUT";
+    }
+  }
+
+
+  if($type eq "ea") {
+    $EA_FILE_PATH .=  "/prop/pimms/data/";
+    $ii = 1;
+    $datafile1 = $EA_FILE_PATH .  $inputParamArray[$ii++];
+    $datafile2 = $EA_FILE_PATH .  $inputParamArray[$ii++];
+    $ao1 = int($inputParamArray[$ii++]);
+    $ao2 = int($inputParamArray[$ii++]);
+    $color1 = int($inputParamArray[$ii++]);
+    $color2 = int($inputParamArray[$ii++]);
+    $minXValue = $inputParamArray[$ii++];
+    $maxXValue = $inputParamArray[$ii++];
+    $minYValue = $inputParamArray[$ii++];
+    $maxYValue = $inputParamArray[$ii++];
+    $lineWidth = int($inputParamArray[$ii++]);
+    $xscale = lc($inputParamArray[$ii++]);
+    $yscale = lc($inputParamArray[$ii++]);
+    $canvasX = int($inputParamArray[$ii++]);
+    $canvasY = int($inputParamArray[$ii++]);
+
+    $minXValue = verify_number($minXValue,$def_minX,0,$def_maxXY);
+    $maxXValue = verify_number($maxXValue,$def_maxX,0,$def_maxXY);
+    $minYValue = verify_number($minYValue,$def_minY,0,$def_maxXY);
+    $maxYValue = verify_number($maxYValue,$def_maxY,0,$def_maxXY);
+    $lineWidth = verify_number($lineWidth,$def_lineWidth,0,20);
+    $canvasX = verify_number($canvasX,$def_canvasX,0,5000);
+    $canvasY = verify_number($canvasY,$def_canvasY,0,5000);
+    $color1 = verify_number($color1,1,1,($#colorStyle+1));
+    $color2 = verify_number($color2,2,1,($#colorStyle+1));
+
+
+    $scale = 1;
+
+    $str = "chandra-ao" . $ao1;
+    $datafile1 =~ s/chandra/$str/;
+    
+    $str = "chandra-ao" . $ao2;
+    $datafile2 =~ s/chandra/$str/;
+
+    # Make sure the values are within range
+    if ($xscale ne "log" && $xscale ne "linear") {
+       $xscale="linear";
+    }
+    if ($yscale ne "log" && $yscale ne "linear") {
+       $yscale="linear";
+    }
+    if($minXValue < 0 || 
+       ($xscale =~ /log/i && !$minXValue)) {
+      $minXValue = $def_minX;
+    }
+    if($maxXValue < 0 || !$maxXValue ) {
+      $maxXValue = $def_maxX;
+    }
+    # If values are the same, reset to default
+    if($minXValue == $maxXValue) {
+      $minXValue = $def_minX;
+      $maxXValue = $def_maxX;
+    }
+
+    if($minYValue < 0 || 
+       ($yscale =~ /log/i && !$minYValue)) {
+      $minYValue = $def_minY;
+    }
+    if($maxYValue < 0 || !$maxYValue ) {
+      $maxYValue = $def_maxY;
+    }
+
+    if($minYValue == $maxYValue) {
+      $minYValue = $def_minY;
+      $maxYValue = $def_maxY;
+    }
+
+    # plot
+    if ($scale < 0 ) { $scale = ".1"; }
+    if ($scale > 1.0 ) { $scale = $def_scale; }
+
+    if ($lineWidth < 0 ) { $lineWidth = $def_lineWidth; }
+    if ($lineWidth > 20.0 ) { $lineWidth = "20.0"; }
+
+
+    $xlabel = "Energy (keV)";
+    $ylabel = "Effective Area (cm^2)";
+
+
+    # Check that the input files exist, and plot
+    if (-e $datafile1) {
+      push(@plotFileArray, $datafile1);
+      push(@useColors, $color1);
+    } 
+
+    if (-e $datafile2) {
+      push(@plotFileArray, $datafile2);
+      push(@useColors, $color2);
+    }
+     
+    if(! -e $datafile1 && ! -e $datafile2) {
+      &display_error("File not found . datafile1 = " . $datafile1);
+      &display_error("File not found . datafile2 = " . $datafile2);
+    }
+    
+    &plot_data();
+  } elsif ($type eq "psf") {
+    $EA_FILE_PATH .=  "/prop/psf/data/";
+
+    # ***** PSF *******
+    $ii = 1;
+    $minXValue = $inputParamArray[$ii++];
+    $maxXValue = $inputParamArray[$ii++];
+    $minYValue = $inputParamArray[$ii++];
+    $maxYValue = $inputParamArray[$ii++];
+    $lineWidth = int($inputParamArray[$ii++]);
+    $xscale = lc($inputParamArray[$ii++]);
+    $yscale = lc($inputParamArray[$ii++]);
+    $canvasX = int($inputParamArray[$ii++]);
+    $canvasY = int($inputParamArray[$ii++]);
+    $numPlots = int($inputParamArray[$ii++]);
+    $scale  = 1;
+
+    $minXValue = verify_number($minXValue,$def_minXP,0,$def_maxXY);
+    $maxXValue = verify_number($maxXValue,$def_maxXP,0,$def_maxXY);
+    $minYValue = verify_number($minYValue,$def_minYP,0,$def_maxXY);
+    $maxYValue = verify_number($maxYValue,$def_maxYP,0,$def_maxXY);
+    $lineWidth = verify_number($lineWidth,$def_lineWidth,0,20);
+    $canvasX = verify_number($canvasX,$def_canvasX,0,5000);
+    $canvasY = verify_number($canvasY,$def_canvasY,0,5000);
+
+
+    if($numPlots <= 0 ) {
+      &display_error("No Plot selected");
+    }
+    if ($numPlots > 20) {
+      &display_error("Too many plots requested");
+    }
+
+    if ($xscale ne "log" && $xscale ne "linear") {
+       $xscale="linear";
+    }
+    if ($yscale ne "log" && $yscale ne "linear") {
+       $yscale="linear";
+    }
+
+    if ($lineWidth < 0 ) { $lineWidth = $def_lineWidth; }
+    if ($lineWidth > 20.0 ) { $lineWidth = "20.0"; }
+
+    $index = 0;
+    while($index < $numPlots && $ii < $#inputParamArray) {
+      $datafile = $EA_FILE_PATH .  $inputParamArray[$ii++];
+      $color1 = int($inputParamArray[$ii++]);
+      # Check that the input files exist, and plot
+      if(! -e $datafile) {
+        &display_error("File not found. datafile = " . $datafile);
+      } else {
+	push(@plotFileArray, $datafile);
+        push(@useColors, $color1);
+      }
+      $index++;
+    }
+    
+    if ($index == 0) {
+      &display_error("File not found. index = " . $index);
+    }
+
+
+    # Get the values for the zoom button
+    # Make sure the values are within range
+    if($minXValue < 0 || !$minXValue) {
+      $minXValue = $def_minXP;
+    }
+    if($maxXValue > $def_maxXP || !$maxXValue) {
+      $maxXValue = $def_maxXP;
+    }
+
+    # If values are the same, reset to default
+    if($minXValue == $maxXValue) {
+      $minXValue = $def_minXP;
+      $maxXValue = $def_maxXP;
+    }
+
+    $xlabel = "Theta/off-axis angle (arcminutes)";
+    $ylabel = "Radius (arcseconds)";
+
+    if($minYValue < 0 || !$minYValue) {
+      $minYValue = $def_minYP;
+    }
+    if(!$maxYValue) {
+      $maxYValue = $def_maxYP;
+    }
+    if($minYValue == $maxYValue) {
+      $minYValue = $def_minYP;
+      $maxYValue = $def_maxYP;
+    }
+
+
+
+    &plot_data();
+
+  }
+  else {
+    display_error("Invalid input");
+  }
+
+}
+
+sub plot_data
+{
+  my($ydiff);
+  $process_id = $$;
+  $tempDirectory = $ENV{'CXCDS_TMP_PATH'};
+  #WLM#$png = "EATOOL_$process_id.png";
+  #WLM#$png = "EATOOL_$process_id.ps";
+  $png = "EATOOL_$process_id.svg";
+  $pngPath = "$tempDirectory/$png";
+  $usetics = "";
+  $logscale = "";
+
+  my($xt) = $maxXValue ;
+  my($yt) = $maxYValue ;
+
+  if ($xscale =~ /log/i) {
+     $logscale .= "set logscale x 10\n";
+     $usetics  .= "set xtics 0,10,$xt\n";
+  } else {
+     $logscale .= "unset logscale x\n";
+     $usetics  .= "set mxtics 5\n";
+     $usetics  .= "set xtics 0,1,$xt\n";
+  }
+
+  if ($yscale =~ /log/i) {
+     $logscale .= "set logscale y 10\n";
+     $usetics .= "set ytics 0,10,$yt";
+  } else {
+     $logscale .= "unset logscale y\n";
+     $usetics .= "set mytics 5\n";
+     $ydiff = $maxYValue - $minYValue;
+     if ($ydiff  > 2000) {
+       $usetics .= "set ytics 0,500,$yt";
+     } elsif ($ydiff  > 500) {
+       $usetics .= "set ytics 0,100,$yt";
+     } elsif ($ydiff  > 200) {
+       $usetics .= "set ytics 0,50,$yt";
+     } else  {
+       $usetics .= "set ytics 0,10,$yt";
+     }
+  }
+
+
+  $x = $scale;
+  $y = $scale;
+
+  if ($minXValue < $def_minX) {
+      $canvasX = 1500;
+  }
+
+my($gnuplotopts) =<<gnuplot_Commands_Done;
+#set nokey
+#set label "test" at 1,2 textcolor lt 3
+#WLM#set term png size $canvasX,$canvasY enhanced font ',10'
+#WLM#set term postscript size $canvasX,$canvasY enhanced font ',10'
+set term svg size $canvasX,$canvasY enhanced font ',10'
+set output "$pngPath"
+set size $x, $y;
+set xlabel "$xlabel"
+set ylabel "$ylabel"
+$logscale
+set border
+unset grid
+set key below Left
+set xrange [$minXValue:$maxXValue]
+set yrange [$minYValue:$maxYValue]
+$usetics
+set style line 1  lt 1 lw $lineWidth pt 3 lc rgb "$colorRGB[1]"
+set style line 2  lt 1 lw $lineWidth pt 3 lc rgb "$colorRGB[2]"
+set style line 3  lt 1 lw $lineWidth pt 3 lc rgb "$colorRGB[3]"
+set style line 4  lt 1 lw $lineWidth pt 3 lc rgb "$colorRGB[4]"
+set style line 5  lt 1 lw $lineWidth pt 3 lc rgb "$colorRGB[5]"
+set style line 6  lt 1 lw $lineWidth pt 3 lc rgb "$colorRGB[6]"
+set style line 7  lt 1 lw $lineWidth pt 3 lc rgb "$colorRGB[7]"
+set style line 8  lt 1 lw $lineWidth pt 3 lc rgb "$colorRGB[8]"
+set style line 9  lt 1 lw $lineWidth pt 3 lc rgb "$colorRGB[9]"
+set style line 10 lt 1 lw $lineWidth pt 3 lc rgb "$colorRGB[10]"
+
+#set yrange [10:100]
+# pt gives a particular point type: 1=diamond 2=+ 3=square 4=X 5=triangle 6=*
+# lt chooses a particular line type: -1=black 1=red 2=grn 3=blue 4=purple 5=aqua 
+# 6=brn 7=orange 8=light-brn
+
+gnuplot_Commands_Done
+
+
+  open(GNUPLOT, "|${GNUPLOT_PATH}");
+  print GNUPLOT $gnuplotopts;
+
+  $numPlots = @plotFileArray;
+  $fileIndex = 0;
+  $colorIndex = 0;
+  $gnuplotString = "plot ";
+
+  if($numPlots > 0) {
+    $currentDatafile = $plotFileArray[$fileIndex];
+    @tmp = split('/',$currentDatafile);
+    if ( $tmp[$#tmp] =~ /ecf_e(\d+)\.(\d+)_f(\d+)\.(\d+)\.rdb/) {
+       $lbl = sprintf("E=%d.%02d keV ECF=.$4",$1,$2);
+    } else {
+	$lbl = $tmp[$#tmp];
+        $lbl =~ s/\_/\\\\_/g;
+    }
+    $color = $useColors[$colorIndex];
+    if ($color <= 0 || $color > $#colorRGB) {
+      $color = 1;
+    }
+
+    $gnuplotString = $gnuplotString." \"$currentDatafile\" w lines linestyle $color title \"$lbl\" ";
+
+    $fileIndex++;
+    $colorIndex++;
+  }
+
+  # Build the gnuplot string
+  while($fileIndex < $numPlots) {
+    $currentDatafile = $plotFileArray[$fileIndex];
+    @tmp = split('/',$currentDatafile);
+    if ( $tmp[$#tmp] =~ /ecf_e(\d+)\.(\d+)_f(\d+)\.(\d+)\.rdb/) {
+       $lbl = sprintf("E=%d.%02d keV ECF=.$4",$1,$2);
+    } else {
+	$lbl = $tmp[$#tmp];
+        $lbl =~ s/\_/\\\\_/g;
+    }
+    $color = $useColors[$colorIndex];
+    if ($color <= 0 || $color > $#colorRGB) {
+      $color = 1;
+    }
+    $gnuplotString = $gnuplotString.", \"$currentDatafile\" w lines linestyle $color title \"$lbl\" ";
+
+    $fileIndex++;
+    $colorIndex++;
+    
+  }
+  
+  my  $EA_FILE_PATH = $ENV{'OBSCYCLE_DATA_PATH'} ;
+  my($lname) = hostname;
+  $lname = "" if (!$lname) ;
+  my($logfile) = $EA_FILE_PATH . "/prop/toolkit/$lname" . "_propviewer.log";
+  if (!-e $logfile) {
+    open(LFILE,"> $logfile");
+    close LFILE;
+    chmod(0660,$logfile);
+  }
+  if (-w $logfile) {
+    if (open(LFILE,">> $logfile")) {
+      my($cgi) = new CGI;
+      my($qmsg) = $cgi->remote_host(); ## print the user ip address
+      $qmsg .= " [" . $cgi->user_agent() . "] ";
+
+      printf LFILE ("%s:%s:: PROP_VIEWER: $gnuplotString | $GNUPLOT_PATH----\n",get_date(),$qmsg);
+      close LFILE;
+    }
+  }
+      
+
+  print GNUPLOT $gnuplotString;
+  close(GNUPLOT);
+  
+  $| = 1; 
+
+  
+
+  print STDOUT "Content-type: text/html", "\n\n";
+  print STDOUT qq(
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+<title>Chandra EA/PSF Viewer</title>
+</head>
+<body >
+);
+
+  #The path of the file below (/tmp) is an alias to the real temp directory
+#WLM#  print STDOUT "<img src=\"/cxcds_tmp/$png\" alt=\"Can't display image\">\n";
+  print STDOUT "<embed src=\"/cxcds_tmp/$png\" width=1000 height=600 alt=\"Can't display image\">\n";
+
+  print STDOUT "</body></html>";
+}
+
+
+sub display_error
+{
+  my($x) = @_;
+  print STDOUT "Content-type: text/html", "\n\n";
+  print STDOUT <<End_of_Page;
+<CENTER>
+<h4>$x</h4>
+</CENTER>
+End_of_Page
+      exit 0;
+}
+
+# ---------------------------------------------------------
+# get current local date time:  mm/dd/yyyy:hhmmss
+# ---------------------------------------------------------
+sub get_date
+{
+  my(@dtmp,$yy,$mm,$thedate);
+
+  $thedate = strftime "%a %b %d %H:%M:%S %Z %Y", localtime;
+  return $thedate;
+
+}
+
+
+
+

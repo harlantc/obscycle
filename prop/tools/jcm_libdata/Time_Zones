@@ -1,0 +1,22 @@
+# Time scales
+UTC  0 UTC  Coordinated Universal Time
+TT   0 TT   Terrestrial Time
+TDB  0 TDB  Barycentric Dynamical Time
+TAI  0 TAI  Coordinated Atomic Time
+UT1  0 UT1  UT1 Universal Time
+GMST 0 GMST Greenwich Mean Sidereal Time
+LST  0 LST  Local Sidereal Time
+# UTC time zones
+UTC +0000 Local Zone +0000
+UTC +0400 MSV Moscow Summer Time
+UTC +0300 DMV Moscow Decree Time
+UTC +0100 BST British Summer Time
+UTC +0000 GMT Greenwich Mean Time
+UTC -0400 EDT Eastern Daylight Time
+UTC -0500 EST Eastern Standard Time
+UTC -0500 CDT Central Daylight Time
+UTC -0600 CST Central Standard Time
+UTC -0600 MDT Mountain Daylight Time
+UTC -0700 MST Mountain Standard Time
+UTC -0700 PDT Pacific Daylight Time
+UTC -0800 PST Pacific Standard Time

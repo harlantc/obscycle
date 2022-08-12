@@ -1,0 +1,207 @@
+===============================================================================
+
+                    HELP FILE for prop_rps_gui
+
+===============================================================================
+
+prop_rps_gui
+------------------
+
+The prop_rps_gui application processes proposals that have failed 
+the prop_rps_receiver or the prop_rps_ingest process.  The main GUI 
+screen contains 3 sections: the error message file, the proposal file, 
+and the list of proposals successfully ingested into the database.   
+
+In general, the user would select a proposal using the File->Open 
+pulldown menu.  The user then selects a file from the standard file 
+selection box GUI.  The selected proposal file and the associated 
+error file is displayed in the main window.  The most common 
+error will be a suspected resubmission of a previous proposal.  If 
+this is true, the user may select the suspected duplicate proposal 
+number from the Proposal Database list and then select the Edit->Diff 
+pulldown menu option.  The user then determines if this is a 
+resubmission or is really a new proposal and uses the File->Ingest 
+option to ingest the proposal.  The results of the selected operation 
+will be displayed in the status area at the bottom of the main screen.
+
+If there is a proposal file that you do NOT want to ingest, use the
+File->Rename command to rename the file to a '.sav' extension.
+
+PARAMETERS
+----------
+
+The default proposals are all proposals with a status of PROPOSED
+for the current AO cycle. Use '%' as the wildcard.
+User may limit proposals by:
+-ao     [cycle]  OPTIONAL  - AO cycle, default is ASCDS_PROP_AO
+-status [status] OPTIONAL  - proposal status, default is PROPOSED
+                             options: PROPOSED,APPROVED,REJECTED
+
+-U  [user]       OPTIONAL  - user name for database access
+-S  [server]     OPTIONAL  - database server 
+                             default is $PROP_DB_SQLSRV
+
+NOTE:  Files that are processed are moved to the RPS directories
+ defined by the environment variables:
+
+   ASCDS_PROP_RPS_ARCH  - all proposals successfully ingested into
+                          the Proposal database.
+   ASCDS_PROP_RPS_ERR   - all submitted proposals that require human
+                          intervention. 
+   
+
+
+INPUT/OUTPUT
+-------------
+
+1) Input Data Files: 
+
+$ASCDS_PROP_RPS_ERR/<filename>.prop  - proposal file that has failed to be
+    ingested into the database.
+$ASCDS_PROP_RPS_ERR/<filename>.err   - associated error file for the selected
+    proposal.
+
+All user input is received through the GUI. 
+
+
+2) Output Data Files:
+
+$ASCDS_PROP_RPS_LOG/prop_rps_gui.log  -   this file contains the
+  processing log for this application. 
+
+$ASCDS_PROP_RPS_ARCH/<proposal_number>.prop - copies of successfully ingested
+  proposals.
+
+$ASCDS_PROP_RPS_ARCH/mail/<proposal_number>.mail - copies of e-mail confirmation
+  message for successfully ingested proposals.
+
+
+3) Output Data Files for Archive:
+
+<proposal_number>.prop - Received proposal name/value pair files that have
+  been successfully verified and ingested.
+
+
+SETUP AND USAGE
+---------------
+
+prop_rps_gui uses the environment variables that are set in the 
+file 'ascds_setup_prop' and 'ascds_setup_db'.  The proposal environment 
+variables should include:
+
+        $ASCDS_PROP_DIR       - home directory for proposal related files
+        $ASCDS_PROP_RPS_DIR   - home directory for RPS related files
+        $ASCDS_PROP_RPS_ARCH  - proposal files successfully ingested 
+        $ASCDS_PROP_RPS_ERR   - proposal files that contain errors such as
+                                resubmissions.
+        $ASCDS_PROP_RPS_LOG   - all process logs
+
+
+The user should not ordinarily change their values. Please read the
+"prop_SETUP.hlp" file to setup your environment correctly.
+
+Execute the Proposal Planning RPS error application:
+
+    prop_rps_gui -U <archive user> &
+  
+
+DETAILED prop_rps_gui DESCRIPTION - GENERAL INSTRUCTIONS
+--------------------------------------------------------
+
+After initiating this application, the user is presented with a Proposal
+RPS Error GUI screen containing the main menubar.  From the main menubar, 
+the user can select pulldown menus for the following headings: file, edit, 
+and view. The options available for each of these headings are described 
+below.
+
+File:
+  Button                 Description                
+  ------                 -----------                
+  Open                   Open an existing proposal file.
+  Ingest                 Ingest the selected proposal file into the database 
+                         using the specified proposal number.
+  Archive Retrieve       Retrieve specified proposal from the database archive.
+  Print                  Print the current proposal file, error message or
+                         proposal list.
+  Resurrect Proposal     Resurrect previously deleted or removed proposal
+  Delete Proposal        Delete an existing proposal.
+  Remove Current File    Rename an existing file to *.sav 
+  Exit                   Exit the Proposal-RPS Error function. 
+
+
+
+Edit:
+  Button                 Description                
+  ------                 -----------                
+  Diff Error Queue       Execute the UNIX 'diff' command for the selected 
+                         proposal file and selected proposal from the Proposal
+                         Database list.
+  Diff Proposals         Execute the Unix 'diff' command for 2 proposals already
+                         in the database.
+  Sort                   Sort the entries in user specified order.
+  Refresh Proposal List  Refresh(update) the proposal list from the database.
+  Find                   Find and highlight(select) a character string.
+  Find Next              Find highlight(select) the next entry which matches 
+                         the search criteria. 
+
+
+View: 
+  Button                 Description                
+  ------                 -----------                
+  Proposal File          View associated proposal file for selected proposal 
+                         number
+  Received Log           View the prop_rps_receiver log file.
+  Ingest Log             View the prop_rps_ingest log file.
+  RPS GUI Log            View the prop_rps_gui log file.
+  Deleted Proposals      View list of deleted proposals
+  PDF Files              View list of uploaded PDF files for selected proposal
+
+
+Statistics:
+  Button                 Description                
+  ------                 -----------                
+  RPS Checks             performs various checks on proposals 
+                         (prop_rps_checks.pl)
+  Check Uploads          check for missing RPS and Science Justification files 
+                         (prop_check_upload.pl)
+  Receiver Statisics     displays proposal receipt by year/month/day/hour
+                         (prop_receiver_log_stats.pl)
+  All PROPOSED           statistics for proposal with status=PROPOSED
+                         for the current cycle.(prop_all_stats.pl)
+  GTO                    GTO statistics for the current cycle
+                         (prop_gto_stats.pl)
+  Joint                  Joint statistics for the current cycle
+                         (prop_joint_stats.pl)
+  LP/VLP/XVP             LP/VLP/XVP statistics for the current cycle
+                         (prop_lp_vlp_stats.pl)
+
+  Proposal Lists         produce full set of proposal lists for current cycle
+                         (proposal_lists.pl)
+      
+
+SIDE EFFECTS AND RESTRICTIONS
+-----------------------------
+
+
+NOTE:  If a proposal is resubmitted and the Subject Category changes, the
+old proposal should be deleted and the new one should be ingested as a 
+'new' proposal.  The proposal number is comprised of several parts, one part
+being the subject category.  Please read the prop_rps_ingest.hlp file for
+more information.
+
+
+
+REFERENCES
+----------
+
+See the Proposal Planning section of the Data System Software Design Document 
+(DS01) for more detail about the mpcat functionality, and see Appendix C of
+the same document for more detail about the GUI functionality.  (Noting that
+the code may have additional capabilities not previously identified within the
+document.)
+
+
+
+
+
+

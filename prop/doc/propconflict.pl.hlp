@@ -1,0 +1,99 @@
+===============================================================================
+
+	            HELP FILE for propconflict.pl
+
+===============================================================================
+
+
+General
+-------
+
+The propconflict.pl script adds a simple command line prompt based 
+interface to the propconflict application.  It supports the basic
+DDT thread.   It is used to search rejected proposals and the observation
+catalog for conflicts based on a single coordinate search.
+
+This script only supports a minimal set of propconflict options.
+For a full description of options, enter 'propconflict -h'.
+
+
+PARAMETERS
+----------
+
+USAGE: propconflict.pl [-U dbuser] [-S server] [-d]
+All parameters are optional (user will be prompted).
+    -U   database user name
+    -S   SQL server (default is DB_PROP_SQLSRV) 
+    -d   use default parameters: search rejected proposals with
+         radius of 15 arcmin using 'peer' report format
+
+
+
+
+
+
+INPUT/OUTPUT
+-------------
+
+1) STDIN:  
+
+   Database User:   Enter database user name if -U option not used
+   Enter Password:  User must enter password for access to the database.
+
+   Additional prompts for input: 
+     Enter RA (hh mm ss.ss):      Right ascension for target conflict
+     Enter DEC (+/-dd mm ss.ss):  Declination for target conflict
+
+   Additional prompts for input if -d option not used:
+     Do you want to search rejected proposals (y/n)? [y]  
+     Enter report type (peer,tech,review): [peer]       
+     Radius (units=arcmin) : [15] 
+
+2) Input Files: None
+
+
+3) Output Files:  None  
+
+     Output written to STDOUT
+
+
+4) Output Files for Archive: 
+
+   N/A
+
+
+SETUP AND USAGE
+---------------
+
+propconflict.pl uses the environment variables that are set in the file 
+'ascds_setup_prop' and 'ascds_setup_db'.  These proposal environment 
+variables include :
+
+        ASCDS_PROP_AO        - current open proposal cycle number
+	DB_PROP_SQLSRV       - SQL server
+
+The user should not ordinarily change their values. 
+
+Only those users having permissions to read proposals should have access to
+the proposal database and any files that contain proposal data.
+
+
+
+
+DETAILED DESCRIPTION - GENERAL INSTRUCTIONS
+-------------------------------------------------------------------
+  This is a simple perl script with no error checking.  It accepts user
+input and formats/executes the correct 'propconflict' command line.
+Error checking is within the actual propconflict application.
+
+
+RESTRICTIONS
+------------
+
+REFERENCES
+----------
+More information on propconflict is available in:
+  /proj/ascds/staff/UDF/Databases/proposal/Notes/propconflict.doc
+
+See the Proposal section of the Data System Software Design Document 
+(DS01) for more detail about the proposal submission cycle. 

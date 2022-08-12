@@ -1,0 +1,119 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+<head>
+  <title>Chandra Proposal Search</title>
+  <!--#include virtual="/soft/include/cxcds_meta.html"-->
+  <meta name="title" content="Chandra Proposal Search"> 
+  <link rel="stylesheet" href="/soft/include/cxcds.css" type="text/css" media="screen">
+  <link rel="stylesheet" href="/soft/propsearch/prop_search.css" type="text/css">
+</head>
+<body>
+<div class="topDiv">
+<div id="cxcheader">
+  <div class="propheaderleft">
+       <a href="/index.html"> <img id="spacecraft" src="/soft/include/cxcheaderlogo.png" alt="Chandra X-Ray Observatory (CXC)"></a>
+  </div>
+  <div class="propheadercenter"> Chandra Proposal Search Help
+  </div>
+</div>
+<h2><a name="cycle">Cycle</a></h2>
+The Call for Proposal (CfP) cycle of which the observation was a part.
+<p>
+<i>Data Entry Information:</i> See
+ <a href="#MultipleSelectionLists">Multiple Selection Lists</a> for more information on using lists 
+
+<h2><a name="propnum">Proposal Number</a></h2>
+8-digit number identifying the proposal for an observation
+<p>
+Data Entry Information: Any Proposal Number that contains the entered value will be returned.
+For example, entering 520 could match:
+<pre>
+  04800520
+  05200866
+  15200174
+</pre>
+
+
+
+<h2><a name="type">Type</a></h2>
+The Proposal Type, options are:  
+<ul>
+<li><b>GO</b>: General Observer proposals
+<li><b>LP</b>: Large Project and Very Large Project proposals 
+<li><b>VLP</b>: Very Large Project proposals (Cycle 5-12)
+<li><b>XVP</b>: X-ray Visionary Project proposals (Cycle 13 and greater)
+<li><b>TOO</b>: Target Of Opportunity
+<li><b>DDT</b>: Director's Discretionary Time
+<li><b>GTO</b>: Guaranteed Time Observation
+<li><b>CCT</b>: Chandra Cool Targets
+<li><b>CAL</b>: Calibration
+<li><b>Archive:</b>  Archive proposals
+<li><b>Theory:</b>  Theory proposals
+<li><b>CECS:</b>  Cold External Calibration Source proposals
+</ul>
+<h2><a name="last">P.I. Last Name</a></h2>
+Last name of the Principal Investigator
+<p>
+Data Entry Information: The matching is case insensitive. Any PI Name that contains the entered value will be returned.
+For example, entering smith could match:
+<pre>
+    SMITH
+    SMITHERS
+    BLACKSMITH
+</pre>
+
+
+<h2><a name="joint">Joint</a></h2>
+Other observatories that were approved as part of this observation (if any). The Joint Observatory options are:
+
+<ul>
+<li><b>None:</b>  No joint time awarded for any other observatory. 
+<li><b>HST:</b> Hubble Space Telescope (HST) Observatory. This includes proposals approved at the Chandra Review (HST) and those approved at the HST Review(CXO-HST).
+<li><b>NOAO:</b>  National Optical Astronomy Observatory (NOAO) Observatory
+<li><b>NRAO:</b>  National Radio Astronomy Observatory (NRAO) Observatory
+<li><b>NuSTAR:</b>  NuSTAR Observatory
+<li><b>RXTE:</b>  Rossi X-ray Timing Explorer Mission
+<li><b>Spitzer:</b>  Spitzer Space Telescope Observatory.
+ This includes proposals approved at the Chandra Review (Spitzer) and those approved at the Spitzer Review(CXO-Spitzer).
+<li><b>Suzaku:</b>  Suzaku Observatory
+<li><b>Swift:</b>  Swift Observatory
+<li><b>XMM:</b> XMM-Newton Observatory.
+ This includes proposals approved at the Chandra Review (XMM) and those approved at the XMM Review(CXO-XMM).
+</ul>
+<p>
+<h2><a name="sort">Sort by</a></h2>
+The order in which the search results are displayed. The user may choose to sort by any element in the selection list. 
+<h2><a name="display">Display</a></h2>
+<ul>
+<li>Format 
+<br>
+The two choices for the output display format are:
+<ul>
+<li>HTML: Proceeds to Search Results HTML page
+<li>Text: Returns text page of tab-separated results which can be printed or saved in a file
+</ul>
+<p>
+<li>Row Limit
+<br>Choose the maximum number of rows to display. The recommended maximum number is 100. If "No Limit" is selected and the search criteria do not limit the results sufficiently, the user may experience an unacceptable delay. 
+</ul>
+
+
+
+
+<h2><a name="MultipleSelectionLists">Multiple Selection Lists</a></h2>
+<ul>
+<li>The user may select none, any or all of the values in the list
+<li>Selecting none of the values in the list is the equivalent of selecting all of the values in the list (i.e. not selecting anything will cause the search to ignore that field, which is the same as using the field in the search with all possible values selected)
+<li>It is browser dependent how the user unselects a single value (so that no values are selected after some were previously selected)
+<li>To unselect a single value in most browsers, hold the control key down while clicking the mouse
+</ul>
+
+  
+</div>
+<div class="footerDiv">
+
+<!--#include virtual="/soft/include/cxcfooter.html"-->
+
+</div>
+</body>
+</html>

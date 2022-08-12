@@ -1,0 +1,81 @@
+<fieldset class="fshelp" id="prop"><legend>Proposal </legend>
+<ul>
+
+<li class="elehelp"><a name="ObservationType" class="lblhelp"> Proposal Type</a>
+<br>
+<TABLE BORDER="0" CELLSPACING="0" CELLPADDING="0" >
+<TR>
+<TH ALIGN="LEFT"><b>Choice</b><hr></TH>
+<TH ALIGN="LEFT"><b>Description</b><hr></TH>
+</TR>
+<TR>
+<TD>DDT</TD><TD> Director's Discretionary Time </TD></TR><TR>
+<TD>CAL</TD><TD> Calibration  (Chandra personnel only)</TD></TR>
+</TABLE>
+<P>CPS is used by all Chandra groups as the input to the observation
+database, so the <b>Proposal Type</b> is important.  General
+Observers (GOs) should use the <i>DDT</i> type.
+
+<p> The <i>Proposal Type</i> of CAL is only to be used by CXC.
+No proposal from non-CXC personnel can be accepted that requests
+a Calibration observation.  
+<p><I>Required</I>.
+
+<li class="elehelp"><a name="ProprietaryData" class="lblhelp"> Proprietary Rights</a>
+<br>
+The default is no proprietary data rights.
+'No proprietary rights' means that the data flows directly into the
+archive.  Valid DDT options are:
+<pre>
+No proprietary rights (default)
+Discretionary proprietary rights (0-3 months)
+</pre>
+<I>Required</I>.
+
+<li class="elehelp"><a class="lblhelp" name="DDTRights">**Justification of Request for Proprietary Rights</a><br>
+Justify request for discretionary proprietary rights.  This field is 
+required if you wish to retain proprietary rights. 
+<br>Maximum of 200 characters.  Characters beyond this limit will be
+truncated.
+
+
+<li class="elehelp"><a name="ProposalTitle" class="lblhelp"> Proposal Title</a>
+<br>
+The title of the proposal. <br>Maximum of 120 characters. <I>Required</I>.
+
+
+<li class="elehelp"><a class="lblhelp" name="SubjectCategory">Subject Category</a>
+<br>
+The type of objects(s) to be viewed in the Proposal. Enter
+one of the following categories:
+<pre>
+Solar System and Exoplanets
+Stars and WD
+WD Binaries and CV
+BH and NS Binaries
+SN, SNR and Isolated NS
+Gravitational Wave Event
+Normal Galaxies: Diffuse Emission
+Normal Galaxies: X-ray Populations
+Active Galaxies and Quasars 
+Clusters of Galaxies
+Extragalactic Diffuse Emission and Surveys
+Galactic Diffuse Emission and Surveys
+</pre>
+<I>Required</I>.
+
+<li class="elehelp"><a name="Keywords" class="lblhelp"> Science Keywords</a>
+<br>
+<!--#include virtual="science_keywords.html" -->
+
+<p>
+<li class="elehelp"><a name="Abstract" class="lblhelp"> Science Justification</a>
+<br>
+Please provide a compelling scientific case why Chandra should carry out this program.
+Maximum of 1000 characters. Characters beyond this limited will be truncated. 
+<I>Required</I>.
+
+
+</ul>
+</fieldset>
+

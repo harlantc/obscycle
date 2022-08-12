@@ -1,0 +1,7 @@
+/*_C_INSERT_SAO_COPYRIGHT_HERE_(2011)_*/
+/*_C_INSERT_GPL_LICENSE_HERE_*/
+
+#ifndef ESC_TYPES_H
+#define ESC_TYPES_H
+
+#endif

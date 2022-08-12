@@ -1,0 +1,85 @@
+===============================================================================
+
+	            HELP FILE for prop_set_links_pimms_ea.pl
+
+===============================================================================
+
+
+General
+-------
+
+The prop_set_links_pimms_ea.pl script provides the commands to set a 
+symbolic link between $ASCDS_PROP_PMS_DATA and the subset of PIMMS data
+files that are provided with the release.  In NRA1-NRA3, the EA data was 
+not available in the CALDB but rather was provided in the release
+(config/pimms/data directory).
+
+The Proposal Applications (CLI PIMMS, WWW PIMMS, Effective Area File Viewer) 
+support comparisons between the current Chandra data and the data from the 
+previous cycle.
+
+
+PARAMETERS
+----------
+
+N/A
+
+
+INPUT/OUTPUT
+-------------
+
+1) Input Files: 
+
+   none
+
+2) Output Files:
+
+   none (symbolic links only)
+
+3) Output Files for Archive: 
+
+   N/A
+
+
+SETUP AND USAGE
+---------------
+
+To run the script to install the PIMMS Effective Area data
+
+        > setenv ASCDS_PROP_PMS_DATA <install_directory> 
+        > setenv ASCDS_INSTALL <release_directory> 
+        > prop_set_links_pimms_ea.pl
+
+where <install_directory> may be any writable directory.  The script 
+creates links in this <install_directory> to files in the release for
+the other mission data (non-Chandra data).
+
+
+DETAILED DESCRIPTION
+--------------------
+
+The script will set a symbolic link for those files in 
+$ASCDS_INSTALL/config/pimms/data  to $ASCDS_PROP_PMS_DATA.
+The perl script, prop_set_links_pimms_ea.pl, must be executed once per new
+PIMMS release in order to set symbolic links for all the special PIMMS files. 
+PIMMS.  The internal SAO release set up will point internal SAO users to
+a common "system installation".  This system installation is required 
+to maintain Web application performance (WWW PIMMS, Effective Area File
+Viewer) and is provided as a convenience to internal SAO users of CLI PIMMS.  
+Any internal SAO user may download the CALDB and run the 
+prop_install_pimms_ea.pl script to install the Chandra EA files to a 
+location of choice if desired.
+
+
+RESTRICTIONS
+------------
+
+none
+
+
+REFERENCES
+----------
+
+See the file README.nra at the top-level of the release 
+(/home/ascds/DS.release/README.cycle5) for instructions on running this
+file as part of the Portable System.

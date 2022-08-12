@@ -1,0 +1,96 @@
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 2016, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_build_joint.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script builds the arrays needed to process joint fields based on cycle
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+use vars qw ( @facility @reqtime @apptime %param
+	);
+
+use strict;
+
+1;
+
+sub build_joint_params
+{
+  if (!$param{all} && !$param{hst} && !$param{nustar} &&
+      !$param{xmm} && !$param{noao} && !$param{nrao} &&
+      !$param{spitzer} && !$param{suzaku} && !$param{swift} &&
+      !$param{rxte}) {
+    $param{hst} ="on";
+    $param{xmm}="on";
+    $param{noao}="on";
+    $param{nrao}="on";
+
+    if ($param{a} >6  && $param{a} < 19)  { $param{spitzer}="on"; }
+    if ($param{a} >10 && $param{a} < 17)  { $param{suzaku}="on"; }
+    if ($param{a} < 11)  { $param{rxte}="on"; }
+    if ($param{a} > 14)  { $param{swift}="on"; }
+    if ($param{a} > 15)  { $param{nustar}="on"; }
+  }
+ 
+  if ($param{hst} || $param{all}) { 
+     push(@facility,"HST");
+     push(@reqtime,"hst_time");
+     push(@apptime,"hst_approved_time");
+  }
+  if ($param{noao} || $param{all}) { 
+     push(@facility,"NOAO");
+     push(@reqtime,"noao_time");
+     push(@apptime,"noao_approved_time");
+  }
+  if ($param{nrao} || $param{all}) { 
+     push(@facility,"NRAO");
+     push(@reqtime,"nrao_time");
+     push(@apptime,"nrao_approved_time");
+  }
+  if ($param{nustar} || $param{all}) { 
+     push(@facility,"NuSTAR");
+     push(@reqtime,"nustar_time");
+     push(@apptime,"nustar_approved_time");
+  }
+  if ($param{rxte} || $param{all}) { 
+     push(@facility,"RXTE");
+     push(@reqtime,"rxte_time");
+     push(@apptime,"rxte_approved_time");
+  }
+  if ($param{spitzer} || $param{all}) { 
+     push(@facility,"Spitzer");
+     push(@reqtime,"spitzer_time");
+     push(@apptime,"spitzer_approved_time");
+  }
+  if ($param{suzaku} || $param{all}) { 
+     push(@facility,"Suzaku");
+     push(@reqtime,"suzaku_time");
+     push(@apptime,"suzaku_approved_time");
+  }
+  if ($param{swift} || $param{all}) { 
+     push(@facility,"Swift");
+     push(@reqtime,"swift_time");
+     push(@apptime,"swift_approved_time");
+  }
+  if ($param{xmm} || $param{all}) { 
+     push(@facility,"XMM");
+     push(@reqtime,"xmm_time");
+     push(@apptime,"xmm_approved_time");
+  }
+}
+

@@ -1,0 +1,85 @@
+===============================================================================
+    HELP FILE for SETTING UP ENVIRONMENT TO RUN PROPOSAL APPLICATIONS
+===============================================================================
+
+-------------------------------------------------------------------------------
+First, set up environment to point to correct version of released software
+-------------------------------------------------------------------------------
+
+1) Obtain the correct version of the .ascrcuser file by executing this
+command, with your username filled in:
+ 
+     cp -p /home/ascds/DS.release/config/system/.ascrcuser ~<username>
+
+
+2) Clear out all other pointers within your path by executing this command:
+
+     source ~/.cshrc
+
+
+3) Clear any previous .ascrc setup by executing this command:
+
+     unsetenv ASCDS_SEARCH_PATH
+
+
+4) Source the .ascrc file by executing this command:
+
+    source /home/ascds/DS.release/config/system/.ascrc
+
+(This file will also execute the .ascrcuser file within your home directory.)
+
+
+5) View the results by executing these commands:
+
+a)   printenv ASCDS_BIN
+
+The result should be /home/ascds/DS.release/bin.
+
+b)   printenv LD_LIBRARY_PATH
+
+The result should include "/home/ascds/DS.release/lib" towards the beginning 
+of the path.
+  
+c)   printenv | grep ASCDS_PROP_
+
+Here is a sample output:
+
+ASCDS_PROP_DATE_DATA=/home/ascds/DS.release/config/jcm_data
+ASCDS_PROP_RPS_EMAIL=dhall@head.cfa.harvard.edu
+ASCDS_PROP_REPLY_TO=rps_prop@head.cfa.harvard.edu
+ASCDS_PROP_RPS_USER=rps_prop
+ASCDS_PROP_DIR=/data/obs/prop
+ASCDS_PROP_RPS_DIR=/data/obs/prop/rps
+ASCDS_PROP_RPS_RECV=/data/obs/prop/rps/receiver
+ASCDS_PROP_RPS_ERR=/data/obs/prop/rps/error
+ASCDS_PROP_RPS_ARCH=/data/obs/prop/rps/archive
+ASCDS_PROP_RPS_LOG=/data/obs/prop/rps/log
+ASCDS_PROP_REVIEW=/data/obs/prop/reviews
+ASCDS_PROP_OUTMAIL=/data/obs/prop/out_mail
+ASCDS_PROP_NOTIFY=/data/obs/notify
+ASCDS_PROP_LOGS=/data/obs/prop/log
+ASCDS_PROP_NORMG=3.5
+ASCDS_PROP_AO=02
+ASCDS_PROP_TOO_AO=01
+ASCDS_PROP_RPS_PROJ=/home/ascds/DS.release/config/prop_rps_project
+ASCDS_PROP_NHBASE=/home/ascds/DS.release/config/jcm_data
+ASCDS_PROP_PREC_DATA=/home/ascds/DS.release/config/jcm_data
+ASCDS_PROP_PMS_DATA=/home/ascds/DS.release/config/pimms/data
+ASCDS_PROP_PMS_MODEL=/home/ascds/DS.release/config/pimms/models
+ASCDS_PROP_WWW=/home/ascds/DS.release/www
+
+-------------------------------------------------------------------------------
+Now, the environment should be properly setup 
+-------------------------------------------------------------------------------
+
+The names of the executables can be found with:
+
+     ls /home/ascds/DS.release/bin/prop_*
+
+Descriptions of the applications, how they are run, and the format of the
+required inputs are provided within the helpfiles.  The names of the available
+helpfiles can be found with:
+
+     ls /home/ascds/DS.release/doc/prop_*
+
+-------------------------------------------------------------------------------

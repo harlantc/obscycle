@@ -1,0 +1,158 @@
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 1995, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_routines.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:  General routines for proposal scripts
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+use strict;
+
+
+1;
+
+sub dbProposalConnection
+{
+  my($usr,$srvr,$pwd) = @_;;
+  my($stmp,$dsn,$dbh); 
+
+  #database connection
+  $stmp = "server=$srvr;database=proposal";
+  $dsn = "DBI:Sybase:$stmp";
+  $dbh = DBI->connect($dsn, $usr, $pwd, {
+        PrintError => 1,
+        RaiseError => 1});
+  if ( !defined $dbh) {
+    exit 1;
+  }
+
+  return $dbh;
+}
+
+sub dbOcatConnection
+{
+  my($usr,$srvr,$pwd) = @_;;
+  my($stmp,$dsn,$dbh); 
+
+  #database connection
+  $stmp = "server=$srvr;database=axafocat";
+  $dsn = "DBI:Sybase:$stmp";
+  $dbh = DBI->connect($dsn, $usr, $pwd, {
+        PrintError => 1,
+        RaiseError => 1});
+  if ( !defined $dbh) {
+    exit 1;
+  }
+
+  return $dbh;
+}
+
+
+sub get_password
+{
+  my($usr,$srvr) = @_;
+  my($pwd);
+
+  use Term::ReadKey;
+  {
+       ReadMode 'noecho';
+       print "Enter password for $usr on $srvr: ";
+       $pwd = ReadLine( 0 );
+       chomp $pwd;
+       ReadMode 'restore';
+       print "\n";
+  }
+
+  return $pwd;
+}
+
+sub chgroup
+{
+  my($fname) = @_;
+  my($gid);
+
+  $gid = getgrnam("prop");
+  chown (-1,$gid,$fname);
+}
+
+sub write_password
+{
+  my($fname,$pwd) = @_;
+
+  open PFILE,"> $fname";
+  print PFILE "$pwd\n";
+  close PFILE;
+  chmod(0600,$fname);
+}
+
+sub read_password
+{
+  my($fname) = @_;
+  my($pwd);
+
+  open PFILE,"< $fname";
+  while ( <PFILE> ){
+    chomp;
+    $pwd = $_;
+  }
+  close PFILE;
+
+  return $pwd;
+}
+
+sub get_date
+{
+  my(@dtmp,$yy,$mm,$thedate);
+
+  @dtmp = localtime;
+  $yy = $dtmp[5] + 1900;
+  $mm = $dtmp[4] + 1;
+  $thedate = sprintf("%-04.4d/%-02.2d/%-02.2d %-02.2d:%-02.2d",
+        $yy, $mm, $dtmp[3],
+        $dtmp[2], $dtmp[1]);
+
+  return $thedate;
+}
+
+
+sub convert_coord()
+{
+  my($ra,$dec) = @_;
+  my($xx,$rah,$ram,$ras,$dad,$dam,$das);
+  my($rastr,$decstr,$sign);
+
+  $xx = $ra / 15;
+  $rah = int $xx;
+  $xx = ($xx - $rah + .000001) * 60.0;
+  $ram = int $xx;
+  $ras = ($xx - $ram + .000001) * 60.0;
+  $xx = abs($dec);
+  $dad = int $xx;
+  $xx = ($xx - $dad + .000001) * 60.;
+  $dam = int $xx;
+  $das = ($xx - $dam + .000001) * 60;
+  if ($dec < 0) {
+    $sign = '-';
+  }
+  else  {
+    $sign = ' ';
+  }
+
+  $rastr = sprintf ("%02d:%02d:%04.1f",$rah,$ram,$ras);
+  $decstr = sprintf ("%1s%02d:%02d:%04.1f",$sign,$dad,$dam,$das);
+
+  return ($rastr,$decstr);
+}

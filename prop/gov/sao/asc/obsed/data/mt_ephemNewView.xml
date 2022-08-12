@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE formView SYSTEM "formView.dtd">
+
+<formView>
+
+  <title>New Orbit Form</title>
+
+  <info>
+    <supportsNew>true</supportsNew>
+  </info>
+
+  <key>
+    <tableName>mt_ephem</tableName>
+    <columnName>obsid</columnName>
+  </key>
+
+  <navigation>
+    <display>
+      <name>Observation ID</name>
+      <tableName>mt_ephem</tableName>
+      <columnName>obsid</columnName>
+    </display>
+  </navigation>
+
+  <GUI>
+    <obsidcombobox tag="11">
+      <labelText>Obs ID</labelText>
+      <size>8</size>
+      <row>
+        <number>0</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>mt_ephem</tableName>
+        <columnName>obsid</columnName>
+	<queryString>SELECT target.obsid FROM target WHERE target.obj_flag = 'MT' AND NOT EXISTS (SELECT 1 FROM locked WHERE locked.obsid = target.obsid) AND NOT EXISTS (SELECT 1 FROM mt_ephem WHERE mt_ephem.obsid = target.obsid)</queryString>
+      </database>
+    </obsidcombobox>
+    
+    <textfield tag="21">
+      <labelText>Epoch</labelText>
+      <size>8</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>mt_ephem</tableName>
+        <columnName>epoch</columnName>
+      </database>
+    </textfield>
+    
+    <textfield tag="22">
+      <labelText>Semi-major Axis</labelText>
+      <size>8</size>
+      <database>
+        <tableName>mt_ephem</tableName>
+        <columnName>axis</columnName>
+      </database>
+    </textfield>
+    
+    <textfield tag="23">
+      <labelText>Eccentricity</labelText>
+      <size>8</size>
+      <database>
+        <tableName>mt_ephem</tableName>
+        <columnName>eccentricity</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="31">
+      <labelText>Inclination</labelText>
+      <size>8</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+        <width>></width>
+      </column>
+      <database>
+        <tableName>mt_ephem</tableName>
+        <columnName>eccentricity</columnName>
+      </database>
+    </textfield>
+    
+    <textfield tag="32">
+      <labelText>RA of Ascending Node</labelText>
+      <size>8</size>
+      <database>
+        <tableName>mt_ephem</tableName>
+        <columnName>raan</columnName>
+      </database>
+    </textfield>
+    
+    <textfield tag="33">
+      <labelText>Arg of Periastron</labelText>
+      <size>8</size>
+      <database>
+        <tableName>mt_ephem</tableName>
+        <columnName>aop</columnName>
+      </database>
+    </textfield>
+    
+    <textfield tag="41">
+      <labelText>Mean Anomaly at Epoch</labelText>
+      <size>8</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>mt_ephem</tableName>
+        <columnName>ma</columnName>
+      </database>
+    </textfield>
+  </GUI>
+
+</formView>

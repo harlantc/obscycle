@@ -1,0 +1,689 @@
+.dhtmlx_modal_box {
+  margin-right:50px;
+}
+.dhtmlx_popup_button div {
+    line-height: normal!important;
+}
+.dhtmlx-confirm-dialog {
+  text-align:left;
+  color:black!important;
+}
+.dhtmlx_popup_button {
+  text-align:center!important;
+  width:auto;
+  height:auto!important;
+  padding:5px!important;
+}
+
+span.dhxform_item_required {
+  color:#efefef!important;
+}
+.selectedTreeRow_lor {
+    text-decoration:none!important;
+}
+.standardTreeRow_lor {
+    text-decoration:none!important;
+}
+.dhxtree_dhx_skyblue .selectedTreeRow_lor, .dhxtree_dhx_skyblue .selectedTreeRow
+{
+    background-color: #eaeaea;
+    border: 0px;
+}
+.dhxtree_dhx_skyblue .selectedTreeRow_lor, .dhxtree_dhx_skyblue .selectedTreeRow:hover
+{
+    background-color: #ffffff;
+    border: 0px;
+}
+
+div.dhxtabbar_arrow_img {
+   /* background-color:#9d879d!important; */
+ background-color:#000080!important;
+
+}
+div.dhxtabbar_arrow_img:hover {
+  /* background-color:#cfb7cf!important; */
+ background-color:#0000e0!important;
+}
+span.dhtmlxcalendar_month_label_month:hover {
+   background-color:#b5deff!important;
+}
+span.dhtmlxcalendar_month_label_year:hover {
+   background-color:#b5deff!important;
+}
+.dhxform_obj_dhx_skyblue div.dhxform_btn div.dhxform_btn_txt {
+  height:auto!important;
+}
+
+/* this seems to help with the offset between header and table body
+   when the font is really large (on chrome)
+*/
+table {
+  border-spacing:0px!important;
+}
+
+/* make the headers grow with the font size */
+div.gridbox_dhx_skyblue.gridbox .xhdr {
+  height:auto!important;
+}
+div.gridbox {
+  box-sizing: content-box !important;
+  height:auto!important;
+}
+
+
+div.gridbox_dhx_skyblue.isModern table.hdr td:hover {
+  background-color:#dae7f6!important;
+  background-image:none;
+}
+.dhxgrid_sort_asc {
+    background-image: url("/cps-app/imgs/sort_asc.gif");
+    background-repeat: no-repeat;
+}
+.dhxgrid_sort_desc {
+    background-image: url("/cps-app/imgs/sort_desc.gif");
+    background-repeat: no-repeat;
+}
+.dhxform_obj_dhx_skyblue fieldset.dhxform_fs legend.fs_legend {
+        color:#425e75;
+}
+/* this is for the label only type of field */
+div.gridbox_dhx_skyblue.gridbox table.obj tr td {
+
+    padding-top: 1px;
+    padding-bottom: 1px;
+    border-right: 1px solid #aaa;
+    border-top: 1px solid #fff;
+    border-bottom: 1px solid #aaa;
+
+}
+div.gridbox_dhx_skyblue.gridbox table.obj tr.rowselected td, div.gridbox_dhx_skyblue.gridbox table.obj tr.odd_dhx_skyblue.rowselected td {
+
+    background-color: #b5deff;
+    border-top: 1px solid #aaa;
+    border-bottom: 1px solid #aaa;
+    border-right: 1px solid #aaa;
+
+}
+.dhxform_obj_dhx_skyblue div.dhxform_txt_label2 {
+        color:black;
+        font-weight:normal;
+}
+/* don't allow the upload cancel 'cause i don't see it sending cancel */
+.dhxform_obj_dhx_skyblue .dhx_file_uploader div.dhx_upload_controls div.dhx_file_uploader_button.button_cancel {
+        background-position:-57px 0;
+        right:79px;
+        display:none;
+        ;
+}
+/* changes text color on inactive tab */
+.dhxtabbar_base_dhx_skyblue div.dhxtabbar_tabs div.dhxtabbar_tab.dhxtabbar_tab_dis div.dhxtabbar_tab_text, .dhxtabbar_base_dhx_skyblue div.dhxtabbar_tabs div.dhxtabbar_tab.dhxtabbar_tab_actv_dis div.dhxtabbar_tab_text {
+        color:#34404b!important;
+        background-color:#cccccc;
+        ;
+}
+.dhxtabbar_base_dhx_skyblue div.dhxtabbar_tabs div.dhxtabbar_tab div.dhxtabbar_tab_text {
+        height:30px;
+        line-height:normal;
+        top:0px;
+	margin:1px;
+        color:#000000;
+	background-color:#c6dbf6;/*#641a0a!important;*/
+        border-top-right-radius: 1em;
+        border-top-left-radius: 1em;
+        -moz-border-radius-topleft: 1em;
+        -moz-border-radius-topright: 1em;
+        -webkit-border-top-left-radius: 1em;
+        -webkit-border-top-right-radius: 1em;
+
+        ;
+}
+.dhxtabbar_base_dhx_skyblue div.dhxtabbar_tabs div.dhxtabbar_tabs_base div.dhxtabbar_tabs_line {border-top: 0px solid #a4bed4;
+height:0px!important;
+}
+.dhxtabbar_base_dhx_skyblue div.dhxtabbar_tabs div.dhxtabbar_tab.dhxtabbar_tab_actv div.dhxtabbar_tab_text {
+        color:#ffffff;
+        font-weight:bold;
+	background-color:#000080!important;
+        ;
+}
+/* unused part of tab */
+.dhxtabbar_base_dhx_skyblue div.dhxtabbar_tabs {
+        position:absolute;
+        bottom:auto;
+        height:27px;
+        overflow:hidden;
+        white-space:nowrap;
+        border:1px solid #a4bed4;
+        background-color:#e2efff!important; 
+        background-image:none;
+        filter:none;
+}
+.dhxform_obj_dhx_skyblue div.disabled div.dhxform_label, 
+.dhxform_obj_dhx_skyblue div.disabled div.dhxform_label div.dhxform_label_nav_link,
+.dhxform_obj_dhx_skyblue div.disabled div.dhxform_label span.dhxform_item_required {
+        color:#666;
+}
+div.dhxcombo_dhx_skyblue.dhxcombo_disabled input.dhxcombo_input {
+        color:#666;
+        ;
+}
+.dhxform_obj_dhx_skyblue div.disabled .dhxform_select {
+        color:#666;
+        background-color:#fff;
+        border:1px solid #c2d0dd;
+        ;
+}
+.dhxform_obj_dhx_skyblue fieldset.dhxform_fs {
+        border:1px solid #a4bed4;
+        margin:0;
+        padding:5px 0 5px 0;  /* was 5 0 12 0 */
+        clear:left;
+        width:100%;
+        ;
+}
+.dhxsidebar_base_dhx_skyblue div.dhxsidebar_cont div.dhxsidebar_side  {
+	margin-top:50px;
+        background-color: #f6f1e8;
+	border:0 solid black;
+	border-width:0px 0px 0px 0px;
+}
+.dhxsidebar_base_dhx_skyblue div.dhxsidebar_cont div.dhxsidebar_side div.dhxsidebar_side_items div.dhxsidebar_item {
+	border:0 solid black;
+	border-width:0px 0px 0px 0px;
+}
+.dhxsidebar_base_dhx_skyblue div.dhxsidebar_cont div.dhxsidebar_side div.dhxsidebar_side_items div.dhxsidebar_item div.dhxsidebar_bubble {
+	border:0 solid black;
+	border-width:0px 0px 0px 0px;
+}
+.dhxsidebar_base_dhx_skyblue div.dhxsidebar_cont div.dhx_cell_sidebar div.dhx_cell_cont_sidebar {
+        position:absolute;
+        border-left:0 solid #a4bed4;
+        border-right:0px solid #a4bed4;
+        border-bottom:0px solid #a4bed4;
+        border-top:0px solid #a4bed4;
+        overflow:hidden;
+        z-index:0;
+        ;
+}
+
+.dhxtree_dhx_skyblue {
+        background-color:#eaeaea;
+        color:black;
+}
+
+.dhxform_obj_dhx_skyblue div.disabled .dhxform_textarea {
+        color:black;
+        background-color:#eaeaea;
+        border:1px solid #c2d0dd;
+}
+
+/* should help for chrome */
+select.dhx_combo_select{
+overflow: auto !important;
+}
+
+body {
+        background-color: #eaeaea;
+        width: 99%;
+        font-family: Tahoma, Arial, Helvetica, sans-serif;
+}
+body.waiting * { cursor: wait; }
+
+iframe {
+        background-color: #eaeaea;
+}
+
+input[readonly]{
+  color:#666!important;
+}
+textarea[readonly]{
+  color:#666!important;
+}
+input {
+  background-color:#ffffff;
+}
+text {
+  background-color:#ffffff;
+}
+textarea {
+  background-color:#ffffff;
+}
+body#banner {
+}
+div#header {
+}
+.instrTxtNoPad {
+        background-color:#d2d9e4!important;
+        color:black;
+        font-size:.9em;
+  	border-radius: 1em;
+        padding:2px 10px 2px 10px ;
+        margin-top:0px;
+        margin-left:10px;
+        float:left;
+}
+
+.instrTxt {
+        background-color:#d2d9e4!important;
+        color:black;
+        font-size:.9em;
+ 	padding-left:15px;
+  	padding-right:15px;
+  	padding-top:5px;
+  	padding-bottom:5px;
+  	border-radius: 1em;
+        margin-left:10px;
+        margin-right:20px;
+        margin-bottom:5px;
+        float:left;
+}
+.instrLbl {
+        width:95%; 
+}
+
+.processLbl {
+	color: #006600;
+        font-size:large;
+        font-weight:bold;
+}
+.mainwarnblderr {
+	font-size:large;
+	font-weight:bold;
+	color: #ad0000;
+	white-space:nowrap;
+}
+.mainwarnmsgerr {
+	color:#ad0000;
+	font-weight:normal;
+	font-size:medium;
+	white-space:nowrap;
+}
+
+.mainwarnmsg {
+	color:black;
+	font-weight:normal;
+	font-size:medium;
+}
+
+span#maintitle {
+	color:navy;
+	font-weight:bold;
+	font-size:x-large;
+}
+span#tgttitle {
+        color:#000080;
+        font-weight:bold;
+        font-size:large;
+}
+
+
+/* navigation area */
+div#tabarea1 {
+    width:17%;
+    clear:both;
+    float:left;
+    margin-right:0;
+    padding-top:15px;
+    background-color: #eaeaea;
+    height:95%;
+    overflow:visible;
+    position:relative; 
+    z-index:10; 
+    border:0px;
+}
+/* overall data area including next/back */
+div#tabareadata {
+    width:82%;
+    float:left;
+    padding:0;
+    margin-right:0;
+    border:0px;
+    height:98%;
+    position:relative; 
+    /* overflow:visibile; */
+    z-index:10; 
+}
+
+/* data area including next/back */
+div#tabarea2 {
+    width:100%;
+    border:0px;
+    padding-top:5px;
+    margin-right:0;
+    height:98%;
+    overflow:auto;
+    z-index:10; 
+    
+}
+
+.footer {
+    background-color: #eaeaea;
+}
+
+/* target tab */
+div#tabarea3 {
+    width:97%;
+    height:100%;
+}
+div#grid {
+}
+
+div#formB_container {
+        margin: 0px 10px 0px 10px;  
+        padding: 0px 0px 0px 0px;  
+}
+.fslbl2 {
+        font-family:Arial;
+        color:#1b4964;
+        font-weight:normal;
+        margin: 0px 0px 0px 0px;
+        padding: 0px 0px 0px 0px; 
+}
+
+.fslbl {
+        font-family:Arial;
+        color:#1b4964;
+        font-weight:normal;
+        margin-left:20px;
+}
+.fs {
+        border:1px solid #a4bed4;
+        clear:left;
+        width:95%;
+        font-family:Arial;
+        color:#305f87;
+        font-weight:normal;
+        padding:10px 10px 10px 10px;
+        margin-left:10px;
+        text-align:left;
+}
+.tgtdiv {
+   background-color:#eaeaea;
+   border:none;
+}
+.test {
+  background-color : cyan;
+  color : yellow;
+}
+.valerr {
+  color:#ad0000;
+}
+.valsuccess{
+  color:#006600;
+}
+.valwarn {
+  color:#0000cc;
+}
+.valnote {
+  color:#000000;
+}
+.valpage {
+  font-weight:bold;
+}
+.fldhelp {
+   font-weight: normal;
+}
+.fldhelpsmall {
+   font-weight: normal;
+   font-size:small;
+}
+
+.lblclass {
+  color: black;
+  font-weight: normal;
+}
+.ccdshidden {
+  padding-left:15px!important;
+  padding-top:15px!important;
+  font-family:monospace;
+  visibility:hidden;
+}
+.ccds {
+  padding-left:15px!important;
+  padding-top:15px!important;
+  font-family:monospace;
+}
+
+.errmsgb {
+  color: #ad0000;
+  font-weight:bold;
+}
+.errmsg {
+  color: #ad0000;
+}
+.errmsgSmall {
+  color: #ad0000;
+  font-size: small;
+}
+.progress {
+  color: #006600;
+}
+/* used in the code for the deadline info */
+.errmsg2 {
+  font-size:Large;
+  color: #ad0000;
+}
+.errmsg3 {
+  font-size:large;
+  font-weight:bold;
+  color: #ad0000;
+}
+.errlbl {
+  color: #ad0000;
+}
+.tinybtn {
+  font-size:x-small;
+  margin-top:4px;
+}
+
+.reqLbl {
+  font-weight:bold;
+}
+.req {
+  font-weight:bold;
+  color:black;
+}
+
+
+.fshelp {
+}
+
+.elehelp{
+  padding-bottom:10px;
+}
+.lblhelp {
+  font-weight:bold;
+}
+ 
+.valcontainer {
+  background-color:white;
+  height:300px;
+  overflow:auto;
+}  
+.slewcontainer {
+  background-color:white;
+  overflow:auto;
+}  
+
+.gridhover {
+  background-color:#f9f9d0;
+}
+
+#cxcdsfooter {
+background-image:
+linear-gradient(rgba(0,0,0,0.50),rgba(0,0,0,0.50)),
+url('/cps-app/imgs/galactic.jpg');
+background-position:center;
+        float: none;
+        padding: .5em;
+        clear: both;
+        overflow: hidden;
+        position: relative;
+        border-bottom-right-radius: 1em;
+        border-bottom-left-radius: 1em;
+        -moz-border-radius-bottomleft: 1em;
+        -moz-border-radius-bottomright: 1em;
+        -webkit-border-bottom-left-radius: 1em;
+        -webkit-border-bottom-right-radius: 1em;
+        width:98%;
+}
+
+#cxcdsfooter img {
+  color: #ffffff;
+ }
+
+#cxcdsfooter a {
+        color:white;
+        text-decoration:underline;
+}
+
+
+#cxcdsfooterleft {
+        width:15%;
+        float: left;
+        clear: left;
+        display:block;
+        margin-left: .2em;
+}
+#cxcdsfootercenter {
+        width: 84%;
+        margin:auto;
+        float: left;
+        text-align: center;
+        color: white;
+}
+#cxcdsfootercenter span {
+        color: white;
+        font-size:.9em;
+        text-align:center;
+        /* margin-left: 1%; */
+        clear: both;
+}
+
+.upload {
+	background-color:white;
+        border-top-right-radius: 1em;
+        border-top-left-radius: 1em;
+        -moz-border-radius-topleft: 1em;
+        -moz-border-radius-topright: 1em;
+        -webkit-border-top-left-radius: 1em;
+        -webkit-border-top-right-radius: 1em;
+        border-bottom-right-radius: 1em;
+        border-bottom-left-radius: 1em;
+        -moz-border-radius-bottomleft: 1em;
+        -moz-border-radius-bottomright: 1em;
+        -webkit-border-bottom-left-radius: 1em;
+        -webkit-border-bottom-right-radius: 1em;
+
+}
+
+
+a {
+color:navy;
+text-decoration:none;
+}
+a:hover {
+text-decoration:underline;
+}
+
+.cpsheader {
+background-image:
+linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)),
+url('/cps-app/imgs/galactic.jpg');
+background-position:center;
+        float: none;
+        margin: .2em;
+        padding: .5em;
+        clear: both;
+        overflow: hidden;
+        position: relative;
+        border-top-right-radius: 1em;
+        border-top-left-radius: 1em;
+        -moz-border-radius-topleft: 1em;
+        -moz-border-radius-topright: 1em;
+        -webkit-border-top-left-radius: 1em;
+        -webkit-border-top-right-radius: 1em;
+        width:99%;
+        height:7%;
+}
+
+a.fakeBtn {
+   background-color:#eaeaea!important;
+}
+a.fakeBtn:hover {
+  color:#0000ee;
+}
+a.fakeBtn:focus {
+  outline:none;
+}
+
+.sizeContainer {
+  margin-top:5px;
+}
+.statusContainer {
+}
+
+.divarr {
+  float:left;
+  width:95%;
+  margin-top:5px;
+}
+.spanprev {
+  float:left;
+  width:45%;
+  padding-right:5px;
+  padding-left:5px;
+  text-align:left;
+}
+.spannext {
+  float:right;
+  width:45%;
+  text-align:right;
+  padding-right:5px;
+  padding-left:5px;
+}
+.arrowimg {
+  width:15px;
+  height:15px;
+  margin-left:10px;
+  margin-right:10px;
+}
+
+
+.pagebody {
+  display:none;
+}
+.msgbody {
+  margin:50px;
+}
+
+.applic {
+ margin:0px;
+ padding:0px;
+ width:800px;
+ height:90%;
+}
+
+.filtDiv {
+  position:relative;
+  z-index:10;
+  clear:both;
+  float:right;
+  margin-left:0px;
+  height:30px;
+  width:250px;
+}
+
+.filtTreeDiv {
+  position:relative;
+  overflow:visible;
+  border:2px solid #a4bed4;
+  opacity:1;
+}
+
+.homeinstr {
+  margin-top:10px;
+  margin-left:20px;
+  float:left;
+}
+

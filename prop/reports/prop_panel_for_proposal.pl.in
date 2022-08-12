@@ -1,0 +1,173 @@
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 1995, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_panel_for_proposal.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script retrieves the panel number for the specified proposal.
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+
+use vars qw( $dbh %param  @reqfiles $reqfile
+	);
+
+use strict;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+
+@reqfiles = (
+        "prop_routines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+
+# ---------------- MAIN ----------------------------------------------
+{
+  my($dsn,$stmp);
+  my($sql,$sth,@row);
+
+  &parse_input;
+
+  
+  #database connection
+  $dbh = dbProposalConnection($param{U}, $param{S}, $param{q});
+
+  open (OFILE,">$param{o}") or
+    die "Unable to open $param{o} for writing.\n";
+
+
+  $sql = qq(select proposal_number, panel_name,type,a1.last,
+	(p.last+ ',' + substring(p.first,1,1)),
+	(s.last+ ',' + substring(s.first,1,1))
+	from proposal,panel_proposal pp1 ,panel p1,axafusers..person_short a1,
+	proposal_review,
+	axafusers..person_short p,axafusers..person_short s 
+	where proposal_number like "$param{p}" and
+	proposal.ao_str = "$param{a}" and 
+	proposal.piid = a1.pers_id and
+	proposal.proposal_id = pp1.proposal_id and
+	pp1.panel_id = p1.panel_id  and
+	p1.panel_id = proposal_review.panel_id and
+        proposal.proposal_id = proposal_review.proposal_id and
+        proposal_review.primary_reviewer *= p.pers_id and
+        proposal_review.secondary_reviewer *= s.pers_id
+	);
+   printf OFILE ("\n%-8.8s  %-3.3s %-14.14s %-20.20s",
+      "Proposal","Pnl","Type","P.I. ");
+   if ($param{r}) { 
+      printf OFILE "  %-20.20s  %-20.20s","Primary Reviewer","Secondary Reviewer";
+   }
+   printf OFILE ("\n--------------------------------------------------------------------");
+   if ($param{r}) { 
+     printf OFILE ("--------------------------------------");
+   }
+   printf OFILE "\n";
+
+   $sth = $dbh->prepare($sql);
+   $sth->execute();
+   while (@row = $sth->fetchrow_array) {
+     if ($row[4] =~ /^,/) { $row[4] = ''; }
+     if ($row[5] =~ /^,/) { $row[5] = ''; }
+     if ($param{r}) {
+       printf OFILE ("%-8.8s  %-3.3s %-14.14s %-20.20s  %-20.20s  %-20.20s\n",@row);
+     } else {
+       printf OFILE ("%-8.8s  %-3.3s %-14.14s %-s\n",@row);
+     }
+   }
+}
+
+
+# ----------------------------------------------------------
+# parse input parameters
+# ----------------------------------------------------------
+sub parse_input 
+{
+  my($pwd);
+  my $err = 0;
+
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+             o=> undef,
+             p=> undef,
+             a=> "$ENV{ASCDS_PROP_AO}",
+
+
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "o=s",
+          "p=s",
+          "q=s",
+	  "a=s",
+          "r",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter `$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+  $param{q} = $pwd;
+
+
+}
+
+sub usage 
+{
+    print STDERR "\nUSAGE: prop_panel_for_proposal.pl -U -po [ -Sar ]\n";
+    print STDERR "       -U database user name\n";
+    print STDERR "       -S database server, default is DB_PROP_SQLSRV\n";
+    print STDERR "       -a AO , default is ASCDS_PROP_AO\n";
+    print STDERR "       -o output file \n";
+    print STDERR "       -p proposal number (use % for wildcard)\n";
+    print STDERR "       -r flag; include reviewer information in output\n";
+}
+

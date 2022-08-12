@@ -1,0 +1,125 @@
+body {color:black; background-color:#eeeeee; }
+body.plain {color:black; background-color:#ffffff; }
+
+.opdiv { 
+   width: auto;
+   height: 98%;
+   display: block;
+   overflow: auto;
+   margin: auto;
+}
+
+
+.tophdr {
+  padding-bottom:5px;
+  float:left;
+  clear:both;
+  overflow:visible;
+  width:100%;
+}
+
+.imghdr {
+  width:30%;
+  float:left;
+  position:relative;
+}
+.titlehdr {
+  float:left;
+  margin-top:15px;
+  font-weight:bold;
+  font-size:1.7em;
+}
+.helphdr {
+  float:right;
+  margin-top:15px;
+  margin-right:10px;
+}
+
+.btnDiv {
+   padding: 10px;
+   background-color: #1f2569;
+   display: inline;
+}
+
+select {
+   background-color:white;
+}
+
+
+table.main   { 
+	background-color:#ffffff; 
+	border: 1px solid black; 
+	border-collapse:collapse;
+	margin-left:20px;
+	margin-right:20px;
+	}
+table.main td  { 
+	border: 1px solid black; 
+	}
+table.main th  { 
+	border:1px solid black; 
+	}
+
+
+table.plain   { 
+	background-color:#ffffff; 
+	border: 1px solid black; 
+	border-collapse:collapse;
+	}
+table.plain td  { 
+	border: 1px solid black; 
+	}
+table.plain th  { 
+	border:1px solid black; 
+	}
+
+table.noborder   { 
+	border:0px solid black; 
+}
+table.noborder td  { 
+	border: 0px solid black; 
+}
+table.noborder th  { 
+	border: 0px solid black; 
+}
+
+table.hdr     { 
+	background-color:#eef2ff; 
+	border: 0px solid black; 
+	padding:4px; 
+}
+table.hdr th  { 
+	border: 0px solid black; 
+	padding:4px; 
+}
+table.hdr td  { 
+	border: 0px solid black; 
+	padding:4px; 
+}
+
+
+tr.header2    { background-color:#1f2569; color:#ffffff; align="center"; } 
+tr.header     { background-color:#eef2ff; color:#000000; align="center"; }
+tr.alt2       { background-color:#FFFFFF;  }
+tr.alt1       { background-color:#e4e9f1;  }
+tr.hover      { background-color:#cccccc;  }
+
+td.col        { text-align:center; font-size:small; }
+
+tr.bg_color    {background-color:#ffffff; }
+td.bg_color    {background-color:#ffffff; }
+tr.r_color    {background-color:#ffffff; }
+td.r_color    {background-color:#ffffff; }
+tr.d_color    {background-color:#cccccc; }
+td.d_color    {background-color:#cccccc; }
+tr.s_color    {background-color:#ffffff; }
+td.s_color    {background-color:#ffffff; }
+tr.p_color    {background-color:#eeee00; }
+td.p_color    {background-color:#eeee00; }
+tr.q_color    {background-color:#afc4e0; }
+td.q_color    {background-color:#afc4e0; }
+
+tr.hilite_color  {background-color:#cccccc; }
+
+a.open_color    {color:#dd0000; }
+a.closed_color  {color:#222222; }

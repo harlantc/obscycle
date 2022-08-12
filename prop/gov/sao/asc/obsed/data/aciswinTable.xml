@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE table SYSTEM "table.dtd">
+
+<table name="aciswin" key="aciswin_id">
+  <column name="aciswin_id">
+    <type>INTEGER</type>
+    <tooltip>Database index for aciswin table</tooltip>
+  </column>
+  <column name="obsid">
+    <type>INTEGER</type>
+    <tooltip>Observation ID</tooltip>
+  </column>
+  <column name="ordr">
+    <type>INTEGER</type>
+    <tooltip>Indicates the order within the chip for multiple spatial windows</tooltip>
+    <number>
+      <maximum>6</maximum>
+      <minimum>1</minimum>
+    </number>
+  </column>
+  <column name="chip">
+    <type>CHOICE</type>
+    <tooltip>Indicates the chip to use for spatial window</tooltip>
+    <choices>
+      <item>I0</item>
+      <item>I1</item>
+      <item>I2</item>
+      <item>I3</item>
+      <item>S0</item>
+      <item>S1</item>
+      <item>S2</item>
+      <item>S3</item>
+      <item>S4</item>
+      <item>S5</item>
+    </choices>
+  </column>
+  <column name="include_flag">
+    <type>CHOICE</type>
+    <tooltip>Include (I) or Exclude (E) all of the photons in the defined region</tooltip>
+    <choices>
+      <item>E</item>
+      <item>I</item>
+    </choices>
+  </column>
+  <column name="start_row">
+    <type>INTEGER</type>
+    <tooltip>Spatial Window Start Row</tooltip>
+    <number>
+      <maximum>1023</maximum>
+      <minimum>1</minimum>
+    </number>
+  </column>
+  <column name="start_column">
+    <type>INTEGER</type>
+    <tooltip>Spatial Window Start Column</tooltip>
+    <number>
+      <maximum>1023</maximum>
+      <minimum>1</minimum>
+    </number>
+  </column>
+  <column name="width">
+    <type>INTEGER</type>
+    <tooltip>Spatial Window Width</tooltip>
+    <number>
+      <maximum>1024</maximum>
+      <minimum>1</minimum>
+    </number>
+  </column>
+  <column name="height">
+    <type>INTEGER</type>
+    <tooltip>Spatial Window Height</tooltip>
+    <number>
+      <maximum>1024</maximum>
+      <minimum>1</minimum>
+    </number>
+  </column>
+  <column name="lower_threshold">
+    <type>DOUBLE</type>
+    <tooltip>Spatial Window Lower Threshold</tooltip>
+    <number>
+      <maximum>15.0</maximum>
+      <minimum>0.08</minimum>
+    </number>
+  </column>
+  <column name="pha_range">
+    <type>DOUBLE</type>
+    <tooltip>Spatial Window Energy Range</tooltip>
+    <number>
+      <maximum>15.0</maximum>
+      <minimum>0.1</minimum>
+    </number>
+  </column>
+  <column name="sample">
+    <type>INTEGER</type>
+    <tooltip>Spatial Window Sampling Rate</tooltip>
+    <number>
+      <maximum>512</maximum>
+      <minimum>0</minimum>
+    </number>
+  </column>
+</table>

@@ -1,0 +1,11 @@
+Obscat Editor
+
+An editor for the Chandra Observing catalog.
+
+Developed by the Observation Cycle Team of the
+Chandra Data System Division.
+
+Smithsonian Institution, Copyright © 1999.
+All rights reserved.
+60 Garden Street, Cambridge, MA 02138 USA 
+

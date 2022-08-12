@@ -1,0 +1,34 @@
+(
+:ao 22
+:observer Zoghbi
+:prop-num 22700247
+:seq-nbr 999999
+:id 68909
+:name NGC 5506
+:type GO
+:ra 213.312083
+:dec -3.207561
+:prop-exp-time 200.000000
+:si ACIS-S
+:requested-chip-count 4
+:optional-chip-count 1
+:ccdi0 N
+:ccdi1 N
+:ccdi2 N
+:ccdi3 N
+:ccds0 N
+:ccds1 O1
+:ccds2 Y
+:ccds3 Y
+:ccds4 Y
+:ccds5 N
+:uninterrupt N
+:pointing_constraint N
+:phase-constr-flag N
+:multi-tel-flag N
+:monitor Y
+:pre-min-lead 000:00:00:00.000
+:pre-max-lead 020:00:00:00.000
+:group-duration 200.0
+:group-id NGC 5506_22700247
+)

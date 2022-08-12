@@ -1,0 +1,119 @@
+ 
+===============================================================================
+
+		            HELP FILE for prop_frametime
+
+===============================================================================
+
+prop_frametime
+--------------
+
+The prop_frametime script calls the executable prop_frametime_exe to
+provide a recommended ACIS frame time depending upon the input number
+of CCDs (1-6), instrument (ACIS-I vs. ACIS-S), and subarray type (None i.e.
+full array, 1/2, 1/4, 1/8).  
+
+
+PARAMETERS
+----------
+
+Application specific command line arguments:
+
+ prop_frametime [-q] num_ccds instrument subarray 
+
+   -q is an optional flag requesting quiet output
+
+   num_ccds is Number of CCDs. Options are 1-6.
+
+   instrument is ACIS-I or ACIS-S. Options are 1 (for I) or 5 (for S).
+
+   subarray is the Subarray. Options are 1.0 (full array; no subarray)
+         0.5 (for 1/2), 0.25 (for 1/4), 0.125 (for 1/8)
+
+
+INPUT/OUTPUT
+-------------
+
+1) Input Data Files:  N/A
+
+
+2) Output Data Files: N/A
+
+
+3) Output Data Files for Archive: N/A
+
+
+SETUP AND USAGE
+---------------
+
+No environment variables are required.
+
+Execute the application:
+   prop_frametime <num ccds> <instrument> <subarray>
+  
+
+DETAILED prop_frametime DESCRIPTION - GENERAL INSTRUCTIONS
+----------------------------------------------------------
+
+The formula to determine the recommmended frame time is as follows:
+
+(Reference page 97 of the Chandra Proposer's Observatory Guide, Revision 2.0,
+dated April 2000).
+
+Frame Time (sec) = [ 41. * m + 2.84 * n + 5.2 + 0.040 * (m * q) ] / 1000.
+
+ where 
+
+    Number of CCDs, m, is an input.  
+  
+    A subarray is a reduced region of the CCDs that will be read. 
+
+    The code calculates the number of rows in the subarray, n,
+    from the user's subarray value as follows:
+            
+           full array = 1024
+           if none, then n= full array       = 1024
+           if 1/2,  then n= 1/2(full array)  = 512
+           if 1/4,  then n= 1/4(full array)  = 256
+           if 1/8,  then n= 1/8(full array)  = 128
+
+    The code calculates the number of rows separating the subarray 
+    from the framestore region, q, which is essentially the start row
+    of the standard subarrays.
+
+    It is based upon the user's subarray value and the instrument as follows:
+
+    for acis-i the standard subarray is always farthest from the
+    readout node ("top" of chip) so that q is just the leftover
+    # of rows: 
+
+          q = full array - n      
+    
+          if none, then q= 1024-1024 = 0
+          if 1/2 , then q= 1024-512  = 512
+          if 1/4,  then q= 1024-256  = 768
+          if 1/8,  then q= 1024-128  = 896
+
+    for acis-s the subarray is always at the center of the chip
+    so that 
+         
+          if none, then q= 1/2(1024-1024) = 0
+          if 1/2,  then q= 1/2(1024-512)  = 256
+          if 1/4,  then q= 1/2(1024-256)  = 384
+          if 1/8,  then q= 1/2(1024-128)  = 448
+
+
+
+
+SIDE EFFECTS AND RESTRICTIONS
+-----------------------------
+
+None at this time.
+
+
+REFERENCES
+----------
+
+See page 97 of the Chandra Proposer's Observatory Guide, Revision 2.0,
+dated April 2000 for more information about ACIS Frame Time.
+

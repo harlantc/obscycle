@@ -1,0 +1,1 @@
+select p.prop_id as "Proposal", rpad(last_name, 27) as "P.I.", alt_grp_name as "Alt Group Name", app_cnt as "# Triggers" from proposal p, alternate_target_group a where p.prop_id = a.prop_id and p.panel_id = a.panel_id and prop_status = 'Y' order by last_name;

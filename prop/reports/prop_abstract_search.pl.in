@@ -1,0 +1,200 @@
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 2014, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_abstract_search.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script runs a few checks on proposals in the database
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+
+use vars qw( $dbh $hidx %param @reqfiles $reqfile
+	);
+
+use strict;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+
+@reqfiles = (
+        "prop_routines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+
+# ---------------- MAIN ----------------------------------------------
+{
+  my($thedate,$stmp);
+
+  &parse_input;
+
+  #database connection
+  $dbh = dbProposalConnection($param{U}, $param{S}, $param{q});
+
+  $thedate = get_date();
+
+  #open output file
+  open(OFILE,"> $param{o}") || 
+	die "ERROR: Unable to open $param{o} for writing.\n";
+  open(OFILE2,"> $param{o}.abstract") || 
+	die "ERROR: Unable to open $param{o}.abstract for writing.\n";
+  print STDERR "Output written to:\n  $param{o} \n  $param{o}.abstract\n";
+
+  doProposalQuery();
+
+
+  close OFILE;
+}
+  
+# ----------------------------------------------------------------
+# 
+# ----------------------------------------------------------------
+sub doProposalQuery
+{
+  my($sql) = @_;
+  my($sth,@row,$chr);
+  my $fmt = "%-8.8s\t%-30.30s\t%-15.15s\t%-10.10s";
+   
+
+  my($str) = $param{t};
+  while ($str =~ s/  / /) {;}
+
+  my @arr = split("",$str);
+  $str = "%";
+  
+  foreach $chr (@arr) {
+     if ($chr eq " ") {
+       $str .= "%";
+     } else {
+       $str .= "[" . lc($chr) . uc($chr) . "]";
+     }
+  }
+  $str .= "%";
+  $sql = qq(select proposal_number,last,type,status,title,abstract from proposal,axafusers..person_short
+	 where  piid = pers_id
+	and ao_str like "$param{a}"
+	and abstract like "$str");
+  if (!defined $param{i}) {
+    $sql .= qq( and status not like "INCOMPLETE");
+  }
+  if (!defined $param{w}) {
+    $sql .= qq( and status not like "WITHDRAWN");
+  }
+
+  if ($param{z}) {
+    print STDERR "$sql\n";
+  }
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  printf OFILE ("$fmt \n","Proposal","P.I.","Type","Status");
+  printf OFILE ("$fmt \n","--------","----------------------","---------------------","----------");
+  printf OFILE2 ("$fmt \n","Proposal","P.I.","Type","Status");
+  printf OFILE2 ("$fmt \n","--------","----------------------","---------------------","----------");
+  my($ii) = 0;
+  while (@row = $sth->fetchrow_array) {
+    printf OFILE ("$fmt \n",@row);
+    printf OFILE2 ("$fmt\n\t%s\n\t%s\n\n",@row);
+    $ii++;
+  }
+  print STDERR "$ii entries retrieved\n";
+}
+
+
+# ----------------------------------------------------------
+# parse input parameters
+# ----------------------------------------------------------
+sub parse_input 
+{
+  my($pwd);
+  my $err = 0;
+
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+             t=> undef,
+             o=> undef,
+             a=> "%"
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "o=s",
+          "a=s",
+          "q=s",
+          "t=s",
+	  "i",
+	  "w",
+          "z",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter `$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+  $param{q} = $pwd;
+
+
+}
+
+
+
+
+sub usage 
+{
+    print STDERR "\nUSAGE: prop_abstract_search.pl -Uot[S]\n";
+    print STDERR "       -U database user name\n";
+    print STDERR "       -o output filename \n";
+    print STDERR "       -t search string \n";
+    print STDERR "       -S database server, default is DB_PROP_SQLSRV\n";
+    print STDERR "       -a AO , default is ASCDS_PROP_AO\n";
+    print STDERR "       -i include Incomplete proposals\n";
+    print STDERR "       -w include Withdrawn proposals\n";
+}
+

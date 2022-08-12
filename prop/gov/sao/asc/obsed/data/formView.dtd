@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!ELEMENT formView (title,info,key,navigation,GUI)>
+
+<!ELEMENT title (#PCDATA)>
+<!ELEMENT info (supportsNew)>
+<!ELEMENT supportsNew (#PCDATA)>
+<!ELEMENT key (tableName, columnName)>
+<!ELEMENT tableName (#PCDATA)>
+<!ELEMENT columnName (#PCDATA)>
+
+<!ELEMENT navigation (display+)>
+<!ELEMENT display (name, tableName, columnName)>
+<!ELEMENT name (#PCDATA)>
+
+<!ELEMENT GUI (textfield | combobox | keycombobox | triplebox | obsidcombobox | obsidbutton | seqnbrbutton | separator | label | textarea | timestampbutton)+>
+<!ELEMENT textfield (labelText, size?, row?, column?, database, anchor? )>
+<!ATTLIST textfield tag ID #REQUIRED>
+<!ELEMENT labelText (#PCDATA)>
+<!ELEMENT size (#PCDATA)>
+<!ELEMENT row (number, height)>
+<!ELEMENT number (#PCDATA)>
+<!ELEMENT height (#PCDATA)>
+<!ELEMENT column (number, width)>
+<!ELEMENT width (#PCDATA)>
+<!ELEMENT database (tableName, columnName, joinTableName?, joinColumnName?, queryString?)>
+<!ELEMENT keyinfo (keyTableName, keyColumnName)>
+<!ELEMENT combobox (labelText, size?, row?, column?, database, null?, anchor?)>
+<!ATTLIST combobox tag ID #REQUIRED none (true | false) "true" new (true | false) "false">
+<!ELEMENT keycombobox (labelText, size?, row?, column?, database, keyinfo, null?, anchor?)>
+<!ATTLIST keycombobox tag ID #REQUIRED new (true | false) "false" none (true | false) "true">
+<!ELEMENT triplebox (labelText, row?, column?, database, null?, anchor?)>
+<!ATTLIST triplebox tag ID #REQUIRED>
+<!ELEMENT obsidcombobox (labelText, row?, column?, database, null?, anchor?)>
+<!ATTLIST obsidcombobox tag ID #REQUIRED>
+<!ELEMENT obsidbutton (labelText, row?, column?, database, anchor? )>
+<!ATTLIST obsidbutton tag ID #REQUIRED>
+<!ELEMENT seqnbrbutton (labelText, row?, column?, database, anchor? )>
+<!ATTLIST seqnbrbutton tag ID #REQUIRED>
+<!ELEMENT separator EMPTY>
+<!ELEMENT label (labelText, anchor?, row?, column?)>
+<!ELEMENT null (representation, value?)>
+<!ELEMENT representation (#PCDATA)>
+<!ELEMENT value (#PCDATA)>
+<!ELEMENT anchor (#PCDATA)>
+<!ELEMENT textarea (labelText, size?, row?, column?, database, anchor?)>
+<!ATTLIST textarea tag ID #REQUIRED>
+<!ELEMENT timestampbutton (labelText, row?, column?, database, anchor? )>
+<!ATTLIST timestampbutton tag ID #REQUIRED>
+
+<!ELEMENT constraintList (constraint+)>
+<!ELEMENT constraint (entry | grating | firstOrderCountRate | yOffset | zOffset | radial | instrument | type | ra | dec | ssObject | angle| tolerance | startTime | stopTime | photometry | visualMag)>
+<!ATTLIST constraint type ID #REQUIRED>
+<!ELEMENT entry (#PCDATA)>
+<!ELEMENT grating (#PCDATA)>
+<!ELEMENT firstOrderCountRate (#PCDATA)>
+<!ELEMENT yOffset (#PCDATA)>
+<!ELEMENT zOffset (#PCDATA)>
+<!ELEMENT radial (#PCDATA)>
+<!ELEMENT instrument (#PCDATA)>
+<!ELEMENT type (#PCDATA)>
+<!ELEMENT ra (#PCDATA)>
+<!ELEMENT dec (#PCDATA)>
+<!ELEMENT ssObject (#PCDATA)>
+<!ELEMENT angle (#PCDATA)>
+<!ELEMENT tolerance (#PCDATA)>
+<!ELEMENT startTime (#PCDATA)>
+<!ELEMENT stopTime (#PCDATA)>
+<!ELEMENT photometry (#PCDATA)>
+<!ELEMENT visualMag (#PCDATA)>

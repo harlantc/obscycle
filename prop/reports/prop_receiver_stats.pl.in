@@ -1,0 +1,217 @@
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 2019, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_receiver_stats.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script checks submission times of proposals for specified AO
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+
+use vars qw( $dbh %param @reqfiles $reqfile
+	);
+
+use strict;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+
+@reqfiles = (
+        "prop_routines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+
+# ---------------- MAIN ----------------------------------------------
+{
+  my($tt,$sql);
+
+  &parse_input;
+
+  #database connection
+  $dbh = dbProposalConnection($param{U}, $param{S}, $param{q});
+
+  #open output file
+  open(OFILE,"> $param{o}") || 
+	die "ERROR: Unable to open $param{o} for writing.\n";
+  $tt = get_date();
+  print OFILE "Created:  $tt\n";
+
+  # create a temp table so queries work with RPS and CPS
+  $sql = qq(create table #dtmp(proposal_id int,submission_date datetime));
+  $dbh->do($sql);
+  $sql = qq(insert into #dtmp select proposal_id,submission_date from proposal
+	where ao_str="$param{a}" and status not in ("WITHDRAWN","INCOMPLETE")
+	and submission_date is not null);
+  $dbh->do($sql);
+  $sql = qq(insert into #dtmp select proposal_id,creation_date from proposal
+	where ao_str="$param{a}" and status not in ("WITHDRAWN","INCOMPLETE")
+	and submission_date is null);
+  $dbh->do($sql);
+
+  print OFILE qq(\n1. Proposal Submissions for Cycle $param{a} by the hour \n);
+  by_the_hour();
+  print OFILE qq(\n\n2. Proposal Submissions for Cycle $param{a} by the day \n);
+  by_the_day();
+
+  print OFILE qq(\n\n3. Proposal Counts by Status\n);
+  status_count();
+
+
+  close OFILE;
+  chgroup($param{o});
+  chmod 0660,$param{o};
+
+  print STDERR "Results are in $param{o}\n";
+  $dbh->do("drop table #dtmp");
+  $dbh->disconnect;
+}
+
+sub by_the_hour
+{
+  my($sql,$sth,@row);
+  printf OFILE ("\n%15.15s  %s\n", "Submission Date", "#Proposals");
+  printf OFILE ("---------------------------\n");
+  $sql = qq( select yyyymmddhh,count(proposal_id) #props
+	from ( select (
+	convert(nvarchar(4),datepart(YY,submission_date)) + "/" +
+	(right('00' + convert(nvarchar(2),datepart(MM,submission_date)),2)) + "/" +
+	(right('00' + convert(nvarchar(2),datepart(DD,submission_date)),2)) + ":" +
+	(right('00' + convert(nvarchar(2),(datepart(HH,submission_date)+1)),2)) )
+	as "yyyymmddhh",proposal_id
+	from #dtmp
+	) sub
+	group by yyyymmddhh
+	order by yyyymmddhh
+	);
+
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  while (@row = $sth->fetchrow_array) {
+    printf OFILE ("%-15.15s  %3d \n",@row);
+  }
+}
+
+sub by_the_day
+{
+  my($sql,$sth,@row);
+  printf OFILE ("\n%15.15s  %s\n", "Submission Date", "#Proposals");
+  printf OFILE ("---------------------------\n");
+  $sql = qq(select yyyymmdd,count(proposal_id) #props
+	from (
+	select  convert(varchar(10),submission_date,111) as "yyyymmdd",
+	proposal_id
+	from #dtmp
+	) sub
+	group by yyyymmdd
+	order by yyyymmdd);
+
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  while (@row = $sth->fetchrow_array) {
+    printf OFILE ("%-15.15s  %3d \n",@row);
+  }
+}
+
+sub status_count()
+{
+  my($sql,$sth,@row);
+  printf OFILE ("\n%-15.15s  %s\n", "Status", "#Proposals");
+  printf OFILE ("---------------------------\n");
+  $sql = qq(select status,count(*) from proposal where ao_str="$param{a}"
+	group by status);
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  while (@row = $sth->fetchrow_array) {
+    printf OFILE ("%-15.15s  %3d \n",@row);
+  }
+}
+
+# ----------------------------------------------------------
+# parse input parameters
+# ----------------------------------------------------------
+sub parse_input 
+{
+  my($pwd);
+  my $err = 0;
+
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+             o=> undef,
+             a=> "$ENV{ASCDS_PROP_AO}",
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "o=s",
+          "a=s",
+          "q=s",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter `$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+  $param{q} = $pwd;
+
+
+}
+
+
+
+sub usage 
+{
+    print STDERR "\nUSAGE: prop_receiver_stats.pl -U -o [ -S -a ]\n";
+    print STDERR "       -U database user name\n";
+    print STDERR "       -o output filename \n";
+    print STDERR "       -S database server, default is DB_PROP_SQLSRV\n";
+    print STDERR "       -a AO , default is ASCDS_PROP_AO\n";
+}
+

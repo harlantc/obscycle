@@ -1,0 +1,404 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8;">
+<title>optionsframe</title>
+<link rel="stylesheet" href="/soft/provis/provis.css" type="text/css"> 
+<script type="text/javascript" language="javascript" src="optionsframe.js"></script>
+</head>
+
+
+<body onclick="" onload="OnLoad(event);" > 
+
+<div class="header"><span class="header">PLOT OPTIONS<br>
+
+</span>
+</div>
+
+<table class="opttablehdr" id="optionstable" border="0" cellpadding="0" cellspacing="2">
+
+<tr><td>
+<table class="opttable" border="0" cellpadding="0" cellspacing="2">
+  <tbody>
+    <tr>
+      <td><input id="viewplotdata" name="viewplotdata" value="View Plot Data" title="Display plot data whenever plot is regenerated" onclick="OnClick('viewplotdata');" type="checkbox"> <span class="pbold">View Plot Data</span>
+      <hr style="width: 100%; height: 2px;"></td>
+
+    </tr>
+    <tr>
+
+      <td><input id="viewcrosshair" name="viewcrosshair" value="Show Crosshair" title="Display crosshair in the plot" onclick="OnClick('viewcrosshair');" type="checkbox"> <span class="pbold">Show Crosshair</span>
+      <hr style="width: 100%; height: 2px;"></td>
+
+    </tr>
+
+      <tr>
+            <td style="text-align: left;"><input checked="checked" id="viewpitch" name="viewpitch" value="viewpitch" title="Select pitch angle data to display in the plot" onclick="OnClick('viewpitch');" type="checkbox"> <span class="pbold">View Pitch Angle</span></td>
+
+          </tr>
+
+
+     <tr>
+     <td>
+      <table class="opttable" border="0" cellpadding="0" cellspacing="2">
+
+        <tbody>
+
+          <tr>
+
+            <td style="text-align:right;">Curve Color:</td>
+
+            <td >
+            <select size="1" style="background-color:white;" title="Set color for pitch curve in the plot" id="pitchcolor" name="pitchcolor" onclick="OnClick('');">
+            <option value="Red">Red</option>
+            <option value="Blue">Blue</option>
+            <option value="Green">Green</option>
+            <option value="Yellow">Yellow</option>
+            <option value="Black">Black</option>
+            <option value="Magenta">Magenta</option>
+            <option value="Cyan">Cyan</option>
+            <option value="Purple">Purple</option>
+            </select>
+
+            </td>
+
+          </tr>
+
+          <tr>
+
+            <td style="text-align: right;">Line Style:</td>
+
+            <td >
+            <select style="background-color:white;" title="Set line style for pitch curve" id="pitchlinestyle" name="pitchlinestyle" onclick="OnClick('');">
+            <option value="Solid">Solid</option>
+            <option value="Dotted">Dotted</option>
+            <option value="Dashed">Dashed</option>
+            </select>
+
+            </td>
+
+          </tr>
+
+          <tr>
+
+            <td style="text-align: right;">Line Width:</td>
+
+            <td>
+            <select style="background-color:white;" title="Width of pitch line to be used in plot generation" id="pitchlinewidth" name="pitchlinewidth" onclick="OnClick('');">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            </select>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+      </table>
+
+      </td>
+
+    </tr>
+ <tr>
+ 
+            <td style="text-align: left;"><input checked="checked" id="viewpitchcursor" name="viewpitchcursor" value="viewpitchcursor" title="Select pitch angle curve cursor to display in the plot" onclick="OnClick('viewpitchcursor');" type="checkbox"><span class="pbold"> View Pitch Cursor</span></td>
+	    
+          </tr>
+    <tr>
+      <td><hr style="width: 100%; height: 2px;"></td>
+     </tr>
+
+     <tr>
+       <td style="text-align: left;"><input checked="checked" id="viewroll" name="viewroll" value="viewroll" title="Select nominal roll data to display in the plot" onclick="OnClick('viewroll');" type="checkbox"> <span class="pbold">View Nominal Roll Angle</span></td>
+      </tr>
+
+       <tr><td>
+
+      <table class="opttable" border="0" cellpadding="0" cellspacing="2">
+
+        <tbody>
+
+          <tr>
+
+            <td style="text-align: right;">Curve Color:</td>
+
+            <td>
+            <select style="background-color:white;" size="1" title="Select color for nominal roll curve in the plot" id="rollcolor" name="rollcolor" onclick="OnClick('');">
+            <option value="Red">Red</option>
+            <option value="Blue">Blue</option>
+            <option value="Green">Green</option>
+            <option value="Yellow">Yellow</option>
+            <option value="Black">Black</option>
+            <option value="Magenta">Magenta</option>
+            <option value="Cyan">Cyan</option>
+            <option value="Purple">Purple</option>
+            </select>
+
+            </td>
+
+          </tr>
+
+          <tr>
+
+            <td style="text-align: right;">Line Style:</td>
+
+            <td >
+            <select style="background-color:white;" title="Select line style for nominal roll curve in the plot" id="rolllinestyle" name="rolllinestyle" onclick="OnClick('');">
+            <option value="Solid">Solid</option>
+            <option value="Dotted">Dotted</option>
+            <option value="Dashed">Dashed</option>
+            </select>
+
+            </td>
+
+          </tr>
+
+          <tr>
+
+            <td style="text-align: right;">Tol. Line Style:</td>
+
+            <td>
+            <select style="background-color:white;" title="Select line style for tolerance of nominal roll curve in the plot" id="rolltolerancelinestyle" name="rolltolerancelinestyle" onclick="OnClick('');">
+            <option value="Solid">Solid</option>
+            <option value="Dotted">Dotted</option>
+            <option value="Dashed">Dashed</option>
+            </select>
+
+            </td>
+
+          </tr>
+
+          <tr>
+
+            <td style="text-align: right;">Line Width:</td>
+
+            <td>
+            <select style="background-color:white;" title="Width of roll line to be used in plot generation" id="rolllinewidth" name="rolllinewidth" onclick="OnClick('');">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            </select>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+      </table>
+
+      </td>
+
+    </tr>
+         <tr>
+            <td style="text-align: left;"><input checked="checked" id="viewrollcursor" name="viewrollcursor" value="viewrollcursor" title="Select nominal roll cursor to display
+in the plot" onclick="OnClick('viewrollcursor');" type="checkbox"> <span class="pbold">View Roll Cursor</span></td>
+          </tr>
+
+    <tr> <td> <hr style="width: 100%; height: 2px;"></td> </tr>
+    <tr>
+       <td style="text-align: left;"><input checked="checked" id="viewvisibility" name="viewvisibility" value="viewvisibility" title="Select average visibility data to display in the plot" onclick="OnClick('viewvisibility');" type="checkbox"> <span class="pbold">View Average Visibility</span></td>
+
+          </tr>
+
+     <tr>
+     <td>
+      <table class="opttable" border="0" cellpadding="0" cellspacing="2">
+
+        <tbody>
+
+          <tr>
+            <td style="text-align: right;">Curve Color:</td>
+
+            <td>
+            <select style="background-color:white;" size="1" title="Select color for average visibility curve in the plot" id="visibilitycolor" name="visibilitycolor" onclick="OnClick('');">
+            <option value="Red">Red</option>
+            <option value="Blue">Blue</option>
+            <option value="Green">Green</option>
+            <option value="Yellow">Yellow</option>
+            <option value="Black">Black</option>
+            <option value="Magenta">Magenta</option>
+            <option value="Cyan">Cyan</option>
+            <option value="Purple">Purple</option>
+            </select>
+
+            </td>
+
+          </tr>
+
+          <tr>
+
+            <td style="text-align: right;">Line Style:</td>
+
+            <td >
+            <select style="background-color:white;" title="Select line type for average visibility curve in the plot" id="visibilitylinestyle" name="visibilitylinestyle" onclick="OnClick('');">
+            <option value="Solid">Solid</option>
+            <option value="Dotted">Dotted</option>
+            <option value="Dashed">Dashed</option>
+            </select>
+
+            </td>
+
+          </tr>
+
+          <tr>
+
+            <td style="text-align: right;">Line Width:</td>
+
+            <td>
+            <select style="background-color:white;" title="Width of visibility line to be used in plot generation" id="visibilitylinewidth" name="visibilitylinewidth" onclick="OnClick('');">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            </select>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+      </table>
+
+      </td>
+
+    </tr>
+          <tr>
+
+            <td style="text-align: left;"><input checked="checked" id="viewvisibilitycursor" name="viewvisibilitycursor" value="viewvisibilitycursor" title="Select average visibility cursor to display in the plot" onclick="OnClick('viewvisibility');" type="checkbox"> <span class="pbold">View Visibility Cursor</span></td>
+
+          </tr>
+    <tr> <td> <hr style="width: 100%; height: 2px;"></td> </tr>
+
+          <tr>
+
+            <td style="text-align: left;"><input checked="checked" id="viewbadpitch" name="viewbadpitch" value="viewbadpitch" title="Select pitch restriction data to display in the plot" onclick="OnClick('viewbadpitch');" type="checkbox"> <span class="pbold">View Pitch Restrictions</span></td>
+
+          </tr>
+
+     <tr>
+     <td>
+      <table class="opttable" border="0" cellpadding="0" cellspacing="2">
+
+        <tbody>
+
+          <tr>
+            <td style="text-align: right;" >Line Style:</td>
+            <td>
+            <select style="background-color:white;" title="Select line style for bad pitch regions" id="badpitchlinestyle" name="badpitchlinestyle" onclick="OnClick('');">
+            <option value="Solid">Solid</option>
+            <option value="Dotted">Dotted</option>
+            <option value="Dashed">Dashed</option>
+            </select>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="text-align: right;">Line Width:</td>
+            <td>
+            <select style="background-color:white;" title="Width of bad pitch line to be used in plot generation" id="badpitchlinewidth" name="badpitchlinewidth" onclick="OnClick('');">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            </select>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="text-align: right;">Region Fill:</td>
+            <td>
+            <select style="background-color:white;" title="Select line style for bad pitch regions" id="badpitchfillstyle" name="badpitchfillstyle" onclick="OnClick('');">
+            <option value="None">None</option>
+            <option value="Solid">Solid</option>
+            <option value="Horizhatch">Horizhatch</option>
+            <option value="Verthatch">Verthatch</option>
+            <option value="Lefthatch">Lefthatch</option>
+            <option value="Righthatch">Righthatch</option>
+            </select>
+            </td>
+          </tr>
+
+        </tbody>
+      </table>
+
+      </td>
+
+    </tr>
+
+    <tr> <td> <hr style="width: 100%; height: 2px;"></td> </tr>
+
+    <tr>
+      <td><input id="autofit" name="autofit" value="Autofilt Plot in Frame" title="Ajust size of plot to fit in frame automatically" onclick="OnClick('autofit');" type="checkbox"> <span class="pbold">AutoFit Plot In Frame&nbsp;</span></td>
+
+    </tr>
+
+    <tr> <td> <hr style="width: 100%; height: 2px;"></td></tr>
+    <tr> <td style="font-weight: bold;">Axis Zoom Factor: 
+<input type="text" id="zoomfactor" maxlength="6" size="3" name="zoomfactor" value="2" title="Factor used to zoom in/out when interacting with plot axis" onkeyup="top.buttonsframe.ConfigFrame();" onchange="top.buttonsframe.ConfigFrame();" onfocus="top.buttonsframe.ConfigFrame();"> </td>
+
+    </tr>
+
+    <tr> <td> <hr style="width: 100%; height: 2px;"></td></tr>
+
+    <tr><td style="font-weight: bold;">Axis Move Factor: <input id="movefactor" maxlength="6" size="3" name="movefactor" value="0.25" title="Factor used to move axis limits when interacting with plot" onkeyup="top.buttonsframe.ConfigFrame();" onchange="top.buttonsframe.ConfigFrame();" onfocus="top.buttonsframe.ConfigFrame();"></td>
+    </tr>
+
+    <tr> <td> <hr style="width: 100%; height: 2px;"></td> </tr>
+
+    <tr>
+      <td style="white-space:nowrap;"><span class="pbold">PDF Size:</span> <input type="text" maxlength="4" size="2" name="pswidth" id="pswidth" title="Width of PDF to be retrieved. Leave blank to match the width on the screen" onkeyup="top.buttonsframe.ConfigFrame();" onchange="top.buttonsframe.ConfigFrame();" onfocus="top.buttonsframe.ConfigFrame();"> w&nbsp;
+      <input type="text" maxlength="4" size="2" name="psheight" id="psheight" title="Height of PDF to be retrieved. Leave blank to match the height on the screen" onkeyup="top.buttonsframe.ConfigFrame();" onchange="top.buttonsframe.ConfigFrame();" onfocus="top.buttonsframe.ConfigFrame();"> h&nbsp;in.</td>
+
+    </tr>
+
+    <tr> <td> <hr style="width: 100%; height: 2px;"></td> </tr>
+
+    <tr>
+      <td><span class="pbold">Font Type:</span>
+      <select style="background-color:white;" title="Font type to be used in plot generation" id="fonttype" name="fonttype" onclick="OnClick('');">
+      <option value="Helvetica">Helvetica</option>
+      <option value="Helvetica-Bold">Helvetica-Bold</option>
+      <option value="Courier">Courier</option>
+      <option value="Times">Times</option>
+      </select>
+      </td>
+    </tr>
+
+    <tr>
+      <td><span class="pbold">Font Size: </span>
+      <select style="background-color:white;" title="Font size to be used in plot generation" id="fontsize" name="fontsize" onclick="OnClick('');">
+      <option value="6">6</option>
+      <option value="8">8</option>
+      <option value="10">10</option>
+      <option value="12">12</option>
+      </select>
+      </td>
+    </tr>
+
+    <tr> <td> <hr style="width: 100%; height: 2px;"></td> </tr>
+
+    <tr>
+      <td><span class="pbold">Axis Line Width: </span>
+      <select style="background-color:white;" title="Width of axis line to be used in plot generation" id="axislinewidth" name="axislinewidth" onclick="OnClick('');">
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      </select>
+      </td>
+    </tr>
+
+    <tr> <td> <hr style="width: 100%; height: 2px;"></td> </tr>
+
+
+  </tbody>
+</table>
+</td></tr></table>
+
+<div><iframe  style="display:none" src="blankframe.html"  id="hiddeniframe" name="hiddeniframe" ></iframe></div>
+
+</body>
+</html>

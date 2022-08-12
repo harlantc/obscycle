@@ -1,0 +1,40 @@
+<web-app>
+ <display-name>TOO Trigger Application</display-name>
+ <description>User activates a peer-reviewed TOO  (trigger)</description>
+ <servlet>
+   <servlet-name>tooSearchServlet</servlet-name>
+   <servlet-class>TOOSearchServlet</servlet-class>
+ </servlet>
+
+ <servlet>
+   <servlet-name>tooTriggerServlet</servlet-name>
+   <servlet-class>TOOTriggerServlet</servlet-class>
+ </servlet>
+
+<!-- Mappings -->
+
+ <servlet-mapping>
+   <servlet-name>tooSearchServlet</servlet-name>
+   <url-pattern>/triggerTOO.jsp</url-pattern>
+ </servlet-mapping>
+
+ <servlet-mapping>
+   <servlet-name>tooSearchServlet</servlet-name>
+   <url-pattern>/triggerTOO</url-pattern>
+ </servlet-mapping>
+
+ <servlet-mapping>
+   <servlet-name>tooTriggerServlet</servlet-name>
+   <url-pattern>/triggerObservation.jsp</url-pattern>
+ </servlet-mapping>
+
+ <session-config>
+        <session-timeout>60</session-timeout>
+     <cookie-config>
+        <http-only>true</http-only>
+        <secure>false</secure>
+      </cookie-config>
+ </session-config>
+
+
+</web-app>

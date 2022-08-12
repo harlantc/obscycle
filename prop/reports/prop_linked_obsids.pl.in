@@ -1,0 +1,172 @@
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 1995, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_linked_obsids.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script extracts the obsids that are linked to a given sequence number or
+#     ObsId .
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+
+use vars qw ( $dbh %param %obsids  @reqfiles $reqfile
+	);
+
+use strict;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+
+@reqfiles = (
+        "prop_routines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+
+# -------------------------- MAIN ----------------------------------
+{
+  my($str,$stmp,$ii,@list,$dsn);
+
+  &parse_input;
+
+
+  #database connection
+  $dbh = dbOcatConnection($param{U}, $param{S}, $param{q});
+
+
+  &check_obsid($param{o});
+
+  @list = %obsids;
+ 
+  # only display if more than 1 obsid was found
+  if ($#list > 1) {
+    for ($ii=0;$ii<=$#list;$ii+=2) {
+      printf STDOUT ("%05.5d %s\n",$list[$ii],$list[$ii+1]);
+
+    }
+  }
+  
+
+  $dbh->disconnect;
+
+}
+
+
+       
+
+sub check_obsid
+{    
+  my($qstr) = @_;
+  my($pquery,$sth,@row,$obsid);
+
+  $obsid = -1;
+  if (length($qstr) > 5) {
+    $pquery = qq( select distinct obsid from target where
+	target.seq_nbr = "$qstr" 
+	);
+
+     $sth = $dbh->prepare($pquery);
+     $sth->execute;
+     # first we are trying to find an obsid to send to the stored procedure
+     while((@row) = $sth->fetchrow_array()) {
+       $obsid = $row[0];
+     }
+     $sth->finish();
+  }
+  else {
+    $obsid = $qstr;
+  }
+
+  if ($obsid > 0) {
+    $pquery = qq( exec pub_ocat_retr_linked_obs $obsid);
+    $sth = $dbh->prepare($pquery);
+    $sth->execute;
+    while((@row) = $sth->fetchrow_array()) {
+       $obsids{$row[0]} = $row[1];
+  
+    }
+  }
+  
+  return;
+}
+
+
+sub parse_input
+{
+ my($pwd);
+  my $err = 0;
+
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_OCAT_SQLSRV}",
+             o=> undef
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "o=s",
+          "q=s",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter `$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+  $param{q} = $pwd;
+
+}
+sub usage 
+{
+  print STDERR "\nUSAGE: prop_linked_obsids.pl -Uo [-S ]  \n";
+  print STDERR "       -U database user name\n";
+  print STDERR "       -S database server, default is DB_OCAT_SQLSRV\n";
+  print STDERR "       -o obsid or seqnbr to query \n";
+  
+}
+
+

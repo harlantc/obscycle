@@ -1,0 +1,213 @@
+===============================================================================
+
+	            HELP FILE for prop_email_forms
+
+===============================================================================
+
+
+General
+-------
+
+The prop_email_forms application will email the specified forms to
+the appropriate email address.
+
+Proposals can be specified by a file containing a list of proposals(-f),
+by a specific proposal number(-prop), by a panel name(-panel), or the
+user may request all proposals(-all).   The default is all proposals for
+the current cycle with a status of PROPOSED.
+
+The different email options are shown in the Detailed Description section.
+
+
+PARAMETERS
+----------
+
+Use proposals that match the following criteria:
+-f     [filename]        OPTIONAL  - file of proposal numbers
+-prop  [proposal number] OPTIONAL  - specific proposal number
+-panel [panel id ]       OPTIONAL  - specific panel id
+-all                     OPTIONAL  - DEFAULT.  All proposals for current cycle
+
+Email Types:  (choose at least one)
+-grades  Preliminary grades for all proposals on panel.
+         The -panel option is REQUIRED for this type
+-pri     Primary reviews
+-sec     Secondary reviews
+-hard    Hard copy confirmation message
+
+
+
+-U [user]       REQUIRED  - proposal database user name
+-S [server]     OPTIONAL  - proposal database server 
+                            default is DB_PROP_SQLSRV
+-p              OPTIONAL  - print parameters
+
+
+
+
+
+INPUT/OUTPUT
+-------------
+
+1) STDIN:  
+
+   >Enter Password:  User must enter password for access to the database.
+
+2) Input Files: 
+
+   File containing proposal numbers when using the -f input parameter option.  
+   This file contains proposal numbers separated by white-space characters
+   (blanks, tabs, new-lines, or form-feeds).
+
+3) Output Files:
+
+
+
+4) Output Files for Archive: 
+
+   N/A
+
+
+SETUP AND USAGE
+---------------
+
+prop_email_forms uses the environment variables that are set in the file 
+'ascds_setup_prop' and 'ascds_setup_db'.  These proposal environment 
+variables include :
+
+        ASCDS_PROP_DIR       - top level proposal directory
+        ASCDS_PROP_AO        - current open proposal cycle number
+        ASCDS_PROP_OUTMAIL   - copies of outgoing mail
+        DB_PROP_ARCSRV       - database archive server.
+        DB_PROP_SQLSRV       - database sybase server.
+
+The user should not ordinarily change their values. 
+
+Only those users having permissions to read proposals should have access to
+the proposal database and any files that contain proposal data.
+All files created should belong to the group 'prop'.  Permission should
+be set so that only the owner and group have permissions to access these
+files.  If you need access, contact the system administrator.
+
+
+
+
+DETAILED DESCRIPTION - GENERAL INSTRUCTIONS
+-------------------------------------------------------------------
+
+The different email formats are described here.
+
+1. -grades
+   Notes:  Sends a list of all the proposal numbers for each panel to 
+   each assigned reviewer.  This list is then returned with the 
+   preliminary grades filled in.
+
+Review: Preliminary Grades
+Please enter a grade for each proposal in Panel 
+
+Proposal#  P.I.              Grade
+---------  ---------------   -----
+
+
+2. -pri
+   Notes: Sends the primary review form for each proposal to the assigned
+   primary reviewer.
+
+Please email all responses to <rps_prop@cfa.harvard.edu>.
+Please return reviews by April 1, 1998.  Thank you.
+
+Review:            Chandra Primary Review Form for 
+Proposal Number:   
+Subject Category: 
+P.I. Name:       
+Proposal Title: 
+
+_______________________________________________________________________________
+
+Strengths: 
+
+
+Weaknesses: 
+
+
+Overall Assessment: 
+
+
+Grade: 
+
+
+3. -sec
+   Notes: Sends the secondary review form for each proposal to the assigned
+   secondary reviewer.
+
+Please email all responses to <rps_prop@cfa.harvard.edu>.
+Please return reviews by April 1, 1998.  Thank you.
+
+Review:            Chandra Secondary Review Form for 
+Proposal Number:   
+Subject Category: 
+P.I. Name:       
+Proposal Title: 
+
+_______________________________________________________________________________
+
+Strengths: 
+
+
+Weaknesses: 
+
+
+Overall Assessment: 
+
+
+Grade: 
+
+
+4. -tech
+   Notes: Sends the technical review form for each proposal to the assigned
+   technical reviewer.
+
+Review:            Chandra Technical Evaluation Form
+Proposal Number:   
+Subject Category: 
+P.I. Name:       
+Proposal Title: 
+
+________________________________________________________________________
+
+Reviewer: 
+
+Technical Problems (Y/N):  
+
+Conflict with GTO or Calibration targets (Y/N): Y
+
+Conflict with targets in other proposals (Y/N): N
+
+Comments: 
+
+
+
+5. -hard
+   Notes: Hard copy confirmation message is mailed to P.I. address
+   as given in proposal.  This also updates the database 
+   hardcopy receipt field.
+
+The Chandra X-Ray Center has received the paper copies of the
+proposal listed below.  If you have not made, or have not 
+received email verification of an electronic submission, 
+please contact CXC User Support at usupport@cfa.harvard.edu .
+
+Proposal Number: 
+P.I.           :
+Proposal Title : 
+
+
+RESTRICTIONS
+------------
+
+
+REFERENCES
+----------
+
+See the Proposal section of the Data System Software Design Document 
+(DS01) for more detail about the proposal submission cycle. 

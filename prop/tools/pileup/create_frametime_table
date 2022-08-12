@@ -1,0 +1,76 @@
+echo "--------------------------------------------"
+echo "RECOMMENDED FRAME TIMES"
+echo ""
+echo "6 CCDs, ACIS-I, Full -> 1/8"
+prop_frametime 6 1 1.0
+prop_frametime 6 1 0.5
+prop_frametime 6 1 0.25
+prop_frametime 6 1 0.125
+echo ""
+echo "6 CCDs, ACIS-S, Full -> 1/8"
+prop_frametime 6 5 1.0
+prop_frametime 6 5 0.5
+prop_frametime 6 5 0.25
+prop_frametime 6 5 0.125
+echo ""
+echo "5 CCDs, ACIS-I, Full -> 1/8"
+prop_frametime 5 1 1.0
+prop_frametime 5 1 0.5
+prop_frametime 5 1 0.25
+prop_frametime 5 1 0.125
+echo ""
+echo "5 CCDs, ACIS-S, Full -> 1/8"
+prop_frametime 5 5 1.0
+prop_frametime 5 5 0.5
+prop_frametime 5 5 0.25
+prop_frametime 5 5 0.125
+echo ""
+echo "4 CCDs, ACIS-I, Full -> 1/8"
+prop_frametime 4 1 1.0
+prop_frametime 4 1 0.5
+prop_frametime 4 1 0.25
+prop_frametime 4 1 0.125
+echo ""
+echo "4 CCDs, ACIS-S, Full -> 1/8"
+prop_frametime 4 5 1.0
+prop_frametime 4 5 0.5
+prop_frametime 4 5 0.25
+prop_frametime 4 5 0.125
+echo ""
+echo "3 CCDs, ACIS-I, Full -> 1/8"
+prop_frametime 3 1 1.0
+prop_frametime 3 1 0.5
+prop_frametime 3 1 0.25
+prop_frametime 3 1 0.125
+echo ""
+echo "3 CCDs, ACIS-S, Full -> 1/8"
+prop_frametime 3 5 1.0
+prop_frametime 3 5 0.5
+prop_frametime 3 5 0.25
+prop_frametime 3 5 0.125
+echo ""
+echo "2 CCDs, ACIS-I, Full -> 1/8"
+prop_frametime 2 1 1.0
+prop_frametime 2 1 0.5
+prop_frametime 2 1 0.25
+prop_frametime 2 1 0.125
+echo ""
+echo "2 CCDs, ACIS-S, Full -> 1/8"
+prop_frametime 2 5 1.0
+prop_frametime 2 5 0.5
+prop_frametime 2 5 0.25
+prop_frametime 2 5 0.125
+echo ""
+echo "1 CCD, ACIS-I, Full -> 1/8"
+prop_frametime 1 1 1.0
+prop_frametime 1 1 0.5
+prop_frametime 1 1 0.25
+prop_frametime 1 1 0.125
+echo ""
+echo "1 CCD, ACIS-S, Full -> 1/8"
+prop_frametime 1 5 1.0
+prop_frametime 1 5 0.5
+prop_frametime 1 5 0.25
+prop_frametime 1 5 0.125
+echo ""
+echo "--------------------------------------------"

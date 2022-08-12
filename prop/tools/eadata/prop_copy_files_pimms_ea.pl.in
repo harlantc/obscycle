@@ -1,0 +1,85 @@
+#!@PERL@ 
+
+#   ***********************************************************
+#   Copyright (c) 2001  Smithsonian  Astrophysical  Observatory
+#   The contents of this file are protected under the copyright
+#   notice  contained in the file  COPYRIGHT_SAO located in the
+#   root directory of this distribution.
+#   ***********************************************************
+#
+#   FILE NAME: prop_copy_files_pimms_ea.pl
+#
+#   DEVELOPMENT: ObsCycle
+#
+#   DESCRIPTION:
+#     This script copies the files needed for the Chandra Effective Area 
+#     calibration data.
+#
+#   NOTES:
+#     It must be run once for each version of the CALDB.
+#
+#   REVISION HISTORY:
+#     This is a new script for NRA4.
+#
+#   ***********************************************************
+use Getopt::Std;
+use strict;
+
+use vars qw(@pdata $pdir $pfile $cmd $install_dir
+	);
+
+  #get PIMMS environment 
+  $pdir = $ENV{'ASCDS_PROP_PMS_DATA'};
+  if (!$pdir) {
+     print STDERR "ASCDS_PROP_PMS_DATA environment variable not set.\n";
+     print STDERR "Please source the CXC environment setup script and try again.\n\n";
+     &print_usage;
+     exit 1;
+  }
+  if (! -e $pdir) {
+     print STDERR "Creating directory $pdir.\n";
+     `mkdir -p $pdir`;
+     #if (!(mkdir $pdir,0750)) {
+       #print STDERR "$! \n";
+     #}
+  }
+  if (!-w $pdir) {
+    print STDERR "Error: No write permission for $pdir\n";
+    exit 1;
+  }
+
+  #get install environment 
+  $install_dir = $ENV{'ASCDS_INSTALL'};
+  if (!$install_dir) {
+     print STDERR "ASCDS_INSTALL environment variable not set.\n";
+     print STDERR "Please source the CXC environment setup script and try again.\n\n";
+     &print_usage;
+     exit 1;
+  }
+
+
+  $install_dir .= "/config/pimms/data";
+
+  if ("$install_dir" ne "$pdir") {
+    print STDERR "Linking other mission data \n  from: $install_dir \n  to:   $pdir \n";
+    opendir( INDIR, $install_dir ) || die "Can not open dir: $!    -- $install_dir\n";
+
+    while( $pfile = readdir(INDIR) ){
+      if ($pfile ne "." && $pfile ne "..") {
+        $cmd = qq(cp $install_dir/$pfile $pdir/$pfile);
+        `$cmd`;
+        printf STDERR "$cmd\n";
+      }
+    }
+    print STDERR "Done.\n";
+  }
+
+
+
+sub print_usage {
+
+  print STDERR "USAGE: prop_copy_files_pimms_ea.pl  ";
+  print STDERR "       Copies the files to ASCDS_PROP_PMS_DATA from ASCDS_INSTALL/config/pimms/data\n";
+
+}
+

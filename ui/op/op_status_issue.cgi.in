@@ -1,0 +1,88 @@
+#!@PERLDB@ 
+#----------------------------------
+# Copyright (c) 1995, Smithsonian Astrophysical Observatory
+# You may not do anything you like with this file. 
+#
+# FILE NAME:  op_status_issue.cgi
+# DEVELOPMENT:
+#
+# NOTES:       
+#             
+#
+# INPUT:       user input
+#
+# REVISION HISTORY:
+#
+# Date: 
+#---------------------------------------------------------
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use CGI ':standard';
+use File::Basename;
+use strict;
+use DBI;
+use DBD::Sybase;
+
+
+unless (eval {require "op_config.pl"}) {
+    print "Unable to find op_config.pl\n"; exit(1);
+}
+unless (eval {require "op_subroutines.pl"}) {
+    print "Unable to find op_subroutines.pl\n"; exit(1);
+}
+unless (eval {require "op_issue_routines.pl"}) {
+    print "Unable to find op_issue_routines.pl\n"; exit(1);
+}
+
+use vars qw($dsn $dbh $sth $dbg
+	$db $srv $pwd  $dlm $uid $sql_stmt
+	$stmp $ii   $issueid @issue_names @issue_dat
+	$host $idel_h @idel_list $fi $ISSUE_TMP $patt $del_h
+	$tmp_file $tmp_dir $tmp_host $tmp_date  $tmp_err
+	);
+
+
+
+# *********************************************************************
+# *********************************************************************
+{
+
+  $SIG{__WARN__} = \&catch_warn;
+
+  $issueid =  $ENV{'QUERY_STRING'};
+  $issueid =~ s/\(//g;
+  $issueid =~ s/\)//g;
+  if (($issueid !~ /^\d+$/) || int($issueid)<= 0) {
+      error("Please refine your query.");
+      display_file($tmp_err,1);
+      exit;
+  }
+  $issueid = int($issueid);
+  logit("op_status_issue:  $issueid\n");
+
+
+  $stmp = "server=$srv;database=$db";
+  $dsn = "DBI:Sybase:$stmp";
+  $dbh = DBI->connect($dsn, $uid, $pwd, {
+        PrintError => 1,
+        RaiseError => 0});
+  if ( !defined $dbh) {
+    display_file($tmp_err,1);
+    exit 1;
+  }
+ 
+  $tmp_file = &build_issue_files($issueid);
+
+  display_file($tmp_file,1);
+  unlink($tmp_file);
+
+
+  $dbh->disconnect;
+
+}
+
+
+

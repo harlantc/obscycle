@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE formView SYSTEM "formView.dtd">
+
+<formView>
+
+  <title>New HRC</title>
+
+  <info>
+    <supportsNew></supportsNew>
+  </info>
+
+  <key>
+    <tableName>hrcparam</tableName>
+    <columnName>hrcid</columnName>
+  </key>
+
+  <navigation>
+    <display>
+      <name>HRC Identifier</name>
+      <tableName>hrcparam</tableName>
+      <columnName>hrcid</columnName>
+    </display>
+  </navigation>
+
+  <GUI>
+    <label tag="11">
+      <labelText>HRC New Record:</labelText>
+      <row>
+        <number>0</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+    </label>
+
+    <textfield tag="12">
+      <labelText>SI Mode</labelText>
+      <size>10</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>hrcparam</tableName>
+	<columnName>si_mode</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="21">
+      <labelText>Trigger Level</labelText>
+      <size>3</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>hrcparam</tableName>
+	<columnName>trigger_level</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="22">
+      <labelText>Range Switch Level</labelText>
+      <size>3</size>
+      <database>
+        <tableName>hrcparam</tableName>
+	<columnName>range_switch_level</columnName>
+      </database>
+    </textfield>
+
+    <combobox tag="23">
+      <labelText>Spect Mode</labelText>
+      <size>8</size>
+      <database>
+        <tableName>hrcparam</tableName>
+	<columnName>spect_mode</columnName>
+      </database>
+    </combobox>
+
+    <combobox tag="41">
+      <labelText>Antico Enable</labelText>
+      <size>1</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>hrcparam</tableName>
+	<columnName>antico_enable</columnName>
+      </database>
+    </combobox>
+
+    <combobox tag="42">
+      <labelText>Width Enable</labelText>
+      <size>1</size>
+      <database>
+        <tableName>hrcparam</tableName>
+	<columnName>width_enable</columnName>
+      </database>
+    </combobox>
+
+    <textfield tag="43">
+      <labelText>Width Threshold</labelText>
+      <size>3</size>
+      <database>
+        <tableName>hrcparam</tableName>
+	<columnName>width_threshold</columnName>
+      </database>
+    </textfield>
+
+    <combobox tag="51">
+      <labelText>ULD Enable</labelText>
+      <size>1</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>hrcparam</tableName>
+	<columnName>uld_enable</columnName>
+      </database>
+    </combobox>
+
+    <textfield tag="52">
+      <labelText>Upper Level Disc</labelText>
+      <size>3</size>
+      <database>
+        <tableName>hrcparam</tableName>
+	<columnName>width_threshold</columnName>
+      </database>
+    </textfield>
+
+    <combobox tag="53">
+      <labelText>Blank Enable</labelText>
+      <size>1</size>
+      <database>
+        <tableName>hrcparam</tableName>
+	<columnName>blank_enable</columnName>
+      </database>
+    </combobox>
+
+    <textfield tag="61">
+      <labelText>U Blank Hi</labelText>
+      <size>3</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>hrcparam</tableName>
+	<columnName>u_blank_hi</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="62">
+      <labelText>V Blank Hi</labelText>
+      <size>3</size>
+      <database>
+        <tableName>hrcparam</tableName>
+	<columnName>v_blank_hi</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="71">
+      <labelText>U Blank Lo</labelText>
+      <size>3</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>hrcparam</tableName>
+	<columnName>u_blank_lo</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="72">
+      <labelText>V Blank Lo</labelText>
+      <size>3</size>
+      <database>
+        <tableName>hrcparam</tableName>
+	<columnName>v_blank_lo</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="81">
+      <labelText>PY Shutter Pos</labelText>
+      <size>3</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>hrcparam</tableName>
+	<columnName>py_shutter_position</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="82">
+      <labelText>MY Shutter Pos</labelText>
+      <size>3</size>
+      <database>
+        <tableName>hrcparam</tableName>
+	<columnName>my_shutter_position</columnName>
+      </database>
+    </textfield>
+
+    <triplebox tag="91">
+      <labelText>Zero block</labelText>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>hrcparam</tableName>
+	<columnName>hrc_zero_block</columnName>
+      </database>
+    </triplebox>
+
+    <triplebox tag="92">
+      <labelText>Timing Mode</labelText>
+      <database>
+        <tableName>hrcparam</tableName>
+	<columnName>timing_mode</columnName>
+      </database>
+    </triplebox>
+
+
+ </GUI>
+
+</formView>

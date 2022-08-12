@@ -1,0 +1,4 @@
+#define horizhatchdotted_width 6
+#define horizhatchdotted_height 7
+static unsigned char horizhatchdotted_bits[] = {
+   0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00 };

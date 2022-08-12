@@ -1,0 +1,11 @@
+# arg 1 =>  database    arg 2 => cycle#  arg 3 => path
+# ../../PeerReviewCDO/dofinal_lists andreap 17
+psql -A -F "	" $1 < $3/SQL/target_list.sql > cycle$2_target.txt
+psql -A -F "	" $1 < $3/SQL/joint_list.sql > cycle$2_joint.txt
+psql -A -F "	" $1 < $3/SQL/archive_list.sql > cycle$2_archive.txt
+psql -A -F "	" $1 < $3/SQL/theory_list.sql > cycle$2_theory.txt
+psql -A -F "	" $1 < $3/SQL/multicycle_list.sql > cycle$2_multicycle.txt
+psql -A -F "	" $1 < $3/SQL/bpp_list.sql > cycle$2_bpp.txt
+psql -A -F "	" $1 < $3/SQL/alt_target_list.sql > cycle$2_alt_target.txt
+psql -A -F "	" $1 < $3/SQL/monitor.sql > cycle$2_monitor.txt
+psql -A -F "	" $1 < $3/SQL/raster.sql > cycle$2_raster.txt

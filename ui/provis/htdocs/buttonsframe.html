@@ -1,0 +1,55 @@
+<!-- _INSERT_SAO_COPYRIGHT_HERE_(2008)_ -->
+<!-- _INSERT_GPL_LICENSE_HERE_ -->
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title>buttonframe</title>
+  <!--#include virtual="/soft/include/cxcds_meta.html"-->
+  <link rel="stylesheet" href="/soft/provis/provis.css" type="text/css" >
+  <script type="text/javascript" language="javascript" src="buttonsframe.js"></script>
+</head>
+
+
+<body class="btnbody" onload="OnLoad();" >
+
+<div style="text-align: right;">
+<table style="width: 12px; text-align: left; margin-left: auto; margin-right: 0px;" border="0" cellpadding="2" cellspacing="0">
+
+  <tbody>
+    <tr>
+      <td style="text-align: right; vertical-align: top; width: 12px; height: 12px;"><img id="resize" onmouseup="Resize();" title="Maximize plot area size" style="width: 12px; height: 12px;" alt="maximize" src="images/maximize.bmp"></td>
+    </tr>
+  </tbody>
+</table>
+
+</div>
+
+<table style="width: 100%; text-align: left; margin-left: auto; margin-right: auto;" border="0" cellpadding="0" cellspacing="0">
+
+  <tbody>
+    <tr>
+      <td style="height: 100%; text-align: center; vertical-align: middle;"> <input onclick="ResolveTarget(top.inputframe.SetTargetCoords);" id="resolvetarget" name="resolvetarget" value="Resolve Name" title="Resolve target name to sky coordinates" type="button"><br>
+      </td>
+
+      <td style="text-align: center; vertical-align: middle;"><input onclick="ClearTarget();" id="cleartarget" name="cleartarget" value="Clear Parameters" title="Clear target" type="button"></td>
+
+      <td style="text-align: center; vertical-align: middle;"><input onclick="ResetDates();" id="resetdates" name="resetdates" value="Reset Dates" title="Reset Start and End Dates to defaults" type="button"></td>
+
+      <td style="text-align: center; vertical-align: middle;"><input onclick="ResetOptions();" id="resetoptions" name="Reset Options" value="Reset Options" title="Reset plot options to default settings" type="button"></td>
+
+      <td>&nbsp;&nbsp;</td>
+      <td style="text-align: center; vertical-align: middle;"><input onclick="GeneratePlot();" id="generateplot" name="generateplot" value="Generate Plot" title="Regenerate plot using current setting" type="button"></td>
+
+      <td style="text-align: center; vertical-align: middle;"><input onclick="GetPSPlot();" id="getpsplot" value="Get PDF" name="getpsplot" title="Get PDF version of plot" type="button"></td>
+
+      <td style="text-align: center; vertical-align: middle;"><input onclick="Cancel();" id="cancel" name="Cancel" value="Cancel" title="Cancel Pending Request" type="button"></td>
+
+      <td style="text-align: center; vertical-align: middle;"><input id="help" name="help" value="Help" onclick='var mywin=window.open("/soft/provis/help/helpframe.html","provisHelp","scrollbars=yes,menubar=yes,toolbar=yes,location=no,resizable=yes");mywin.focus();' type="button" title="Display PRoVis Reference Manual"></td>
+
+    </tr>
+  
+  </tbody>
+</table>
+</body>
+</html>

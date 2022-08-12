@@ -1,0 +1,13 @@
+#!/bin/ksh -f
+#*******************************************************************************
+#
+#  prop_rpsdiff  captures the STDERR output and sends it to STDOUT
+#  
+#  The application software executes a popen for this script and then
+#  displays the output to the user.
+#
+#*******************************************************************************
+
+/usr/bin/diff $1 $2  2> $ASCDS_TMP/.tmp
+cat $ASCDS_TMP/.tmp
+#rm $ASCDS_TMP/.tmp

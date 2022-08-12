@@ -1,0 +1,322 @@
+CHANDRA X-RAY CENTER
+
+Proposal Applications
+
+Proposal Planning Tools (Command Line Interface)
+------------------------------------------------
+
+prop_colden_exe: 
+   Calculates the neutral hydrogen column density
+
+prop_colden: 
+   Sets up environment variables for colden tool and calls executable
+
+prop_dates_exe: 
+   Converts between popular date systems
+
+prop_dates: 
+   Sets up environment variables for dates tool and calls executable
+
+prop_frametime: 
+   Estimates ACIS frame time
+
+prop_pileup: 
+   Estimates ACIS pileup
+
+prop_install_pimms_ea.pl:
+   Retrieves Effective Area data from CALDB and installs for use by PIMMS
+
+prop_pimms_exe: 
+   Estimates instrument count rates
+
+prop_pimms: 
+   Sets up environment variables for PIMMS tool and calls executable
+
+prop_xsing:
+   program within the pimms MODELS directory used to convert the XSPEC output 
+   into a form readable by PIMMS
+
+prop_precess_exe: 
+   Precesses between coordinate systems
+
+prop_precess: 
+   Sets up environment variables for precess tool and calls executable
+
+prop_waves:
+   Program to convert energy, wavelength, or frequency of electromagnetic 
+   radiation in one system of units to energy, wavelength, or frequency in 
+   another system
+
+
+Proposal Planning Tools (Web-based Graphical User Interface)
+------------------------------------------------------------
+"http://<server>/toolkit/pimms.jsp": 
+   Displays the WWW Toolkit including PIMMS/pileup, colden, precess, dates
+
+"http://<server>/cgi-bin/build_viewer.cgi?ea":
+   Displays the PIMMS effective area curves in a user-selectable format
+
+
+Proposal Submission Tools
+-------------------------
+
+rpsd (RPS - Web version): 
+   Supports the submission of proposals through the WWW
+   See scripts to start server process - startRPS.pl.
+   (help available in prop_rps.hlp)
+
+rpsmaild (RPS - e-mail version):
+   Supports the submission of proposals through e-mail
+   See scripts to start server process - startRPS.pl.
+   (help available in prop_rps.hlp)
+
+prop_rps_receiver (Receiver Process): 
+   Supports the receipt of proposals submitted to the CXC
+   (see scripts to start receiver process)
+
+prop_rps_ingest (Ingest Process): 
+   Supports the ingest of proposals into the proposal database
+   (see scripts to start ingest process)
+
+Monitor Scripts
+---------------
+monitor_rpsd:
+  restart RPS WWW server (rpsd) as needed. This script should be run
+  from a cronjob.
+
+monitor_rpsmaild:
+  restart RPS email server (rpsmaild) as needed. This script should be run
+  from a cronjob.
+
+monitor_rps_receiver:
+  restart RPS receiver process (prop_rps_receiver) as needed. This script 
+  should be run from a cronjob.
+
+
+Proposal GUIs
+--------------
+prop_rps_gui (RPS/Error Handling GUI):
+   Supports review/ingestion of proposals with issues/resubmissions
+
+prop_panel_gui (Panel Manager): 
+   Supports all functions related to Peer Review Panels
+
+prop_manager_gui (Proposal Manager): 
+   Supports functions related to proposals; permits editing of existing
+   technical review and peer review forms
+
+
+Proposal Scripts
+----------------
+
+prop_start_rps_ingest.pl:
+   Starts up the RPS ingest process for the normal AO cycle.
+   (help available in prop_rps_ingest.hlp)
+
+prop_start_rps_too_ingest.pl:
+   Starts up the RPS ingest process for out-of-cycle requests (TOO's,DDT)
+   (help available in prop_rps_ingest.hlp)
+
+prop_start_rps_receiver.pl: 
+   Starts up the RPS receiver process
+   (help available in prop_rps_receiver.hlp)
+
+prop_start_rps_too_receiver.pl: 
+   Starts up the RPS receiver process for out-of-cycle requests (TOO's,DDT)
+   (help available in prop_rps_receiver.hlp)
+
+prop_kill_rps_ingest.pl:
+   Kills the current RPS ingest process.  This is used within the 
+   prop_start_rps_ingest.pl and prop_start_rps_too_ingest.pl scripts to 
+   kill any existing ingest process.
+   (no standalone .hlp needed)
+
+prop_rps_ingest_died.pl:
+   Notifies identified user (environment variable) of the failure of the
+   ingest process
+   (help available in prop_rps_ingest.hlp)
+
+prop_kill_rps_receiver.pl: 
+   Kills the current RPS receiver process.  This is used within the 
+   prop_start_rps_receiver.pl and prop_start_rps_too_receiver.pl scripts 
+   to kill any existing receiver process.
+   (no standalone .hlp needed)
+
+prop_rps_receiver_died.pl: 
+   Notifies identified user (environment variable) of failure of the
+   receiver process
+   (help available in prop_rps_receiver.hlp)
+
+prop_rps_too_mail.pl: 
+   Script used by prop_rps_receiver to send pager/email messages for 
+   out-of-cycle observation requests (TOO's,DDT) 
+   (help available in prop_rps_receiver.hlp)
+
+prop_rpsinc.pl:
+   Used by the prop_rps_receiver to include new mail and redirect STDERR
+   to STDOUT so that the messages get logged properly
+   (help available in prop_rps_receiver.hlp)
+
+prop_rpsdiff: 
+   Performs UNIX diff command on specified files and pipes output to a
+   temporary file for display in the GUI
+   (no standalone .hlp needed, script used by prop_rps_gui application)
+
+prop_rps2email.pl:
+   Recreate email version of RPS file from database fields.
+
+
+Proposal Review Tools
+---------------------
+
+prop_email_forms: 
+  E-mails the review forms and preliminary grades to the reviewers; e-mails
+  hard copy confirmation message to the principal investigator for a proposal
+
+prop_read_prelim:
+  Reads in the preliminary grade forms
+
+prop_read_reviews: 
+  Reads in the primary, secondary, peer, and technical proposal review forms
+
+prop_archive_retrieve: 
+  Retrieves proposal file for specified proposal number from the database 
+  archive
+  (no .hlp available)
+
+prop_splitreviews.pl:
+  Splits reviews that are merged in one file into separate files. 
+
+
+Proposal Report Tools
+---------------------
+
+prop_reports:
+  Generates final forms, prints review data from database, miscellaneous
+  proposal lists
+
+prop_rps_reports: 
+  Generates reports in proposal confirmation format or RPS internal format.
+
+prop_target_reports: 
+  Generates target reports requested by USG
+
+prop_institution.pl:
+  Generate list of institutions for current proposal cycle that do not
+  match input list provided on WWW.
+
+prop_all_stats.pl:
+  Generate statistics for all proposals of the current cycle with a 
+  status of PROPOSED.
+
+prop_winner_stats.pl:
+  Generate statistics for approved proposals of the current cycle that
+  were peer reviewed and/or GTO and CAL proposals.
+
+prop_gto_stats.pl:
+  Generate statistics/list for GTO proposals for the current cycle.
+
+prop_joint_stats.pl:
+  Generate statistics/list for Joint proposals for the current cycle.
+
+prop_lp_vlp_stats.pl:
+  Generate statistics/list for LP/VLP proposals for the current cycle.
+
+prop_view_linked.pl:
+  Generate list of linked proposals.
+
+prop_view_tgtkeyword.pl:
+  Generate list of proposal numbers by target keyword or target keywords
+  by proposal number.
+
+prop_rps_checks.pl:
+  Script to check:
+  . Observing proposal# for archive proposal does not exist in the database
+  . Previous Proposal# which has been identified as being replaced by a 
+    newer proposal still exists in the database
+  . Observing time >= 300ks but type is not LP or VLP
+
+prop_final_checks.pl:
+  Script to check:
+  . Accepted targets but proposal is not APPROVED.
+  . Approved Joint time but proposal not APPROVED.
+  . Missing Peer Review.
+
+
+prop_panel_checks.pl:
+  . Available reviewers not assigned to a panel.
+  . Panel Members in more than one panel.
+  . Linked proposals not in same panel
+  . LP/VLP panels.
+  . Proposals that have Primary reviewers assigned from a different panel.
+  . Proposals that have Secondary reviewers assigned from a different panel.
+  . Proposals that are missing a primary and/or secondary reviewer.
+
+
+prop_linked_obsids.pl
+  . provide list of observations linked to a given obsid or sequence number
+
+prop_obscat_for_xmm.pl
+  . provide list of observations in format requested by XMM/Newton. 
+
+prop_ignore_upload.pl
+  . move associated upload files for given proposal number to ./ignore 
+    subdirectory
+  
+prop_list_upload.pl
+  . list associated upload files for given proposal number 
+
+prop_check_upload.pl
+  . check for mismatch of upload files(RPS form and science justification)
+    vs proposals in database 
+
+rps_ftp_move.pl
+  . automated script to move ftp'd science justifcation files to the 
+    main upload directory.
+
+
+prop_list_deleted_props.pl 
+  . list proposals that have been deleted and/or removed from the error
+    queue
+
+prop_list_error_queue.pl
+  . list information about proposals currently in the error queue
+Proposal Conflict
+-----------------
+propconflict.pl:
+  Script to add basic command line prompts to the propconflict application.
+
+parse_ocatconflict.pl:
+  Parse propconflict output for OCat conflicts only.
+parse_propconflict.pl:
+  Parse propconflict output for Proposal conflicts only.
+parse_simbad.pl:
+  Parse propconflict output for Simbad differences only.
+prop_xmmconflict.pl
+  Parse propconflict output for XMM conflicts only.
+prop_ingest_checks.pl:
+  Executes propconflict and parses output for the prop_rps_ingest to
+  notify user of OCat conflicts or Simbad/NED differences in coordinates.
+
+
+Peer Review Panel Tools
+-----------------------
+
+prop_panel_create: 
+  Creates the baseline peer review panels by assigning proposals
+
+prop_create_peer: 
+  Creates the initial peer review forms for use at the Peer Review; displays
+  technical evaluation(s) and combines the primary/secondary review data
+
+prop_panel_assign.pl :
+  Script to retrieve proposal numbers that can be on the same panel.
+  These are used by prop_panel_create.
+  
+
+Peer Review Spreadsheet
+-----------------------
+
+peer.xls (Peer Review Spreadsheet): 
+   Supports the proposal and target approval process by Peer Review committee
+   See /proj/ascds/staff/UDF/ObsCycle/Proposals/PEER

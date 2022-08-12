@@ -1,0 +1,549 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<!--#include virtual="op_header.html"-->
+
+<div id="tophdr" class="tophdr">
+<div id="imghdr" class="imghdr">
+<img src="/soft/include/header_left.gif" alt=" " border="0" >
+</div>
+<div id="titlehdr" class="titlehdr">
+Chandra Observations Processing Status Fields
+</div>
+</div>
+
+
+<center>
+The table below lists the names of all available status fields with their
+descriptions. The last four columns indicate which fields are included
+in the observation report based on the report type chosen.
+<br>&nbsp;
+<table class="plain" width="90%"  >
+<tr class="header"  >
+<th>Field </th>
+<th>Description</th>
+<th >Long</th>
+<th >Short</th>
+<th >Dates</th>
+<th >Summary</th>
+</tr>
+
+<tr>
+<td valign=top><a NAME="PI_First"></a>PI First</td>
+<td>First Name&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td align="center">X</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="Last_Name"></a>Last Name</td>
+<td>Last Name</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td align="center">X</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="Proposal"></a>Proposal</td>
+<td>Proposal Id number&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td align="center">X</td>
+</tr>
+
+<tr >
+<td valign=top><a NAME="ObsId"></a>ObsId</td>
+<td>Observation Id number (assigned by CXCDS)</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center">X</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="SeqNum"></a>SeqNum</td>
+<td>Observation sequence number (assigned by CDO)</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td>&nbsp;</td>
+<td align="center">X</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="Object"></a>Object</td>
+<td>Object name</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center">X</td>
+</tr>
+
+<!--
+<tr >
+<td valign=top><a NAME="ObI"></a>ObI</td>
+<td>Observation interval number</td>
+<td align="center" valign="center" >X</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center">X</td>
+</tr>
+<tr>
+<td valign=top><a NAME="Exp_Cycle"></a>Exp Cycle</td>
+<td>Exposure cycle (ACIS alternating exposure mode)</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center">X</td>
+</tr>
+-->
+
+<tr>
+<td valign=top><a NAME="RA"></a>RA</td>
+<td>Right Ascension. This represents the pointing position
+corrected for detector offset, but not for the SIM Z offset.</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="Dec"></a>Dec</td>
+<td>Declination. This represents the pointing position
+corrected for detector offset, but not for the SIM Z offset.</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="Roll"></a>Roll</td>
+<td>Roll angle</td>
+<td align="center">X</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="SimZ"></a>SIM-Z</td>
+<td>SIM-Z Position. SIM offset along the Z-axis (transverse direction) in mm
+</td>
+<td align="center">X</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="Instrument"></a>Instrument</td>
+<td>Readout instrument/detector<br> When specifying the instrument in the selection criteria, the focal plane detector is used.  This will result in an inconsistency when the readout detector is not in the focal plane.</td>
+
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center">&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="Grating"></a>Grating&nbsp;</td>
+<td>Transmission grating inserted</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center">&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="DataMode"></a>DataMode&nbsp;</td>
+<td>Data mode:
+<dl>
+<dt><b>ACIS</b>
+<dd>RAW
+<dd>FAINT
+<dd>FAINT_BIAS
+<dd>VFAINT
+<dd>GRADED
+<dd>CC33_FAINT
+<dd>CC33_GRADED
+<dt><b>HRC</b>
+<dd>OBSERVING
+<dd>NEXT_IN_LINE
+</dl>
+</td>
+
+<td align="center">X</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="ReadMode"></a>ReadMode</td>
+
+<td>Read-out mode (ACIS only):
+<br>&nbsp;TIMED
+<br>&nbsp;CONTINUOUS</td>
+<td align="center">X</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="Type"></a>Type</td>
+<td>Type of observation: 
+<dl>
+<dt><b>GO:</b> Guest Observer
+<dt><b>GTO:</b> Guaranteed Time Observation
+<dt><b>TOO:</b> Target Of Opportunity (approved by peer review)
+<dt><b>DDT:</b> Director's Discretionary Time
+<dt><b>CAL:</b> Calibration observation
+<dt><b>CCT:</b> Chandra Cool Target
+<dt><b>ER:</b> Engineering Request
+</dl></td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center">X</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="Data_Rights"></a>Data Rights</td>
+<td>Data rights:
+<dl>
+<dt>S: Standard proprietary (12)
+<dt>D: Discretionary (3)
+<dt>N: None (public)
+<dt>1 month
+<dt>2 months
+<dt>3 months
+<dt>4 months
+<dt>6 months
+<dt>9 months
+</dl>
+</td>
+
+<td align="center">X</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="Obs_Date"></a>Obs Date</td>
+<td>Start date and time of observation</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center">X</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="OCat_status"></a>OCat Status&nbsp;</td>
+<td>Status of the observation in the archive: 
+<dl>
+<dt>unobserved
+<dt>scheduled
+<dt>partially observed
+<dt>observed
+<dt>archived
+<dt>discarded 
+<dt>canceled 
+</dl>
+Note that this status changes
+from scheduled to (partially) observed only when the data products are
+ingested into the archive)</td>
+
+<td align="center">X</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="Public_Date"></a>Public Rel Date</td>
+<td>Date when data products become (became) publicly available; NULL means
+unknown</td>
+
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center">&nbsp;</td>
+<td align="center">X</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="Appr_Time_(ks)"></a>Apprvd Time</td>
+<td>Approved exposure time (ks)</td>
+<td align="center">X</td>
+<td>&nbsp;</td>
+<td align="center">X</td>
+<td align="center">X</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="Sched_time_(ks)"></a>Sched Time</td>
+<td>Scheduled time (ks)</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td align="center">X</td>
+<td>&nbsp;</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="On_target_time_(ks)"></a>On Target Time</td>
+<td>Total time spent on-target (ks)</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td align="center">X</td>
+<td>&nbsp;</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="Good_Time"></a>Good Time</td>
+<td>Good data exposure time (ks)</td>
+<td align="center">X</td>
+<td align="center">&nbsp;</td>
+<td align="center">X</td>
+<td align="center">X</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="Charge_Time"></a>Charge Time</td>
+<td>Time charged against allocation (ks)</td>
+<td align="center">X</td>
+<td align="center">&nbsp;</td>
+<td align="center">&nbsp;</td>
+<td align="center">&nbsp;</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="Pipe_Config"></a>Pipe. Config.</td>
+<td>Pipeline configuration used for processing:
+<dl>
+<dt><b>primary:</b> normal configuration for observations
+<dt><b>secondary:</b> limited configuration for observation using 
+secondary instrument (i.e., instrument not in focal plane)
+<dt><b>primary_obc:</b> limited configuration using on board aspect
+<dt><b>standard:</b> limited calibration configuration (processing only through L0)
+</dl>
+</td>
+<td align="center">X</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="AP/CP"></a>Proc Type</td>
+<td>Automated processing or custom processing</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center">&nbsp;</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="Version"></a>Proc Version</td>
+<td>Version of processing of observation</td>
+<td align="center">X</td>
+<td align="center">&nbsp;</td>
+<td align="center">X</td>
+<td align="center">&nbsp;</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="Processing_Status">Proc Status</a></td>
+<td>Processing status (2 parts):
+<dl>
+<dt><b>DONE:</b> completed
+<dt><b>BLOCKED:</b> pipelines need more information or a s/w fix
+<dt><b>ERROR:</b> processing error, under investigation
+<dt><b>PENDING:</b> in progress
+</dl> 
+The second part displays the current level if not L2.
+</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center">&nbsp;</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="Processing_Date"></a>Proc Date</td>
+<td>Date of processing operation</td>
+<td align="center">X</td>
+<td align="center">&nbsp;</td>
+<td align="center">X</td>
+<td align="center">&nbsp;</td>
+</tr>
+
+
+<tr>
+<td valign=top><a NAME="Release"></a>Release</td>
+<td>Version of CXCDS software release used for processing</td>
+<td align="center">X</td>
+<td align="center">&nbsp;</td>
+<td align="center">&nbsp;</td>
+<td align="center">&nbsp;</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="CALDB"></a>CALDB Version</td>
+<td>Version of CALDB reference in the L2 event fits file.</td>
+<td align="center">X</td>
+<td align="center">&nbsp;</td>
+<td align="center">&nbsp;</td>
+<td align="center">&nbsp;</td>
+</tr>
+<tr>
+<td valign=top><a NAME="Issues"></a>Issue(s)</td>
+<td>Issues that apply to processing of observation.
+Issues shown in parentheses () are closed.
+</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center">X</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="Ingested"></a>Ingested</td>
+<td>Ingested status of data products.</td>
+<td align="center">X</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="VV_Version"></a>V&amp;V&nbsp;Version</td>
+<td>Version of Verification &amp; Validation of processing</td>
+<td align="center">X</td>
+<td align="center">&nbsp;</td>
+<td align="center">X</td>
+<td align="center">&nbsp;</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="VV_Status"></a>V&amp;V Status</td>
+<td>Verification &amp; Validation status of Automated Processing data products:
+<dl>
+<dt><b>NULL:</b> No V&amp;V Report available yet
+<dt><b>OK:</b> Approved for distribution
+<dt><b>Hold:</b> Internal DS hold
+<dt><b>Problem:</b> Referred to CDO
+<dt><b>Repro+DD:</b> Reprocessing required but distribution approved
+<dt><b>ReprNoDD:</b> Reprocessing required; do not distribute
+</dl>
+</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center">&nbsp;</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="CDO_Review"></a>Review</td>
+<td>Review by Chandra Director's Office  or Aspect team required </td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center">&nbsp;</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="VV_Date"></a>V&amp;V Date</td>
+<td>Date of Verification &amp; Validation</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center">&nbsp;</td>
+</tr>
+
+
+
+<tr>
+<td valign=top><a NAME="DD_Date"></a>Data Distr Date</td>
+<td>Data delivery date: Date PI was notified of data being available</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center">X</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="Mail_Date"></a>Data Mail Date</td>
+<td>Date hard medium was mailed</td>
+<td align="center">X</td>
+<td align="center">&nbsp;</td>
+<td align="center">X</td>
+<td align="center">&nbsp;</td>
+</tr>
+
+
+
+<!--
+<tr>
+<td valign=top><a NAME="Readout_Detector "></a>Readout Detector&nbsp;</td>
+<td>Instrument/detector generating the observation's data</td>
+<td align="center">X</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+-->
+
+
+<!--
+<tr>
+<td valign=top><a NAME="StartTime"></a>StartTime</td>
+<td>Start time of observation interval (ObI)</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center">X</td>
+</tr>
+
+<tr>
+<td valign=top><a NAME="StopTime"></a>StopTime</td>
+<td>End time of observation interval (ObI)</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center">X</td>
+</tr>
+-->
+
+<!--
+<tr>
+<td valign=top><a NAME="Obs_Interval_(ks)"></a>Obs Interval</td>
+<td>Observation interval (ks)</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td align="center">X</td>
+<td>&nbsp;</td>
+</tr>
+-->
+
+
+<!--
+<tr>
+<td valign=top><a NAME="Delta"></a>Delta&nbsp; (d)</td>
+<td>Difference of&nbsp; Obs Date and DD date (d)</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td align="center">X</td>
+<td>&nbsp;</td>
+</tr>
+-->
+
+</table></center>
+</div>
+
+</body>
+</html>

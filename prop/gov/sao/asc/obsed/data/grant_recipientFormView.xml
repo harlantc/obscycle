@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE formView SYSTEM "formView.dtd">
+
+<formView>
+
+  <title>Grant Recipient Form</title>
+
+  <info>
+    <supportsNew>nil</supportsNew>
+  </info>
+
+  <key>
+    <tableName>grant_recipient</tableName>
+    <columnName>id</columnName>
+  </key>
+
+  <navigation>
+    <display>
+      <name>Grant Recipient Id</name>
+      <tableName>grant_recipient</tableName>
+      <columnName>id</columnName>
+    </display>
+   <display>
+      <name>Grant Id+i Recipient Id</name>
+      <tableName>grant_recipient</tableName>
+      <columnName>(convert(char(10),grant_id)+convert(char(10),id))</columnName>
+    </display>
+  </navigation>
+
+  <GUI>
+    <textfield tag="11">
+      <labelText>Id</labelText>
+      <size>8</size>
+      <database>
+        <tableName>grant_recipient</tableName>
+	<columnName>id</columnName>
+      </database>
+     </textfield>
+
+    <keycombobox tag="33">
+      <labelText>Grant Id</labelText>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <size>10</size>
+      <database>
+        <tableName>grant_recipient</tableName>
+	<columnName>grant_id</columnName>
+      </database>
+      <keyinfo>
+	<keyTableName>grant_info</keyTableName>
+	<keyColumnName>grant_id</keyColumnName>
+      </keyinfo>
+    </keycombobox>
+
+    <textfield tag="34">
+      <labelText>Grant Number</labelText>
+      <size>8</size>
+      <database>
+        <tableName>view_grants</tableName>
+        <columnName>grant_number</columnName>
+        <joinTableName>grant_recipient</joinTableName>
+        <joinColumnName>grant_id</joinColumnName>
+      </database>
+    </textfield>
+
+    <keycombobox tag="43" >
+      <labelText>Person Id</labelText>
+      <size>8</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>grant_recipient</tableName>
+	<columnName>pers_id</columnName>
+      </database>
+      <keyinfo>
+	<keyTableName>axafusers..person_short</keyTableName>
+	<keyColumnName>pers_id</keyColumnName>
+      </keyinfo>
+     <null>
+        <representation>NULL</representation>
+      </null>
+
+    </keycombobox>
+
+    <textfield tag="44">
+      <labelText>Recipient </labelText>
+      <size>8</size>
+      <database>
+        <tableName>axafusers..person_short</tableName>
+        <columnName>last</columnName>
+        <joinTableName>grant_recipient</joinTableName>
+        <joinColumnName>pers_id</joinColumnName>
+      </database>
+    </textfield>
+    
+  </GUI>
+
+</formView>

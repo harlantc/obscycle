@@ -1,0 +1,68 @@
+#!/bin/ksh
+# -------------------------------------------------------
+# Install to icxc area, set group and permissions
+# -------------------------------------------------------
+
+ICXC_HTDOC=/proj/web-icxc/htdocs/soft/op
+ICXC_CGI=/proj/web-icxc/cgi-bin/op
+ICXC_WEB_BIN=/proj/web-icxc/web_bin/op
+ASCDS_RELEASE=/home/ascds/DS.release
+
+echo "\nPRODUCTION WEBSERVER\n"
+echo "Copy from: ${ASCDS_RELEASE}"
+echo "Copy to:   ${ICXC_HTDOC}"
+echo "Do you really want to install this application? (y/n) : \c"
+read INFO
+if [ ${INFO} != "y" ] 
+then
+  echo " Copy was canceled."
+  exit
+fi
+
+MYDATE=`date '+%Y%b%d:%H%M%S'`
+#
+#  HTML FILES
+PREVDIR=${ICXC_HTDOC}/previous_${MYDATE}
+if [ ! -d ${PREVDIR} ]
+then
+  mkdir -p ${PREVDIR}
+fi
+cp -p ${ICXC_HTDOC}/* ${PREVDIR}/
+chgrp ascdswebgrp ${PREVDIR}/*
+chmod 775 ${PREVDIR}/*
+cp -p ${ASCDS_RELEASE}/www/htdocs/soft/op/* ${ICXC_HTDOC}/
+chgrp ascdswebgrp ${ICXC_HTDOC}/*
+chmod 775 ${ICXC_HTDOC}/*
+cp -p ${ICXC_HTDOC}/op_pst_statuslist_icxc.inc ${ICXC_HTDOC}/op_pst_statuslist.inc
+chgrp ascdswebgrp ${ICXC_HTDOC}/*
+chmod 775 ${ICXC_HTDOC}/*
+
+#  CGI SCRIPTS
+PREVDIR=${ICXC_CGI}/previous_${MYDATE}
+if [ ! -d ${PREVDIR} ]
+then
+  mkdir -p ${PREVDIR}
+fi
+cp -p ${ICXC_CGI}/* ${PREVDIR}/
+chgrp ascdswebgrp ${PREVDIR}/*
+chmod 775 ${PREVDIR}/*
+
+cp -p ${ASCDS_RELEASE}/www/htdocs/soft/cgi-bin/op/* ${ICXC_CGI}/
+chgrp ascdswebgrp ${ICXC_CGI}/*
+chmod 775 ${ICXC_CGI}/*
+
+# WEB BIN  SCRIPTS
+PREVDIR=${ICXC_WEB_BIN}/previous_${MYDATE}
+if [ ! -d ${PREVDIR} ]
+then
+  mkdir -p ${PREVDIR}
+fi
+cp -p ${ICXC_WEB_BIN}/* ${PREVDIR}/
+chgrp ascdswebgrp ${PREVDIR}/*
+chmod 775 ${PREVDIR}/*
+
+cp -p ${ASCDS_RELEASE}/www/htdocs/soft/web_bin/op/* ${ICXC_WEB_BIN}/
+chgrp ascdswebgrp ${ICXC_WEB_BIN}/*
+chmod 775 ${ICXC_WEB_BIN}/*
+
+echo "\nCopy completed."

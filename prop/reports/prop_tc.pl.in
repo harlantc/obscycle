@@ -1,0 +1,578 @@
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 1995, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_tc.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script extracts the time critical targets for all targets 
+#     at the peer review or all approved targets. 
+#     It's format is according to MP requirements.
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+
+use vars qw (%param @reqfiles $reqfile
+	$dbh $mquery $roll_sth $time_sth $too_sth $mon_sth
+	$MON $ROLL $SEG $WIN $TEL $type $PHA $GRP $RMK $PNT
+	$TNAME $TOO $TOOT $EXPTIME $CHIPC $CHIPO $CHIPS $SSOBJ
+	);
+
+use strict;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+
+@reqfiles = (
+        "prop_routines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+
+
+# -------------------------- MAIN ----------------------------------
+{
+  my($dsn,$sth,$stmp);
+
+  &parse_input;
+
+  #database connection
+  $dbh = dbProposalConnection($param{U}, $param{S}, $param{q});
+
+  open (OFILE,"> $param{o}") or
+	die "Unable to open $param{o} for writing.\n";
+  print STDERR "Creating file: $param{o}\n";
+  open (OFILER,"> $param{o}.remarks") or
+	die "Unable to open $param{o}.remarks for writing.\n";
+  open (OFILEN,"> $param{o}_remarks.csv") or
+	die "Unable to open $param{o}_remarks.csv for writing.\n";
+  my(@rhdr)= (" ","Proposal","Tgt","Target Name","RA","Dec","ExpTime",
+	"Chips","#Drop","Instrument","Constraint");
+  printf OFILER "%-3.3s %-8.8s %-3.3s %-22.22s  %9.9s  %9.9s %-7.7s %5.5s %8.8s %10.10s %s\n",@rhdr;
+  printf OFILER "------------------------------------------------------------------------------------------------------------------\n";
+  shift(@rhdr);
+  printf OFILEN "%-8.8s,%-3.3s,%-22.22s,%9.9s,%9.9s,%-7.7s,%5.5s,%8.8s,%10.10s,%s,Remarks\n",@rhdr;
+  print STDERR "Creating file: $param{o}.remarks\n";
+  print STDERR "Creating file: $param{o}_remarks.csv\n";
+  if (!$param{t} || $param{t} eq "%") {
+    open (TFILE,"> $param{o}.props") or
+	die "Unable to open $param{o}.props for writing.\n";
+    print STDERR "Creating file: $param{o}.props with TOO,LP,XVP,Joint,Solar System proposals\n";
+  }
+
+
+  &p_header();
+
+  # build the sql statements
+  &build_queries;
+  &do_tgts();
+
+  if (!$param{t} || $param{t} eq "%") {
+    &do_props();
+  }
+
+  close OFILE;
+  close OFILER;
+  close OFILEN;
+  if (!$param{t} || $param{t} eq "%") {
+    close TFILE;
+    chmod (0660,"$param{o}.props");
+  }
+  chmod (0660,"$param{o}");
+  chmod (0660,"$param{o}.remarks");
+}
+
+
+# ---------------------------------------------------------------
+# List of TOO,LP,Joint,Solar Proposals
+# ---------------------------------------------------------------
+sub do_props
+{
+  my($sql,$sth,@row);
+  my($type,$joint,$cat);
+
+  if (!$param{w}) {
+    $sql = qq(select proposal_number,type,joint,category_descrip 
+	from proposal where 
+	proposal.ao_str = "$param{a}" 
+	and (proposal.status="PROPOSED" or rank is not null ) and
+	(type like "%TOO%" or type like "%LP%" or 
+	 type like "%XVP%"  or
+	lower(category_descrip) like "solar system%" or
+	joint != "None")
+	order by proposal_number );
+  }
+  else {
+    $sql = qq(select proposal_number,type,joint,category_descrip 
+	from proposal where 
+	proposal.ao_str = "$param{a}" 
+	and (proposal.status="APPROVED" or rank >= 3.5 ) and
+	(type like "%TOO%" or type like "%LP%" or type like "%XVP%" or
+	lower(category_descrip) like "solar system%" or
+	joint != "None")
+	order by proposal_number );
+  }
+
+
+  printf TFILE "+ %-8.8s + %-8.8s + %-23.23s + %-12.12s +\n",
+  	"--------","--------","-----------------------","------------";
+  printf TFILE "| %-8.8s | %-8.8s | %-23.23s | %-12.12s |\n",
+	"propnum","proptype","joint","category";
+  printf TFILE "+ %-8.8s + %-8.8s + %-23.23s + %-12.12s +\n",
+  	"--------","--------","-----------------------","------------";
+
+  $sth = $dbh->prepare($sql);
+  $sth->execute;
+  while((@row) = $sth->fetchrow_array()) {
+    if ($row[1] =~ /TOO/ || $row[1]=~ /LP/ || $row[1] =~ /XVP/ ) {
+	$type = $row[1];
+    } else {
+	$type = "";
+    }
+    if ($row[2] !~ /NONE/i ) {
+	$joint = $row[2];
+    } else {
+	$joint = "";
+    }
+    if ($row[3] =~ /SOLAR/i) {
+	$cat = $row[3];
+    } else {
+	$cat = "";
+    }
+  
+    printf TFILE "| %-8.8s | %-8.8s | %-23.23s | %-12.12s |\n",
+	$row[0],$type,$joint,$cat;
+  }
+  printf TFILE "+ %-8.8s + %-8.8s + %-23.23s + %-12.12s +\n",
+  	"--------","--------","-----------------------","------------";
+  print TFILE "\n";
+}
+
+# -------------------------------------------------------------------
+# query to retrieve the proposal/targets for a proposal
+# -------------------------------------------------------------------
+sub do_tgts
+{    
+  my($pno,$stmp,$sth,@row,@row2,$ccnt,$ocnt,$do_fups);
+
+  $stmp = $mquery;
+  #print STDERR "\n$stmp\n";
+  $sth = $dbh->prepare($stmp);
+  $sth->execute;
+   
+    
+  while((@row) = $sth->fetchrow_array()) {
+      ($row[7],$row[8]) = get_chip_counts(@row);
+
+      $type = "none";
+      if ($row[$TEL] =~ /Y/i || $row[$TEL] =~ /P/) {
+         $type = "MultiTel";
+         p_tdata(@row);
+         printf OFILE "%-11.11s  %s  %5.2f, %s \n",$type,
+		$row[$TEL],$row[$TEL+2],$row[$TEL+1];
+      }
+      if ($row[$MON] > 1) {
+         $type = "Monitor";
+         $mon_sth->bind_param(1,$row[$#row]); 
+         $mon_sth->execute;
+         while (@row2 = $mon_sth->fetchrow_array) {
+           $row[$EXPTIME] = $row2[$#row2];
+           p_tdata(@row);
+           printf OFILE "%-11.11s  %s  %d,%6.2f,%6.2f\n",$type,"Y",@row2;
+         }
+         $mon_sth->finish;
+      }
+
+      if ($row[$SEG] =~ /Y/i || $row[$SEG] =~ /P/) {
+         p_tdata(@row);
+         $type = "Uninterrupted";
+         printf OFILE "%-11.11s  %s\n",$type,$row[$SEG];
+      }
+      if ($row[$PNT] =~ /Y/i || $row[$PNT] =~ /P/) {
+         p_tdata(@row);
+         $type = "Pointing";
+         printf OFILE "%-11.11s  %s\n",$type,$row[$PNT];
+      }
+
+
+      $roll_sth->bind_param(1,$row[$#row]); 
+      $roll_sth->execute;
+      while (@row2 = $roll_sth->fetchrow_array) {
+         $type = "Roll";
+         p_tdata(@row);
+         printf OFILE "%-11.11s  %s  %6.2f,%6.2f,%s\n",$type,$row2[$ROLL],
+ 		$row2[$ROLL+1],$row2[$ROLL+2],$row2[$ROLL+3];
+      }
+
+      $time_sth->bind_param(1,$row[$#row]); 
+      $time_sth->execute;
+      while (@row2 = $time_sth->fetchrow_array) {
+         $type = "Window";
+         p_tdata(@row);
+         printf OFILE "%-11.11s  %s  %s,%s\n",$type,
+		$row2[$WIN],$row2[$WIN+1],$row2[$WIN+2];
+      }
+
+      if ($row[$PHA] =~ /Y/i || $row[$PHA] =~ /P/) {
+         $type = "Phase";
+         p_tdata(@row);
+         printf OFILE "%-11.11s  %s  %7.2f,%7.2f,%4.2f/%4.2f,%4.2f/%4.2f\n",
+		$type,
+		$row[$PHA],$row[$PHA+1], $row[$PHA+2], $row[$PHA+3],
+		$row[$PHA+4], $row[$PHA+5],$row[$PHA+6];
+      }
+      if ($row[$GRP] =~ /y/i || $row[$GRP] =~ /p/i) {
+         $type = "Group";
+         p_tdata(@row);
+         $row[$GRP+2] = getGroupCnt($row[$GRP+1],$row[$#row-1]);
+         printf OFILE "%-11.11s  %s %s,%d,%f\n",$type,
+		$row[$GRP],$row[$GRP+1],$row[$GRP+2],$row[$GRP+3];
+      }
+
+      if ($type =~ /none/i && $row[$EXPTIME] > $param{p}) {
+         p_tdata(@row);
+	 printf OFILE "Pitch\n";
+      } elsif ($type =~ /none/i && $param{e}) {
+         p_tdata(@row);
+	 printf OFILE "None\n";
+      }
+
+      if ($row[$RMK] =~ /y/i || $row[$RMK] =~ /p/i) {
+         p_rdata(@row);
+         printf OFILER "%-11.11s  %s\n    $row[$RMK+1]\n","Remarks",$row[$RMK];
+         print OFILEN "$row[$RMK],\"$row[$RMK+1]\"\n";
+      }
+
+      $too_sth->bind_param(1,$row[$#row]);
+      $too_sth->execute;
+      $type = "TOO";
+      $do_fups = 0;
+      while (@row2 = $too_sth->fetchrow_array) {
+        if ($row2[$#row2] > 0) {
+           $row[$EXPTIME] = $row2[$#row2];
+        }
+        p_tdata(@row);
+        if ($row2[$TOOT+4] =~ /N/i) {
+           printf OFILE "%-11.11s  non trigger target for TOO\n",$type;
+        } else {
+           printf OFILE "%-11.11s     %-5.5s, %5.2f,%5.2f,%d\n",$type,
+                $row2[$TOOT],$row2[$TOOT+1],$row2[$TOOT+2],$row2[$TOOT+3];
+        }
+        if ($row2[$TOOT+3] > 0) {
+           $do_fups = 1;
+        }
+      }
+      if ($do_fups) {
+        $mon_sth->bind_param(1,$row[$#row]); 
+        $mon_sth->execute;
+        while (@row2 = $mon_sth->fetchrow_array) {
+         $row[$EXPTIME] = $row2[$#row2];
+         $type = "Followup";
+         p_tdata(@row);
+         printf OFILE "%-11.11s  %s  %d,%6.2f,%6.2f\n",$type,"Y",@row2;
+        }
+        $mon_sth->finish;
+      }
+
+    }
+}
+
+# -------------------------------------------------------------------
+# -------------------------------------------------------------------
+sub p_tdata
+{
+  my(@row) = @_;
+  my($tname);
+
+  $tname= $row[$TNAME]; 
+  if (length($tname) < 2) {
+    $row[$TNAME] = $row[$SSOBJ];
+  }
+  printf OFILE "%-3.3s %-8.8s %03.3d %-22.22s  %9.4f  %9.4f %7.2f %5s %8s %6.6s/%4.4s ",@row;
+}
+sub p_rdata
+{
+  my(@row) = @_;
+  my($tname);
+
+  $tname= $row[$TNAME]; 
+  if (length($tname) < 2) {
+    $row[$TNAME] = $row[$SSOBJ];
+  }
+  printf OFILER "%-3.3s %-8.8s %03.3d %-22.22s  %9.4f  %9.4f %7.2f %5s %8s %6.6s/%4.4s ",@row;
+  shift(@row);
+  printf OFILEN "%-8.8s,%03.3d,\"%s\",%9.4f,%9.4f,%7.2f,%5s,%8s,%6.6s/%4.4s,",@row;
+}
+
+# -------------------------------------------------------------------
+# header for the output
+# -------------------------------------------------------------------
+sub p_header()
+{
+print OFILE "#Parameters are as follows:\n";
+print OFILE "#  Uninterrupt ->  uninterrupted\n";
+print OFILE "#  Pointing    ->  offset/pointing constraint \n";
+print OFILE "#  Roll        ->  roll angle, roll tolerance, roll 180?\n";
+print OFILE "#  Monitor     ->  order, preceding min, preceding max (days) \n";
+print OFILE "#  Window      ->  start,stop\n";
+print OFILE "#  MultiTel    ->  interval,telescopes\n";
+print OFILE "#  Phase       ->  epoch,period,start margin/error,end margin/error\n";
+print OFILE "#  Group       ->  group Id, #in group,group interval\n";
+print OFILE "#  Pitch       ->  not time critical but exposure time > $param{p}ks\n";
+print OFILE "#  TOO         ->  TOO,type,start,stop,#followups\n";
+print OFILE "#  Followup    ->  order, preceding min, preceding max (days) \n";
+
+
+printf OFILE "%-3.3s %-8.8s %-3.3s %-22.22s  %9.9s  %9.9s %7.7s %5.5s %8.8s %11.11s %-11.11s %s %s\n",
+    "   ","Proposal","Tgt","TargetName","RA","Dec","ReqTime",
+	"#Chips","#OptChip","Det/Grating","Type","TC","Parameters";
+
+printf OFILE ("--------------------------------------------------------------------------------------------------------------------------\n");
+
+}
+
+
+
+# -------------------------------------------------------------------
+# The database queries
+# -------------------------------------------------------------------
+sub build_queries
+{
+  my($rquery);
+  my($tquery,$tooquery);
+$TOO = 1;
+$MON = 12;
+$SEG = 13;
+$TEL = 14;
+$PHA = 17;
+$GRP = 24;
+$RMK = 28;
+$WIN = 1;
+$ROLL = 1;
+$TOOT = 0;
+$EXPTIME = 6;
+$TNAME  = 3;
+
+$CHIPC = 7;
+$CHIPO = 8;
+$CHIPS = 34;
+$SSOBJ = 44;
+$PNT = 45;
+
+  # Roll constraint query
+  $rquery = qq(select ordr,roll_constraint,roll,roll_tolerance,roll_180 from
+	rollreq where targid = ?);
+  $roll_sth = $dbh->prepare($rquery);
+
+  # window constraint query
+  $tquery = qq(select ordr,time_constraint,tstart,tstop from
+	timereq where targid = ?);
+  $time_sth = $dbh->prepare($tquery);
+
+  # too query
+  $tooquery = qq(select type,start,stop,followup,trigger_target,time from
+        too where targid = ?);
+  $too_sth = $dbh->prepare($tooquery);
+
+  $mquery = qq(select " ",proposal_number,targ_num,targname,
+	ra,dec, prop_exposure_time, 
+        NULL,NULL,
+	instrument_name,grating_name,type,
+	num_observations,
+	uninterrupt,
+	multitelescope,observatories,multitelescope_interval,
+	phase_constraint_flag,phase_epoch,phase_period,
+	phase_start,phase_start_margin,
+	phase_end,phase_end_margin,
+	group_obs,group_id,NULL,group_interval,
+	constr_in_remarks,remarks,
+	raster_scan,g.grid_name,g.num_pointings,g.max_radius,
+        ccdi0_on,ccdi1_on,ccdi2_on,ccdi3_on,
+        ccds0_on,ccds1_on,ccds2_on,ccds3_on,ccds4_on,ccds5_on,
+	ss_object,pointing_constraint,
+        proposal.proposal_id,
+	target.targid
+	from axafusers..person_short,proposal,target, phasereq,grid g,
+	acistarget ,instrument,grating
+	where proposal.ao_str = "$param{a}" 
+	and proposal.piid = axafusers..person_short.pers_id 
+        and target.use_grating_id = grating.grating_id
+        and target.use_instrument_id = instrument.instrument_id
+	and proposal.type like "$param{t}" 
+	and proposal.proposal_id = target.proposal_id 
+	and target.targid *= phasereq.targid 
+	and target.targid *= g.targid 
+	and target.targid *= acistarget.targid );
+
+  if (!$param{w}) {
+    # monitor query
+    $rquery = qq(select ordr,pre_min_lead,pre_max_lead,obs_time from
+	observation where targid = ?);
+    $mon_sth = $dbh->prepare($rquery);
+
+    if (!$param{e}) {
+      $mquery .= qq(
+	and ((time_critical != "N" and time_critical is not null)  or
+	raster_scan="Y" or prop_exposure_time > $param{p}));
+    }
+    $mquery .= qq(
+	and (proposal.status="PROPOSED" or rank is not null )
+	order by proposal_number);
+   }
+   else  {
+    $rquery = qq(select ordr,pre_min_lead,pre_max_lead,obs_time
+        from observation where targid = ? and status="accepted");
+    $mon_sth = $dbh->prepare($rquery);
+
+    if (!$param{e}) {
+      $mquery  .= qq(
+	and ((time_critical != "N" and time_critical is not null)  or
+	raster_scan="Y" or approved_exposure_time > $param{p}));
+    }
+    $mquery .= qq(
+        and target.status="accepted"
+	and (proposal.status="APPROVED" or rank >= 3.5)
+	order by proposal_number);
+  }
+
+}
+
+sub getGroupCnt()
+{
+  my($groupid,$pid) = @_;
+  my($sql,$sthg,@rowg,$cnt);
+ 
+  $sql = qq(select count(targid) from target
+	where proposal_id = $pid and 
+	group_id = "$groupid");
+  if ($param{w}) {
+    $sql .= qq( and status="accepted");
+  }
+  $sthg= $dbh->prepare($sql);
+  $sthg->execute;
+  while((@rowg) = $sthg->fetchrow_array()) {
+    $cnt = $rowg[0];
+  }
+  return $cnt;
+}
+  
+  
+
+  
+
+
+sub get_chip_counts
+{
+  my(@vals) = @_;
+  my($ccnt) = 0;
+  my($ocnt) = 0;
+  my($ii);
+
+  for ($ii = $CHIPS; $ii < $CHIPS+10; $ii++) {
+    if ($vals[$ii] =~ /^y/i || $vals[$ii] =~ /^o/i) {
+      $ccnt += 1;
+    }
+    if ($vals[$ii] =~ /^o/i) {
+      $ocnt += 1;
+    }
+  }
+  if ($ccnt == 0) {
+     $ccnt = "X";
+     $ocnt = "X";
+  }
+  return ($ccnt,$ocnt);
+}
+
+
+
+sub parse_input
+{
+  my ($pwd);
+  my $err = 0;
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+             o=> undef,
+             t=> "%",
+             a=> "$ENV{ASCDS_PROP_AO}",
+             p=> 35.0
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "o=s",
+          "a=s",
+          "q=s",
+          "p=f",
+          "t=s",
+          "e",
+          "w",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter '$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+  $param{q} = $pwd;
+
+}
+
+
+sub usage
+{
+    print STDERR "\nUSAGE: prop_tc.pl -U -o [ Sapt ]\n";
+    print STDERR "       -U database user name\n";
+    print STDERR "       -o output file \n";
+    print STDERR "       -S database server, default is DB_PROP_SQLSRV\n";
+    print STDERR "       -a AO , default is ASCDS_PROP_AO\n";
+    print STDERR "       -t proposal type, ex. 'GTO%'\n";
+    print STDERR "       -p exposure time used for Pitch , default is > 35ksec \n";
+    print STDERR "       -w only use accepted targets of accepted proposals\n";
+    print STDERR "       -e use all targets regardless of time critical flag\n";
+
+}
+
+

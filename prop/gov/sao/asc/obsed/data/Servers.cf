@@ -1,0 +1,9 @@
+# Unique tag:Server:Description:System:Port
+ops1:sqlocc:Primary Production Version (sqlocc on ascarc3 using axafocat):ascarc3.harvard.edu:2501:axafocat
+usg1:SYBASE:User Support Group (SYBASE on cfasyb using betaocat):cfasyb.harvard.edu:2550:betaocat
+mpg1:sqlmptest:Mission Planning Group (sqlmptest on agni using axafocat):agni.harvard.edu:2504:axafocat
+mpg2:sqlbeta:Mission Planning Group II (sqlbeta on agni using axafocat):agni.harvard.edu:2501:axafocat
+oct1:SYBASE:Observation Cycle Team (SYBASE on cfasyb using axafocat):cfasyb.harvard.edu:2550:axafocat
+tt1:sqltest:Test Team (sqltest on ascarc1 using axafocat):ascarc1.harvard.edu:2502:axafocat
+tt2:sqlxtest:Test Team II(sqlxtest on ascarc3 using axafocat):ascarc3.harvard.edu:2502:axafocat
+it1:sqlinteg:Integration Team (sqlinteg on ascarc1 using axafocat):ascarc1.harvard.edu:2504:axafocat

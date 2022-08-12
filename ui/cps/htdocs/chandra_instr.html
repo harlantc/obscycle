@@ -1,0 +1,757 @@
+<fieldset class="fshelp" id="TargetInstr"><legend>Target Instrument</legend>
+<ul>
+<li class="elehelp"> <a class="lblhelp" name="Detector"> Detector</a>
+<br>
+Specifies which detector will be on the optical axis during the observation.
+The choices are: ACIS-S, ACIS-I, HRC-S or HRC-I.  See the 
+<a href="http://cxc.harvard.edu/proposer/POG/html/chap7.html">HRC</a> and 
+<a href="http://cxc.harvard.edu/proposer/POG/html/chap6.html">ACIS</a> 
+chapters of the <a href="http://cxc.harvard.edu/proposer/POG/html/">Proposer's Observatory Guide</a> 
+for the aimpoint locations.
+
+<p>The target coordinates, including any specified offsets, will be
+placed at the aimpoint of the selected detector. Note a user should
+use the offset parameters (above) to move the target away from the nominal
+aimpoint should this be desired. 
+
+<pre>
+Nominal aim points:
+    ACIS-I:  aim point on chip I3
+    ACIS-S:  aim point on chip S3, +.1667 arcmin Y offset
+    HRC-I :  Detector center
+    HRC-S :  1.3 arcmin from detector center to minimize effect of MCP
+             boundaries
+</pre>
+
+
+<li class="elehelp"><a class="lblhelp" name="Grating"> Grating</a>
+<br>
+Specifies which grating to use.  Grating options are NONE, HETG, and
+LETG.  The default is NONE which specifies no grating (direct imaging).
+You should use ACIS-S with the HETG and HRC-S with the LETG, unless
+you make a case otherwise in your proposal.
+
+<li class="elehelp"><a class="lblhelp" name="HRCTimingMode"> HRC Timing Mode</a>
+<br>
+Observers who wish to perform timing studies with the HRC should select
+this mode. This timing mode for HRC consists of using the HRC-S detector in
+what is called the Imaging Mode. In this mode, only the center segment of the
+HRC-S is active. The overall detector background is currently about 
+50 counts/sec (this is because of the overall background reduction 
+associated with high solar activity reducing the Cosmic Ray flux). 
+Sources with rates up to the telemetry limit (184 counts/sec) can be 
+observed with no lost events and fully correct times. It is not advisable 
+to look at very bright sources that actually come within about 10-15% 
+of the telemetry limit to avoid the occasional statistical
+fluctuations that might cause the loss of some events. It is also not
+advisable to look at very strong point sources due to count rate 
+limitations on the HRC (for HRC-S this is about 20-30 counts/sec).
+
+
+<li class="elehelp"><a class="lblhelp" name="CountRate"> Source Count Rate</a>
+<br>
+The Source Count Rate box must be filled in by all users.  For detectors without
+gratings, this count rate is the source count rate in counts per second.
+For ACIS-S+grating or HRC-S+grating, this count rate is the zero-order count 
+rate in counts per second.
+All count rates are to be specified as observed (not pile-up corrected).
+
+<p>For variable sources, supply the maximum expected count rate.  This will 
+allow for consistency checking of requested observation mode(s).  The 
+<a href="http://cxc.harvard.edu/toolkit/pimms.jsp">PIMMS</a> tool can be used to calculate count rate.
+
+<br><I>Required</I>.
+
+<li class="elehelp"><a class="lblhelp" name="OrderCountRate"> 1st Order Count Rate</a>
+<br>
+The 1st order count rate entry should be filled in ONLY for those GOs who
+choose to use ACIS-S+grating or HRC-S+grating.  The units are counts per second.
+All count rates are to be specified as observed (not pile-up corrected).
+<I> Required for all observations that use gratings.</i>
+
+<li class="elehelp"><a class="lblhelp" name="TotalFieldCountRate"> Total Field Count Rate</a>
+<br>
+This item requests the count rate across the field of the detector. This rate
+should include the total background (see the 
+<a href="http://cxc.harvard.edu/proposer/POG/html/">Proposer's Observatory Guide</a>
+instrument chapters) as well as nearby sources. Units are counts per second.
+All count rates are to be specified as observed (not pile-up corrected).
+
+
+<li class="elehelp"><a class="lblhelp" name="ExtendedSource"> Is target an extended source ?</a>
+<br>
+Select Y if most of the source count rate above comes from extended emission.
+The default is `N'. 
+
+
+</ul>
+</fieldset>
+<p>
+
+<fieldset class="fshelp" id="ACISreq"><legend>ACIS Required Parameters</legend>
+
+For faint sources (~&lt 0.01 cps), these are the <em>only</em> parameters that
+must be set.
+
+<ul>
+<li class="elehelp"><a class="lblhelp" name="ExposureMode"> Exposure Mode</a>
+<br>
+The exposure mode for ACIS for which two choices are possible:  Timed
+Exposure (TE) or Continuous Clocking (CC).  The default is TE.
+The <em>CC</em> mode may be used for bright, isolated sources 
+to mitigate pileup. Please refer to the <a href="http://cxc.harvard.edu/proposer/POG/html/chap6.html">Proposer's Observatory Guide</a> 
+for more information.
+<br><span class="warnmsg">WARNING! CC MODE WILL NOT RESULT IN AN IMAGE.</span>
+
+
+<li class="elehelp"><a class="lblhelp" name="BEPPacking">Event Telemetry Format</a>
+<br>
+Event Telemetry Format controls the packing of the data
+into the telemetry stream.  This is similar to Bit Mode for ASCA.  
+The default value is F(Faint).
+<br>
+<table BORDER="0" CELLSPACING="0" CELLPADDING="2" >
+<TR>
+<TH ALIGN="LEFT"><b>Choice</b></TH>
+<TH ALIGN="LEFT"><b>Format</b></TH>
+<TH ALIGN="LEFT"><b>Exposure Mode</b></TH>
+<TH ALIGN="LEFT"><b>Description</b></TH>
+</TR><TR>
+<th><hr></th>
+<th><hr></th>
+<th><hr></th>
+<th><hr></th>
+</tr><tr>
+<TD>F</TD><TD>Faint</TD><TD>TE,CC</TD><TD>returns (x, y) position of event, energy, time-stamp + values of pixels in the 3x3 region surrounding event</TD></TR><TR>
+<TD>VF</TD><TD>Very Faint</TD><TD>TE</TD><TD>same as above, except surrounding region is 5x5 pixels in size</TD></TR><TR>
+<TD>G</TD><TD>Graded</TD><TD>TE,CC</TD><TD>returns (x, y) position of event, energy, time-stamp + Grade of pixels in 3x3 region</TD></TR>
+</table>
+
+<li class="elehelp"><a class="lblhelp" name="CCDsOn"> CCDs On</a>
+<br>
+
+<pre>
+                   I0  I1
+                   I2  I3
+            S0  S1 S2  S3  S4  S5
+</pre>
+<p>
+  The ACIS CCD chip layout is as pictured. ACIS can read out a maximum of 6 chips.
+  Each required chip should be set to 'Y', up to a maximum of 4.
+  <p>If a chip is desirable, but the primary science could still be
+ accomplished without it, please identify that chip as optional
+ so that the CXC can optimize scheduling given thermal operating
+ constraints.  This is accomplished by specifying Off# (instead of
+ 'Y' or 'N'), where # represents the turn-off order of the optional
+ chips selected, i.e., if thermal constraints dictate that one of your
+ selected optional chips be turned off, that will be Off1.  If two
+ must be turned off, then both Off1 and Off2 will be turned off.
+ <p>
+The CXC recommends that you specify no more than 4 required CCDs
+("Y" = required) if your science objectives can be met with 4 or fewer CCDs.
+If 4 CCDs are specified as required, the GO may specify up to 2 optional CCDs
+to bring the total of required plus optional CCDs to a maximum of 6 CCDs, 
+but the GO
+should be aware that optional CCDs may be turned off once the thermal
+environment is known at the time the short term schedule is generated.  
+GOs may still request a total of 6 CCDs, but only 4 CCDs may be required and up to 2 CCDs must be optional.
+If the science requires 5 or 6 CCDs, proposers should  state this in the Remarks field.
+Chips set to 'N' will not be used for the given observation.
+
+</p>
+Values are:
+<ul>
+    <li> unselected - do not use this chip
+    <li> N - do not use this chip
+    <li> Y - Chip is required.
+    <li> Off# - Chip is optional and the number '#' (1 through 5) is the
+order in which the user would prefer the CCDs be turned off. For
+example, Off1 should be the first optional CCD, meaning that it should be
+the <b>first optional CCD to be turned off</b>.  
+</ul>
+<br>In summary,
+<pre>
+  min 1, max 4 chips may be required (selected as 'Y')
+  min 0, max 5 chips may be optional  (selected as 'Off#')
+  max 6 chips total may be turned on (Y + Off#)
+  min 4, max 9 chips may be turned off  (selected as 'N')
+</pre>
+
+A description of optional chips, including motivations and some recommended chip sets can be found in the ACIS chapter of the <a href="http://cxc.harvard.edu/proposer/POG/html/chap6.html">POG</a>.
+
+<li class="elehelp"><a class="lblhelp" name="confirmChip">I have reviewed the selection of ACIS chips and identified any chips whose operation is optional </a>
+<br>
+Logical value indicating that you have reviewed your ACIS chip selection.  
+This field is required if more than 1 chip is selected.
+
+<li class="elehelp"><a class="lblhelp" name="Spectra">What is the maximum number of counts you expect in any of the spectra you will analyze from this observation?</a>
+<br>
+Total maximum expected number of counts for any spectrum to be
+scientifically analyzed from this observation.  Default is blank.  
+Input is required for any ACIS-I non-grating observation.
+Valid range is 1 - 100000.
+
+
+<li class="elehelp"><a class="lblhelp" name="MultSpectral">Do you expect to analyze more than 2 resolved spectral lines in that spectrum?</a>
+<br>
+Logical value indicating whether or not more than 2 resolved spectral lines
+are expected in the brightest spectrum to be analyzed from this observation.
+Default is blank.  'Y' or 'N' is required for any ACIS-I non-grating 
+observation.
+
+Both the two questions above are asked to trigger assessment of the 
+sensitivity of ACIS-I imaging observations to gain calibration.  Science 
+from high S/N ACIS-I imaging spectroscopy (no gratings) with 
+rich spectra may be affected by thermally-induced gain drifts.  
+As spacecraft/environment/analysis evolves, CXC may determine 
+that appropriate scheduling (treated as a preference, not as a constraint)
+can minimize such thermal impacts.
+
+</ul>
+</fieldset>
+<p>
+
+<fieldset class="fshelp" id="ACISopt"><legend>ACIS Optional Parameters that affect PILEUP</legend>
+The custom parameters are available so users can mitigate the effects of
+pileup and avoid exceeding the telemetry saturation limit.
+<ul>
+<li class="elehelp"><a class="lblhelp" name="Use most efficient values"> Use most efficient frame exposure time?</a>
+
+<br>
+Logical value indicating use of the most efficient values for the CCD Frame
+exposure time. If you do not wish to use the default most efficient values,
+please enter the exposure time in the <i>CCD Frame exposure time</i> field.
+'Y' is required for <i>CC</i> exposure mode.
+The default is 'Y'.
+
+<li class="elehelp"><a class="lblhelp" name="FrameTime"> CCD Frame Exposure Time</a>
+<br>
+The CCD frame exposure time is the fundamental unit for ACIS . It ranges
+from 0.0 to 10.0 seconds in 0.1 second increments.  The default frame time is 3.2 seconds.
+<p>Responding with a `Y' to the question `Use most efficient frame exposure
+time?'
+allows the ACIS team to adjust the CCD frame time as necessary. The user may
+override that freedom by specifying a CCD frame time. Note that an entire CCD
+takes 3 seconds to read, so a 0.2 second
+frame time has a small observing efficiency which the proposer must justify.
+A shorter frame time can aid in
+mitigating pileup by a factor of up to 8. A shorter frame time is most
+easily achieved by the use of a Subarray.
+<br>Valid values: 0.0 to 10.0 seconds in 0.1 second increments depending
+on the number of active CCD's. The minimum times depend on the number of 
+CCDs as follows:
+<pre>
+1 or 2 CCDs	- 0.1 second
+3 or 4 CCDs	- 0.2 seconds
+5 or 6 CCDs	- 0.3 seconds
+</pre>
+
+
+
+<li class="elehelp"><a class="lblhelp" name="Subarray"> Subarray Type</a>
+<br>
+
+Choices are: None, 1/2, 1/4, 1/8 and Custom
+
+<P>A subarray is a reduced region of all of the active(turned on) CCDs that 
+will be read.  A reduced region may also help to
+reduce the effects of pulse pile-up.  The first box indicates whether the
+proposer intends to use the subarray capability.  
+<br>Valid only for <i>TE</i> exposure mode.
+The default is 'None'.
+<p>
+<a name="ov_sub"></a>
+<span class="warnmsg">PLEASE ENSURE THAT YOUR TARGET FALLS WITHIN
+                THE CHOSEN SUBARRAY</span> 
+(e.g., use the Observation Visualizer(ObsVis) available 
+in the latest CIAO downloadable package at  
+<a href="http://cxc.harvard.edu/ciao/download">
+http://cxc.harvard.edu/ciao/download</a>)
+
+<p>Note that the minimum Frame Time depends on the size and location of the
+subarray.  Read the ACIS chapter of the 
+<a href="http://cxc.harvard.edu/proposer/POG/html/chap6.html">Proposer's Observatory Guide(POG)</a> for more information.
+<p>The standard subarrays can be selected to avoid pileup approximately
+by the factor of the subarray size.  The standard subarrays for ACIS-I
+use the values as listed in the table.  For ACIS-S, the starting rows
+differ because of the different position of the aimpoint relative to
+the readout node.  The ACIS chapter of the <a href="http://cxc.harvard.edu/proposer/POG/html/chap6.html">POG</a> 
+Guide contains a schematic of the locations of the default Subarrays.
+
+<pre>
+                     ACIS-I                       ACIS-S 
+   Standard Size    Start Row     No. of Rows    Start Row  
+   -------------------------------------------------------
+       1/2            513            512           257 
+       1/4            769            256           385 
+       1/8            897            128           449 
+</pre>
+
+
+
+<li class="elehelp"><a class="lblhelp" name="SubarrayStartRow"> Subarray: Start Row</a>
+<br>
+The starting row that will be read for processing custom subarrays.
+<br>Valid range is 1 - 924.
+
+<li class="elehelp"><a class="lblhelp" name="SubarrayRows"> Subarray: No. Rows</a>
+<br>
+The number of rows that will be read for processing custom subarrays.
+ A minimum of 128 rows is required if multiple ACIS chips are selected.  
+ A minimum of 100 rows is required is a single ACIS chip is selected..  
+<br>Valid range is 100 - 1024.
+
+<li class="elehelp"><a class="lblhelp" name="UseDutyCycle"> Alternating Exposure Readout: Use Alternating Exposure Readout</a>
+<br>
+Logical value indicating use of alternating exposure readout.
+<br>Valid only for <i>TE</i> exposure mode.
+The default is 'N'.
+
+<p>Alternating Exposure Readout observation sets the number of SECONDARY
+exposures that will follow each primary exposure. If n = 0, only primary
+exposures are used. A deadtime will result from the short exposure since the
+electronics still require 3.2 sec to process the full frame. Therefore, to
+minimize the deadtime, the number of short exposures should be kept to a
+minimum. The fraction of time during which data are taken is the ratio of
+the selected frame time to the sum of this and the nominal frametime: e.g.
+for a new frametime of n (<3.2) secs, the fraction of time during which data
+are taken is n/(3.2+n). Note the minimum on the primary exposure is 0.2 sec.
+Times longer than 3.2 seconds are discouraged until operational
+experience exists.
+
+
+<p>
+An example is useful. Suppose you want to sample the image in a repeated
+cycle of 4 exposures with a primary exposure time of 0.3 sec. If all 6 CCDs
+are active the secondary exposure time will be 3.2 sec. The resulting
+sequence of exposures will be 0.3 sec, 3.2 sec, 3.2 sec, 3.2 sec, 0.3 sec,
+3.2 sec,. etc. until the total requested observing time is used.
+
+<li class="elehelp"><a class="lblhelp" name="NumberofCycles"> Alternating Exposure Readout: Number of Secondary Exposures</a>
+<br>
+The number of secondary exposures that will follow each primary exposure.  
+If n = 0, only primary exposures are used.  Read the ACIS chapter of the 
+<a href="http://cxc.harvard.edu/proposer/POG/html/chap6.html">Proposer's Observatory Guide</a> for an estimate 
+of the efficiency. <br>Valid range is 0 - 15. 
+
+<li class="elehelp"><a class="lblhelp" name="ExposureTimeforPrimaryCycle"> Alternating Exposure Readout:  Exposure Time for Primary Cycle</a>
+<br>
+The primary exposure time in tenths of seconds. The recommended time for
+a non-zero number of secondary exposures is 0.3.
+<pre>
+Valid times:        n=0 :  T-p = 3.2 sec
+             non-zero n :  T-p = 0.2 - 10.0 sec
+</pre>
+</ul>
+</fieldset>
+<p>
+<fieldset class="fshelp" id="ACIStelem"><legend>ACIS Optional Parameters that affect TELEMETRY</legend>
+Before event candidates are written to telemetry, they are subjected to three sets of
+filters, each of which can cause them to be rejected. The filters can reject events by their
+<a href="http://cxc.harvard.edu/proposer/POG/html/ACIS.html#sec:acis_grades"><b>grade code</b></a>*, by their
+<a href="#UseEnergyFilter"><b>energy</b></a>, and by their
+<a href="#UseSpatialWindow"><b>spatial location</b></a> on the CCD array.
+The order in which these filters are applied is unimportant.
+<p>
+* At the present time, the proposer cannot change the set of grade
+codes to be rejected by the on-board grade filter; they were chosen to exclude
+only those event candidates that are almost certainly <i>not</i> caused by
+target X-rays. This is discussed in the
+<a href="http://cxc.harvard.edu/proposer/POG/html/ACIS.html#subsec:acis_non_xrb">
+Non-X-ray Background</a> section of the
+<a href="http://cxc.harvard.edu/proposer/POG">Chandra Proposer's Guide</a>.)
+</p>
+<ul>
+<li class="elehelp"><a class="lblhelp" name="UseEnergyFilter"> Energy Filter: Use Custom Event Energy Filter</a>
+<br>
+  All event candidates from all CCDs are filtered by energy before they are packed
+  into the telemetry stream. This does <i>not</i> affect pulse pileup: it only
+  reduces the telemetry. When this field contains 'N', the filter rejects only
+  those events with energies below 0.24 keV for ACIS-S and below .36 keV for ACIS-I.
+  The filter also rejects those events with energies above (the lower threshold + 13 keV).
+  <p>
+  When the field
+  contains 'Y', the proposer gets to specify more restrictive values of
+  <a href="#LowerEnergyThreshold">Lower Energy Threshold</a> and
+  <a href="#EnergyFilterRange">Energy Filter Range</a>.
+  (<b>Note:</b> additional energy filtering may be applied to events that fall
+  within particular <a href="#LowerThresholdforWindow">spatial windows</a>, as
+  described below. Such events will be rejected if they fail <i>either</i> filter.)
+
+<li class="elehelp"><a class="lblhelp"  name="LowerEnergyThreshold"> Energy Filter:  Lower Energy Threshold</a>
+<br>
+  Event candidates will be rejected if their energy lies below this value.
+  <br>Units are keV; the valid range is 0.24 - 15.0 keV.
+  <p>For ACIS-S the minimum threshold is 0.24 keV
+  <br>For ACIS-I the minimum threshold is 0.36 keV
+  <br>ACIS is insensitive to X-rays below these energies.
+
+<li class="elehelp"><a class="lblhelp" name="EnergyFilterRange"> Energy Filter:  Energy Filter Range</a>
+<br>
+  Event candidates will be rejected if their energy lies above
+  (Lower&nbsp;Energy&nbsp;Threshold&nbsp;+&nbsp;Energy&nbsp;Filter&nbsp;Range).
+  <br>The effective area of the Chandra mirrors above 10 keV is essentially zero,
+  but X-ray pileup can result in event candidates with energies above 10 keV.
+  <br>Units are keV; the valid range is 0.1 - 15.0 keV.
+
+<li class="elehelp"><a class="lblhelp" name="UseSpatialWindow"> Use Spatial Windows?</a>
+<br>
+  <p>
+   By setting this field to 'Y', the user can specify one or more spatial
+   window filters -- rectangular regions on specific chips -- within which
+   event candidates can be rejected according to their energy or to their
+   frequency of occurrence. The use of spatial windows does <i>not</i> affect
+   the way the CCD is read out, so there will be no impact on event pile-up.
+   Spatial windows will reduce the telemetry volume by removing event candidates.
+  </p>
+  <p>
+   As many as six spatial windows may be specified for each chip. If windows
+   overlap, the order in which they are defined in the CPS form is important:
+   for each event candidate centered at (CHIPX=<i>x</i>, CHIPY=<i>y</i>), the
+   on-board software examines all spatial windows defined for that chip,
+   <i>in the order specified in the CPS form, lowest index first</i>, and
+   decides whether to
+   reject the event based on the parameters in the <i>first</i> window that
+   contains that (<i>x,y</i>). If the event lies outside all windows, it
+   will not be rejected by the window filter.
+  </p>
+  <p>
+   <a name="ov_spwin"></a>
+   <span class="warnmsg">BE SURE TO CHECK THAT YOUR TARGET FALLS WITHIN THE
+    CHOSEN WINDOWS
+   </span>
+   (Hint: use <i>ObsVis</i>, the Observation Visualizer, distributed with
+   the CIAO package from
+   <a href="http://cxc.harvard.edu/ciao/download/">
+    &quot;http://cxc.harvard.edu/ciao/download/&quot;</a>.
+  </p>
+  <h4>
+   Example:
+  </h4>
+  <p>
+   Three rectangular areas are defined on the S3 chip: window #1 accepts all
+   events that fall within its bounds with energies from 0.1 to 10.0 keV;
+   window #2 accepts one out of two events within its bounds, provided they are
+   not within the overlap with window #1 <i>and</i> provided they are in the
+   energy range 0.3 to 10.0 keV; the third window covers the entire CCD and
+   rejects all events that are <i>not</i> within the areas covered by the other
+   windows.
+  </p>
+  <p></p>
+   <table align="center" border="1" cellpadding="2" cellspacing="0">
+    <tr align="center">
+     <td>Window<br>Order</td>
+     <td>Chip<br>ID</td>
+     <td>Sampling<br>Frequency</td>
+     <td>Starting<br>Column</td>
+     <td>Column<br>Width</td>
+     <td>Starting<br>Row</td>
+     <td>Row<br>Height</td>
+     <td>Lower Energy<br>Threshold</td>
+     <td>Energy<br>Range</td>
+    </tr>
+    <tr align="center">
+     <td bgcolor="#e0e0ff">1</td>
+     <td bgcolor="#e0e0ff">S3</td>
+     <td bgcolor="#e0e0ff">1</td>
+     <td bgcolor="#e0e0ff">200</td>
+     <td bgcolor="#e0e0ff">500</td>
+     <td bgcolor="#e0e0ff">400</td>
+     <td bgcolor="#e0e0ff">500</td>
+     <td bgcolor="#e0e0ff">0.1</td>
+     <td bgcolor="#e0e0ff">9.9</td>
+    </tr>
+    <tr align="center">
+     <td bgcolor="#e0ffe0">2</td>
+     <td bgcolor="#e0ffe0">S3</td>
+     <td bgcolor="#e0ffe0">2</td>
+     <td bgcolor="#e0ffe0">500</td>
+     <td bgcolor="#e0ffe0">400</td>
+     <td bgcolor="#e0ffe0">200</td>
+     <td bgcolor="#e0ffe0">400</td>
+     <td bgcolor="#e0ffe0">0.3</td>
+     <td bgcolor="#e0ffe0">9.7</td>
+    </tr>
+    <tr align="center">
+     <td>3</td>
+     <td>S3</td>
+     <td>0</td>
+     <td>1</td>
+     <td>1024</td>
+     <td>1</td>
+     <td>1024</td>
+     <td><br></td>
+     <td><br></td>
+    </tr>
+   </table>
+  <p></p>
+   <table align="center" border="0" cellpadding="0" cellspacing="4">
+    <tr>
+     <td align="right">1024</td>
+     <td rowspan="3" colspan="3">
+      <table border="1" cellpadding="0" cellspacing="0">
+       <tr>
+        <td>
+         <table border="0" cellpadding="0" cellspacing="0">
+          <tr>
+           <td width="18" rowspan="10"><br></td>
+           <td width="18" rowspan="10"><br></td>
+           <td width="18"><br></td>
+           <td width="18"><br></td>
+           <td width="18"><br></td>
+           <td width="18"><br></td>
+           <td width="18"><br></td>
+           <td width="18"><br></td>
+           <td width="18"><br></td>
+           <td width="18"><br></td>
+          </tr>
+          <tr>
+           <td bgcolor="#e0e0ff" rowspan="5" colspan="5" valign="top">Window 1</td>
+           <td rowspan="3" colspan="2"><br></td>
+           <td><br></td>
+          </tr>
+          <tr>
+           <td><br></td>
+          </tr>
+          <tr>
+           <td><br></td>
+          </tr>
+          <tr>
+           <td bgcolor="#e0ffe0" rowspan="2" colspan="2"><br></td>
+           <td><br></td>
+          </tr>
+          <tr>
+           <td><br></td>
+          </tr>
+          <tr>
+           <td rowspan="2" colspan="2"><br></td>
+           <td bgcolor="#e0ffe0" rowspan="2" colspan="5" align="right" valign="bottom">Window 2</td>
+           <td><br></td>
+          </tr>
+          <tr>
+           <td><br></td>
+          </tr>
+          <tr>
+           <td colspan="10"><br></td>
+          </tr>
+          <tr>
+           <td colspan="10" align="right">Window 3</td>
+          </tr>
+         </table>
+        </td>
+       </tr>
+      </table>
+     </td>
+    </tr>
+    <tr align="center" valign="middle">
+     <td><br><br><br>S3<br>CHIPY</td>
+    </tr>
+    <tr valign="bottom">
+     <td align="right">0</td>
+    </tr>
+    <tr>
+     <td><br></td>
+     <td>0</td>
+     <td align="center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CHIPX</td>
+     <td align="right">1024</td>
+    </tr>
+   </table>
+
+<li class="elehelp"><a class="lblhelp" name="ChipOrderforWindow"> Spatial Window: Order</a>
+<br>
+   The index of this spatial window: if a chip's spatial windows overlap,
+   the window with the <i>lowest</i> index determines how events falling
+   within the overlap region are to be filtered. Valid values are: 1-36.
+
+<li class="elehelp"><a class="lblhelp" name="ChipforWindow"> Spatial Window: Chip</a>
+<br>
+   The ACIS chip on which this spatial window is defined.
+   <br>Valid values are: I0,I1,I2,I3,S0,S1,S2,S3,S4,S5.
+   <br>This parameter is <b>required</b> for all spatial windows.
+
+<li class="elehelp"><a class="lblhelp" name="SampleRateforWindow"> Spatial Window: Sampling Frequency</a>
+<br>
+  <p>
+   It determines what fraction of the events are to be accepted* by the
+   spatial window filter, <i>i.e.</i>,
+  </p>
+  <p></p>
+   <table border="0">
+    <tr valign="top">
+     <td width="40" align="center">0</td>
+     <td>All of the events falling within the window are rejected.</td>
+    </tr>
+    <tr valign="top">
+     <td align="center">1</td>
+     <td>All of the events falling within the window are accepted,
+      provided they meet the energy threshold and range criteria*.
+     </td>
+    </tr>
+    <tr valign="top">
+     <td align="center"><i>n</i></td>
+     <td>Every <i>n</i>th event falling within the window is accepted,
+      provided it meets the energy threshold and range criteria*; the
+      remainder are rejected.
+     </td>
+    </tr>
+   </table>
+  <p>
+   *&nbsp; acceptance by the spatial window filter is no guarantee that
+   the event will be output to the telemetry stream -- it may be rejected
+   by the <a href="#ACIStelem">grade filter</a> or the overall
+   <a href="#UseEnergyFilter">energy filter</a>.
+  </p>
+  <p>
+   This parameter is <b>required</b> for all spatial windows.
+   <br>Valid values are 0-255. Unit=integer
+  </p>
+  <h4>
+   Examples:
+  </h4>
+  <p>
+  <ol>
+   <li>
+    <b>
+     Accept every third event in a 100-row band centered near the suggested
+     <a href="http://cxc.harvard.edu/proposer/POG/html/ACIS.html#sec:acis_aimpoints">aimpoint</a>
+     of the S3 chip (CHIPX=215, CHIPY=497), discarding all other S3 events.
+    </b>
+    <p> </p>
+     <table align="center" border="1" cellpadding="2" cellspacing="0">
+      <tr align="center">
+       <td>Window<br>Order</td>
+       <td>Chip<br>ID</td>
+       <td>Sampling<br>Frequency</td>
+       <td>Starting<br>Column</td>
+       <td>Column<br>Width</td>
+       <td>Starting<br>Row</td>
+       <td>Row<br>Height</td>
+       <td>Lower Energy<br>Threshold</td>
+       <td>Energy<br>Range</td>
+      </tr>
+      <tr align="center">
+       <td>1</td>
+       <td>S3</td>
+       <td>3</td>
+       <td>1</td>
+       <td>1024</td>
+       <td>447</td>
+       <td>100</td>
+       <td><br></td>
+       <td><br></td>
+      </tr>
+      <tr align="center">
+       <td>2</td>
+       <td>S3</td>
+       <td>0</td>
+       <td>1</td>
+       <td>1024</td>
+       <td>1</td>
+       <td>1024</td>
+       <td><br></td>
+       <td><br></td>
+      </tr>
+     </table>
+    <p>
+     Note that this operation required two windows for the S3 chip: the first
+     to accept one-in-every-three events falling within the band, the second
+     to reject all events outside the band. Since neither &quot;Lower Energy
+     Threshold&quot; nor &quot;Energy Range&quot; was defined for either window,
+     they default to 0.08 keV and 13.0 keV, respectively, unless 'Y' was
+     selected for <a href="#UseEnergyFilter">Energy Filter: Use Energy Filter</a>,
+     in which case, the <a href="#LowerEnergyThreshold">Energy Filter: Lower
+     Energy Threshold</a> and <a href="#EnergyFilterRange">Energy Filter: Energy
+     Filter Range</a> values will be used.
+    </p>
+   </li>
+   <li>
+   <p>
+    <b>
+     Accept every fifth event with energy less than 10keV falling within a
+     100-by-100 pixel square centered on the zeroth order aimpoint in a
+     grating observation; retain all events falling outside that area.
+    </b>
+   </p>
+   <p></p>
+    <table align="center" border="1" cellpadding="2" cellspacing="0">
+     <tr align="center">
+      <td>Window<br>Order</td>
+      <td>Chip<br>ID</td>
+      <td>Sampling<br>Frequency</td>
+      <td>Starting<br>Column</td>
+      <td>Column<br>Width</td>
+      <td>Starting<br>Row</td>
+      <td>Row<br>Height</td>
+      <td>Lower Energy<br>Threshold</td>
+      <td>Energy<br>Range</td>
+     </tr>
+     <tr align="center">
+      <td>1</td>
+      <td>S3</td>
+      <td>5</td>
+      <td>226</td>
+      <td>100</td>
+      <td>447</td>
+      <td>100</td>
+      <td>0.1</td>
+      <td>9.9</td>
+     </tr>
+    </table>
+    <p>
+     Note that this operation required only one S3 window since the filter
+     will not reject any event falling outside the defined window area(s).
+    </p>
+  </ol>
+
+<li class="elehelp"><a class="lblhelp" name="StartColumnforWindow"> Spatial Window: Start Column</a>
+<br>
+   The first column of the rectangular area that is to be filtered.
+   <br>This parameter is <b>required</b> for all spatial windows.
+   <br>The valid range is 1 - 1023.
+<li class="elehelp"><a class="lblhelp" name="WidthofWindow"> Spatial Window: Width of Window</a>
+  <br>
+   The number of columns in the rectangular area that is to be filtered.
+   <br>This parameter is <b>required</b> for all spatial windows.
+   <br>The valid range is 1 - 1024.
+
+<li class="elehelp"><a class="lblhelp" name="StartRowforWindow"> Spatial Window: Start Row</a>
+<br>
+   The first row of the rectangular area that is to be filtered.
+   <br>This parameter is <b>required</b> for all spatial windows in <b>TE</b> mode.
+   In <b>CC</b>-mode, it will be ignored.
+   <br>The valid range is 1 - 1023.
+<li class="elehelp"><a class="lblhelp" name="HeightofWindow"> Spatial Window: Height of Window</a>
+  <br>
+   The number of rows in the rectangular area that is to be filtered.
+   <br>This parameter is <b>required</b> for all spatial windows in
+   <b>TE</b> mode. In <b>CC</b>-mode, it will be ignored.
+   <br>The valid range is 1 - 1024.
+
+<li class="elehelp"><a class="lblhelp" name="LowerThresholdforWindow"> Spatial Window: Lower Energy Threshold</a>
+  <br>
+   Discard all events within this window whose energies are less than this
+   value. The units are keV.
+   <br>The valid range of this parameter is 0.08 - 15.0 keV.
+   <br>If omitted, the value will depend on the choice of
+   <a href="#UseEnergyFilter">Use Energy Filter</a> in the preceding
+   section. If 'Y', its <a href="#LowerEnergyThreshold">Energy Filter:
+   Lower Energy Threshold</a> value will be used for the window; otherwise, 
+   the window's Lower Energy Threshold value will default to 0.08 keV.
+
+<li class="elehelp"><a class="lblhelp" name="EnergyRangeforWindow">Spatial Window: Energy Range</a>
+  <br>
+   The range of event energies to be accepted, i.e., events with energies
+   above (Lower Energy Threshold + Energy Range) will be rejected. The units are keV.
+   <br>The valid range of this parameter is 0.1 - 15.0 keV.
+   <br>If omitted, the value will depend on the choice of
+   <a href="#UseEnergyFilter">Use Energy Filter</a> in the preceding
+   section. If 'Y', its <a href="#EnergyFilterRange">Energy Filter:
+   Energy Filter Range</a> value will be used for the window; otherwise, 
+   the window's Energy Range value will default to 13.0 keV.
+   Note that the effective area of the mirrors above 10 keV is essentially
+   zero, but pileup can cause multiple photons of lower energy to register
+   as single events with energies above 10 keV.
+
+
+</ul>
+</fieldset>

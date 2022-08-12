@@ -1,0 +1,381 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE formView SYSTEM "formView.dtd">
+
+<formView>
+
+  <title>ACIS Form</title>
+
+  <info>
+    <supportsNew>clone null noDelete</supportsNew>
+  </info>
+
+  <key>
+    <tableName>acisparam</tableName>
+    <columnName>acisid</columnName>
+  </key>
+
+  <navigation>
+    <display>
+      <name>ACIS Identifier</name>
+      <tableName>acisparam</tableName>
+      <columnName>acisid</columnName>
+    </display>
+  </navigation>
+
+  <GUI>
+
+    <label tag="11">
+      <labelText>ACIS</labelText>
+      <row>
+        <number>0</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+    </label>
+
+    <combobox tag="31">
+      <labelText>Exposure Mode</labelText>
+      <size>8</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>acisparam</tableName>
+	<columnName>exp_mode</columnName>
+      </database>
+    </combobox>
+
+    <combobox tag="32">
+      <labelText>BEP Pack</labelText>
+      <size>8</size>
+      <database>
+        <tableName>acisparam</tableName>
+	<columnName>bep_pack</columnName>
+      </database>
+    </combobox>
+
+    <triplebox tag="33">
+      <labelText>Most Efficient</labelText>
+      <database>
+        <tableName>acisparam</tableName>
+	<columnName>most_efficient</columnName>
+      </database>
+    </triplebox>
+
+    <textfield tag="34">
+      <labelText>Frame Time</labelText>
+      <size>5</size>
+      <database>
+        <tableName>acisparam</tableName>
+	<columnName>frame_time</columnName>
+      </database>
+    </textfield>
+
+
+    <textfield tag="41">
+      <labelText>Dropped Chip Count</labelText>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>acisparam</tableName>
+	<columnName>dropped_chip_count</columnName>
+      </database>
+    </textfield>
+
+    <combobox tag="42" none="false">
+      <labelText>I0</labelText>
+      <database>
+        <tableName>acisparam</tableName>
+	<columnName>ccdi0_on</columnName>
+      </database>
+    </combobox>
+
+    <combobox tag="43" none="false">
+      <labelText>I1</labelText>
+      <database>
+        <tableName>acisparam</tableName>
+	<columnName>ccdi1_on</columnName>
+      </database>
+    </combobox>
+
+
+    <combobox tag="52" none="false">
+      <labelText>I2</labelText>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>2</number>
+      </column>
+      <database>
+        <tableName>acisparam</tableName>
+	<columnName>ccdi2_on</columnName>
+      </database>
+    </combobox>
+
+    <combobox tag="53" none="false">
+      <labelText>I3</labelText>
+      <database>
+        <tableName>acisparam</tableName>
+	<columnName>ccdi3_on</columnName>
+      </database>
+    </combobox>
+
+    <combobox tag="61" none="false">
+      <labelText>S0</labelText>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>acisparam</tableName>
+	<columnName>ccds0_on</columnName>
+      </database>
+    </combobox>
+
+    <combobox tag="62" none="false">
+      <labelText>S1</labelText>
+      <row>
+        <number>.</number>
+      </row>
+      <column>
+        <number>.</number>
+      </column>
+      <database>
+        <tableName>acisparam</tableName>
+	<columnName>ccds1_on</columnName>
+      </database>
+    </combobox>
+
+    <combobox tag="63" none="false">
+      <labelText>S2</labelText>
+      <row>
+        <number>.</number>
+      </row>
+      <column>
+        <number>.</number>
+      </column>
+      <database>
+        <tableName>acisparam</tableName>
+	<columnName>ccds2_on</columnName>
+      </database>
+    </combobox>
+
+    <combobox tag="71" none="false">
+      <labelText>S3</labelText>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>acisparam</tableName>
+	<columnName>ccds3_on</columnName>
+      </database>
+    </combobox>
+
+    <combobox tag="72" none="false">
+      <labelText>S4</labelText>
+      <row>
+        <number>.</number>
+      </row>
+      <column>
+        <number>.</number>
+      </column>
+      <database>
+        <tableName>acisparam</tableName>
+	<columnName>ccds4_on</columnName>
+      </database>
+    </combobox>
+
+    <combobox tag="73" none="false">
+      <labelText>S5</labelText>
+      <row>
+        <number>.</number>
+      </row>
+      <column>
+        <number>.</number>
+      </column>
+      <database>
+        <tableName>acisparam</tableName>
+	<columnName>ccds5_on</columnName>
+      </database>
+    </combobox>
+
+    <combobox tag="81">
+      <labelText>Subarray Type</labelText>
+      <size>7</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>acisparam</tableName>
+	<columnName>subarray</columnName>
+      </database>
+    </combobox>
+
+    <textfield tag="82">
+      <labelText>SA Start Row</labelText>
+      <size>4</size>
+      <database>
+        <tableName>acisparam</tableName>
+	<columnName>subarray_start_row</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="83">
+      <labelText>SA #Rows</labelText>
+      <size>5</size>
+      <database>
+        <tableName>acisparam</tableName>
+	<columnName>subarray_row_count</columnName>
+      </database>
+    </textfield>
+
+    <triplebox tag="91">
+      <labelText>Duty Cycle</labelText>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>acisparam</tableName>
+	<columnName>duty_cycle</columnName>
+      </database>
+    </triplebox>
+
+    <textfield tag="92">
+      <labelText>Number</labelText>
+      <size>10</size>
+      <database>
+        <tableName>acisparam</tableName>
+	<columnName>secondary_exp_count</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="93">
+      <labelText>Tprimary</labelText>
+      <size>10</size>
+      <database>
+        <tableName>acisparam</tableName>
+	<columnName>primary_exp_time</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="94">
+      <labelText>Tsecondary</labelText>
+      <size>10</size>
+      <database>
+        <tableName>acisparam</tableName>
+	<columnName>secondary_exp_time</columnName>
+      </database>
+    </textfield>
+
+    <triplebox tag="101">
+      <labelText>Onchip Sum</labelText>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>acisparam</tableName>
+	<columnName>onchip_sum</columnName>
+      </database>
+    </triplebox>
+
+    <textfield tag="102">
+      <labelText>Rows</labelText>
+      <size>5</size>
+      <database>
+        <tableName>acisparam</tableName>
+	<columnName>onchip_row_count</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="103">
+      <labelText>Columns</labelText>
+      <size>5</size>
+      <database>
+        <tableName>acisparam</tableName>
+	<columnName>onchip_column_count</columnName>
+      </database>
+    </textfield>
+
+    <triplebox tag="111">
+      <labelText>Event Filter</labelText>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>acisparam</tableName>
+	<columnName>eventfilter</columnName>
+      </database>
+    </triplebox>
+
+    <textfield tag="112">
+      <labelText>Lower</labelText>
+      <size>10</size>
+      <database>
+        <tableName>acisparam</tableName>
+	<columnName>eventfilter_lower</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="113">
+      <labelText>Range</labelText>
+      <size>10</size>
+      <database>
+        <tableName>acisparam</tableName>
+	<columnName>eventfilter_higher</columnName>
+      </database>
+    </textfield>
+
+    <combobox tag="511">
+      <labelText>Multiple Spectral Lines </labelText>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>acisparam</tableName>
+	<columnName>multiple_spectral_lines</columnName>
+      </database>
+    </combobox>
+
+    <textfield tag="512">
+      <labelText>Spectra Max Count</labelText>
+      <size>10</size>
+      <database>
+        <tableName>acisparam</tableName>
+	<columnName>spectra_max_count</columnName>
+      </database>
+    </textfield>
+
+ </GUI>
+
+</formView>
+

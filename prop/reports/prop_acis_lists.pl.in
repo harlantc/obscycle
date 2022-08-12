@@ -1,0 +1,263 @@
+#!@PERLDB@
+#*H****************************************************************************
+#* Copyright (c) 1995-2015, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_acis_lists.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#    Create high count rate list, acis ccd list, no optional chips list
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+
+use strict;
+use Carp;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+
+use vars qw (%param $dbh $curdate @reqfiles $reqfile 
+	);
+
+@reqfiles = (
+        "prop_routines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+{
+  my ($password,$dsn,$stmp);
+
+# -------------------------- MAIN ----------------------------------
+  parse_input();
+
+
+  #database connection
+  $dbh = dbProposalConnection($param{U}, $param{S}, $param{q});
+
+
+  $curdate = get_date();
+
+  cnt_rate_list();
+  optional_chip_list();
+
+
+  $dbh->disconnect;
+
+
+}
+
+
+sub cnt_rate_list
+{
+  my($sql,$fname);
+  my($sth,@row,$ii,$str);
+  my($cr1,$crt);
+
+  $fname = $param{o} . "/cycle" . $param{a} . "_high_cnt_rate\.txt";
+  open OFILE,"> $fname" or die "Unable to open $fname for writing.\n";
+  printf OFILE "\n%-50.50s    $curdate\n\n","High Count Rate list for Chandra Cycle $param{a}";
+  $sql = qq( select proposal_number,last,targname,
+	instrument_name,grating_name,
+	prop_exposure_time,est_cnt_rate,forder_cnt_rate,total_fld_cnt_rate
+      	from proposal,target,instrument,grating,axafusers..person_short 
+	where
+	axafusers..person_short.pers_id = proposal.piid and
+	use_instrument_id=instrument.instrument_id and
+	use_grating_id = grating.grating_id and
+	target.proposal_id=proposal.proposal_id and
+	proposal.ao_str = "$param{a}" and 
+	(est_cnt_rate > 10. or total_fld_cnt_rate > 100.)
+        and ((proposal.status = "PROPOSED" or rank is not null) or
+	(proposal.status="APPROVED" and target.status = "accepted"))
+
+	order by proposal_number,targname);
+
+  $sth = $dbh->prepare($sql);
+  #print STDERR "$sql\n";
+  $sth->execute();
+  printf OFILE ("%8.8s  %-15.15s  %-20.20s  %-8.8s %-8.8s %-8.8s  %8.8s %8.8s %s  \n",
+        "Proposal","P.I.","Target Name","Detector","Grating","Req.Time",
+	"Est.CR","1stOrder","TotalFld.");
+
+  printf OFILE ("-------------------------------------------------------------------------------------------------------\n");
+  while (@row = $sth->fetchrow_array) {
+    if (!$row[$#row-1]) {
+      $cr1 = sprintf("%8.8s"," ");
+    }
+    else {
+      $cr1 = sprintf("%8.2f",$row[$#row-1]);
+    }
+    if (!$row[$#row]) {
+      $crt = sprintf("%8.8s"," ");
+    }
+    else {
+      $crt = sprintf("%8.2f",$row[$#row]);
+    }
+    printf OFILE ("%8.8s  %-15.15s  %-20.20s  %-8.8s %-8.8s %8.2f  %8.2f $cr1 $crt\n",@row);
+  }
+  
+  close OFILE;
+  chgroup($fname);
+  chmod 0660,$fname;
+  
+}
+
+
+sub optional_chip_list()
+{
+  my($sql,$fname,$fname2);
+  my($sth,@row,$ii,$str);
+  my($xx,$chipcnt,$ochipcnt);
+
+
+  $fname = $param{o} . "/cycle" . $param{a} .  "_no_optional_acis_chips\.txt";
+  open OFILE,"> $fname" or die "Unable to open $fname for writing.\n";
+  printf OFILE "\n%-50.50s    $curdate\n\n","No Optional Chips Selected list for Chandra Cycle $param{a}";
+
+  $fname2 = $param{o} . "/cycle$param{a}" . "_acis_chips.txt";
+  open OFILE2,"> $fname2" or die "Unable to open $fname2 for writing.\n";
+
+  $sql = qq( select proposal_number,last,targname,
+	instrument_name,grating_name,
+	prop_exposure_time,
+        ccdi0_on,ccdi1_on,ccdi2_on,ccdi3_on,
+        ccds0_on,ccds1_on,ccds2_on,ccds3_on,ccds4_on,ccds5_on,targ_num,
+	spectra_max_count,multiple_spectral_lines
+      	from proposal,target,instrument,grating,axafusers..person_short ,
+	acistarget
+	where
+	target.proposal_id=proposal.proposal_id and
+	proposal.piid = axafusers..person_short.pers_id and
+	use_instrument_id=instrument.instrument_id and
+	use_grating_id = grating.grating_id and
+	target.targid=acistarget.targid and
+	proposal.ao_str = "$param{a}" and 
+	((proposal.status="PROPOSED" or  rank is not null) or
+	(proposal.status="APPROVED" and target.status = "accepted"))
+	order by proposal_number,targ_num);
+
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  printf OFILE ("%8.8s  %-15.15s  %-20.20s  %-8.8s %-8.8s %-8.8s  %-2.2s %-2.2s %-2.2s %-2.2s %-2.2s %-2.2s %-2.2s %-2.2s %-2.2s %-2.2s\n",
+        "Proposal","P.I.","Target Name","Detector","Grating","Req.Time",
+	"I0","I1","I2","I3","S0","S1","S2","S3","S4","S5");
+
+  printf OFILE ("-------------------------------------------------------------------------------------------------------\n");
+  printf OFILE2 ("%-8.8s %3s %-7s %2s %2s %2s %2s %2s %2s %2s %2s %2s %2s %-12s %-17s %-20s\n",
+	"Proposal", "Tgt","ExpTime","I0","I1","I2","I3","S0","S1","S2","S3","S4","S5", "Instrument","Spectra_Max_Count" ,"Multiple_Spectral_Lines");
+
+  while (@row = $sth->fetchrow_array) {
+    $ochipcnt = 0;
+    $chipcnt = 0;
+    for ($xx=6;$xx<=$#row;$xx++) {
+      if ($row[$xx] =~ /Y/ ) {
+        $chipcnt += 1;
+      }
+      if ($row[$xx] =~ /O/ ) {
+        $ochipcnt += 1;
+      }
+    }
+    if ($chipcnt >= 5 && $ochipcnt <= 0) {
+      printf OFILE ("%8.8s  %-15.15s  %-20.20s  %-8.8s %-8.8s %8.2f  %s %s %s %s %s %s %s %s %s %s\n",@row);
+    }
+
+    my($ii)=6;
+    printf OFILE2 ("%-8.8s %3d %7.2f %2s %2s %2s %2s %2s %2s %2s %2s %2s %2s %-12s %-17s %-20s\n", $row[0],$row[16],$row[5],
+	$row[$ii++],$row[$ii++],$row[$ii++],$row[$ii++],
+	$row[$ii++],$row[$ii++],$row[$ii++],$row[$ii++],$row[$ii++],$row[$ii++],
+	"$row[3]/$row[4]",
+	$row[17],$row[18]);
+  }
+
+  
+  close OFILE;
+  chgroup($fname);
+  chmod 0660,$fname;
+
+}
+
+
+    
+sub parse_input { 
+  my ($pwd);
+  my $err = 0;
+
+  %param = ( U => undef,
+             S => $ENV{DB_PROP_SQLSRV},
+             o => ".",
+             a => $ENV{ASCDS_PROP_AO},
+             f => ",",
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "o=s",
+	  "a=s",
+	  "q=s",
+	  "f=s",
+	  "g",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val;
+      warn("parameter '$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+  $param{q} = $pwd;
+
+
+}
+
+sub usage {
+  print STDERR "\nUSAGE: prop_acis_lists.pl -U [Sao] \n";
+  print STDERR "        -U  database user name \n";
+  print STDERR "        -S  sql server, default is DB_PROP_SQLSRV\n";
+  print STDERR "        -a  AO, default is ASCDS_PROP_AO\n";
+  print STDERR "        -o  output directory, default is current directory\n";
+
+}
+
+
+

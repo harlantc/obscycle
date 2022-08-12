@@ -1,0 +1,298 @@
+#!@PERLDB@
+#*H****************************************************************************
+#* Copyright (c) 1995, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_science_category_abstract.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#1.I would like 5 lists, for the 5 groupings of proposal types into panels
+# with abstracts
+#
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+
+use vars qw (%param $dbh @reqfiles $reqfile
+	);
+
+use strict;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+
+@reqfiles = (
+        "prop_routines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+
+
+# -------------------------- MAIN ----------------------------------
+{
+  my ($stmp,$dsn);
+
+
+  &parse_input;
+
+  #database connection
+  $dbh = dbProposalConnection($param{U}, $param{S}, $param{q});
+
+
+  do_subjects($param{o});
+
+  $dbh->disconnect;
+}
+
+sub do_subjects
+{    
+  my($outdir) = @_;
+  my($sql,$ordr,@row,$sth,$curdate);
+  my($ordr,$str,$fname,$ii,$ss,@subjects,$jj,@codes);
+
+  $curdate = get_date();
+  @subjects = get_science_categories();
+
+  foreach $ss (@subjects) {
+    #print STDERR "SUBJECTS: $ss\n";
+    $sql = qq(select proposal_number,last,title,abstract);
+    $sql .= qq(
+	from proposal,axafusers..person_short ps
+	where 
+	proposal.ao_str = "$param{a}" and
+	(status = "PROPOSED" or rank is not null)
+	and proposal.piid = ps.pers_id 
+	and substring(proposal_number,3,2) in );
+
+     $sql .= " (";
+     @codes = split(/\_/,$ss);
+     for ($jj=0;$jj<=$#codes;$jj++) {
+     if ($jj > 0) { $sql .= ","; }
+       $sql .= qq("$codes[$jj]");
+     }
+     $sql .= ")\n";
+     $fname = $outdir . "/proposals_" . $ss ;
+     if (!$param{n}) {
+       $fname .= "_abstract";
+     }
+     $fname .= ".txt";
+     $ordr = qq( order by proposal_number);
+        
+        open OFILE,">$fname" or 
+	  die "Unable to open $fname for writing.\n";
+        #print STDERR "processing $fname\n";
+
+        printf OFILE "%-60.60s    $curdate\n\n","Proposal for Science Categories $ss";
+        printf OFILE  get_header();
+
+        $str = $sql . $ordr;
+        $sth = $dbh->prepare($str);
+        $sth->execute;
+        while (@row = $sth->fetchrow_array) {
+           if ($param{n}) {
+             printf OFILE "%-08.8s  %-25.25s   %s\n",@row;
+           } 
+           else {
+             printf OFILE "%-08.8s  %-25.25s  \n   %s\n",@row;
+             print OFILE "   $row[$#row]\n\n\n";
+           } 
+        } 
+        close OFILE;
+        chgroup($fname);
+        chmod 0660,$fname;
+   } 
+}
+     
+
+# --------------------------------------------------------------------------
+# get science category groupings for panels
+# from a file!!!!
+# --------------------------------------------------------------------------
+sub get_science_categories
+{
+  my($stmp,@subcats,$oline,@t1);
+  
+
+
+  open PFILE,"< $param{p}" or die ("Unable to open $param{p} for reading.\n");
+  while ($stmp = <PFILE> ) {
+     chomp($stmp);
+     if ($stmp =~ /^#/ ) {
+     }
+     else {
+       @t1 = split(/=/,$stmp);
+       $stmp = $t1[$#t1];
+       while ($stmp =~ s/ //) {;}
+       while ($stmp =~ s/,/_/) {;}
+       
+       if ($oline !~ $stmp) {
+         push (@subcats,$stmp);
+         $oline = $stmp;
+       }
+    }
+ }
+ return @subcats;
+}
+
+sub get_science_categories_from_db {
+  my($stmp,@subcats,$sth,@row);
+  my($curid,@tcat,%tmpcats,$ii);
+
+  $curid=0;
+
+  $stmp = qq(select distinct panel.panel_id,catcode from
+	panel,ao,panel_subcat,subcat where
+	ao.ao_str = "$param{a}" and
+	ao.ao_id = panel.ao and
+	panel.panel_id = panel_subcat.panel_id and
+        panel_subcat.catid = subcat.catid
+	order by panel.panel_id);
+
+  $sth = $dbh->prepare($stmp);
+  $sth->execute;
+
+  $stmp = "";
+  while (@row = $sth->fetchrow_array) {
+    if ($curid != $row[0]) {
+      if ($curid) {
+        $tmpcats{$stmp} = $stmp;
+      }
+      $stmp = "";
+      $curid = $row[0];
+    }
+    $stmp .= $row[1] . "_";
+  }
+  $tmpcats{$stmp} = $stmp;
+
+  @tcat = %tmpcats;
+  for ($ii=0;$ii<= $#tcat;$ii++) {
+    if ($ii == 0 || $tcat[$ii] !~ /$tcat[$ii-1]/) {
+      print STDERR "$tcat[$ii]\n";
+      push @subcats,$tcat[$ii];
+    }
+  }
+  
+  return (@subcats);
+}
+
+sub get_header {
+  my($str);
+  
+   
+  if (!$param{n}) {
+    $str = sprintf("%-8.8s  %-25.25s\n   Title\n", "Proposal","P.I.");
+    $str .= "   Abstract\n";
+  }
+  else {
+    $str = sprintf("%-8.8s  %-25.25s   Title\n", "Proposal","P.I.");
+  }
+  $str .= "-----------------------------------------------------------------------------------------\n";
+
+  return $str;
+   
+}
+
+
+# ----------------------------------------------------------
+# parse input parameters
+# ----------------------------------------------------------
+sub parse_input
+{
+  my($pwd);
+  my $err = 0;
+
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+             o=> ".",
+             a=> "$ENV{ASCDS_PROP_AO}",
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "a=s",
+          "o=s",
+          "p=s",
+          "q=s",
+	  "n",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter '$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+  if (!$param{p}) {
+    $param{p} = "$ENV{ASCDS_PROP_DIR}/reports/panel.default";
+    if (!-e $param{p}) {
+        $param{p} = "$ENV{ASCDS_DATA}/panel.default",
+    }
+  }
+  if (!-e $param{p}) {
+    warn("$param{p} does not exist.");
+    &usage;
+    exit(1);
+  }
+
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+  $param{q} = $pwd;
+
+
+}
+
+sub usage
+{
+    print STDERR "\nUSAGE: prop_science_category_abstract.pl -U [ -Saon ]\n";
+    print STDERR "       -U database user name\n";
+    print STDERR "       -o output directory, default is current directory \n";
+    print STDERR "       -S database server, default is DB_PROP_SQLSRV\n";
+    print STDERR "       -a AO , default is ASCDS_PROP_AO\n";
+    print STDERR "       -n if exists, don't display abstracts\n";
+
+    print STDERR "\nOutput files produced for each category grouping are:\n";
+    print STDERR "  proposals_nn_nn_abstract.txt \n";
+
+}
+
+

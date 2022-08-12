@@ -1,0 +1,4 @@
+#define horizhatchsolid_width 1
+#define horizhatchsolid_height 5
+static unsigned char horizhatchsolid_bits[] = {
+   0x00, 0x00, 0x01, 0x00, 0x00 };

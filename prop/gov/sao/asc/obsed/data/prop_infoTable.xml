@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE table SYSTEM "table.dtd">
+
+<table name="prop_info" key="ocat_propid">
+  <column name="ocat_propid">
+    <type>INTEGER</type>
+    <tooltip>ObsCat Proposal Identifier (prop_info)</tooltip>
+  </column>
+  <column name="proposal_id">
+    <type>INTEGER</type>
+    <tooltip>Proposal Identifier in proposal database</tooltip>
+  </column>
+  <column name="prop_num">
+    <type>STRING</type>
+    <tooltip>Proposal Number</tooltip>
+  </column>
+  <column name="title">
+    <type>STRING</type>
+    <tooltip>Proposal Title</tooltip>
+  </column>
+  <column name="description">
+    <type>CHOICE</type>
+    <tooltip>Subject Category/Description</tooltip>
+  </column>
+  <column name="proposal_type">
+    <type>STRING</type>
+    <tooltip>Proposal Type</tooltip>
+  </column>
+  <column name="piid">
+    <type>CHOICE</type>
+    <tooltip>Principal Investigator ID</tooltip>
+  </column>
+  <column name="aoid">
+    <type>CHOICE</type>
+    <tooltip>AO i.e. NRA cycle number (stored as an integer)</tooltip>
+  </column>
+  <column name="ao_str">
+    <type>CHOICE</type>
+    <tooltip>AO i.e. NRA cycle number (stored as a string)</tooltip>
+    <constraint>aostr</constraint>
+  </column>
+  <column name="medium">
+    <type>CHOICE</type>
+    <tooltip>Storage/delivery media (tape/CD/etc)</tooltip>
+    <choices>
+      <item>WWW-ONLY</item>
+      <item>2GBDAT</item>
+      <item>4GBDAT</item>
+      <item>2GB8MM</item>
+      <item>5GB8MM</item>
+      <item>CD-ROM</item>
+      <item>CD-ROM,ZIPPED</item>
+      <item>CD-ROM,UNZIPPED</item>
+    </choices>
+  </column>
+  <column name="coi_contact">
+    <type>BOOLEAN</type>
+    <tooltip>Use Co-Investigator as point-of-contact?</tooltip>
+    <constraint>coi</constraint>
+  </column>
+  <column name="coin_id">
+    <type>INTEGER</type>
+    <tooltip>Co-Investigator Identifier</tooltip>
+    <constraint>coi</constraint>
+  </column>
+  <column name="coi_phone">
+    <type>STRING</type>
+    <tooltip>Co-Investigator Phone Number</tooltip>
+    <constraint>coi</constraint>
+  </column>
+  <column name="joint">
+    <type>CHOICE</type>
+    <tooltip>Proposal submitted under joint Chandra policy?</tooltip>
+  </column>
+  <column name="xmm_approved_time">
+    <type>DOUBLE</type>
+    <tooltip>XMM approved time for joint proposal (ks)</tooltip>
+    <number>
+     <format>0.0000</format>
+    </number>
+
+  </column>
+  <column name="hst_approved_time">
+    <type>INTEGER</type>
+    <tooltip>HST approved time for joint proposal (orbits)</tooltip>
+  </column>
+  <column name="noao_approved_time">
+    <type>DOUBLE</type>
+    <tooltip>NOAO approved time for joint proposal (nights)</tooltip>
+    <number>
+     <format>0.0000</format>
+    </number>
+  </column>
+  <column name="nustar_approved_time">
+    <type>DOUBLE</type>
+    <tooltip>NuSTAR approved time for joint proposal (ks)</tooltip>
+    <number>
+     <format>0.0000</format>
+    </number>
+  </column>
+  <column name="rxte_approved_time">
+    <type>DOUBLE</type>
+    <tooltip>RXTE approved time for joint proposal (ks)</tooltip>
+    <number>
+     <format>0.0000</format>
+    </number>
+  </column>
+  <column name="nrao_approved_time">
+    <type>DOUBLE</type>
+    <tooltip>NRAO approved hours for joint proposal</tooltip>
+    <number>
+     <format>0.0000</format>
+    </number>
+  </column>
+  <column name="spitzer_approved_time">
+    <type>DOUBLE</type>
+    <tooltip>Spitzer Space Telescope approved time for joint proposal (hours)</tooltip>
+    <number>
+     <format>0.0000</format>
+    </number>
+  </column>
+  <column name="suzaku_approved_time">
+    <type>DOUBLE</type>
+    <tooltip>Suzaku approved time for joint proposal (ksec)</tooltip>
+    <number>
+     <format>0.0000</format>
+    </number>
+  </column>
+  <column name="swift_approved_time">
+    <type>DOUBLE</type>
+    <tooltip>Swift approved time for joint proposal (ksec)</tooltip>
+    <number>
+     <format>0.0000</format>
+    </number>
+  </column>
+
+  <column name="abstract">
+    <type>STRING</type>
+    <tooltip>Proposal Abstract</tooltip>
+  </column>
+</table>

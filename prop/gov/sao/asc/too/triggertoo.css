@@ -1,0 +1,148 @@
+body.body { color:black; background-color:white; }
+th.red { text-align:center; background-color:#ff0000; }
+th.hdr { text-align:center; background-color:#eef2ff; }
+th.label { text-align:left; }
+th.bigLabel { text-align:left; font-size:x-large; font-weight:bold; }
+th.big2Label { text-align:left; font-size:large; font-weight:bold; }
+th.error { text-align:left; background-color:red; }
+th.top { vertical-align:top;  }
+td.list { text-align:center; }
+td.edit  { background-color:#efffef; text-align:center; }
+input.editl { background-color:#efffef; text-align:left;}
+input.edit  { background-color:#efffef; text-align:right;}
+td.field { text-align:left; }
+td.error { text-align:left; background-color:red; }
+td.warn { text-align:left; background-color:yellow; }
+td.footer  { vertical-align:center; text-align:left; }
+td.footerR { vertical-align:center; text-align:right;}
+td.center { text-align:center;  }
+td.small { text-align:left; font-size:small; }
+td.left { text-align:left; }
+td.leftt{ text-align:left; vertical-align:top }
+td.leftb { text-align:left; font-weight:bold; }
+td.lefttb { text-align:left; vertical-align:top; font-weight:bold; }
+td.right { text-align:right; }
+td.rightb { text-align:right; font-weight:bold; }
+td.righttb { text-align:right; vertical-align:top; font-weight:bold; }
+td.top  { vertical-align:top; }
+td.topb { vertical-align:top; font-weight:bold; }
+td.hdr { text-align:left; font-size:large; font-weight:bold; }
+td.bold { text-align:left;  font-weight:bold; font-size:110%; }
+td.title { text-align:left;  font-weight:bold; font-size:x-large }
+td.subtitle { text-align:left;  font-weight:bold; font-size:large }
+font.tiny { font-size:small; }
+font.error { color:red; font-style:italic; }
+font.msg { color:black; font-style:italic; }
+font.biggerLabel { font-size:x-large; font-weight:bold; }
+font.bigLabel { font-size:large; font-weight:bold; }
+font.label { font-weight:bold; }
+font.bigRed { font-size:large; font-weight:bold; color:red; }
+
+img.hdrimg { border-width:0; }
+
+.errmsg { 
+  border-style:none; 
+  color:red; 
+  font-style:italic; 
+  font-size:larger; 
+}
+
+.searchBtn {
+   background-color:#1f2569;
+   color:#ffffff;
+   border-width:5;
+   border-color:#002578;
+   font-weight:bold;
+}
+
+.searchbar { 
+  background-color: #EEEEEE;
+  text-align:center;
+  border: solid 2px #7F99B2;
+  clear:both;
+  margin:auto;
+  width:auto;
+  margin-top:1%;
+  padding-top:1%;
+  padding-bottom:1%;
+}
+
+.infobar { 
+  background-color: #FFFFFF;
+  text-align:left;
+  border: solid 3px #1f2569;
+  clear:both;
+  margin:auto;
+  width:99%;
+  margin-top:1%;
+  padding-left:2px;
+  overflow: hidden;
+  border-top-right-radius: 1em;
+  border-top-left-radius: 1em;
+  -moz-border-radius-topleft: 1em;
+  -moz-border-radius-topright: 1em;
+  -webkit-border-top-left-radius: 1em;
+  -webkit-border-top-right-radius: 1em;
+  border-bottom-right-radius: 1em;
+  border-bottom-left-radius: 1em;
+  -moz-border-radius-bottomleft: 1em;
+  -moz-border-radius-bottomright: 1em;
+  -webkit-border-bottom-left-radius: 1em;
+  -webkit-border-bottom-right-radius: 1em;
+
+}
+
+
+.hdrbar { 
+  background-color: #EEEEEE;
+  text-align:left;
+  border: solid 3px #800000;
+  clear:both;
+  margin:auto;
+  width:99%;
+  margin-top:1%;
+}
+
+
+.cmtspanbar { 
+  background-color: #EEEEEE;
+  text-align:left;
+  border: solid 3px #7F99B2;
+  clear:both;
+  margin:auto;
+  width:99%;
+  margin-top:1%;
+}
+.warnspanbar {
+  background-color: #ECECEC;
+  text-align:left;
+  border: solid 3px #EE0000;
+  clear:both;
+  padding:1%;
+}
+
+.msgbar {
+  background-color: #eeeeee;
+  text-align:left;
+  border: solid 3px #1f2569;
+  clear:both;
+  margin:auto;
+  width:99%;
+  margin-top:1%;
+  padding-left:4px;
+  overflow: hidden;
+  border-top-right-radius: 1em;
+  border-top-left-radius: 1em;
+  -moz-border-radius-topleft: 1em;
+  -moz-border-radius-topright: 1em;
+  -webkit-border-top-left-radius: 1em;
+  -webkit-border-top-right-radius: 1em;
+  border-bottom-right-radius: 1em;
+  border-bottom-left-radius: 1em;
+  -moz-border-radius-bottomleft: 1em;
+  -moz-border-radius-bottomright: 1em;
+  -webkit-border-bottom-left-radius: 1em;
+  -webkit-border-bottom-right-radius: 1em;
+
+}
+

@@ -1,0 +1,12 @@
+<web-app>
+ <display-name>Logger Application</display-name>
+ <description>General tool for logging messages from an ASC application</description>
+ <servlet>
+   <servlet-name>logger</servlet-name>
+   <servlet-class>LogServer</servlet-class>
+ </servlet>
+ <servlet-mapping>
+   <servlet-name>logger</servlet-name>
+   <url-pattern>/LogServer</url-pattern>
+ </servlet-mapping>
+</web-app>

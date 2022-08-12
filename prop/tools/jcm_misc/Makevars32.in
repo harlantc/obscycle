@@ -1,0 +1,3 @@
+SRCDIR = @top@
+LIBDIR = $(SRCDIR)/lib
+AINCDIR= $(SRCDIR)/inc@optsuffix@

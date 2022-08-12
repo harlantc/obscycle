@@ -1,0 +1,754 @@
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 1995-2015,2019 Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_prelim_grades.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script reads the individual prelim grades file and creates
+#     a summary file (panelName.txt):
+# 
+#     panel_name\tproposal_number\tgrade1\tgrade2\t.....
+#
+#     
+#     First, retrieve the list of panel members and then go find the
+#     corresponding preliminary grades for that member.  Then go and
+#     read that file and keep track of grades for each proposal by panel.
+#
+#     Finally, write out the list of grades per proposal creating a 
+#     separate file for each panel.
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use vars qw ($dbh %param %pgrades    @reqfiles $reqfile  $accessTime %preconf
+	%panelprops %prigrades %secgrades %PANELS $thedate
+	);
+
+use strict;
+use Getopt::Long;
+use Time::Local;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+use lib "/home/ascds/DS.release/bin";
+
+use List::Util qw< min max >;
+
+@reqfiles = (
+        "prop_routines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+
+# -------------------------- MAIN ----------------------------------
+{
+  my($dsn,$stmp,@pgradesArray,$ii,$fname);
+  my($sth,$sql,@row,$lockfile);
+
+  $accessTime=0;
+
+  &parse_input;
+
+
+  #database connection
+  $dbh = dbProposalConnection($param{U}, $param{S}, $param{q});
+
+  if (!$param{a} ) {
+    $sql = "select current_ao_str from context";
+    $sth = $dbh->prepare($sql);
+    $sth->execute;
+    while (@row = $sth->fetchrow_array()) {
+       $param{a} = $row[0];
+    }
+  }
+
+  $lockfile = "$param{o}/.pgradeslock";
+
+  # check that noone else is currently updating the grades
+  if (! -e $lockfile) {
+    open LFILE,"> $lockfile";
+    close LFILE;
+  
+    # then remove any .stats file
+    my($mname)=  $param{o} . "/*_prelimgrades_stats.txt";
+    my(@files) = glob($mname);
+    for (@files) {
+       if ($_ =~ /prelimgrades/) {
+         unlink($_);
+       }
+    }
+    
+    $thedate = get_date();
+
+    if (!$param{y}) {
+
+      # setup array of panels with all proposal_numbers
+      prepare_panels();
+
+      # find all the grades for all members in every panel
+      do_panel_members(); 
+  
+      #now write them out
+      do_panels();
+
+      # do grades status 
+      $fname = $param{o} . "/" . "prelim_grades_status.txt";
+      open DFILE,">$fname";
+      printf DFILE "Preliminary Grades Status as of $thedate\n\n";
+      &grades_status;
+      &grades_dates;
+  
+      close DFILE;
+      chgroup($fname);
+      chmod (0660,"$fname");
+    }
+  
+    # also create primary/secondary grades for each proposal
+    if (!$param{x} ) {
+      &find_primary_secondary_grades;
+    }
+
+
+    unlink($lockfile);
+  }
+  else {
+    print STDERR "Lock file exists in $lockfile, grade files not updated.\n";
+    print STDERR "Please try again.\n";
+  }
+}
+
+
+# -----------------------------------------------------------------
+# now write out the grades for each panel in a separate file
+# -----------------------------------------------------------------
+sub do_panels
+{
+  my($idx) = @_;
+  my($key,$ii,$fname,@pgradesArray);
+
+  # put all the grades in an array in proposal_number order
+  foreach $key   (sort keys %pgrades) {
+      push @pgradesArray,$key;
+      push @pgradesArray,$pgrades{$key};
+  }
+  
+  # for each panel loop through the proposal array and 
+  # write  out the grades
+  foreach $key   (keys %PANELS) {
+    # write a file for each panel 
+    $fname = $param{o} . "/panel$key" . "_prelim_grades.txt";
+    open OFILE,"> $fname" or die
+       print STDERR "Unable to open $fname for writing";
+    printf OFILE "# Preliminary Grades as of $thedate\n# \n";
+
+    for ($ii=0; $ii<= $#pgradesArray; $ii+=2) {
+      if ($pgradesArray[$ii+1] =~ /^$key/) {
+          print OFILE "$pgradesArray[$ii+1]\n";
+      }
+    }
+    close OFILE;
+    chmod (0660,$fname);
+  }
+    
+}
+
+# -----------------------------------------------------------------
+# find the panel members and create the correct filename to
+# read (panelName_persID.pgrade) from the web reports directory.
+# Then for each file, go read in the grades into the proposal array
+# -----------------------------------------------------------------
+sub do_panel_members
+{
+  my($idx) = @_;
+  my($sql,$conflictfile);
+  my($sth,@row,$ii,$str,$fname,%props,@tmparr);
+
+
+  $sql = qq(select pm.panel_id,panel_name,ps.pers_id,ps.last
+	from panel p,panel_member pm,ao,axafusers..person_short ps
+ 	where p.ao = ao.ao_id and ao.ao_str = "$param{a}"
+	and p.panel_id = pm.panel_id and
+	panel_name != "BPP" and
+	panel_name not like "%LP" and
+	panel_name != "XVP" and
+	pm.pers_id = ps.pers_id
+	order by panel_name,sortkey(lower(ps.last),20),lower(ps.first));
+
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  while (@row = $sth->fetchrow_array) {
+    # save panel info for later
+    $PANELS{$row[1]}  = $row[0];
+
+    # read in the file for this user and process the grades for each proposal
+    $fname = $param{d} . "/$row[1]\_$row[2]" . ".pgrade";
+    open IFILE,"< $fname" ||
+       print STDERR "Unable to find grades file for Panel $row[1], $row[3]";
+    %props = ();
+    my (@mgrade);
+    @mgrade = ();
+    while (<IFILE>) {
+      chomp;
+      @tmparr= split("\t");
+      #print STDERR "panel=$tmparr[0]  prop=$tmparr[1] grade=$tmparr[2]\n";
+      $props{$tmparr[1]} = $tmparr[2];
+      if ($tmparr[2] && $tmparr[2] !~ /C/i && $tmparr[2] > 0) {
+        push @mgrade, $tmparr[2];
+      }
+    }
+    close IFILE;
+    
+    if ($#mgrade > 0) {
+      do_means($row[1],$row[3],@mgrade);
+    }
+
+
+    #go process the grades for this member
+    do_grades(@row,%props);
+  }
+}
+
+# ------------------------------------------------
+# find primary grades for proposals from files
+# ------------------------------------------------
+sub find_primary_grades
+{
+  my($sql,$oname,$fname);
+  my($sth,@row,$ii,$str,$priGrade,@tmparr);
+
+  $sql = qq(select pp.panel_id,panel_name,proposal_number,
+	pri.pers_id,pri.last
+	from proposal,panel p,panel_proposal pp,ao,
+	axafusers..person_short pri, proposal_review pr
+ 	where p.ao = ao.ao_id and ao.ao_str = "$param{a}"
+	and proposal.proposal_id = pp.proposal_id 
+	and proposal.proposal_id = pr.proposal_id
+	and pp.panel_id = p.panel_id 
+        and pp.panel_id = pr.panel_id
+	and panel_name != "LP" 
+	and pr.primary_reviewer *= pri.pers_id
+	order by panel_name,pri.pers_id,proposal_number);
+
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  while (@row = $sth->fetchrow_array) {
+    $priGrade = "";
+    # process the grades for this proposal for the primary reviewer
+    $fname = $param{d} . "/$row[1]\_$row[3]" . ".pgrade";
+    # open the file if we need to
+    if ($oname !~ $fname )  {
+      if ($oname) {
+         close IFILE;
+      }
+      open IFILE,"< $fname" ||
+       print STDERR "Unable to find grades file for Primary Reviewer: $row[1], $row[2] - $row[4]";
+      $oname = $fname;
+   }
+    while (<IFILE>) {
+      chomp;
+      @tmparr= split("\t");
+      if ($row[2] =~ $tmparr[1]) {
+        $priGrade = $tmparr[2];
+        last;
+      }
+    }
+    $prigrades{"$row[1]\_$row[2]"} = $priGrade;
+  }
+  if ($oname) {
+    close IFILE;
+  }
+}
+
+# ------------------------------------------------
+# find secondary grades for proposals from files
+# ------------------------------------------------
+sub find_secondary_grades
+{
+  my($sql,$oname,$fname);
+  my($sth,@row,$ii,$str,$secGrade,@tmparr);
+
+  $sql = qq(select pp.panel_id,panel_name,proposal_number,
+	sec.pers_id,sec.last
+	from proposal,panel p,panel_proposal pp,ao,
+	axafusers..person_short sec, proposal_review pr
+ 	where p.ao = ao.ao_id and ao.ao_str = "$param{a}"
+	and proposal.proposal_id = pp.proposal_id 
+	and proposal.proposal_id = pr.proposal_id
+	and pp.panel_id = p.panel_id 
+        and pp.panel_id = pr.panel_id
+	and panel_name != "LP"
+	and pr.secondary_reviewer *= sec.pers_id
+	order by panel_name,sec.pers_id,proposal_number);
+
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  while (@row = $sth->fetchrow_array) {
+    $secGrade = "";
+    # process the grades for this proposal for the secondary reviewer
+    $fname = $param{d} . "/$row[1]\_$row[3]" . ".pgrade";
+    # open the file if we need to
+    if ($oname !~ $fname )  {
+      if ($oname) {
+         close IFILE;
+      }
+      open IFILE,"< $fname" ||
+       print STDERR "Unable to find grades file for Secondary Reviewer: $row[1], $row[2] - $row[4]";
+      $oname = $fname;
+   }
+    while (<IFILE>) {
+      chomp;
+      @tmparr= split("\t");
+      if ($row[2] =~ $tmparr[1]) {
+        $secGrade = $tmparr[2];
+        last;
+      }
+    }
+    $secgrades{"$row[1]\_$row[2]"} = $secGrade;
+  }
+  if ($oname) {
+    close IFILE;
+  }
+}
+# ---------------------------------------------------------
+# for each proposal on a panel
+# find the primary reviewer and build the filename
+# find the secondary reviewer and build the filename
+# search file and find grade 
+# output would be panel proposal  pri_prelim_grade  sec_prelim_grade
+# ---------------------------------------------------------
+sub find_primary_secondary_grades
+{
+  my($idx) = @_;
+  my($sql,$oname);
+  my($sth,@row);
+
+  find_primary_grades();
+  find_secondary_grades();
+
+  $oname = $param{o} . "/" . "pri_sec_prelim_grades.txt";
+  open PGFILE,"> $oname" or 
+	die ("Unable to open $oname for writing.\n");
+  printf PGFILE "Preliminary Grades by Primary/Secondary Reviewer as of $thedate\n\n";
+
+  printf PGFILE ("%s\t%s\t%s\t%s\n",
+	"Panel","Proposal","Primary","Secondary");
+  printf PGFILE ("%s\t%s\t%s\t%s\n",
+	"-----","--------","-------","---------");
+  
+  
+  $sql = qq(select pp.panel_id,panel_name,proposal_number
+	from proposal,panel p,panel_proposal pp,ao
+ 	where p.ao = ao.ao_id and ao.ao_str = "$param{a}"
+	and proposal.proposal_id = pp.proposal_id 
+	and pp.panel_id = p.panel_id 
+	and panel_name != "LP"
+	order by panel_name,proposal_number);
+
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  while (@row = $sth->fetchrow_array) {
+    # process the grades for this proposal 
+    printf PGFILE ("%-3.3s\t%08.8d\t%4s\t%4s\n",
+	$row[1],$row[2],$prigrades{"$row[1]\_$row[2]"},
+	$secgrades{"$row[1]\_$row[2]"});
+  }
+  close PGFILE;
+  chgroup($oname);
+  chmod (0660,"$oname");
+
+}
+
+
+
+# ---------------------------------------------------------------
+# setup array of panels with all proposal_numbers
+# ---------------------------------------------------------------
+sub prepare_panels 
+{
+  my($sql,$sth,@row);
+
+  $sql = qq(select pp.panel_id,proposal_number from proposal p,
+	panel_proposal pp,panel
+        where
+        p.proposal_id = pp.proposal_id 
+        and pp.panel_id = panel.panel_id 
+	and panel_name != "LP"
+        and ao_str = "$param{a}"
+        order by pp.panel_id,proposal_number);
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  while (@row = $sth->fetchrow_array) {
+     $panelprops{$row[0]} .= $row[1] . " ";
+  }
+}
+
+
+# ----------------------------------------------------------
+# for each proposal in the database for the given panel,
+# find the grade in the file and append it to the list of
+# grades.
+#
+# now want reviewer grade to always be same spot
+# ----------------------------------------------------------
+sub do_grades
+{
+  my($panelid,$panel,$user,$userName,%props) = @_;
+  my($pno);
+  my(@row,$ii,$id,$str);
+
+  @row = split(' ',$panelprops{$panelid});
+  foreach $pno (@row) {
+    my $pg ="";
+    #print STDERR "panel = $panel ---$pno---\n";
+    $id = $panel . "-" . $pno;
+    # put panel,proposal number
+    if (!$pgrades{$id}) {
+      $str = sprintf("$panel\t%08.8d\t",$pno);
+      $pgrades{$id}= $str;
+    }
+    if ($props{$pno} && $props{$pno} > 0.0 ) {
+      $pg = $props{$pno};
+    }
+    # add the grades
+    $pgrades{$id} .= $pg . "\t";
+  }
+}
+
+# -----------------------------------------------------------------
+# for each panel member , determine missing preliminary grades file
+# -----------------------------------------------------------------
+sub grades_status
+{
+  my($sql);
+  my($sth,@row,$ii,$key,$str);
+  my($fname);
+
+  $sql = qq(select distinct (ps.first + " " + ps.last),
+	ps.pers_id,panel_name ,
+	member_type
+	from axafusers..person_short ps,
+        panel_member pm, panel p ,ao
+        where pm.pers_id  = ps.pers_id 
+	and pm.panel_id = p.panel_id
+        and ao.ao_str = "$param{a}"
+        and p.ao = ao.ao_id
+	and panel_name != "BPP"
+	and panel_name not like "%LP"
+	and panel_name != "XVP"
+	order by pm.panel_id,ps.pers_id);
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  while (@row = $sth->fetchrow_array) {
+    $fname = sprintf("%s/%s_%d.pgrade",$param{d} , $row[2],$row[1]);
+    if (!-e $fname) {
+      print DFILE "Missing grades for $row[3]: $row[0], panel $row[2], pers_id=$row[1]\n";
+    } else {
+      #print STDERR "Checking preconf for $fname\n";
+      if ( check_preconf($fname)) {
+        print DFILE "Missing grades for $row[3]: $row[0], panel $row[2], pers_id=$row[1]\n";
+       }
+    }
+  }
+
+
+}
+sub check_preconf
+{
+  my($fname) = @_;
+  my $retval = 0;
+  my @file_stat = stat "$fname";
+  if ($accessTime > 0 && $accessTime > @file_stat[9]) {
+       #print STDERR " Adding $fname to preconf\n";
+       $retval=1;
+       $preconf{$fname} = $retval;
+  }
+  return $retval;
+}
+
+sub do_means
+{
+  my($pid,$rev,@values) = @_;
+  my($sum,$n);
+  my($mname);
+
+  $mname=  $param{o} . "/" . $pid .  "_prelimgrades_stats.txt";
+  if (!-e $mname) {
+    open MFILE,"> $mname" or die "Unable to open $mname for writing.\n";
+    printf MFILE "Preliminary Grades Statistics as of $thedate\n\n";
+    printf MFILE "%-20.20s  %3s  %4s  %4s   %6s   %6s   %6s\n",
+   	 "Reviewer","Cnt","Min","Max","Median","Mean","StdDev";
+    printf MFILE "%-20.20s  %3s  %4s  %4s   %6s   %6s   %6s\n",
+   	 "--------------------","---","----","----","------","------","------";
+  } else {
+    open MFILE,">> $mname" or die "Unable to open $mname for writing.\n";
+  }
+
+  $n = $#values + 1;
+  for (@values) {
+     $sum += $_;
+  }
+
+  my $mean = $sum / $n;
+
+  #print "$rev: $sum / $n = $mean\n";
+
+  my $sqsum = 0;
+  for (@values) {
+      $sqsum += ( $_ ** 2 );
+  } 
+  $sqsum /= $n;
+  $sqsum -= ( $mean ** 2 );
+  my $stdev = sqrt($sqsum);
+
+
+  my $median;
+  my $mid = int @values/2;
+  my @sorted_values = sort by_number @values;
+  if (@values % 2) {
+    $median = $sorted_values[ $mid ];
+  } else {
+    $median = ($sorted_values[$mid-1] + $sorted_values[$mid])/2;
+  } 
+
+  my $min = min @values;
+  my $max = max @values;
+
+  printf MFILE "%-20.20s  %3d  %4.2f  %4.2f     %4.2f     %4.2f     %4.2f\n",
+	$rev,$n,$min,$max,$median,$mean,$stdev;
+
+  close MFILE;
+  chgroup($mname);
+  chmod (0660,"$mname");
+}
+sub by_number {
+    if ($a < $b){ -1 } elsif ($a > $b) { 1 } else { 0 }
+}
+
+
+
+# ----------------------------------------
+# for each saved grades file, get the date 
+# ----------------------------------------
+sub grades_dates
+{
+  my($sql);
+  my($sth,@row,$ii,$key,$str,$stmp,$hh);
+  my($fname,$retdate,@file_stat,@day_time,$pname,$persid);
+  my(%persids);
+  my($cmd);
+
+  $sql = qq(select distinct (ps.first + " " + ps.last),
+	ps.pers_id,panel_name 
+        from axafusers..person_short ps,
+        panel_member pm, panel p ,ao
+        where pm.pers_id  = ps.pers_id 
+	and pm.panel_id = p.panel_id
+	and panel_name not like "%LP"
+	and panel_name != "BPP"
+	and panel_name != "XVP"
+        and ao.ao_str = "$param{a}"
+        and p.ao = ao.ao_id
+	order by pm.panel_id,ps.pers_id);
+
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  while (@row = $sth->fetchrow_array) {
+    $str = sprintf ("%-3.3s  %-30.30s  - ",$row[2],$row[0]);
+    $persids{$row[1]} = $str;
+  }
+
+  print DFILE "\n\nPreliminary Grade Files Received:\n----------------------------------\n";
+  $cmd = qq(/bin/ls -rt  $param{d}/*.pgrade );
+  #print STDERR "$cmd\n";
+  open PFILE,"$cmd |";
+  my (@conf) = ();
+  while ( $hh = <PFILE>) { 
+    chomp $hh;
+    @row = split('\/',$hh);
+    ($pname,$stmp) = split(/\_/,$row[$#row],2);
+    ($persid,$stmp) = split(/\./,$stmp);
+    
+    @file_stat = stat "$hh";
+    @day_time =localtime($file_stat[9]);
+    $day_time[4] += 1;        # add 1 to the month
+    $day_time[5] -= 100;      # subtract 100 from year
+    $retdate = sprintf("%02.2d/%02.2d/%02.2d %02.2d:%02.2d",
+        $day_time[4],$day_time[3],$day_time[5],$day_time[2],$day_time[1]);
+
+
+    $str = $persids{$persid};
+    if (!$preconf{$hh} && $str && $str =~ /^$pname/) {
+      printf DFILE $persids{$persid};
+      printf DFILE "$retdate\n";
+    } else {
+      my($cstr) = sprintf("%-35s  - %s\n",$row[$#row],$retdate);
+      push(@conf,$cstr);
+    }
+  }
+  print DFILE "\n\nIgnore Files:\n";
+  foreach $hh (@conf) {
+    print DFILE $hh;
+  }
+  close PFILE;
+}  
+
+# ----------------------------------------------------------
+# parse input parameters
+# ----------------------------------------------------------
+sub parse_input
+{
+  my($pwd,$tmp,$str,$key);
+  my($tdate,@tarr);
+  my $err = 0;
+
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+             o=> "$ENV{ASCDS_PROP_DIR}/prelim_results/",
+             d=> "/data/rpc/prop/webreports/grades",
+             t=> "/data/rpc/prop/webreports/.htAccessDates",
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "o=s",
+          "a=s",
+	  "d=s",
+	  "t=s",
+          "q=s",
+          "x",
+          "y",
+          "w=s",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    if ($param{w}) {
+      $tmp = $param{w} . "/.htreport";
+      open PFILE,"< $tmp";
+      while ($tmp = <PFILE>) {
+        chomp($tmp);
+        ($key,$str) = split(/=/,$tmp);
+        if ($key =~ /user/i) {
+          $param{U} = $str;
+        }
+        if ($key =~ /server/i) {
+          $param{S} = $str;
+        }
+      }
+      close PFILE;
+      $tmp = $param{w} . "/.htreportp";
+      open PFILE,"< $tmp";
+      while ($tmp = <PFILE>) {
+        chomp($tmp);
+        $pwd = $tmp;
+      }
+      close PFILE;
+    }
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter '$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+  if(!$param{q} && !$param{w}) {
+   $pwd = get_password($param{U},$param{S});
+  }
+  elsif (!$param{w}) {
+   $pwd = read_password($param{q});
+  }
+  $param{q} = $pwd;
+
+  if (-e $param{t}) {
+    open TFILE,"<$param{t}";
+    while ($str =<TFILE>) {
+       if ($str =~ /^accessDate/i) {
+         @tarr = split(/\^/,$str); 
+         $tdate = $tarr[1];
+       }
+    }
+    close TFILE;
+    if ($tdate) {
+      $accessTime=convert_date($tdate);
+    }
+  }
+}
+sub convert_date 
+{
+  my($tstr) = @_;
+  my(@arr,@tarr,$retval);
+
+  my %mons = (
+ 	Jan => 1,
+ 	Feb => 2,
+ 	Mar => 3,
+ 	Apr => 4,
+ 	May => 5,
+ 	Jun => 6,
+ 	Jul => 7,
+ 	Aug => 8,
+ 	Sep => 9,
+ 	Oct => 10,
+ 	Nov => 11,
+ 	Dec => 12
+	);
+  @arr = split(/ /,$tstr);
+  @tarr = split(/:/,$arr[3]);
+  $retval = timelocal( int($tarr[2]),int($tarr[1]), int($tarr[0]),int($arr[1]), ($mons{$arr[0]} - 1), int($arr[2]) );
+  return $retval;
+}
+
+
+
+sub usage
+{
+    print STDERR "\nUSAGE: prop_prelim_grades.pl -U [-Sadosw]\n";
+    print STDERR "       -U database user name\n";
+    print STDERR "       -S database server, default is DB_PROP_SQLSRV\n";
+    print STDERR "       -a AO , default is ASCDS_PROP_AO\n";
+    print STDERR "       -d web grades directory, default is /data/rpc/prop/webreports/grades/\n";
+    print STDERR "       -t web access dates file\n";
+    print STDERR "       -o output directory, default is ASCDS_PROP_DIR/prelim_results/ \n";
+    print STDERR "       -w if exists, use -d to find correct database params\n";
+    print STDERR "       -x if exists, don't create the file for primary/secondary grades \n";
+    print STDERR "       -y if exists, don't create the summary grades file. \n";
+    print STDERR qq(\n\nOutput files will be:\n
+    panelnn_prelim_grades.txt
+    nn_prelimgrades_stats.txt
+    pri_sec_prelim_grades.txt
+    prelim_grades_status.txt\n);
+
+}
+

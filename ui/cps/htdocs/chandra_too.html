@@ -1,0 +1,94 @@
+<fieldset class="fshelp" id="TOO"><legend>TOO Details</legend>
+
+If this is the trigger target for a TOO, please specify the exact CXC response 
+window, probability, and trigger criteria . These fields should 
+NOT be specified if this target is a TOO followup, even if the followup 
+specifies a different instrument configuration than the trigger target. The 
+response to a TOO will be classified according to the minimum time delay 
+between trigger and observation. The faster the Chandra response, the 
+more difficult and the more limited the number of TOOs allowed. 
+
+<ul>
+<li class="elehelp"><a class="lblhelp"  name="TOOCancel"> If this TOO is a resubmission of a proposal approved in the previous Cycle, should this TOO be canceled if the previous Cycle TOO is triggered?</a>
+<br>
+Logical value indicating whether this TOO request should be canceled if a 
+previously approved TOO is triggered.
+Default is <b>N</b>o.
+
+<li class="elehelp"><a class="lblhelp"  name="TOOStart"> Exact CXC start/stop response window</a>
+<br>
+Start time is the minimum time after the official request to trigger the 
+Chandra TOO observation that the exposure should begin.  
+This <b>start</b> time will be used to determine the correct Peer Review category for TOO constraints.
+Peer review Categories are: <b>0-5</b>, <b>5-20</b>, <b>20-40</b>, <b>&gt;=40</b>.
+<table border='1'>
+<tr>
+<th class="th">Peer Review Category</th>
+<th class="th">Response Window</th>
+<th class="th">CXC Start (t)</th>
+</tr>
+<tr> <td>Very Fast</td><td>0-5</td><td>0 &lt; <b>t</b> &lt; 5</td></tr>
+<tr><td>Fast </td><td>5-20</td><td>5 &lt;= <b>t</b> &lt; 20</td></tr>
+<tr><td>Medium </td><td>20-40</td><td>20 &lt;= <b>t</b> &lt; 40</td></tr>
+<tr><td>Slow  </td><td>&gt;=40</td><td><b>t</b> &gt;= 40 </td></tr>
+</table>
+<p>Stop time is the maximum time after that trigger for the exposure to begin and still be 
+scientifically useful.
+<p>
+Units are days. 
+<br><i>Required</i> for all trigger targets for TOOs.
+
+<li class="elehelp"><a class="lblhelp"  name="TOOProb">Probability of TOO occurring</a> 
+<br>
+Enter the probability of the TOO occurring during the proposed Chandra cycle.
+The default is 1.0.  Valid values are 0.1 - 1.0.
+
+<li class="elehelp"><a class="lblhelp"  name="TOOTrigger">Exact TOO Trigger Criteria</a>
+<br>
+Specify the trigger criteria for the TOO, e.g. information that will
+establish the trigger,such as how bright the source should be, 
+in which instrument or 
+telescope, minimum time above threshold brightness, etc..
+<br> Maximum of 400 characters.  <i>Required</i> for all trigger targets for TOOs.
+<li class="elehelp"><a class="lblhelp"  name="AlternateGroup">Alternate Target Group Name</a> 
+<br>
+If this target has alternates or is an alternate please specify the name for
+this group of alternate targets.  
+<br>Maximum of 20 characters.
+<li class="elehelp"><a class="lblhelp" name="AlternateNumber">Number of targets requested for this alternate group</a>
+<br>
+If you've specified an alternate group name, enter how many targets you are
+requesting for this group. For example, if you want to observe 1 of 3 TOOs 
+in this group, then the 3 TOO's should all specify the same group name 
+(i.e.: alt1) and the number of targets requested would be '1'.
+The alternate targets can then be added using the <b>Add Target</b>
+button.  You must specify the identical group name for all the
+alternate targets.
+
+<li class="elehelp"><a class="lblhelp"  name="TOOFollowupInstructions">TOO followup instructions</a>
+<br>
+Specify additional TOO followup instructions only if the 
+<i>'Number of followup observations'</i> is greater than 0.
+<br>Maximum of 1500 characters.
+
+<li class="elehelp"><a class="lblhelp" name="toocoord">TOO Coordinated Observations:</a>
+<br>
+
+  Indicate all of the coordinated observations (simultaneous or 
+  contemporaneous) associated with this TOO in the appropriate 
+  box for coordination with other observatories. This
+  includes observations already approved under other programs, 
+  even if time is not requested as part of this proposal. 
+  Coordinated observations included only in proposal text 
+  will not be recognized or accepted.  For non-Chandra 
+  observations approved after your Chandra proposal has 
+  been  accepted, you may request coordination
+  if and when you trigger your TOO.  Any such request for 
+  additional coordination or observing constraints must be made 
+  to the Director and approved by the Chandra Director's Office.
+  For a constraint approved in this way, the CXC will try to 
+  accommodate on a best efforts basis.
+
+</ul>
+</fieldset>
+

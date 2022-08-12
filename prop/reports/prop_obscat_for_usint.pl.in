@@ -1,0 +1,219 @@
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 1995, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_obscat_for_usint.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script extracts the obscat targets for the current cycle 
+#     and sorts by groupings requested by USINT:
+#
+#The lists should be sorted into the same categories as the
+#Uplink Support topics:
+#
+#Calibration observations: x9xxxx
+#HRC/NONE
+#LETG 
+#HETG
+#ACIS/NONE: sorted by Sequence number category
+#10xxxx, 20xxxx, etc. 
+#
+#The table columns should be 
+#Proposal SeqNbr ObsId  Type Target Name           Det.   Grat. Exp.Time 
+#        Observer    E-Mail                          Institution
+#
+#
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+
+use vars qw (%param $dbh  @reqfiles $reqfile
+	);
+
+use strict;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+
+@reqfiles = (
+        "prop_routines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+
+
+# -------------------------- MAIN ----------------------------------
+{
+  my($str,@sorted_obsids,$stmp,$dsn);
+
+  &parse_input;
+
+
+  open (OFILE,"> $param{o}") or 
+	die "Unable to open $param{o} for writing\n";
+
+
+  #database connection
+  $dbh = dbOcatConnection($param{U}, $param{S}, $param{q});
+
+
+  $str = sprintf("%-8.8s %-6.6s %-5.5s %-10.10s %-22.22s %-6.6s %-5.5s %-8.8s %-20.20s %-45.45s %s\n", 
+	"Proposal","SeqNbr","ObsId","Type","Target Name","Det.","Grat.",
+	"Exp.Time",
+	"Observer","E-Mail","Institution");
+  print OFILE $str;
+  print OFILE "------------------------------------------------------------------------------------------------------------------------------------------------------\n";
+
+  &do_query (qq(and type = "CAL"));
+  &do_query (qq(and type != "CAL"));
+
+  close OFILE;
+  $dbh->disconnect;
+
+}
+
+
+       
+# -------------------------------------------------------------- 
+# parameters: prop_num,seq_nbr,obsid,type,targname,
+#	      instrument,grating, approved_exposure_time,
+#             pi.last,pi.email,pi.institution,
+#	      observer.last,observer.email,observer.institution,
+#	      coi_contact
+# -------------------------------------------------------------- 
+sub print_line 
+{
+    my(@myrow) = @_;
+    my($observer,$email,$plast,$str);
+    $plast = $#myrow;
+    if ($myrow[$plast] =~ /Y/) {
+      $myrow[$plast-6] = $myrow[$plast-3];
+      $myrow[$plast-5] = $myrow[$plast-2];
+      $myrow[$plast-4] = $myrow[$plast-1];
+    }
+    
+    $str = sprintf("%-8.8s %-6.6s %-05.5d %-10.10s %-22.22s %-6.6s %-5.5s %7.2f  %-20.20s %-45.45s %s\n", @myrow);
+    print OFILE $str;
+  
+}
+
+
+# ----------------------------------------------------------------
+# query the obscat using the input criteria (CAL, non-CAL)
+# ----------------------------------------------------------------
+sub do_query
+{    
+  my($qstr) = @_;
+  my($sth,@row);
+  my($observer,$email,$pquery,$str);
+
+  # entries from the axafocat database
+  $pquery = qq( select distinct prop_num,seq_nbr,obsid,type,targname,
+	instrument,grating,
+	approved_exposure_time,
+        p1.last,p1.email,p1.institution,
+	p2.last,p2.email,p2.institution,
+	coi_contact
+	from target,prop_info,axafusers..person_short p1,
+	axafusers..person_short p2
+	where axafocat..target.ocat_propid = prop_info.ocat_propid 
+	and p1.pers_id = prop_info.piid 
+        and prop_info.ao_str = "$param{a}"
+	and prop_info.coin_id *= p2.pers_id 
+	$qstr
+	order by grating,instrument,seq_nbr
+	);
+
+
+   $sth = $dbh->prepare($pquery);
+   $sth->execute;
+    while((@row) = $sth->fetchrow_array()) {
+       print_line (@row);
+   }
+}
+
+
+# -----------------------------------------------------------
+# parse user input
+# -----------------------------------------------------------
+sub parse_input
+{
+  my($pwd);
+  my $err = 0;
+
+  %param = (
+             U=> undef,
+             o=> undef,
+             S=> "$ENV{DB_OCAT_SQLSRV}",
+             a=> "$ENV{ASCDS_PROP_AO}"
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "o=s",
+          "a=s",
+          "q=s",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter `$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+  $param{q} = $pwd;
+  
+}
+
+
+sub usage 
+{
+  print STDERR "\nUSAGE: prop_obscat_for_usint.pl -Uo [-Sa]\n";
+  print STDERR "       -U database user name\n";
+  print STDERR "       -S database server, default is DB_OCAT_SQLSRV\n";
+  print STDERR "       -o output filename \n";
+  print STDERR "       -a AO cycle or defaults to ASCDS_PROP_AO\n";
+  
+}
+
+

@@ -1,0 +1,171 @@
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 1995, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_lp_vlp_stats.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script provides statistics for lp and vlp proposals going to the
+#     peer review (status=PROPOSED).
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use vars qw ($dbh %param @reqfiles $reqfile $title_str
+	);
+
+use strict;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+
+@reqfiles = (
+        "prop_routines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+
+# -------------------------- MAIN ----------------------------------
+{
+  my($dsn,$stmp);
+  &parse_input;
+
+
+  #database connection
+  $dbh = dbProposalConnection($param{U}, $param{S}, $param{q});
+
+  $title_str = "LP/VLP";
+  if (int($param{a}) > 12 && int($param{a}) < 17) {
+    $title_str = "LP/XVP";
+  }
+  open(OFILE,"> $param{o}")  ||
+    die "Unable to open $param{o} for writing!\n";
+  printf OFILE "$title_str Statistics for Cycle $param{a}       %s\n\n",get_date();
+
+  &do_lpvlp(1);
+
+  close OFILE;
+  chgroup($param{o});
+  chmod 0660,$param{o};
+
+}
+
+
+
+# ----------------------------------------------------------
+# ----------------------------------------------------------
+sub do_lpvlp
+{
+  my($idx) = @_;
+  my($sql);
+  my($sth,@row,$ii,$str);
+
+  printf OFILE ("\n\n$idx. $title_str Total Time\n\n");
+  $sql = qq(select type,count(distinct proposal.proposal_id),
+	proposal.status, sum(prop_exposure_time),
+	sum(approved_exposure_time)
+        from proposal,target
+        where proposal.ao_str = "$param{a}" and
+	proposal.status not in ("INCOMPLETE","WITHDRAWN") and
+	proposal.proposal_id = target.proposal_id and
+        (type like "%LP%" or type like "%XVP%")
+        group by type,proposal.status
+	order by type,proposal.status);
+
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  printf OFILE ("%-6.6s  %-6.6s  %-8.8s  %9.9s  %9.9s \n",
+    "Type","#Props","Status","Req.Time","App.Time");
+  printf OFILE ("------------------------------------------------\n");
+  while (@row = $sth->fetchrow_array) {
+    printf OFILE ("%-6.6s  %6d  %-8.8s  %9.2f  %9.2f\n",@row);
+  }
+}
+
+
+
+# ----------------------------------------------------------
+# parse input parameters
+# ----------------------------------------------------------
+sub parse_input
+{
+  my($pwd);
+  my $err = 0;
+
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+             o=> undef,
+             a=> "$ENV{ASCDS_PROP_AO}",
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "o=s",
+          "a=s",
+          "q=s",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter '$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+  $param{q} = $pwd;
+
+
+}
+
+sub usage
+{
+    print STDERR "\nUSAGE: prop_lp_vlp_stats.pl -Uo [-Sa]\n";
+    print STDERR "       -U database user name\n";
+    print STDERR "       -o output filename \n";
+    print STDERR "       -S database server, default is DB_PROP_SQLSRV\n";
+    print STDERR "       -a AO , default is ASCDS_PROP_AO\n";
+}
+
+
+

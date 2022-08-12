@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE table SYSTEM "table.dtd">
+
+<table name="timereq" key="timereq_id">
+  <column name="timereq_id">
+    <type>INTEGER</type>
+    <tooltip>Database index for timereq table</tooltip>
+  </column>
+  <column name="obsid">
+    <type>INTEGER</type>
+    <tooltip>Observation ID</tooltip>
+  </column>
+  <column name="ordr">
+    <type>INTEGER</type>
+    <tooltip>Order for timereq table entry per ObsId</tooltip>
+  </column>
+  <column name="window_constraint">
+    <type>CHOICE</type>
+    <tooltip>Flag indicating window constraint is required(Y) or  preferred(P)</tooltip>
+    <choices>
+      <item>Y</item>
+      <item>P</item>
+    </choices>
+  </column>
+  <column name="tstart">
+    <type>DATE</type>
+    <tooltip>Window Start Time (YYYY-MM-DD HH:MM:SS.SSS in GMT)</tooltip>
+    <constraint>time</constraint>
+  </column>
+  <column name="tstop">
+    <type>DATE</type>
+    <tooltip>Window Stop Time (YYYY-MM-DD HH:MM:SS.SSS in GMT)</tooltip>
+    <constraint>time</constraint>
+  </column>
+
+</table>

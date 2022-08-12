@@ -1,0 +1,602 @@
+#!@PERLDB@ 
+#----------------------------------
+# Copyright (c) 1995, Smithsonian Astrophysical Observatory
+# You may not do anything you like with this file. 
+#
+# FILE NAME:  op_status_obsid.cgi
+# DEVELOPMENT:
+#
+# NOTES:       
+#             
+#
+# INPUT:       user input
+#
+# REVISION HISTORY:
+#
+# Date: 
+#---------------------------------------------------------
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use CGI ':standard';
+use File::Basename;
+use strict;
+use DBI;
+use DBD::Sybase;
+
+
+unless (eval {require "op_config.pl"}) {
+    print "Unable to find op_config.pl\n"; exit(1);
+}
+unless (eval {require "op_subroutines.pl"}) {
+    print "Unable to find op_subroutines.pl\n"; exit(1);
+}
+unless (eval {require "op_status_routines.pl"}) {
+    print "Unable to find op_status_routines.pl\n"; exit(1);
+}
+unless (eval {require "op_issue_routines.pl"}) {
+    print "Unable to find op_issue_routines.pl\n"; exit(1);
+}
+unless (eval {require "op_status_columns.inc"}) {
+    print "Unable to find op_status_columns.inc\n"; exit(1);
+}
+
+
+use vars qw($dsn $dbh 
+        $db $srv $pwd  $uid $s1 $s2 $s3 $soft_dir $soft_url
+        $stmp $ii @display_order %dbresults  
+	@the_results @the_results_link @work_list $sp_char
+        $h $footer $note $host $title $db_dlm 
+        $report_type  $report_fmt   $sql_date_fmt $sql_time_fmt
+        $where $order $jj  $sp
+        $tmp_file $tmp_dir $tmp_host $tmp_date $tmp_err
+	$tab_filler  @obi_hdrs
+        @hdr @fields @fields_link $xx $color_help
+        $obsid $alt_exp $ocat_status $ocat_type
+	$dbg
+ );
+
+
+{
+  $SIG{__WARN__} = \&catch_warn;
+
+  $db_dlm = "\t";
+  $note = "";
+  $sp = "\&nbsp;";
+  $color_help = qq(<table><tr><td>Quality:&nbsp;&nbsp;</td><td class="d_color">&nbsp;&nbsp;</td><td>=Default&nbsp;&nbsp;</td><td class="q_color">&nbsp;&nbsp;</td><td>=Questionable&nbsp;&nbsp;</td><td class="p_color">&nbsp;&nbsp;</td><td>=Pending&nbsp;&nbsp;</td></tr></table>);
+
+  #this program can be entered several different ways
+  #If QUERY_STRING, it may have come from someone clicking on a 'obsid' link
+  #otherwise, it may be called directly from the op_status_table/op_custom_table
+  #if only 1 observation is retrieved.
+  # Special case is where it's a single obsid, pressed on a link from the
+  # Issues Status page.  In this case QUERY_STRING is set, but we don't want
+  # to use it!
+  $stmp = $ENV{'QUERY_STRING'};
+  if ($stmp && $stmp !~ /tab_del/) {
+    $stmp =~ s/$sp_char/ /g;
+    ($s1,$s2,$s3) = split(/\^\^/,$stmp);
+    logit("op_status_obsid: QUERY=$stmp\n");
+  }
+  else {
+    $s1 = $ARGV[0];
+    $s2 = $ARGV[1];
+    $s3 = $ARGV[2];
+    logit("op_status_obsid: args=$s1--$s2--s3--\n");
+  }
+  (@hdr) =split(/\_\_/,$s1);
+  (@fields) =split(/\_\_/,$s2);
+  (@fields_link) =split(/\_\_/,$s3);
+  $obsid = int($fields_link[0]);
+  $ocat_status = $fields_link[3];
+  $ocat_type = $fields_link[4];
+  $report_type = $fields_link[5];
+  &debug("obsid hdr:    $#hdr $s1\n") if $dbg;
+  &debug("obsid fields: $#fields $s2 \n") if $dbg;
+  &debug("fields_link: $#fields_link @fields_link\n") if $dbg;
+
+
+  if ($obsid <= 0) {
+     &error("Please refine your search query.");
+     display_file($tmp_err,1);
+     exit 0;
+  }
+
+
+  if ($report_type =~ /eds/) {
+    $sql_date_fmt = "111";
+  }
+
+  # this routine sets up the correct report type and opens the output file!
+  $report_fmt = "HTML";
+  &open_output_file;
+  &print_html_header;
+
+  $stmp = "server=$srv;database=$db";
+  $dsn = "DBI:Sybase:$stmp";
+  $dbh = DBI->connect($dsn, $uid, $pwd, {
+        PrintError => 1,
+        RaiseError => 0});
+  if ( !defined $dbh) {
+     display_file($tmp_err,1);
+     exit 1;
+  }
+
+  {
+    &build_obsid_info;
+    &get_issueids($obsid);
+
+    # now do the default obi (or latest obi info)
+    &build_obi_hdr;
+    &retrieve_obi_info;
+    print OFILE "</table><p>";
+
+    # now do the L2 threads
+    &build_l2_hdr;
+    &retrieve_l2_threads;
+    print OFILE "</table>";
+
+  }
+
+  &print_html_footer;
+  close OFILE;
+  chmod(0777,"$tmp_file");
+
+  display_file($tmp_file,1);
+  unlink($tmp_file);
+
+  $dbh->disconnect;
+
+}
+
+  
+
+  
+#--------------------------------------------------------------
+# build the ObsID information section
+#--------------------------------------------------------------
+sub build_obsid_info
+{
+  my ($ii,$tab_filler,$stmp,$tstr);
+  my ($jj,$issue_field,$tt);
+  my (@darr,$hh);
+ 
+  # reorder the fields so that they are displayed vertically!
+  $tt = int(($#hdr + 2)/3);
+  @darr = ();
+  for ($ii=0;$ii<$tt;$ii++) {
+    push (@darr,$ii);
+    push (@darr,($ii+$tt));
+    push (@darr,($ii+$tt+$tt));
+  }
+
+  $issue_field = -1;
+  for ($jj=0;$jj<=$#hdr;$jj++) {
+    if ($hdr[$jj] =~ /Issue/) {
+      $issue_field = $jj;
+      last;
+    }
+  }
+    
+
+  $tab_filler = qq(<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>);
+  print OFILE "<table border=\"0\">\n";
+
+  $ii=0;
+  
+  for ($jj=0;$jj<=$#darr;$jj++) {
+    if ($ii== 0) {
+      print OFILE "<tr>\n";
+    }
+    if ($darr[$jj] > $#hdr || $darr[$jj] == $issue_field) {
+      print OFILE "<td>$sp</td>";
+      $stmp = "$sp";
+    }
+    else {
+      $hh = $darr[$jj];
+      $stmp = $hdr[$hh];
+      $stmp =~ s/\&/\&amp;/;
+      print OFILE "\n<td align=left><b>$stmp:$sp</b></td>";
+
+      $stmp = sprintf("%-s",$fields[$hh]);
+      $stmp .= s/ /$sp/g;
+      $tstr = "";
+      if ($hdr[$hh] =~ /ObsId/) {
+        $obsid = $fields[$hh];
+        #&debug("obsid_cgi:  issue $issue_field  -- $fields[$issue_field] \n") if $dbg;
+        if ($issue_field > -1 && $fields[$issue_field] =~ /^[0-9(]/) {
+          $tstr = &add_html_issue_link($fields[$issue_field]);
+        }
+        if ($tstr) {
+          $stmp .= "<br>Issue:$tstr";
+        }
+        if ($fields_link[6] > 0) {
+          $tstr = &add_html_pub_link($obsid);
+          if ($tstr) {
+           $stmp .= "<br>$tstr";
+          }
+        }
+      }
+      elsif ($hdr[$hh] =~ /Exp Cycle/) {
+        $alt_exp = $fields[$hh];
+      }
+      elsif ($hdr[$hh] =~ /Release/) {
+        $stmp = &add_html_release_link($fields[$hh]);
+      }
+      elsif ($hdr[$hh] =~ /VV_Status/ || $hdr[$hh] =~ /V Status/) {
+        #&debug ("adding   $fields_link[1]  $fields_link[2]\n") if $dbg;
+        $stmp = &add_html_vvreport_link($fields[$hh],$obsid,
+		  $fields_link[1],$fields_link[2],$ocat_status,
+		  $ocat_type);
+      }
+    }
+  
+    print OFILE "<td align=left> $stmp </td>";
+    print OFILE "$tab_filler";
+    print OFILE "$tab_filler\n";
+    $ii++;
+    if ($ii>2) {
+      $ii = 0;
+      print OFILE "\n</tr>";
+    }
+  }
+
+  if ($ii> 0) {
+    print OFILE "</tr>";
+  }
+  print OFILE "\n</table>\n";
+
+}
+
+#--------------------------------------------------------------
+# build the obi information section
+#--------------------------------------------------------------
+sub build_obi_hdr 
+{
+  my (@obi_hdrs) = ( 
+	"Exp Cycle","Obi","StartTime","StopTime","GoodTime","Issues");
+  my($h );
+
+  print OFILE "<hr><br>\n";
+  print OFILE qq(<h3><a href="/soft/op/op_shelp.html#ObiInformation">Obi Information</a> for ObsId $obsid</h3>$color_help\n);
+
+  print OFILE qq(<table class="plain" >\n<tr class="header">\n);
+  foreach $h (@obi_hdrs) {
+    print OFILE "<th align=\"center\">$h</th>\n"
+  }
+  print OFILE "</tr>";
+  @hdr = @obi_hdrs;
+
+}
+#--------------------------------------------------------------
+#--------------------------------------------------------------
+sub display_obi_entry 
+{
+  my(@myarr) = @_;
+  my($ii,$tstr);
+  
+  if ($myarr[0] =~ /D/) {
+    print OFILE "<tr class=\"d_color\">";
+  }
+  elsif ($myarr[0] =~ /Q/i) { 
+    print OFILE "<tr class=\"q_color\">";
+  }
+  elsif ($myarr[0] =~ /P/i) { 
+    print OFILE "<tr class=\"p_color\">";
+  }
+  else {
+    print OFILE "<tr> ";
+  }
+  for ($ii=1;$ii<$#myarr;$ii++) {
+    if ($hdr[$ii] =~ /Release/) {
+      $tstr = &add_html_release_link($myarr[$ii]);
+    }
+    else { 
+     $tstr = $myarr[$ii];
+    }
+    if ($tstr eq '') {
+     $tstr = "$sp";
+    }
+    print OFILE ("<td align=\"center\">$tstr</td>\n");
+  }
+  $tstr = &add_html_issue_link($myarr[$#myarr]);
+  if ($tstr eq '') {
+   $tstr = "$sp";
+  }
+  print OFILE ("<td align=\"center\">$tstr</td>\n");
+  
+  print OFILE "</tr>";
+}
+
+#--------------------------------------------------------------
+# build the l2 information section
+#--------------------------------------------------------------
+sub build_l2_hdr 
+{
+  my (@l2_hdrs) = ( 
+	"Exp Cycle","Proc Version","Proc Type","Proc Date","Proc Status",
+	"Charge Time","Good Time","Release","CALDB Version","V&amp;V Date","V&amp;V Status",
+	"Reviews", "V&amp;V Version","DD Date","Mail Date");
+
+  my($h );
+
+  print OFILE "<hr><br>\n";
+  print OFILE qq(<h3><a href="/soft/op/op_shelp.html#L2Information">Processing Information</a> for ObsId $obsid &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="/cgi-bin/op/op_process_history.cgi?$obsid">History</a>\n&nbsp;&nbsp;&nbsp;&nbsp;</h3>$color_help\n);
+  print OFILE qq(<table class="plain" >\n<tr class="header">\n);
+  foreach $h (@l2_hdrs) {
+    print OFILE "<th align=\"center\">$h</th>\n"
+  }
+  print OFILE "</tr>";
+  @hdr = @l2_hdrs;
+}
+
+#-----------------------------------------------------------------------
+# params: exp_cycle,version,apcp,ap_date,ap_status,charge time,
+#         good_time,release,vvdate,vv_state,cdo_review,vvversion,
+#         dd date,mail date quality
+#-----------------------------------------------------------------------
+sub display_l2_entry 
+{
+  my(@myarr) = @_;
+  my($ii,$tstr,$quality);
+  
+  #&debug("L2  $#myarr $myarr[$#myarr] \n") if $dbg;
+  $quality = $myarr[$#myarr];
+  if ($quality =~ /D/i) { 
+    print OFILE "<tr class=\"hilite_color\">";
+  }
+  elsif ($quality =~ /Q/i) { 
+    print OFILE "<tr class=\"q_color\">";
+  }
+  elsif ($quality =~ /P/i) { 
+    print OFILE "<tr class=\"p_color\">";
+  }
+  else {
+    print OFILE "<tr>";
+  }
+
+  for ($ii=0;$ii< $#myarr;$ii++) {
+    if ($hdr[$ii] =~ /Review/i && $myarr[$ii] > 0) {
+       $tstr = retrieve_review_info($myarr[$ii]);
+    }
+    elsif ($hdr[$ii] =~ /Proc Type/ && !$myarr[$ii]) {
+      $tstr = "AP";
+    }
+    elsif ($hdr[$ii] =~ /Release/ && $myarr[$ii]) {
+      $tstr = &add_html_release_link($myarr[$ii]);
+    }
+    elsif ($hdr[$ii] =~ /VV Status/ || $hdr[$ii] =~ /V Status/) {
+      $tstr = &add_html_vvreport_link($myarr[$ii],$obsid,$myarr[1],$myarr[12],
+	$ocat_status,$ocat_type);
+    }
+    else { 
+     $tstr = $myarr[$ii];
+    }
+    if ($tstr eq '') {
+     $tstr = "$sp";
+    }
+    print OFILE ("<td align=\"center\">$tstr</td>\n");
+  }
+  
+  print OFILE "</tr>";
+}
+
+#----------------------------------------------------------------------------
+
+#----------------------------------------------------------------------------
+#----------------------------------------------------------------------------
+sub print_html_header
+{
+  my($hstr);
+  $hstr = cxc_header("Observation Processing Status Search Results","/soft/op/op_olist.html");
+  print OFILE <<header;
+
+$hstr
+$note
+<p>
+header
+
+}
+
+
+
+#----------------------------------------------------------------------------
+# Retrieve OBI information for obsid.
+# The first retrieve  also gets the alt_exp_mode because it's tied to the
+# ontime in the science_1 record. It gets obi's with quality="D".
+# The next query doesn't get alt_exp_mode because it's not available.
+# We go get any obi's not retrieved at all yet.
+#----------------------------------------------------------------------------
+sub retrieve_obi_info
+{
+  my ($sth,$sth2,$sql_stmt,@row,$obi_issues,@obilist,$obiwhere);
+  my ($jj,$oldobi,$oldalt);
+
+  $sql_stmt = qq(select distinct obidet_0_5.obi,
+	(convert(varchar(10),date_obs,$sql_date_fmt) + " " +
+	convert(varchar(5),date_obs,$sql_time_fmt)),
+	(convert(varchar(10),date_end,$sql_date_fmt) + " " +
+	convert(varchar(5),date_end,$sql_time_fmt)),
+	convert(decimal(7,2),ontime),
+	alt_exp_mode,obidet_0_5.quality
+	from obidet_0_5,science_1 where
+	obidet_0_5.obsid = $obsid and
+	obidet_0_5.obidet_0_5_id *= science_1.obidet_0_5_id and
+        obidet_0_5.obsid *= science_1.obsid and
+        obidet_0_5.quality *= science_1.quality and
+	obidet_0_5.quality in("D","S","Q") 
+	order by obidet_0_5.obi,alt_exp_mode,obidet_0_5.quality
+        );
+  &debug("Obi : $sql_stmt\n") if $dbg;
+  $sth = $dbh->prepare($sql_stmt);
+  if ($sth->execute()) {
+    while (@row = $sth->fetchrow_array) {
+      $obi_issues = &get_issueids_for_obi($obsid,$row[0]);
+      #&debug("altexp:  $row[0] - $oldobi - $row[4] - $oldalt\n") if $dbg;
+      if ($row[0] ne $oldobi || $row[4] ne $oldalt ) {
+        &display_obi_entry($row[5],$row[4],$row[0],$row[1],$row[2],$row[3],
+		$obi_issues);
+        $oldobi = $row[0];
+        $oldalt = $row[4];
+        push(@obilist,$row[0]);
+      }
+    }
+  }
+  $jj = $sth->rows;
+  &debug("retrieved $jj rows\n") if $dbg;
+  $obiwhere = join(',',@obilist);
+
+  # go pick up any other obi's
+    $sql_stmt = qq(select distinct obidet_0_5.obi,
+	(convert(varchar(10),date_obs,$sql_date_fmt) + " " +
+	convert(varchar(5),date_obs,$sql_time_fmt)),
+	(convert(varchar(10),date_end,$sql_date_fmt) + " " +
+	convert(varchar(5),date_end,$sql_time_fmt)),
+	quality
+	from obidet_0_5 where
+	obidet_0_5.obsid = $obsid and
+        obidet_0_5.revision = (select max(revision) from obidet_0_5 o2
+	where obidet_0_5.obi = o2.obi and obidet_0_5.obsid = o2.obsid) );
+    if ($#obilist >= 0) {
+      $sql_stmt .= qq( and obidet_0_5.obi not in ( $obiwhere ));
+    }
+    $sql_stmt .= qq( order by obidet_0_5.obi,obidet_0_5.quality);
+    &debug("Obi : $sql_stmt\n") if $dbg;
+    $sth = $dbh->prepare($sql_stmt);
+    if ($sth->execute()) {
+      while (@row = $sth->fetchrow_array) {
+        $obi_issues = &get_issueids_for_obi($obsid,$row[0]);
+        &display_obi_entry($row[3],"",$row[0],$row[1],$row[2],"",$obi_issues);
+      }
+    }
+    $jj = $sth->rows;
+    &debug("retrieved $jj rows\n") if $dbg;
+	
+}
+
+#----------------------------------------------------------------------------
+#----------------------------------------------------------------------------
+sub retrieve_l2_threads
+{
+  my($sth,$sql_stmt,@row,$ii,$max_ap);
+
+  $sql_stmt = qq( select distinct
+        science_2_obi.alt_exp_mode,
+        science_2.revision,
+        vvrpt.proc_type,
+        convert(varchar(10),science_2.ap_date,$sql_date_fmt),
+        science_2.ap_status,
+        convert(decimal(7,2),vvrpt.charge_time),
+        convert(decimal(7,2),vvrpt.good_time),
+        science_2.ascdsver,
+        vvrpt.caldb_version,
+        convert(varchar(10),vvrpt.completion_date,$sql_date_fmt),
+        vvrpt.vv_state,vvrpt.vvid,
+        vvrpt.vv_version,
+        convert(varchar(10),ven.email_notification_date,$sql_date_fmt),
+        convert(varchar(10),dd.medium_mail_date,$sql_date_fmt),
+	science_2.quality);
+
+  $sql_stmt .= qq(\nfrom science_2,science_2_obi, 
+	axafvv..vvreport vvrpt, 
+	axafobstat..dd_status dd,
+	axafobstat..view_email_notification ven where
+        science_2.obsid = $obsid and
+        science_2.max_vv *= vvrpt.vvid and
+        science_2.max_vv *= dd.vvid and
+        science_2.obsid *= ven.obsid and
+        science_2.revision *= ven.l2_version and
+	science_2.science_2_id = science_2_obi.science_2_id);
+
+  $sql_stmt .= qq( order by science_2.revision,science_2_obi.alt_exp_mode);
+
+  &debug("Obsid L2 : $sql_stmt\n") if $dbg;
+  $sth = $dbh->prepare($sql_stmt);
+  if ($sth->execute) {
+    while (@row = $sth->fetchrow_array) {
+       &display_l2_entry(@row);
+    }
+    $ii = $sth->rows;
+    &debug("Retrieve $ii L2 rows\n") if $dbg;
+  
+  }
+  
+  # now go find any unfinished threads
+  &scan_custom_threads;
+  &scan_unfinished_threads;
+}
+
+
+# -------------------------------------------------------------------
+# Find the last unfinished thread from the process_level table
+# -------------------------------------------------------------------
+sub scan_unfinished_threads
+{
+  my($sql_stmt,$sth,@row,$ii,$mystat);
+
+  $sql_stmt = qq(select distinct revision,
+                convert(varchar(10),ap_date,$sql_date_fmt),ap_status,ascdsver,
+                alt_exp_mode,pipeline 
+		from process_level where  obsid = $obsid );
+  &debug("Unfinished: $sql_stmt\n") if $dbg;
+  $sth = $dbh->prepare($sql_stmt);
+  if ($sth->execute) {
+    while (@row = $sth->fetchrow_array) {
+         if ($row[5] !~ /science_2/) {
+            $mystat = $row[2] . " " . $row[5];
+            &display_l2_entry($row[4],$row[0],"",$row[1],$mystat,"","",$row[3],
+		       "","","", "","","","","");
+        }
+    }
+    $ii = $sth->rows;
+    &debug("Retrieved $ii rows\n") if $dbg;
+  } 
+  
+}
+
+
+# -------------------------------------------------------------------
+sub scan_custom_threads
+{
+  my($sql_stmt,$sth,@row,$ii);
+
+  $sql_stmt = qq(select distinct 
+	convert(varchar(10),vvrpt.l2_ap_date,$sql_date_fmt),
+	"Completed",vvrpt.ascds_l2_release,
+	convert(varchar(10),vvrpt.completion_date,$sql_date_fmt),
+	vvrpt.vv_state,
+	vvrpt.vv_version,
+	convert(varchar(10),ven.email_notification_date,$sql_date_fmt),
+        convert(varchar(10),dd.medium_mail_date,$sql_date_fmt),
+	vvrpt.vvid,
+	convert(decimal(7,2),vvrpt.charge_time),
+        convert(decimal(7,2),vvrpt.good_time),
+	vvrpt.proc_type,
+	vvrpt.caldb_version
+	from axafvv..vvreport vvrpt,
+	axafobstat..dd_status dd,
+	axafobstat..view_email_notification_cp ven
+	where 
+	vvrpt.vvid *= dd.vvid and
+ 	vvrpt.proc_type = "CP" and
+	vvrpt.obsid = $obsid  and
+	vvrpt.obsid *= ven.obsid  and
+	vvrpt.l2_version *= ven.l2_version and
+	vvrpt.vv_version *= ven.vv_version 
+	order by vvrpt.l2_ap_date);
+  &debug("Custom: $sql_stmt\n") if $dbg;
+  $sth = $dbh->prepare($sql_stmt);
+  if ($sth->execute) {
+    while (@row = $sth->fetchrow_array) {
+      &display_l2_entry("","",$row[11],$row[0],$row[1],$row[9],$row[10],
+		$row[2],$row[12],$row[3],
+		$row[4],$row[8],$row[5],$row[6],$row[7],"");
+    }
+    $ii = $sth->rows;
+    &debug("Retrieved $ii rows for CP processing.\n") if $dbg;
+  }
+  
+}
+

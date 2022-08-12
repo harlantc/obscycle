@@ -1,0 +1,197 @@
+#!@PERL@ 
+use Cwd qw( abs_path );
+use File::Basename qw( dirname );
+use lib dirname(abs_path($0));
+
+require 'prop_ea_ao.pl';
+use File::Basename;
+
+ MAIN:
+{ 
+# display data for current cycle
+# do this by determining which instrument user has selected, and then
+#  assign filename for current cycle
+
+  #determing the input parameters
+  $inputParamList = $ENV{'QUERY_STRING'};
+  @inputParamArray = split(/,/,$inputParamList);
+  $type = $inputParamArray[0];
+  for ($ii=0; $ii<= $#inputParamArray; $ii++) {
+    $inputParamArray[$ii] =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/eg;
+    if ($inputParamArray[$ii] !~ /^[\w \/.!?-]/) {
+       $inputParamArray[$ii]=0;
+    }
+    if  ($inputParamArray[$ii] =~ /\.\./) {
+       $inputParamArray[$ii]=0;
+    }
+  }
+
+  
+  if($type eq "ea") {
+    $ttype = "EA";
+    $EA_FILE_PATH = $ENV{'OBSCYCLE_DATA_PATH'} . "/prop/pimms/data/";
+    $filename = $EA_FILE_PATH .  $inputParamArray[1];
+    $cycle = int($inputParamArray[2]);
+    $color = int($inputParamArray[3]);
+    if ($color <= 0 || $color > ($#colorArray +1) ) {
+      $class="white";
+    } else {
+      $class = $colorArray[$color-1];
+    }
+    $title = $inputParamArray[4];
+    $title =~ s/[^A-Za-z0-9 -]*//g;
+
+    $str = "chandra-ao" . $cycle;
+    $filename =~ s/chandra/$str/;
+
+
+    if (-e $filename) {
+      # Set variables if it will be in table format
+
+      # Define the message that will be displayed if anything goes wrong.
+      $errorMessage = "No data available for Chandra Cycle $cycle.";
+
+      # Create the table
+      &create_table();
+    } elsif($cycle == -1) {
+      &display_error("Invalid cycle");
+      exit 0;
+    }  else {
+      &display_error("No data available for Chandra Cycle $cycle");
+      exit 0;
+    }
+  } elsif($type eq "psf") {
+    $ttype = "PSF";
+    $ecf = $inputParamArray[1];
+    $index = 2; # Skip the type (first param), and the ecf
+    $PSF_FILE_PATH = $ENV{'OBSCYCLE_DATA_PATH'} . "/prop/psf/data/";
+    $numFiles = $#inputParamArray + 1;
+    print STDOUT "Content-type: text/html", "\n\n";
+    print STDOUT qq(
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+<link rel="stylesheet" href="/soft/prop_viewer/prop_viewer.css" type="text/css" media="screen">
+<title> Chandra $ttype Viewer </title> 
+</head>
+<body class="body"> \n
+);
+    if ($numFiles > $index) {
+      print STDOUT "To download the data click on the 50%-90% ECF link below.";
+    }
+    print STDOUT qq(<table class="hdr" border="1"><tr>);
+
+    while($index < $numFiles){
+      #print STDOUT qq(<td><table bgcolor="#ffffff" border="0" rules=rows frame=hsides cellpadding="3"> \n);
+      print STDOUT qq(<td><table bgcolor="#ffffff" border="0" frame=hsides cellpadding="3"> \n);
+      print STDOUT qq(<tr>\n<th class="hdr2">Theta (arcmin)</th>\n);
+      print STDOUT qq(<th class="hdr2">Radius (arcsec)</th>\n</tr>\n);
+  
+      $energy = $inputParamArray[$index++];
+      $energy =~ s/[^A-Za-z0-9 \+\-\.]//g;
+      $color = int($inputParamArray[$index]);
+      if ($color == 0) {
+        $class="white";
+      } else {
+        $class = $colorArray[$color-1];
+      }
+      
+      $filename = sprintf("ecf_e%05.2f_f00.%d.rdb", $energy, $ecf);
+      my($link) = "type=psf&amp;in=$filename";
+      $filename = $PSF_FILE_PATH.$filename;
+      #print STDERR "+++++++++++++ Reading file $filename \n";
+      print STDOUT qq(<tr><th class="$class">$energy Energy</th> \n);
+      print STDOUT qq(<th class="$class"><a class="$class" href="prop_viewer_file.cgi?$link" target="_blank">$ecf% ECF</a></th></tr> \n);
+      if (!open(FILE, "$filename") ) {
+          print STDOUT qq(<tr><td colspan="2">Invalid file</td></tr>");
+      } else {
+        $column1="";
+        $column2="";
+        while($line = <FILE>){
+	  #($column1, $column2) = split(" ",$line);
+	  my($c1, $c2) = split(" ",$line);
+          $column1 .= $c1 . "<br>";
+          $column2 .= $c2 . "<br>";
+	  #print STDOUT "<tr><td>$column1</td><td>$column2</td></tr>";
+        }
+        print STDOUT "<tr><td>$column1</td><td>$column2</td></tr>";
+        close(FILE);
+      }
+      $index++;
+      print STDOUT "</table></td>";
+    }
+    print STDOUT "</tr></table><BR></body></html>";
+  } # End type eq psf
+  else {
+      &display_error("Invalid input.");
+      exit 0;
+  }
+
+
+}
+
+sub create_table
+{
+  if ($color <  0) { 
+    $color = 0;
+  }
+  $smallCol1Header = "Energy (keV)";
+  $smallCol2Header = "Effective Area (cm^2)";
+  my($link) = "type=ea&amp;in=" . basename($filename);
+  print STDOUT "Content-type: text/html", "\n\n";
+  print STDOUT qq(
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+<link rel="stylesheet" href="/soft/prop_viewer/prop_viewer.css" type="text/css" 
+media="screen">
+<title> Chandra $ttype Viewer </title> 
+</head>
+<body class="body"> \n
+To download the data click on the $title below.
+<table bgcolor="#ffffff" border="1" rules=rows frame=hsides cellpadding="3"> 
+<tr>
+<th class="$class"> Cycle $cycle</th>
+<th class="$class" colspan="2"><a class="$class" href="prop_viewer_file.cgi?$link" target="_blank">$title</a></th>
+</tr>
+<tr> 
+<th class="$class" nowrap="nowrap">$smallCol1Header</th>
+<th class="$class" width="5">&nbsp;</th>
+<th class="$class" align="left" nowrap="nowrap">$smallCol2Header</th>
+</tr>
+);
+
+
+  open(FILE, "$filename");
+  while ( $line = <FILE> ) 
+  {
+    ($c1, $c2) = split(" ",$line,2);
+    #Make sure exponents are displayed
+    $energy = sprintf("%-10.7s",$c1);
+    if($c2 =~ /E\-/) {
+       $eff = sprintf("%.6g",$c2);
+    } else {
+       $eff = sprintf("%-7.7s",$c2);
+    }
+    $column1 .= "$energy<br>";
+    $column2 .= "$eff<br>";
+  }
+  print STDOUT "<tr><td>$column1</td><td>&nbsp;</td><td>$column2</td></tr>";
+  print STDOUT "</table><br></body></html>";
+
+  close(FILE);
+}
+
+sub display_error
+{
+  my ($errorMessage) = @_;
+  print STDOUT "Content-type: text/html", "\n\n";
+  print STDOUT <<End_of_Page;
+<CENTER>
+<h4>$errorMessage</h4>
+</CENTER>
+End_of_Page
+}
+
+

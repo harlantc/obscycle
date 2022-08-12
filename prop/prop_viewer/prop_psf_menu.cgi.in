@@ -1,0 +1,188 @@
+#!@PERL@ 
+
+1;
+
+sub prop_psf_menu
+{
+  my($inputList) = @_;
+  my(@selectedColor) = ();
+
+  @inputParams = split(/,/, $inputList);
+  $ii = 1;
+  $detector = $inputParams[$ii++];
+  $ecf = $inputParams[$ii++];
+  $minXValue = $inputParams[$ii++];
+  $maxXValue = $inputParams[$ii++];
+  $minYValue = $inputParams[$ii++];
+  $maxYValue = $inputParams[$ii++];
+  $lineWidth = $inputParams[$ii++];
+  $xscale = lc($inputParams[$ii++]);
+  $yscale = lc($inputParams[$ii++]);
+  $canvasX = $inputParams[$ii++];
+  $canvasY = $inputParams[$ii++];
+  $selectedFile = $inputParams[$ii++];
+  for ($pp=0;$pp<=$#energyLabel;$pp++) {
+    push(@selectedColor,int($inputParams[$ii++]));
+  }
+
+  $minXValue = verify_number($minXValue,$def_minX,0,$def_maxXY);
+  $maxXValue = verify_number($maxXValue,$def_maxX,0,$def_maxXY);
+  $minYValue = verify_number($minYValue,$def_minY,0,$def_maxXY);
+  $maxYValue = verify_number($maxYValue,$def_maxY,0,$def_maxXY);
+  $lineWidth = verify_number($lineWidth,$def_lineWidth,0,20);
+  $canvasX = verify_number($canvasX,$def_canvasX,0,5000);
+  $canvasY = verify_number($canvasY,$def_canvasY,0,5000);
+
+
+  if ($xscale ne "log" && $xscale ne "linear") {
+       $xscale="linear";
+  }
+  if ($yscale ne "log" && $yscale ne "linear") {
+       $yscale="linear";
+  }
+
+
+
+
+  #Use a table to space out the fields
+
+  
+  #$theHtml = "Content-type: text/html" .  "\n\n";
+  #$theHtml .= <<JAVASCRIPT_END;
+#<script language="JavaScript" >  
+#<!-- hide from older browsers -- 
+ #function update(selectedCheckbox) { 
+   #for(var i = 0; i < document.theform.length; i++) { 
+     #var e = document.theform.elements[i]; 
+     #if(e.type == "checkbox") { 
+       #if(e.name == selectedCheckbox) { 
+	 #e.value = "true"; 
+       #} 
+     #} 
+   #} 
+ #} 
+  #// end hiding --> 
+#</script> 
+#JAVASCRIPT_END
+
+  $theHtml .= "<form name=\"theform\" action=\"build_viewer.cgi?psf \" target=\"_parent\" method=\"post\">\n";
+  $theHtml .= qq(<table cellspacing="5" >\n);
+  #The drop-down box for the filename
+
+  $theHtml .= "<tr>\n";
+
+  $theHtml .= qq(<th colspan="2"> Select an energy <font size="-1">(keV)</font>: </th></tr>\n);
+
+   for ($ii=0; $ii<= $#energyLabel; $ii++) {
+     if($selectedFile =~ /$energyLabel[$ii]/) {
+	$theHtml .= qq(<tr><td> <input type=checkbox name="$energyLabel[$ii]" checked>$energyLabel[$ii]</td>\n);
+     } else {
+        $theHtml .= qq(<tr><td> <input type=checkbox name="$energyLabel[$ii]" >$energyLabel[$ii]</td>\n);
+     }
+     $theHtml .= qq(<td><select name="color$energyLabel[$ii]" class="select">\n);
+     my $cc = 0;
+     $currentColor = $selectedColor[$ii]; # GET FROM INPUT PARAM
+     for ($cc=0; $cc <= $#colorStyle;$cc++) {
+       if($currentColor eq $colorStyle[$cc]) {
+         $theHtml .=  "<option value=\"$colorStyle[$cc]\" selected> $colorArray[$cc] \n";
+       } else {
+         $theHtml .=  "<option value=\"$colorStyle[$cc]\" > $colorArray[$cc] \n";
+       }
+     }
+    $theHtml .= "</select></td></tr>\n";
+  }
+  $theHtml .= "</table><p>";
+
+
+  # Row 2
+  #The drop-down box for ecf type
+  $theHtml .= "<b>Select an ECF: </b> \n";
+  $theHtml .= qq(<select name="ecf" class="select">\n);
+  if ($ecf == "90") {
+    $theHtml .= "<option value=\"50\" > 50% \n";
+    $theHtml .= "<option value=\"90\" selected> 90% \n";
+  } else {
+    $theHtml .= "<option value=\"50\" selected> 50% \n";
+    $theHtml .= "<option value=\"90\"> 90% \n";
+  }
+  $theHtml .= "</select>\n";
+  $theHtml .= "<hr>";
+  $theHtml .= qq(<b>Minimum Theta</b>);
+  $theHtml .= qq(<input type="text" size="4" name="minTheta" value="$minXValue">\n);
+  $theHtml .= qq(<font class="tiny">(arcmin)</font>);
+  $theHtml .= qq(<br><b>Maximum Theta</b>);
+  $theHtml .= qq(<input type="text" size="4" name="maxTheta" value="$maxXValue">\n);
+  $theHtml .= qq(<font class="tiny">(arcmin)</font>);
+  $theHtml .= qq(<p><b>Minimum Radius</b>);
+  $theHtml .= qq(<input type="text" size="4" name="minRadius" value="$minYValue">\n);
+  $theHtml .= qq(<font class="tiny">(arcsec)</font>);
+  $theHtml .= qq(<br><b>Maximum Radius</b>);
+  $theHtml .= qq(<input type="text" size="4" name="maxRadius" value="$maxYValue">\n);
+  $theHtml .= qq(<font class="tiny">(arcsec)</font>);
+  
+  $theHtml .= "<br><hr>";
+
+
+  $theHtml .= qq(<p><b>Line Width</b>:);
+  $theHtml .= qq(<select name="lineWidth" class="select">);
+  for ($ii=1;$ii<10; $ii++) {
+    if ($lineWidth == $ii) {
+      $theHtml .= qq(<option value="$ii" selected>$ii);
+    } else {
+      $theHtml .= qq(<option value="$ii" >$ii);
+    }
+  }
+  $theHtml .= "</select>";
+
+  
+
+  $theHtml .= qq(<p><b>X Scale </b>:);
+  $theHtml .= qq(<select  class="select" name="xScale">);
+  my(@logscales)=("Linear","Log");
+  for ($ii=0;$ii<=$#logscales;$ii++ ) {
+     my($lval) = $logscales[$ii];
+     if ($xscale eq lc($lval)) {
+      $theHtml .= qq(<option value="$lval" selected>$lval);
+    } else {
+      $theHtml .= qq(<option value="$lval" >$lval);
+    }
+  }
+  $theHtml .= "</select>";
+
+  $theHtml .= qq(<p><b>Y Scale </b>:);
+  $theHtml .= qq(<select  class="select" name="yScale">);
+  my(@logscales)=("Linear","Log");
+  for ($ii=0;$ii<=$#logscales;$ii++ ) {
+     my($lval) = $logscales[$ii];
+     if ($yscale eq lc($lval)) {
+      $theHtml .= qq(<option value="$lval" selected>$lval);
+    } else {
+      $theHtml .= qq(<option value="$lval" >$lval);
+    }
+  }
+  $theHtml .= "</select>";
+
+  #$theHtml .= qq(<input type="text" size="1" name="plotScale" value="$scale">\n);
+  #$theHtml .= qq(<p><b>Canvas Size</b>:);
+  #$theHtml .= qq(<br><b>X:</b><input type="text" size="4" name="canvasX" value="$canvasX">\n); 
+  #$theHtml .= qq(&nbsp;<b>Y:</b><input type="text" size="4" name="canvasY" value="$canvasY">\n);
+
+
+
+    
+
+  #The submit button
+  $theHtml .= "<br><hr>";
+  $theHtml .=  qq(<input type="submit" value="Plot" class="button">&nbsp;&nbsp;);
+    
+  $theHtml .=  qq(<input type="reset" value="Reset" class="button">); 
+  $theHtml .=  "</form>\n";
+  $theHtml .=  "</body></html>";
+
+
+  return $theHtml;
+
+}
+
+
+

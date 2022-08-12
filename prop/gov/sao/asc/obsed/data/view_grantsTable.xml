@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE table SYSTEM "table.dtd">
+
+<table name="view_grants" key="grant_id">
+  <column name="grant_id">
+    <type>INTEGER</type>
+    <tooltip>Database index for view_grants </tooltip>
+  </column>
+  <column name="prop_num">
+    <type>STRING</type>
+    <tooltip>Associated proposal number </tooltip>
+  </column>
+  <column name="grant_number">
+    <type>STRING</type>
+    <tooltip>Grant number </tooltip>
+  </column>
+  <column name="grant_type">
+    <type>STRING</type>
+    <tooltip>Grant type </tooltip>
+  </column>
+  <column name="grant_ao">
+    <type>STRING</type>
+    <tooltip>Grant AO (proposal cycle) </tooltip>
+  </column>
+  <column name="grantor">
+    <type>STRING</type>
+    <tooltip>Grantor</tooltip>
+  </column>
+  <column name="grant_amount">
+    <type>DOUBLE</type>
+    <tooltip>Grant Amount</tooltip>
+  </column>
+  <column name="title">
+    <type>DOUBLE</type>
+    <tooltip>Proposal Title</tooltip>
+  </column>
+  <column name="abstract">
+    <type>DOUBLE</type>
+    <tooltip>Proposal Abstract</tooltip>
+  </column>
+</table>

@@ -1,0 +1,122 @@
+#!@PERL@ 
+
+#  ***********************************************************
+#  Copyright (c) 2001-2008 Smithsonian Astrophysical Observatory
+#  The contents of this file are protected under the copyright
+#  notice  contained in the file  COPYRIGHT_SAO located in the
+#  root directory of this distribution.
+#  ***********************************************************
+#
+#* FILE NAME: prop_get_pimms_ea.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script calls another script(prop_get_caldb_ea.pl) to
+#     retrieve all the pimms effective area files.
+#
+#* REVISION HISTORY:
+#   (12/2008)-updated for caldb4.
+#
+#  ***********************************************************
+#
+use Getopt::Std;
+
+
+  &parse_input;
+
+  if ($aoNum) {
+    $cycle_name = "ao$aoNum";
+    $caldb_aonum = "AO-$aoNum"
+  } else {
+    $cycle_name = "$aoName";
+    $caldb_aonum = "$aoName";
+  }
+
+  @ofiles = (
+    "$outdir/chandra-$cycle_name\_hrc-i_.area",
+    "$outdir/chandra-$cycle_name\_letg-hrc-i_order0.area",
+    "$outdir/chandra-$cycle_name\_hrc-s_.area",
+    "$outdir/chandra-$cycle_name\_letg-hrc-s_order0.area",
+    "$outdir/chandra-$cycle_name\_letg-hrc-s_letg1.area",
+    "$outdir/chandra-$cycle_name\_letg-hrc-s_letghi.area",
+    "$outdir/chandra-$cycle_name\_acis-i_.area",
+    "$outdir/chandra-$cycle_name\_letg-acis-i_order0.area",
+    "$outdir/chandra-$cycle_name\_hetg-acis-i_order0.area",
+    "$outdir/chandra-$cycle_name\_acis-s_.area",
+    "$outdir/chandra-$cycle_name\_hetg-acis-s_heg1.area",
+    "$outdir/chandra-$cycle_name\_hetg-acis-s_heg1meg1.area",
+    "$outdir/chandra-$cycle_name\_hetg-acis-s_meg1.area",
+    "$outdir/chandra-$cycle_name\_hetg-acis-s_order0.area",
+    "$outdir/chandra-$cycle_name\_letg-acis-s_letg1.area",
+    "$outdir/chandra-$cycle_name\_letg-acis-s_order0.area"
+  );
+
+  @qcmds = ( "PIMMS_EA CALDB(detnam=HRC-I;grating=NONE;aonumber=$caldb_aonum)",
+     "PIMMS_EA CALDB(detnam=HRC-I;grating=LETG;tg_order=ZEROTH;aonumber=$caldb_aonum)",
+     "PIMMS_EA CALDB(detnam=HRC-S;grating=NONE;aonumber=$caldb_aonum)",
+     "PIMMS_EA CALDB(detnam=HRC-S;grating=LETG;tg_order=ZEROTH;aonumber=$caldb_aonum)",
+     "PIMMS_EA CALDB(detnam=HRC-S;grating=LETG;tg_order=FIRST;grattype=LEG;aonumber=$caldb_aonum)",
+     "PIMMS_EA CALDB(detnam=HRC-S;grating=LETG;tg_order=HIGHER;grattype=LEG;aonumber=$caldb_aonum)",
+     "PIMMS_EA CALDB(detnam=ACIS-I;grating=NONE;aonumber=$caldb_aonum)",
+     "PIMMS_EA CALDB(detnam=ACIS-I;grating=LETG;tg_order=ZEROTH;aonumber=$caldb_aonum)",
+     "PIMMS_EA CALDB(detnam=ACIS-I;grating=HETG;tg_order=ZEROTH;aonumber=$caldb_aonum)",
+     "PIMMS_EA CALDB(detnam=ACIS-S;grating=NONE;aonumber=$caldb_aonum)",
+     "PIMMS_EA CALDB(detnam=ACIS-S;grating=HETG;tg_order=FIRST;grattype=HEG;aonumber=$caldb_aonum)",
+     "PIMMS_EA CALDB(detnam=ACIS-S;grating=HETG;tg_order=FIRST;grattype=HEGMEG;aonumber=$caldb_aonum)",
+     "PIMMS_EA CALDB(detnam=ACIS-S;grating=HETG;tg_order=FIRST;grattype=MEG;aonumber=$caldb_aonum)",
+     "PIMMS_EA CALDB(detnam=ACIS-S;grating=HETG;tg_order=ZEROTH;aonumber=$caldb_aonum)",
+     "PIMMS_EA CALDB(detnam=ACIS-S;grating=LETG;tg_order=FIRST;grattype=LEG;aonumber=$caldb_aonum)",
+     "PIMMS_EA CALDB(detnam=ACIS-S;grating=LETG;tg_order=ZEROTH;aonumber=$caldb_aonum)"
+  );
+
+  $ii = 0;
+  foreach $qcmd (@qcmds) {
+    $cmd = qq(prop_get_caldb_ea.pl -q "$qcmd" -o $ofiles[$ii]);
+    printf STDERR "$cmd\n";
+    `$cmd`;
+    if (-e "$ofiles[$ii]") {
+      `prop_strip_ea.pl -i $ofiles[$ii]`;
+    }
+    $ii++;
+  
+  }
+
+
+# -------------------------------------------------------
+# parse the command line arguments
+# -------------------------------------------------------
+sub parse_input {
+
+  getopts('d:a:c:');
+  if (!$opt_d || (!$opt_a && !$opt_c) || ($opt_a && $opt_c)) {
+    &print_usage;
+    exit 1;
+  }
+
+  $outdir = $opt_d;
+  if ($opt_a) {
+    $aoNum = sprintf("%d",$opt_a);
+    print STDERR "\n ao_number =  $aoNum\n";
+  } else {
+    $aoName = sprintf("%s",$opt_c);
+    print STDERR "\n ao_name =  $aoName\n";
+  }
+}
+
+# -------------------------------------------------------
+# print command usage
+# -------------------------------------------------------
+
+sub print_usage {
+
+  print STDERR "\nUSAGE: prop_get_pimms_ea.pl  -a aoCycleNum -c aoCycleName  -d output_directory\n";
+  print STDERR "WHERE:\n";
+  print STDERR "       -a  AO Cycle Number for pimms ea files (cannot be used with -c)\n";
+  print STDERR "           Using '-a 17' is used for files named chandra-ao17_acis-i_.area\n";
+  print STDERR "       -c  AO Cycle name for pimms ea files (cannot be used with -a)\n";
+  print STDERR "           Using '-c yr2014' is used for files named chandra-yr2014_acis-i_.area\n";
+  print STDERR "       -d  output directory for pimms ea files\n";
+
+}

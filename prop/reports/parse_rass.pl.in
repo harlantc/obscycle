@@ -1,0 +1,166 @@
+#!@PERLDB@ 
+# 
+#*H****************************************************************************
+#* Copyright (c) 1995, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: parse_rass.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script reads the output from the 'propconflict -f tech' option
+#     and creates a table of rosat No bright Sources.  
+#     If -g option is present, it will only ouput information if input 
+#     target used a grating.  The report output is written to STDOUT.
+#
+#
+#     Sample line from propconflict -f tech:
+#---------------------------------------------------------------------------
+#
+#CONFLICTS FOR PROPOSAL 02100120
+#JANE S. SMITH, TEST TITLE FOR CHANDRA CYCLE 2 MULTIPLE TARGETS
+#---------------------------------------------------------------------------
+#
+#----------
+#Target 001 BIG STAR, 50.2 ks, ACIS-S(TE)/HETG,  02:08:56.3 -45:14:4.2
+#----------
+#RSS source not found
+#
+# ** There are bright sources in the field
+#      1RXS J203224.0+411759, 20:32:24.0 +41:17:59.0, RSS rate x 2 = 0.41280, 
+#      targdist = 5.9'
+#      1RXS J203226.2+405725, 20:32:26.2 +40:57:25.0, RSS rate x 2 = 5.69800, 
+#      targdist = 21.1'
+#      1RXS J203315.8+411848, 20:33:15.8 +41:18:48.5, RSS rate x 2 = 0.58000, 
+#      targdist = 15.6'
+# ** There are bright sources in the field
+#      1H2030+407, 20:31:52.9 +40:55:49.5, (ACIS-I) HSS flux x 200 = 118.54000, #      targdist = 21.7'
+#XMM no conflicts
+#
+#
+#
+#---------------------------------------------------------------------------
+#
+#
+#
+#* NOTES:
+#
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+use Getopt::Long;
+use POSIX;
+use strict;
+
+use vars qw( %param 
+
+	);
+
+
+# -------------------------------------------------------
+# MAIN
+# -------------------------------------------------------
+{
+  my ($stmp,@xx,$pno,$oldpno,$tno, $tname);
+  my ($stmp,$xx,$tt,$ii,$gratings,$coords);
+
+  &parse_input;
+  open (INFILE,"< $param{i}") or
+     die("Error: Unable to open $param{i} for reading: $!\n");
+
+  $oldpno = "";
+  while ($stmp = <INFILE>) {
+    while ($stmp =~ /  /) { $stmp =~ s/  / /; }
+    if ($stmp =~ /TECHNICAL REVIEW FOR PROPOSAL/ ) {
+       @xx = split(' ',$stmp);
+       $pno = $xx[5];
+    }
+    elsif ($stmp =~ /Target / ) {
+       chomp($stmp);
+       $tname = "";
+       @xx = split(',',$stmp);
+       for ($ii=0;$ii<$#xx-2;$ii++) {
+         $tname .= $xx[$ii];
+       }
+       @xx = split(' ',$tname);
+       $tno = $xx[1];
+       $tname = "";
+       for ($ii=2;$ii<=$#xx;$ii++) {
+         $tname .= " $xx[$ii]";
+       }
+       @xx = split(/,/,$stmp);
+       $gratings = $xx[$#xx-1];
+       $coords = sprintf("%-25.25s",$xx[$#xx]);
+    }
+    elsif (!$param{g} || $gratings !~ /NONE/) {
+      if ($stmp =~ /greater than about 1 ct/i) {
+        printf STDOUT ("For  $pno %-21.21s $gratings  $coords\n",$tname);
+        print STDOUT "$stmp";
+        for ($ii=0;$ii<2;$ii++) {
+          $tt = <INFILE> ;
+          print STDOUT $tt;
+        }
+      }
+
+      #if ($stmp =~ /RSS/ && $stmp =~ /no bright/i) {
+        #$tt = "**NO BRIGHT POINT SOURCE (greater than 1 ACIS ct/sec) WITHIN ONE ARCMIN\n  OF PROPOSED TARGET POSITION IN ROSAT ALL SKY SURVEY.\n";
+        #$tt .= sprintf("  $pno %-21.21s $gratings  $coords\n",$tname);
+
+        #print STDOUT "$tt";
+      #}
+    }
+  }  
+  close INFILE;
+}
+
+
+sub parse_input {
+  my($err);
+
+  %param = (
+             i=> undef,
+        );
+
+  GetOptions( \%param,
+          "i=s",
+          "g",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter `$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+}
+
+
+
+    
+sub usage {
+
+
+  print STDERR "\nUSAGE: parse_rass.pl  -i filename -g \n";
+  print STDERR "         -i  filename   output from propconflict\n";
+  print STDERR "         -g  if present, only print output for GRATINGS\n";
+ 
+  print STDERR "       Output is written to STDOUT.\n";
+}

@@ -1,0 +1,560 @@
+#!@PERLDB@ 
+#----------------------------------
+# Copyright (c) 1995, Smithsonian Astrophysical Observatory
+# You may not do anything you like with this file. 
+#
+# FILE NAME:  op_issue.cgi
+# DEVELOPMENT:
+#
+# NOTES:       
+#             
+# INPUT:       user input
+#
+# REVISION HISTORY:
+#
+# Date: 
+#---------------------------------------------------------
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use CGI ':standard';
+use File::Basename;
+use strict;
+use DBI;
+use DBD::Sybase;
+
+
+  unless (eval {require "op_config.pl"}) {
+    print "Unable to find op_config.pl\n"; exit(1);
+  }
+  unless (eval {require "op_subroutines.pl"}) {
+    print "Unable to find op_subroutines.pl\n"; exit(1);
+  }
+
+  use vars qw( $stmp $srv $db $dsn $dbh $uid $pwd $ST $ISSUE_TMP
+	$tmp_err $tmp_file $tmp_dir $tmp_host $tmp_date
+  	%list_obsid_resolved %list_obsid_open 
+  	%nbr_obsid_resolved %nbr_obsid_open
+	@stat_head $status_col @issue_names @issueid_list @space_out
+	$sql_issueid $sth_issueid $is $dbg
+	$where $order $issue_line );
+
+
+###########################  M A I N  ######################################
+{
+  #order is important for issue_names and status_col
+  @issue_names = ("IssueId","Title", "Description", "Status", "Category", 
+	"Version Resolved", "Date Entered", "Date Fixed", "Date Resolved");
+
+  $status_col = qq(issueid,title,description,status,category, ver_resolved, 
+	date_entered, date_fixed, date_resolved);
+
+
+  $SIG{__WARN__} = \&catch_warn;
+ 
+
+  # get report type
+  if(param("out") =~ /short/) {    
+    @stat_head = ("IssueId", "Title",  "Status", "Category","ObsIds Cnt."); 
+  }
+  else {  
+    @stat_head = ("IssueId",  "Title", "Status", "Category","No. of Obsids (open)","List of open Obsids","No. of Obsids (resolved)", "List of resolved Obsids");  
+  }
+
+
+
+  &build_issue_where();
+  &build_issue_order();
+  if ($where eq "") {
+     &error("Please refine your search query. ");
+     display_file($tmp_err,1);
+     exit 0;
+  }
+  logit("op_issue: $where\n");
+
+
+  #clean up old files
+  &clean_up;
+
+  $stmp = "server=$srv;database=$db";
+  $dsn = "DBI:Sybase:$stmp";
+  $dbh = DBI->connect($dsn, $uid, $pwd, {
+        PrintError => 1,
+        RaiseError => 0});
+  if ( !defined $dbh) {
+     display_file($tmp_err,1);
+     exit 1;
+  }
+
+  $tmp_file = $tmp_dir . "/op\_". $tmp_host . "_" . $tmp_date . ".html";
+
+  &get_issues();
+
+  $sql_issueid = qq(select obsid ObsId, issueid IssueId , 
+	date_resolved 'Date Res.' from obsid_issue where issueid = ?);
+  $sth_issueid = $dbh->prepare($sql_issueid);
+
+  foreach $is (@issueid_list)
+  {
+    &get_issueids($is); 
+  }
+
+  &check();
+
+  display_file($tmp_file,1);
+
+}
+
+############################################################################
+
+sub check {
+  my($line,$h,$lcnt,$color);
+  my($issue_obsid);
+  my($l,$ll,@line_list,$hstr);
+  my($hname,$lin,$issue_id,$obsid_cnt);
+
+
+if($#space_out < 2)
+{ 
+   &error("Sorry: No Matches found for selected Field and Criteria combination<br>Please go back and refine your search.");   
+   $tmp_file = $tmp_err;
+} 
+else #else 1
+{
+
+
+  open(TMP,">$tmp_file");
+  $hstr = cxc_header_new("Observation Processing Status Issue Search Results","/soft/op/op_ilist.html");
+
+
+
+print TMP <<header;
+$hstr
+
+header
+
+
+#--------------------------------------
+
+
+    print TMP "\n";
+
+    print TMP "<center><p><table border=1>\n<tr class=\"header2\" align=\"center\"\n>";
+    foreach $h (@stat_head)
+    {
+	print TMP "\n<td align=center>$h</td>";
+    }
+
+
+    $line = qq(</tr>\n<tr class="alt2" onmouseover="this.className='hover';" onmouseout="this.className='alt2';">);
+    $lcnt = 0;
+    $color = "alt2";
+
+  $issue_obsid=0;
+
+    foreach $l (@space_out)
+    {
+        #no idea what this was for but issue 83 has this word in title
+	#if($l =~ /affected/) { last; }  
+	if($l !~ /:/)
+	{ 
+	    if($color =~ /alt2/i){ $color = "alt1"; }
+	    else { $color = "alt2"; }
+
+
+		foreach $ll (@line_list)
+		{
+		    $line = $line.$ll;
+		}
+		
+	        $issue_obsid = $issue_obsid*1;
+	        if($issue_obsid > 0)
+		{
+		    if(param("out") =~ /long/)
+		    {
+
+			if(!$list_obsid_resolved{ $issue_obsid }){ $list_obsid_resolved{ $issue_obsid } = "&nbsp;"; }
+			if(!$list_obsid_open{ $issue_obsid }){ $list_obsid_open{ $issue_obsid } = "&nbsp;";}
+			$line = $line."<td align=\"CENTER\">$nbr_obsid_open{ $issue_obsid }</td>\n<td align=\"CENTER\">$list_obsid_open{ $issue_obsid }</td><td align=\"CENTER\">$nbr_obsid_resolved{ $issue_obsid }</td>\n<td align=\"CENTER\">$list_obsid_resolved{ $issue_obsid }</td>\n";
+		    }
+		    else
+		    {
+			$obsid_cnt = $nbr_obsid_open{ $issue_obsid } + $nbr_obsid_resolved{ $issue_obsid };
+			$line = $line."<td align=\"CENTER\">$obsid_cnt</td>\n";
+	
+		    }
+	        }
+		if($line =~ /td/){ print TMP "$line"; }
+		$line = qq(\n<tr class="$color"  onmouseover="this.className='hover';" onmouseout="this.className='$color';">);  	
+		$lcnt = 0;
+	        $issue_obsid = 0;
+
+	}
+#----------------------------------
+# getting field name and value	    
+        #no idea what this was for but issue 83 has this word in title
+	#if($l !~ /affected/) 	
+	{
+	   ($hname, $lin)  = split(/:/,$l);
+	    $lin =~ s/\s+/ /g;
+	}
+	if($hname =~ /IssueId/)
+	{ 
+	    $issue_obsid = $lin*1; 
+	    $lin = qq(<a href="op_display_issue.cgi?issueid=);
+            $lin .= $issue_obsid . "\">$issue_obsid</a>";
+	}
+        if($lin)
+	{  
+      	   $line_list[$lcnt] = "<td>".$lin."</td>\n";
+	}
+	if($l =~ /:/) { $lcnt++; }
+
+    } #end of foreach
+
+print TMP <<footer;
+</tr></table></center>
+</div>
+footer
+
+#print TMP getFooter();
+print TMP "</body>\n</html>\n";
+
+
+
+close(TMP); 
+chmod(0660,"$tmp_file");
+
+} #nde of else 1
+} #end of sub check
+
+		    
+#----------------------------------------------------------------------
+# Getting issueIds for corresponding ObsId
+#----------------------------------------------------------------------
+sub get_issueids {
+
+   my($issue_id)=@_; 
+   my($cnt_resolved)=0;
+   my($cnt_open)=0;
+   my($obsid_resolved)=""; 
+   my($obsid_open)="";
+   my(@obs_issue_dat,$i);
+   
+   $sth_issueid->bind_param(1,$issue_id);
+   $sth_issueid->execute;
+   while (@obs_issue_dat = $sth_issueid->fetchrow_array) {
+     for($i=0; $i<=$#obs_issue_dat ; $i++) { 
+       if ($obs_issue_dat[2] =~ /[0-9]/) {
+         if (!$obsid_resolved) {  
+           $obsid_resolved = qq(<a href="$ST?tab_del=HTML&amp;out=long&amp;field=ObsId&amp;id=$obs_issue_dat[0]">$obs_issue_dat[0]</a>); 
+           $cnt_resolved++;
+         }
+         else { 
+	   if($obsid_resolved !~ /\>$obs_issue_dat[0]\</) {
+	     $obsid_resolved = $obsid_resolved . ",  <a href=\"$ST?tab_del=HTML&amp;out=long&amp;field=ObsId&amp;id=$obs_issue_dat[0]\">$obs_issue_dat[0]</a>";
+	     $cnt_resolved++;
+	   }
+	 } 
+
+       } #ned of if($obs_issue_dat[2] =~ /[0-9]/)
+       else {
+	    if(!$obsid_open) {  
+              $obsid_open = "<a href=\"$ST?tab_del=HTML&amp;out=long&amp;field=ObsId&amp;id=$obs_issue_dat[0]\">$obs_issue_dat[0]</a>"; 
+	      $cnt_open++;
+	    }
+            else { 
+	      if($obsid_open !~ /\>$obs_issue_dat[0]\</) {
+                $obsid_open = $obsid_open.",  <a href=\"$ST?tab_del=HTML&amp;out=long&amp;field=ObsId&amp;id=$obs_issue_dat[0]\">$obs_issue_dat[0]</a>";
+	        $cnt_open++;
+              }
+            } 
+	  }
+
+	} #end of for
+	
+    } #end of while
+
+   $nbr_obsid_resolved{ $issue_id } = $cnt_resolved;
+   $nbr_obsid_open{ $issue_id } = $cnt_open;
+   $list_obsid_open{ $issue_id } = $obsid_open;
+   $list_obsid_resolved{ $issue_id } = $obsid_resolved;
+
+   if(-e "$ISSUE_TMP/op\_$issue_id.i.html")
+   {
+       open(IIF,">>$ISSUE_TMP/op\_$issue_id.i.html")||
+                  die "Can't  open $issue_id.html\n";
+       print IIF "\nResolved Obsids: $obsid_resolved<br>\n";
+       print IIF "<br>Open Obsids: $obsid_open\n";
+
+       print IIF <<explan;
+\n<br><br><hr>
+<ul>
+<li><font size=-1>Status OPEN: the issue has been found and await resolution</font>
+<li><font size=-1>Status FIXED: There is a software or operational fix to the issue that has not been applied yet to all associated 
+ObsIds.</font>
+<li><font size=-1>Status CLOSED (Resolved): the fix has been applied to all data and will be applied to 
+all future data; the issue is closed.</font>
+<li><font size=-1>Status DATA: The data issue stems from data corruption or a commanding error. 
+There will be no software fix. The data will be custom processed with an operational 
+workaround.</font>
+</ul>
+
+<font size=-1>
+NOTE: an issue may have OPEN or FIXED status, while a given obsid with the 
+same issue may have Closed (RESOLVED ) status. This happens if the obsid has been 
+reprocessed, while other obsid with the same issue may still be awaiting reprocessing.</font>
+explan
+
+
+       print IIF footer_no_date();
+       print IIF qq(</body></html>);
+       close(IIF);
+       chmod(0660,"$ISSUE_TMP/op\_$issue_id.i.html");
+   }
+}
+
+# -------------------------------------------------------------------
+# Getting all issues
+sub get_issues {
+
+  my($sql_stmt,$sth);
+  my(@issue_dat);
+  my($ii,$hstr);
+
+  $sql_stmt = "select $status_col from process_issue";
+  if ($where) {  
+     $sql_stmt .= " where $where";
+  }
+  if ($order) {
+     $sql_stmt .= " order by $order";
+  }
+
+  $sth = $dbh->prepare($sql_stmt);
+  $sth->execute; 
+    
+  while (@issue_dat = $sth->fetchrow_array) {
+    for($ii=0; $ii<=$#issue_dat ; $ii++) { 
+      # first column is issueid
+      if ($ii== 0)  {
+        open(ITMP, ">$ISSUE_TMP/op\_$issue_dat[$ii].i.html") ||
+            die "Can't open temp file\n";
+        $hstr = cxc_header("Chandra Observation Processing Issue: $issue_dat[$ii]");
+	print ITMP <<iheader;
+$hstr
+iheader
+	    
+      }
+      $issue_line = $issue_names[$ii].":  ".$issue_dat[$ii]."<br>\n";
+      print ITMP "$issue_line<br>\n";
+	    
+
+      if(($issue_names[$ii] =~ /IssueId/)||($issue_names[$ii] =~ /Status/)||
+         ($issue_names[$ii] =~ /Title/)||($issue_names[$ii] =~ /Category/)) {  
+           push(@space_out,"$issue_names[$ii]:$issue_dat[$ii]\n"); 
+      }	
+
+      if($issue_names[$ii] =~ /IssueId/) {  
+        push(@issueid_list, $issue_dat[$ii]); 
+      }
+
+    } #end of for
+
+    push(@space_out, "\n");
+
+
+  #-----------------
+  # these 2 lines below are only for last issue file WHY? (changed it)
+  close(ITMP);
+  chmod(0777,"$ISSUE_TMP/op\_$issue_dat[$ii].i.html");
+  } #end of while
+  
+}
+
+sub build_issue_where()
+{
+  my($issueid_from,$issueid_to,$issueid_where);
+  my($status_where,$category_where);
+  my($date_fixed_where,$date_entered_where,$date_resolved_where);
+   
+#--------- ISSUEID ---------------------------------------- 
+$issueid_from = int(param("issueid_from"));
+$issueid_to = int(param("issueid_to"));
+
+
+#------------------------------------------------------------
+
+$issueid_where = "";
+if(($issueid_from)&&($issueid_to)) 
+   {
+       if($issueid_from > $issueid_to)
+       { 
+           $stmp = $issueid_from;
+           $issueid_from = $issueid_to;
+           $issueid_to = $stmp;
+       }
+       $issueid_where = "issueid >= $issueid_from AND issueid <= $issueid_to";	
+   }					
+else 
+{		
+    if($issueid_from )
+    {	$issueid_where = "issueid = $issueid_from"; }
+    if($issueid_to )
+    {	$issueid_where = "issueid = $issueid_to"; }
+}
+
+#--------- Status ---------------------------------------- 
+$status_where = "";
+#if(param("status_none")){ $status_where = "status = 'NONE'"; }
+if (param("status_all")) {
+  # want all, so ignore everything else
+}
+else {
+  if(param("status_open"))
+  {  
+
+    if($status_where) {  $status_where = $status_where." OR status = 'open'";}
+    else { $status_where = "status = 'open'";}
+  }
+  if(param("status_fixed"))
+  {  
+
+    if($status_where) {  $status_where = $status_where." OR status = 'fixed'";}
+    else { $status_where = "status = 'fixed'";}
+  }
+  if(param("status_closed"))
+  {  
+
+    if($status_where) {  $status_where = $status_where." OR status = 'closed'";}
+    else { $status_where = "status = 'closed'";}
+  }
+  if(param("status_data"))
+  {  
+
+    if($status_where) {  $status_where = $status_where." OR status = 'data'";}
+    else { $status_where = "status = 'data'";}
+  }
+}
+
+#--------- Date open----------------------------------------
+$date_entered_where = "";
+if(!param("field")) {
+$date_entered_where = &date_where("date_entered", param("date_entered_from_m"), param("date_entered_from_d") , param("date_entered_from_y"), param("date_entered_to_m"), param("date_entered_to_d"),  param("date_entered_to_y"), param("date_entered_null") );
+}
+
+#--------- Date fixed----------------------------------------
+$date_fixed_where = "";
+
+$date_fixed_where = &date_where("date_fixed", param("date_fixed_from_m"), param("date_fixed_from_d") , param("date_fixed_from_y"), param("date_fixed_to_m"), param("date_fixed_to_d"),  param("date_fixed_to_y"), param("date_fixed_null") );
+    
+
+#--------- Date Resolved----------------------------------------
+$date_resolved_where = "";
+
+$date_resolved_where = &date_where("date_resolved", param("date_resolved_from_m"), param("date_resolved_from_d") , param("date_resolved_from_y"), param("date_resolved_to_m"), param("date_resolved_to_d"),  param("date_resolved_to_y"), param("date_resolved_null") );
+    
+#--------- Category ---------------------------------------- 
+$category_where = "";
+if(!param("category_all"))
+{
+#if(param("category_none")){ $category_where = "category = 'NONE'"; }
+    if(param("category_ard"))
+    {  
+	
+	if($category_where) {  $category_where = $category_where." OR category = 'ARD'";}
+	else { $category_where = "category = 'ARD'";}
+    }
+    if(param("category_spec"))
+    {  
+	
+	if($category_where) {  $category_where = $category_where." OR category = 'SPEC'";}
+	else { $category_where = "category = 'SPEC'";}
+    }
+    if(param("category_db"))
+    {  
+	
+	if($category_where) {  $category_where = $category_where." OR category = 'DB'";}
+	else { $category_where = "category = 'DB'";}
+    }
+    if(param("category_data"))
+    {  
+	
+	if($category_where) {  $category_where = $category_where." OR category = 'DATA'";}
+	else { $category_where = "category = 'DATA'";}
+    }
+    if(param("category_pipeline"))
+    {  
+	
+	if($category_where) {  $category_where = $category_where." OR category = 'ap' OR category like '%pipe%'";}
+	else { $category_where = "category ='ap' OR category like '%pipe%' ";}
+    }
+}
+
+#------------------- WHERE ------------------------------
+$where ="";
+
+if($issueid_where){ $where = "($issueid_where)"; }
+
+if($status_where)
+{
+    if($where){ $where = $where." AND (".$status_where.")"; }
+    else { $where = "($status_where)"; }
+}
+
+if($date_entered_where)
+{
+    if($where){ $where = $where." AND (".$date_entered_where.")"; }
+    else { $where = "($date_entered_where)"; }
+}
+if($date_fixed_where)
+{
+    if($where){ $where = $where." AND (".$date_fixed_where.")"; }
+    else { $where = "($date_fixed_where)"; }
+}
+
+if($date_resolved_where)
+{
+    if($where){ $where = $where." AND (".$date_resolved_where.")"; }
+    else { $where = "($date_resolved_where)"; }
+}
+if($category_where)
+{
+    if($where){ $where = $where." AND (".$category_where.")"; }
+    else { $where = "($category_where)"; }
+}
+}
+
+# -------------------------------------------------------------------
+sub build_issue_order ()
+{
+  my(%order_list) = ("IssueId","issueid","Status","status",
+	"Date Open","date_entered", "Date Fixed","date_fixed",
+	"Date Resolved","date_resolved");
+  my(@order_fields) = ("order_one","order_two","order_three");
+  my($otmp,$ii);
+  my(@oarray) = ();
+
+  $order = "";
+  for ($ii=0;$ii<=$#order_fields;$ii++) {
+    if (param($order_fields[$ii]) && (param($order_fields[$ii]) !~ /None/)) {
+      $otmp = param($order_fields[$ii]);
+      push(@oarray,$order_list{$otmp});
+    }
+  }
+  
+  for ($ii=0;$ii<=$#oarray;$ii++) {
+    if (($oarray[$ii] !~ /None/) && ($order !~ /$oarray[$ii]/)) { 
+       if ($order) {
+         $order .= ",";
+       }
+       $order .= $oarray[$ii];
+    }
+  }
+
+  if (!$order) {   
+    $order = "issueid"; 
+  }
+
+}

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!ELEMENT table (column+)>
+<!ATTLIST table name ID #REQUIRED>
+<!ATTLIST table key CDATA #REQUIRED>
+
+<!ELEMENT column (type, tooltip, foreignKeyTable*, number?, choices?, constraint*)>
+<!ATTLIST column name ID #REQUIRED>
+<!ELEMENT type (#PCDATA)>
+<!ELEMENT tooltip (#PCDATA)>
+<!ELEMENT foreignKeyTable (#PCDATA)>
+<!ELEMENT number (maximum?, minimum?, format?)>
+<!ELEMENT maximum (#PCDATA)>
+<!ELEMENT minimum (#PCDATA)>
+<!ELEMENT format (#PCDATA)>
+<!ELEMENT choices (item)+>
+<!ELEMENT item (#PCDATA)>
+
+<!ELEMENT constraint (#PCDATA)>

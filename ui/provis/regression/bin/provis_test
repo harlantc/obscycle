@@ -1,0 +1,1055 @@
+#!/bin/ksh
+
+#_SH_INSERT_SAO_COPYRIGHT_HERE_(2009)_
+#_SH_INSERT_GPL_LICENSE_HERE_
+
+
+function CheckAppPath
+{
+
+    if [[  ! ( -a $2 ) ]]
+    then
+	echo "$1: application '$2' not found"
+	exit 1
+    elif [[  ( ! -x $2 ) || ( ! -f $2 ) ]]
+    then
+	echo "$1: Can not execute '$2'"
+	exit 1
+    fi
+}
+
+
+function GetPath
+{
+    if [ $# -ne 1 ] 
+    then
+	return 1
+    fi
+    
+    tmpVal=`echo "$1" | sed -e "s/^[/].*$//"`
+    
+    if [ "$tmpVal" = "" ] 
+    then
+        tmpPath=`dirname $1`
+    else
+	tmpPath=`pwd`/$1
+	tmpPath=`dirname $tmpPath`
+    fi 
+    
+    echo $tmpPath
+
+}
+
+function ConvertToFullPath 
+{
+    if [ $# -ne 1 ] 
+    then
+	exit 1
+    fi
+    
+    tmpVal=`echo "$1" | sed -e "s/^[/].*$//"`
+    
+    if [ "$tmpVal" = "" ] 
+    then
+	echo $1
+    else
+	tmpPath=`pwd`/$1
+	echo $tmpPath
+    fi 
+    
+    
+}
+
+function PrintUsage
+{
+    
+    echo "usage: $1 -u[nit] [-i[nstall] path] [-w[eb] path]"
+    echo "                   [-d[ata] path] [-o[utput] path ]"
+    echo "                   [n[umber] displaynumber ] [test_cases]"
+    echo ""
+    echo "       $1 -r[egression] [-i[nstall] path] [-w[eb] path] "
+    echo "                   [-d[ata] path] [-o[utput] path ]"
+    echo "                   [n[umber] displaynumber ]  [p[ort] portnumber]"
+    echo "                   [test_cases]"
+    echo ""
+    echo "       $1 -r[egression] [-a[ddress] url] [-d[ata] path]"
+    echo "                   [-o[utput] path ] "
+    echo "                   [test_cases]"
+    echo ""
+    echo "       $1 [-u[nit]|-r[egression]] -l[ist]"
+    echo ""
+    echo "    -a[ddress] url                  - use provis at this url"
+    echo ""
+    echo "    -w[eb] path                     - use path as location of provis"
+    echo "                                      web installation"
+    echo ""
+    echo "    -i[nstall] path                 - use path as location of"
+    echo "                                      provis DS release installation"
+    echo ""
+    echo "    -u[nit]                         - run unit tests"
+    echo ""
+    echo "    -r[egression]                   - run regression tests"
+    echo ""
+    echo "    -h[elp]                         - print help and exit"
+    echo ""
+    echo "    -l[ist]                         - list available tests"
+    echo ""
+    echo "    -d[ata] path                    - use path as regression test data location"
+    echo ""
+    echo "    -o[utput] path                  - use path to store test results"
+    echo ""
+    echo "    -n displaynumber                - display number to be used for framebuffer"
+    echo ""
+    echo "    -p[ort] portnumber              - port number for httpd"
+}
+
+
+function IsOption 
+{ 
+    if [ $# -gt 0 ] 
+    then
+	
+	if [ "${1#-}" != "$1" ]
+	then
+	    echo 1
+	    return
+	fi
+	
+    fi
+    
+    echo 0
+}
+
+
+
+function CheckOption
+{
+    
+    OPTION=$1
+    PATTERN=$2
+    
+   if [ $# -eq 2 ] 
+   then
+       
+       case $PATTERN in
+	   ${OPTION}*) echo 1 ; return ;;
+*) echo 0 ; return ;;
+esac
+fi
+
+
+echo 0
+
+}
+
+
+function PrintHeader
+{
+    TYPE=$1
+
+    echo "*********** PROVIS $TYPE TESTS ************"
+    
+    if [ "$PROVIS_URL" != "" ]
+    then
+	echo "***** PROVIS URL: '$PROVIS_URL'"
+
+    else
+	
+	echo "***** PROVIS RELEASE PATH: '$PROVIS_RELEASE_PATH'"
+	
+	echo "***** PROVIS WEB INSTALL PATH: '$PROVIS_WEBINSTALL_PATH'"
+    
+	echo "***** PROVIS OTS PATH: '$PROVIS_OTS_PATH'"
+	
+	echo "***** PROVIS FRAME BUFFER DISPLAY: $PROVIS_DISPLAY"
+	
+	if [ "${TYPE}" != "UNIT" ]
+	then
+	    echo "***** PROVIS WEBSERVER PORT NUMBER: $PROVIS_PORT"
+	fi
+
+    fi
+
+    if [ "$PROVIS_REGDATA_PATH" != "" ]
+    then
+	echo "***** PROVIS REGRESSION DATA PATH: '$PROVIS_REGDATA_PATH'"
+    fi
+    
+    if [ "$PROVIS_OUTPUT_PATH" != "" ]
+    then
+	echo "***** PROVIS OUTPUT PATH: '$PROVIS_OUTPUT_PATH'"
+    fi
+
+
+}
+
+
+
+CreateTmpRelease()
+{
+    mkdir -p ${PROVIS_OUTPUT_PATH}/bin
+    mkdir -p ${PROVIS_OUTPUT_PATH}/data
+  
+    cp `GetPath $0`/../../app/* ${PROVIS_OUTPUT_PATH}/bin
+    cp `GetPath $0`/../../data/* ${PROVIS_OUTPUT_PATH}/data
+    chmod u+w ${PROVIS_OUTPUT_PATH}/bin/* 
+    chmod u+w ${PROVIS_OUTPUT_PATH}/data/*
+
+    tmpPROVIS_RELEASE_PATH="`echo ${PROVIS_OUTPUT_PATH} | sed -e 's/\//\\\\\//g'`"
+    sed -e "s/\$PROVIS_RELEASE_DIR=.*/\$PROVIS_RELEASE_DIR=\"${tmpPROVIS_RELEASE_PATH}\";/"  \
+	-e "s/'DISPLAY_NUMBER'.*,.*'0'/'DISPLAY_NUMBER','${PROVIS_DISPLAY}'/" ${PROVIS_REGDATA_PATH}/provis_config.cgi > ${PROVIS_OUTPUT_PATH}/bin/provis_config.cgi
+
+    cp  ${PROVIS_REGDATA_PATH}/provis.ephemeris.dat ${PROVIS_OUTPUT_PATH}/data/
+    cp  ${PROVIS_REGDATA_PATH}/astro.cal ${PROVIS_OUTPUT_PATH}/data/
+
+    ln -s ${PROVIS_OTS_PATH} ${PROVIS_OUTPUT_PATH}/ots
+    ln -s ${ASCDS_INSTALL}/lib ${PROVIS_OUTPUT_PATH}/lib
+
+}
+
+
+DeleteTmpRelease()
+{
+    rm -rf ${PROVIS_OUTPUT_PATH}/bin
+    rm -rf ${PROVIS_OUTPUT_PATH}/data
+    rm -rf ${PROVIS_OUTPUT_PATH}/ots
+    rm -rf ${PROVIS_OUTPUT_PATH}/lib
+}
+
+
+CreateTmpWebInstall()
+{
+    mkdir -p ${PROVIS_OUTPUT_PATH}/www/htdocs/soft/provis
+    mkdir -p ${PROVIS_OUTPUT_PATH}/www/htdocs/soft/cgi-bin/provis
+    mkdir -p ${PROVIS_OUTPUT_PATH}/www/logs
+    mkdir -p ${PROVIS_OUTPUT_PATH}/www/bin
+    mkdir -p ${PROVIS_OUTPUT_PATH}/www/conf 
+
+    cp -r `GetPath $0`/../../cgi-bin/* ${PROVIS_OUTPUT_PATH}/www/htdocs/soft/cgi-bin/provis
+    chmod u+w ${PROVIS_OUTPUT_PATH}/www/htdocs/soft/cgi-bin/provis/*
+    cp -r `GetPath $0`/../../htdocs/* ${PROVIS_OUTPUT_PATH}/www/htdocs/soft/provis
+    
+    cp ${PROVIS_REGDATA_PATH}/httpd ${PROVIS_OUTPUT_PATH}/www/bin
+    cp ${PROVIS_REGDATA_PATH}/mime.types ${PROVIS_OUTPUT_PATH}/www/conf    
+    
+    tmpPROVIS_RELEASE_PATH="`echo ${PROVIS_RELEASE_PATH} | sed -e 's/\//\\\\\//g'`"
+    sed -e "s/\$PROVIS_RELEASE_DIR=.*/\$PROVIS_RELEASE_DIR=\"${tmpPROVIS_RELEASE_PATH}\";/"  \
+	-e "s/'DISPLAY_NUMBER'.*,.*'0'/'DISPLAY_NUMBER','${PROVIS_DISPLAY}'/" ${PROVIS_REGDATA_PATH}/provis_config.cgi > ${PROVIS_OUTPUT_PATH}/www/htdocs/soft/cgi-bin/provis/provis_config.cgi
+
+}
+
+DeleteTmpWebInstall()
+{
+    rm -rf ${PROVIS_OUTPUT_PATH}/www
+
+}
+
+
+RunUnitTests()
+{
+
+    totalTests=0
+    passedTests=0
+
+    let "totalTests = totalTests +1" 
+
+    echo  "***** UNIT TESTING provis_gen_graph.tcl *****"
+    ${PROVIS_RELEASE_PATH}/ots/bin/bltwish ${PROVIS_RELEASE_PATH}/bin/provis_gen_graph.tcl selfTestMode=1 testDataPath=${PROVIS_REGDATA_PATH} patternsLocation=${PROVIS_RELEASE_PATH}/data testOutputPath=${PROVIS_OUTPUT_PATH}
+    if [ $? -eq 0 ]
+    then
+	let "passedTests = passedTests + 1"
+    fi
+
+
+
+    let "totalTests = totalTests +1" 
+
+    localPass=0
+    localCount=0
+
+    let "localCount = localCount +1"
+    echo  "\n***** UNIT TESTING provis_gen_data *****"
+    echo  "1. Testing  provis_gen_data...\c"
+    ${PROVIS_RELEASE_PATH}/bin/provis_gen_data -cf ${PROVIS_REGDATA_PATH}/astro.cal -jb 2400000.5 -ef ${PROVIS_REGDATA_PATH}/provis.ephemeris.dat -c "1,1"  -sjd 2455197.5 -ejd 2455561.5 -rf 1 -vf 1 -pf 1 -mf 0 -mt 30 -bf 1 -nf 0 > ${PROVIS_OUTPUT_PATH}/provis_gen_data.data 2>&1
+
+    diff ${PROVIS_OUTPUT_PATH}/provis_gen_data.data ${PROVIS_REGDATA_PATH}/provis_gen_data.data > ${PROVIS_OUTPUT_PATH}/provis_gen_data.diff 2>&1
+
+    if [ $? -eq 0 ]
+    then
+
+	let "localPass = localPass + 1"
+	rm -f ${PROVIS_OUTPUT_PATH}/provis_gen_data.diff
+	rm -f ${PROVIS_OUTPUT_PATH}/provis_gen_data.data
+	echo "OK"
+    else
+	echo "FAILED"
+    fi
+
+    if [ $localPass -eq $localCount ]
+    then
+	let "passedTests = passedTests + 1"
+    fi
+
+    echo "SUMMARY: $localPass of $localCount tests passed"
+
+
+
+
+
+    
+    let "totalTests = totalTests + 1"
+    
+    localPass=0
+    localCount=0
+    Xvfb :${PROVIS_DISPLAY} -dev vfb screen 0 1280x1024x16 dpix 90 dpiy 90 fbdir /tmp/.X11-provis -ac -pn  > /dev/null 2>&1 &
+
+    sleep 1
+    let "localCount = localCount +1"
+    echo  "\n***** UNIT TESTING  provis_gen.cgi *****"
+
+
+    XVFBFLAG=1
+    if [ "`ps -u $USER | grep 'Xsun'`" = "" ]
+    then
+	echo "$0: Error - failed to start Xvfb. Make sure -n passes correct display number."
+	XVFBFLAG=0
+    fi
+
+    echo  "${localCount}. Testing  GeneratePlotData...\c"
+
+    if [ $XVFBFLAG -eq 1 ]
+    then
+
+	cd ${PROVIS_WEBINSTALL_PATH}/www/htdocs/soft/cgi-bin/provis/
+
+	${PROVIS_WEBINSTALL_PATH}/www/htdocs/soft/cgi-bin/provis/provis_gen.cgi "type=data&cf=&sjd=2455197.5&ejd=2455561.5&jb=2400000.5&c=1,1&pf=1&rf=1&vf=1&mf=0&bf=1&mt=30" >${PROVIS_OUTPUT_PATH}/provis_gen.cgi_GeneratePlotData.data
+    fi
+
+    diff ${PROVIS_OUTPUT_PATH}/provis_gen.cgi_GeneratePlotData.data ${PROVIS_REGDATA_PATH}/provis_gen.cgi_GeneratePlotData.data > ${PROVIS_OUTPUT_PATH}/provis_gen.cgi_GeneratePlotData.diff 2>&1
+    
+    if [ $? -eq 0 ]
+    then
+	rm -f ${PROVIS_OUTPUT_PATH}/provis_gen.cgi_GeneratePlotData.diff
+	rm -f ${PROVIS_OUTPUT_PATH}/provis_gen.cgi_GeneratePlotData.data
+	let "localPass = localPass + 1"
+	echo "OK"
+    else
+	echo "FAILED"
+    fi
+    
+    
+    let "localCount = localCount +1"
+    echo  "${localCount}. Testing  GeneratePlotImage PNG...\c"
+    
+
+    
+    if [ $XVFBFLAG -eq 1 ]
+    then
+
+	cd ${PROVIS_WEBINSTALL_PATH}/www/htdocs/soft/cgi-bin/provis/
+
+	${PROVIS_WEBINSTALL_PATH}/www/htdocs/soft/cgi-bin/provis/provis_gen.cgi "type=png&cf=&dummy=&c=1,1&title=%20&jb=2400000.5&sjd=2455197.5&ejd=2455561.5&pf=1&plow=0&phigh=195&pcolor=Red&pline=Solid&pwidth=1&rf=1&rlow=0&rhigh=390&rcolor=Magenta&rline=Solid&rwidth=1&rtline=Dashed&vf=1&vlow=0&vhigh=1&vcolor=Blue&vline=Solid&vwidth=1&mf=0&mlow=0&mhigh=180&mcolor=Black&mline=Solid&mwidth=1&mfill=Lefthatch&bf=1&bline=Solid&bwidth=1&bfill=Righthatch&mt=30&width=896&height=457&font=Helvetica%2010&axisLinewidth=1" >${PROVIS_OUTPUT_PATH}/provis_gen.cgi_GeneratePlotImagePNG.data
+    fi
+    
+    diff ${PROVIS_OUTPUT_PATH}/provis_gen.cgi_GeneratePlotImagePNG.data ${PROVIS_REGDATA_PATH}/provis_gen.cgi_GeneratePlotImagePNG.data > ${PROVIS_OUTPUT_PATH}/provis_gen.cgi_GeneratePlotImagePNG.diff 2>&1
+    
+    if [ $? -eq 0 ]
+    then
+	rm -f ${PROVIS_OUTPUT_PATH}/provis_gen.cgi_GeneratePlotImagePNG.diff
+	rm -f ${PROVIS_OUTPUT_PATH}/provis_gen.cgi_GeneratePlotImagePNG.data
+	let "localPass = localPass + 1"
+	echo "OK"
+    else
+	echo "FAILED"
+    fi
+    
+    
+    
+    
+    let "localCount = localCount +1"
+    echo  "${localCount}. Testing  GeneratePlotImage PS...\c"
+        
+    if [ $XVFBFLAG -eq 1 ]
+    then
+
+	cd ${PROVIS_WEBINSTALL_PATH}/www/htdocs/soft/cgi-bin/provis/
+	
+	${PROVIS_WEBINSTALL_PATH}/www/htdocs/soft/cgi-bin/provis/provis_gen.cgi "type=ps&cf=&c=00%2042%2044.31%20%2B41%2016%2009.4&title=PRoVis%20Plot%20for%20Target:%20'm31'|Coords:%20'00%2042%2044.31%20+41%2016%2009.4'|Time%20Interval:%202010/01/01-2010/12/31&jb=2400000.5&sjd=2455197.5&ejd=2455561.5&pf=1&plow=0&phigh=195&pcolor=Red&pline=Solid&pwidth=1&rf=1&rlow=0&rhigh=390&rcolor=Magenta&rline=Solid&rwidth=1&rtline=Dashed&vf=1&vlow=0&vhigh=1&vcolor=Blue&vline=Solid&vwidth=1&mf=0&mlow=0&mhigh=180&mcolor=Black&mline=Solid&mwidth=1&mfill=Lefthatch&bf=1&bline=Solid&bwidth=1&bfill=Righthatch&mt=30&width=8&widthu=i&height=8&heightu=i&font=Helvetica%2010&axisLinewidth=1" | sed "/[%][%]*.*/d" >${PROVIS_OUTPUT_PATH}/provis_gen.cgi_GeneratePlotImagePS.data
+    fi
+    
+    diff ${PROVIS_OUTPUT_PATH}/provis_gen.cgi_GeneratePlotImagePS.data ${PROVIS_REGDATA_PATH}/provis_gen.cgi_GeneratePlotImagePS.data > ${PROVIS_OUTPUT_PATH}/provis_gen.cgi_GeneratePlotImagePS.diff 2>&1
+    
+    if [ $? -eq 0 ]
+    then
+	rm -f ${PROVIS_OUTPUT_PATH}/provis_gen.cgi_GeneratePlotImagePS.diff
+	rm -f ${PROVIS_OUTPUT_PATH}/provis_gen.cgi_GeneratePlotImagePS.data
+	let "localPass = localPass + 1"
+	echo "OK"
+    else
+	echo "FAILED"
+    fi
+    
+
+
+
+
+    let "localCount = localCount +1"
+    echo  "${localCount}. Testing  ResolveTargetName...\c"
+        
+    if [ $XVFBFLAG -eq 1 ]
+    then
+
+	cd ${PROVIS_WEBINSTALL_PATH}/www/htdocs/soft/cgi-bin/provis/
+	
+	${PROVIS_WEBINSTALL_PATH}/www/htdocs/soft/cgi-bin/provis/provis_gen.cgi  "type=res&name=m35" >${PROVIS_OUTPUT_PATH}/provis_gen.cgi_GeneratePlotImageRESOLVE.data
+    fi
+    
+    diff ${PROVIS_OUTPUT_PATH}/provis_gen.cgi_GeneratePlotImageRESOLVE.data ${PROVIS_REGDATA_PATH}/provis_gen.cgi_GeneratePlotImageRESOLVE.data > ${PROVIS_OUTPUT_PATH}/provis_gen.cgi_GeneratePlotImageRESOLVE.diff 2>&1
+    
+    if [ $? -eq 0 ]
+    then
+	rm -f ${PROVIS_OUTPUT_PATH}/provis_gen.cgi_GeneratePlotImageRESOLVE.diff
+	rm -f ${PROVIS_OUTPUT_PATH}/provis_gen.cgi_GeneratePlotImageRESOLVE.data
+	let "localPass = localPass + 1"
+	echo "OK"
+    else
+	echo "FAILED"
+    fi
+    
+    if [ $localPass -eq $localCount ]
+    then
+	let "passedTests = passedTests + 1"
+    fi
+
+
+    
+    if [ $XVFBFLAG -eq 1 ]
+    then
+	kill -15 `ps -u $USER | grep Xsun | awk '{ print $1 }' `
+    fi
+
+    echo "SUMMARY: $localPass of $localCount tests passed"
+	
+
+
+
+    let "totalTests = totalTests +1" 
+    
+    localPass=0
+    localCount=0
+    
+    let "localCount = localCount +1"
+    echo  "\n***** UNIT TESTING provis_load.cgi *****"
+    echo  "${localCount}. Testing  PrintProvis...\c"
+    sed -e "/#!/d" 	${PROVIS_WEBINSTALL_PATH}/www/htdocs/soft/cgi-bin/provis/provis_load.cgi> ${PROVIS_OUTPUT_PATH}/provis_load.cgi
+    cd ${PROVIS_REGDATA_PATH}
+    perl 	${PROVIS_OUTPUT_PATH}/provis_load.cgi  | sed -e "/var sessionId=/d" > ${PROVIS_OUTPUT_PATH}/provis_load.cgi_PrintProvis.data 2>&1
+
+    diff ${PROVIS_OUTPUT_PATH}/provis_load.cgi_PrintProvis.data ${PROVIS_REGDATA_PATH}/provis_load.cgi_PrintProvis.data > ${PROVIS_OUTPUT_PATH}/provis_load.cgi_PrintProvis.diff 2>&1
+
+    if [ $? -eq 0 ]
+    then
+
+	let "localPass = localPass + 1"
+	rm -f ${PROVIS_OUTPUT_PATH}/provis_load.cgi_PrintProvis.diff
+	rm -f ${PROVIS_OUTPUT_PATH}/provis_load.cgi_PrintProvis.data
+	rm -f ${PROVIS_OUTPUT_PATH}/provis_load.cgi
+	echo "OK"
+    else
+	echo "FAILED"
+    fi
+
+    if [ $localPass -eq $localCount ]
+    then
+	let "passedTests = passedTests + 1"
+    fi
+
+    echo "SUMMARY: $localPass of $localCount tests passed"
+
+
+
+
+
+
+    echo "\nUNIT TESTS SUMMARY: $passedTests out of $totalTests modules passed\n"
+
+    if [ $passedTests -ne $totalTests ]
+    then
+	return 1
+    fi
+    return 0
+
+}
+
+RunRegressionTests()
+{  
+    totalTests=0
+    passedTests=0
+    
+
+    tmpPROVIS_OUTPUT_PATH="`echo ${PROVIS_OUTPUT_PATH} | sed -e 's/\//\\\\\//g'`"
+
+    sed -e "s/\${PROVIS_PORT}/${PROVIS_PORT}/g" \
+	-e "s/\${USER}/${USER}/g" \
+	-e "s/\${GROUP}/${GROUP}/g" \
+	-e "s/\${SERVER_ROOT}/${tmpPROVIS_OUTPUT_PATH}\/www/g" \
+	-e "s/\${DOCUMENT_ROOT}/${tmpPROVIS_OUTPUT_PATH}\/www\/htdocs/g" \
+	-e "s/\${SCRIPT_ALIAS}/${tmpPROVIS_OUTPUT_PATH}\/www\/htdocs\/soft\/cgi-bin/g" \
+	${PROVIS_REGDATA_PATH}/httpd.conf >${PROVIS_OUTPUT_PATH}/www/conf/httpd.conf
+
+
+    
+    ${PROVIS_REGDATA_PATH}/httpd -f ${PROVIS_OUTPUT_PATH}/www/conf/httpd.conf
+
+    HTTPDFLAG=1
+    if [ "`ps -u $USER | grep 'httpd'`" = "" ]
+    then
+	HTTPDFLAG=0
+	echo "$0: Error - failed to start httpd. Make sure -p passes available port number for httpd."
+    else
+
+	Xvfb :${PROVIS_DISPLAY} -dev vfb screen 0 1280x1024x16 dpix 90 dpiy 90 fbdir /tmp/.X11-provis -ac -pn > /dev/null 2>&1 &
+	
+	sleep 1
+	
+	if [ "`ps -u $USER |  grep 'Xsun'`" = "" ]
+	then
+	    echo "$0: Error - failed to start Xvfb. Make sure -n passes correct display number."
+	    HTTPDFLAG=0
+	fi
+    fi
+
+    echo  "***** REGRESSION TESTING *****"
+
+    let "totalTests = totalTests +1" 
+    echo "${totalTests}. Provis web page index.html...\c"
+    
+    if [ ${HTTPDFLAG} -eq 1 ]
+    then
+	wget -o /dev/null -O - "http://localhost:${PROVIS_PORT}/soft/provis" > ${PROVIS_OUTPUT_PATH}/provis_html_index.data
+    fi
+
+    diff ${PROVIS_OUTPUT_PATH}/provis_html_index.data ${PROVIS_REGDATA_PATH}/provis_html_index.data > ${PROVIS_OUTPUT_PATH}/provis_html_index.diff 2>&1
+    
+    if [ $? -eq 0 ]
+    then
+
+	let "passedTests = passedTests + 1"
+	rm -f ${PROVIS_OUTPUT_PATH}/provis_html_index.diff
+	rm -f ${PROVIS_OUTPUT_PATH}/provis_html_index.data
+	echo "OK"
+    else
+	echo "FAILED"
+    fi
+
+    
+    
+
+    let "totalTests = totalTests +1" 
+    echo "${totalTests}. Provis web page provis_load.cgi...\c"
+    
+    if [ ${HTTPDFLAG} -eq 1 ]
+    then
+	wget -o /dev/null -O - "http://localhost:${PROVIS_PORT}/cgi-bin/provis/provis_load.cgi" | sed -e "/var sessionId=/d" > ${PROVIS_OUTPUT_PATH}/provis_html_provis_load.cgi.data
+    fi
+    
+    diff ${PROVIS_OUTPUT_PATH}/provis_html_provis_load.cgi.data ${PROVIS_REGDATA_PATH}/provis_html_provis_load.cgi.data > ${PROVIS_OUTPUT_PATH}/provis_html_provis_load.cgi.diff 2>&1
+    
+    if [ $? -eq 0 ]
+    then
+
+	let "passedTests = passedTests + 1"
+	rm -f ${PROVIS_OUTPUT_PATH}/provis_html_provis_load.cgi.diff
+	rm -f ${PROVIS_OUTPUT_PATH}/provis_html_provis_load.cgi.data
+	echo "OK"
+    else
+	echo "FAILED"
+    fi
+
+
+
+    let "totalTests = totalTests +1" 
+    echo "${totalTests}. Provis web page provis_gen.cgi DATA...\c"
+    
+    if [ ${HTTPDFLAG} -eq 1 ]
+    then
+	wget -o /dev/null -O - "http://localhost:${PROVIS_PORT}/cgi-bin/provis/provis_gen.cgi?type=data&cf=&sjd=2455197.5&ejd=2455561.5&jb=2400000.5&c=1,1&pf=1&rf=1&vf=1&mf=0&bf=1&mt=30" > ${PROVIS_OUTPUT_PATH}/provis_html_provis_genDATA.cgi.data
+    fi
+    
+    diff ${PROVIS_OUTPUT_PATH}/provis_html_provis_genDATA.cgi.data ${PROVIS_REGDATA_PATH}/provis_html_provis_genDATA.cgi.data > ${PROVIS_OUTPUT_PATH}/provis_html_provis_genDATA.cgi.diff 2>&1
+    
+    if [ $? -eq 0 ]
+    then
+
+	let "passedTests = passedTests + 1"
+	rm -f ${PROVIS_OUTPUT_PATH}/provis_html_provis_genDATA.cgi.diff
+	rm -f ${PROVIS_OUTPUT_PATH}/provis_html_provis_genDATA.cgi.data
+	echo "OK"
+    else
+	echo "FAILED"
+    fi
+
+
+
+    let "totalTests = totalTests +1" 
+    echo "${totalTests}. Provis web page provis_gen.cgi PNG...\c"
+    
+    if [ ${HTTPDFLAG} -eq 1 ]
+    then
+	wget -o /dev/null -O - "http://localhost:${PROVIS_PORT}/cgi-bin/provis/provis_gen.cgi?type=png&cf=&dummy=&c=1,1&title=%20&jb=2400000.5&sjd=2455197.5&ejd=2455561.5&pf=1&plow=0&phigh=195&pcolor=Red&pline=Solid&pwidth=1&rf=1&rlow=0&rhigh=390&rcolor=Magenta&rline=Solid&rwidth=1&rtline=Dashed&vf=1&vlow=0&vhigh=1&vcolor=Blue&vline=Solid&vwidth=1&mf=0&mlow=0&mhigh=180&mcolor=Black&mline=Solid&mwidth=1&mfill=Lefthatch&bf=1&bline=Solid&bwidth=1&bfill=Righthatch&mt=30&width=810&height=457&font=Helvetica%2010&axisLinewidth=1" > ${PROVIS_OUTPUT_PATH}/provis_html_provis_genPNG.cgi.data
+    fi
+    
+    diff ${PROVIS_OUTPUT_PATH}/provis_html_provis_genPNG.cgi.data ${PROVIS_REGDATA_PATH}/provis_html_provis_genPNG.cgi.data > ${PROVIS_OUTPUT_PATH}/provis_html_provis_genPNG.cgi.diff 2>&1
+    
+    if [ $? -eq 0 ]
+    then
+
+	let "passedTests = passedTests + 1"
+	rm -f ${PROVIS_OUTPUT_PATH}/provis_html_provis_genPNG.cgi.diff
+	rm -f ${PROVIS_OUTPUT_PATH}/provis_html_provis_genPNG.cgi.data
+	echo "OK"
+    else
+	echo "FAILED"
+    fi
+
+
+
+
+
+
+    let "totalTests = totalTests +1" 
+    echo "${totalTests}. Provis web page provis_gen.cgi PS...\c"
+    
+    if [ ${HTTPDFLAG} -eq 1 ]
+    then
+	wget -o /dev/null -O - "http://localhost:${PROVIS_PORT}/cgi-bin/provis/provis_gen.cgi?type=ps&cf=&dummy=&c=1,1&title=%20&jb=2400000.5&sjd=2455197.5&ejd=2455561.5&pf=1&plow=0&phigh=195&pcolor=Red&pline=Solid&pwidth=1&rf=1&rlow=0&rhigh=390&rcolor=Magenta&rline=Solid&rwidth=1&rtline=Dashed&vf=1&vlow=0&vhigh=1&vcolor=Blue&vline=Solid&vwidth=1&mf=0&mlow=0&mhigh=180&mcolor=Black&mline=Solid&mwidth=1&mfill=Lefthatch&bf=1&bline=Solid&bwidth=1&bfill=Righthatch&mt=30&width=810&height=457&font=Helvetica%2010&axisLinewidth=1" | sed "/[%][%]*.*/d" > ${PROVIS_OUTPUT_PATH}/provis_html_provis_genPS.cgi.data
+    fi
+    
+    diff ${PROVIS_OUTPUT_PATH}/provis_html_provis_genPS.cgi.data ${PROVIS_REGDATA_PATH}/provis_html_provis_genPS.cgi.data > ${PROVIS_OUTPUT_PATH}/provis_html_provis_genPS.cgi.diff 2>&1
+    
+    if [ $? -eq 0 ]
+    then
+
+	let "passedTests = passedTests + 1"
+	rm -f ${PROVIS_OUTPUT_PATH}/provis_html_provis_genPS.cgi.diff
+	rm -f ${PROVIS_OUTPUT_PATH}/provis_html_provis_genPS.cgi.data
+	echo "OK"
+    else
+	echo "FAILED"
+    fi
+
+
+    
+
+
+    let "totalTests = totalTests +1" 
+    echo "${totalTests}. Provis web page provis_gen.cgi RESOLVE...\c"
+    
+    if [ ${HTTPDFLAG} -eq 1 ]
+    then
+	wget -o /dev/null -O - "http://localhost:${PROVIS_PORT}/cgi-bin/provis/provis_gen.cgi?type=res&name=m35" > ${PROVIS_OUTPUT_PATH}/provis_html_provis_genRESOLVE.cgi.data
+    fi
+    
+    diff ${PROVIS_OUTPUT_PATH}/provis_html_provis_genRESOLVE.cgi.data ${PROVIS_REGDATA_PATH}/provis_html_provis_genRESOLVE.cgi.data > ${PROVIS_OUTPUT_PATH}/provis_html_provis_genRESOLVE.cgi.diff 2>&1
+    
+    if [ $? -eq 0 ]
+    then
+
+	let "passedTests = passedTests + 1"
+	rm -f ${PROVIS_OUTPUT_PATH}/provis_html_provis_genRESOLVE.cgi.diff
+	rm -f ${PROVIS_OUTPUT_PATH}/provis_html_provis_genRESOLVE.cgi.data
+	echo "OK"
+    else
+	echo "FAILED"
+    fi
+
+
+
+
+
+
+
+
+
+
+
+    if [ $HTTPDFLAG -eq 1 ]
+    then
+
+	kill -15 `ps -u $USER | grep httpd | awk '{ print $1 }' `
+	kill -15 `ps -u $USER | grep Xsun  | awk '{ print $1 }' `
+    fi
+
+
+
+
+    echo "\nREGRESSION TESTS SUMMARY: $passedTests out of $totalTests tests passed\n"
+
+    if [ $passedTests -ne $totalTests ]
+    then
+	return 1
+    else
+	rm -rf ${PROVIS_OUTPUT_PATH}/www 
+	rm -rf ${PROVIS_OUTPUT_PATH}/bin
+	rm -rf ${PROVIS_OUTPUT_PATH}/lib
+	rm -rf ${PROVIS_OUTPUT_PATH}/data
+    fi
+
+
+    return 0
+}
+
+
+PROVIS_URL=""
+PROVIS_WEBINSTALL_PATH=""
+PROVIS_RELEASE_PATH=""
+PROVIS_REG_TEST_FLAG=0
+PROVIS_UNIT_TEST_FLAG=0
+PROVIS_TEST_LIST_FLAG=0
+PROVIS_REGDATA_PATH=""
+PROVIS_OUTPUT_PATH=""
+PROVIS_UNIT_TESTS=""
+PROVIS_REG_TESTS=""
+PROVISHOME_PATH=$HOME
+PROVIS_DISPLAY=""
+PROVIS_PORT=0
+PROVIS_CREATE_RELEASE_FLAG=0
+PROVIS_CREATE_WEBINSTALL_FLAG=0
+PROVIS_OTS_PATH=""
+
+# check command line options 
+
+if [ $# -gt 0 ] 
+then
+    
+    while [ $# != 0 ]
+    do 
+	
+	if [ "`CheckOption $1 -address`" = "1" ]
+	then
+	    if [ $# -gt 1 ] 
+	    then
+		shift
+	    else
+		PrintUsage $0
+		exit 1
+	    fi
+	    
+	    if [ "`IsOption $1`" = "0" ]
+	    then
+		PROVIS_URL=$1
+	    else
+		PrintUsage $0
+		exit 1  
+	    fi
+	    
+	elif [ "`CheckOption $1 -web`" = "1" ]
+	then
+	    if [ $# -gt 1 ] 
+	      then
+		shift
+	    else
+		PrintUsage
+		exit 1
+	    fi
+	    
+	    if [ "`IsOption $1`" = "0" ]
+	    then
+		PROVIS_WEBINSTALL_PATH=$1 
+	  else
+		PrintUsage $0
+		exit 1  
+	  fi
+	    
+	elif [ "`CheckOption $1 -install`" = "1" ]
+	then
+	    if [ $# -gt 1 ] 
+	    then
+		shift
+	    else
+		PrintUsage
+		exit 1
+	    fi
+	    
+	    if [ "`IsOption $1`" = "0" ]
+	    then
+		PROVIS_RELEASE_PATH=$1 
+	    else
+		PrintUsage $0
+		exit 1  
+	    fi
+	    
+	    
+	elif [ "`CheckOption $1 -unit`" = "1" ]
+	then
+	  PROVIS_UNIT_TEST_FLAG=1
+	  shift
+	  while [[ ( $# -ne 0 ) && ( "`IsOption $1`" = "0" ) ]]
+	  do 
+	      PROVIS_UNIT_TESTS="$PROVIS_UNIT_TESTS $1"
+	      shift
+	  done
+	  continue
+	elif [ "`CheckOption $1 -regression`" = "1" ]
+	  then
+	    PROVIS_REG_TEST_FLAG=1
+	    shift
+	    while [[ ( $# -ne 0 ) && ( "`IsOption $1`" = "0" ) ]]
+	    do 
+		PROVIS_REG_TESTS="$PROVIS_REG_TESTS $1"
+		shift
+	    done
+	    continue
+	elif [ "`CheckOption $1 -help`" = "1" ]
+	then
+	    PrintUsage $0
+	    exit 0
+	elif [ "`CheckOption $1 -list`" = "1" ]
+	then
+	    PROVIS_TEST_LIST_FLAG=1 
+	elif [ "`CheckOption $1 -data`" = "1" ]
+	then
+	    if [ $# -gt 1 ] 
+	    then
+		shift
+	    else
+		PrintUsage
+		exit 1
+	    fi
+	    
+	    if [ "`IsOption $1`" = "0" ]
+	      then
+		PROVIS_REGDATA_PATH=$1 
+	  else
+		PrintUsage $0
+		exit 1  
+	    fi
+	    
+	elif [ "`CheckOption $1 -outpath`" = "1" ]
+	then
+	    if [ $# -gt 1 ] 
+	    then
+		shift
+	    else
+		PrintUsage
+		exit 1
+	    fi
+	    
+	    if [ "`IsOption $1`" = "0" ]
+	    then
+		PROVIS_OUTPUT_PATH=$1
+	    else
+		PrintUsage $0
+		exit 1  
+	    fi
+	elif [ "`CheckOption $1 -number`" = "1" ]
+	then
+	    if [ $# -gt 1 ] 
+	    then
+		shift
+	    else
+		PrintUsage
+		exit 1
+	    fi
+	    
+	    if [ "`IsOption $1`" = "0" ]
+	    then
+		PROVIS_DISPLAY=$1
+	    else
+		PrintUsage $0
+		exit 1  
+	    fi
+	elif [ "`CheckOption $1 -port`" = "1" ]
+	then
+	    if [ $# -gt 1 ] 
+	    then
+		shift
+	    else
+		PrintUsage
+		exit 1
+	    fi
+	    
+	    if [ "`IsOption $1`" = "0" ]
+	    then
+		PROVIS_PORT=$1
+	    else
+		PrintUsage $0
+		exit 1  
+	    fi  
+
+	else
+	    PrintUsage $0
+	    exit 1
+	fi
+      
+	shift
+      
+    done
+fi
+
+
+if [[ $PROVIS_TEST_LIST_FLAG -eq 1 && ( "$PROVIS_URL" != "" || "$PROVIS_WEBINSTALL_PATH" != "" \
+    || "$PROVIS_OUTPUT_PATH" != "" || "$PROVIS_REGDATA_PATH"  != "" \
+    || "$PROVIS_UNIT_TESTS" != "" || "$PROVIS_REG_TESTS" != "" ) ]]
+then
+    PrintUsage $0
+    exit 1 
+fi
+
+
+
+if [[  $PROVIS_UNIT_TEST_FLAG -eq 1  && $PROVIS_REG_TEST_FLAG  -eq 0  && "$PROVIS_URL" != "" ]]
+then
+    PrintUsage $0
+    exit 1 
+fi
+
+if [[  "$PROVIS_URL" != "" && ( "$PROVIS_WEBINSTALL_PATH" != "" ||  "$PROVIS_RELEASE_PATH" != "") ]]
+then
+    PrintUsage $0
+    exit 1 
+
+fi
+
+
+if [[  $PROVIS_UNIT_TEST_FLAG -ne 1  && $PROVIS_REG_TEST_FLAG  -ne 1 ]]
+then
+    PrintUsage $0
+    exit 1 
+fi
+
+if [[ ( $PROVIS_UNIT_TEST_FLAG -eq 0  && $PROVIS_REG_TEST_FLAG -eq 0 && $PROVIS_TEST_LIST_FLAG -eq 1 ) ]]
+    then
+    PROVIS_UNIT_TEST_FLAG=1
+    PROVIS_REG_TEST_FLAG=1
+fi
+
+if [ $PROVIS_TEST_LIST_FLAG -eq 0 ]
+then
+    
+    if [ "$PROVIS_OUTPUT_PATH" = ""  ]
+    then
+	PROVIS_OUTPUT_PATH="/tmp/provis.${LOGNAME}"
+    fi
+    
+    export PROVIS_OUTPUT_PATH
+    
+    
+    if [ "$PROVIS_REGDATA_PATH" = "" ]
+    then
+	PROVIS_REGDATA_PATH=`GetPath $0`/../baseline/
+    fi
+    
+    export PROVIS_REGDATA_PATH
+    
+    if [ "$PROVIS_WEBINSTALL_PATH" != "" ]
+    then
+	PROVIS_WEBINSTALL_PATH =`ConvertToFullPath  $PROVIS_WEBINSTALL_PATH`
+    else
+	PROVIS_CREATE_WEBINSTALL_FLAG=1
+	PROVIS_WEBINSTALL_PATH=${PROVIS_OUTPUT_PATH}
+    fi 
+
+
+    
+    if [ "$PROVIS_RELEASE_PATH" != "" ]
+    then
+	PROVIS_RELEASE_PATH=`ConvertToFullPath  $PROVIS_RELEASE_PATH`
+	PROVIS_OTS_PATH=${PROVIS_RELEASE_PATH}/ots/
+    else
+	if [ "$ASCDS_INSTALL" = "" ]
+	then
+	    echo "$0: ERROR - ASCDS_INSTALL not set "
+	    exit 1
+	fi
+	PROVIS_CREATE_RELEASE_FLAG=1
+	PROVIS_OTS_PATH=${ASCDS_INSTALL}/ots/
+	PROVIS_RELEASE_PATH=${PROVIS_OUTPUT_PATH}
+    fi 
+
+
+    export LD_LIBRARY_PATH=${PROVIS_RELEASE_PATH}/lib:${PROVIS_OTS_PATH}/lib:${LD_LIBRARY_PATH}
+
+    if [ "$PROVIS_REGDATA_PATH" != "" ]
+    then
+	PROVIS_REGDATA_PATH=`ConvertToFullPath  $PROVIS_REGDATA_PATH`
+    fi
+    
+    
+    if [ "$PROVIS_OUTPUT_PATH" != "" ]
+    then
+	PROVIS_OUTPUT_PATH=`ConvertToFullPath  $PROVIS_OUTPUT_PATH`
+    fi
+
+
+    if [ "$PROVIS_DISPLAY" = "" ]
+    then
+	PROVIS_DISPLAY=1
+    fi
+    
+    export PROVIS_DISPLAY
+
+    if [ ${PROVIS_PORT} -eq 0 ]
+    then
+	PROVIS_PORT=53111
+    fi
+    
+    export PROVIS_PORT
+
+
+fi
+
+
+mkdir -p ${PROVIS_OUTPUT_PATH} > /dev/null 2>&1
+if [ -d ${PROVIS_OUTPUT_PATH} -a -w ${PROVIS_OUTPUT_PATH} -a -x ${PROVIS_OUTPUT_PATH} ] 
+then
+    rm -rf ${PROVIS_OUTPUT_PATH}/* 
+fi
+
+if [  $PROVIS_UNIT_TEST_FLAG -eq 1 -o $PROVIS_REG_TEST_FLAG -eq 1  ]
+then
+    if [ ${PROVIS_CREATE_RELEASE_FLAG} -eq 1 ]
+    then
+	CreateTmpRelease
+    fi
+
+    if [ ${PROVIS_CREATE_WEBINSTALL_FLAG} -eq 1 ]
+    then
+	CreateTmpWebInstall
+    fi
+fi
+
+if [ $PROVIS_UNIT_TEST_FLAG -eq 1 ]
+then
+
+    PrintHeader "UNIT"
+    
+    if [ $PROVIS_TEST_LIST_FLAG -eq 1 ]
+    then
+	echo "***** AVAILABLE TESTS:"	
+    else
+	RunUnitTests
+    fi
+
+fi
+
+
+
+if [ $PROVIS_REG_TEST_FLAG -eq 1 ]
+then
+    
+    PrintHeader "REGRESSION"
+    
+    if [ $PROVIS_TEST_LIST_FLAG -eq 1 ]
+    then
+	echo "***** AVAILABLE TESTS:"	
+    else
+	RunRegressionTests
+    fi
+
+fi
+
+
+
+
+

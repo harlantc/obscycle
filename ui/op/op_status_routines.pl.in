@@ -1,0 +1,1476 @@
+#!@PERLDB@ 
+#----------------------------------------------------------
+# Copyright (c) 1995, Smithsonian Astrophysical Observatory
+# You may not do anything you like with this file. 
+#
+# FILE NAME:  op_status_routines.pl
+# DEVELOPMENT: 
+#
+# NOTES:       
+#             
+# INPUT:       user input
+#
+# REVISION HISTORY:
+#
+# Date: 
+#---------------------------------------------------------
+$status_routines = 1;
+
+use vars qw ($rowColor);
+
+sub build_where_clause 
+{
+  my($custom_flg) = @_;
+  my($fc);
+  my($obsid_from,$obsid_to,$obsid_where);
+  my($seq_from,$seq_to,$seq_where);
+  my($ra_from,$ra_to,$ra_where);
+  my($dec_from,$dec_to,$dec_where,$dd_date_where1);
+  my($inst_where,$grat_where,$date_obs_where,$type_where);
+
+  #--------- OBSID ---------------------------------------- 
+  $obsid_from = param("obsid_from");
+  $obsid_to = param("obsid_to");
+
+  #this is for call from OBSERVATION SEARCH 
+  if (param("field")) {
+    $fc = param("field");
+    if ($fc =~ /ObsId/) {
+      if (param("id") =~ /[0-9]/) { 
+        $obsid_from = param("id"); 
+        $obsid_to = param("id"); 
+      }
+      else { 
+        $obsid_from = 1; 
+        $obsid_to = 1; 
+      }
+    }
+  }
+
+  if ($custom_flg == 1 || (param("obsid"))) {
+
+    $obsid_where = "";
+    $obsid_from = int($obsid_from);
+    $obsid_to = int($obsid_to);
+    if (($obsid_from) && ($obsid_to)) {
+      if ($obsid_from > $obsid_to) {
+        $obsid_from = $tmp;
+        $obsid_from = $obsid_to;
+        $obsid_to = $tmp;
+      }
+      $obsid_where = "target_info.obsid >= $obsid_from AND target_info.obsid <= $obsid_to";
+    } 
+    else {
+      if ($obsid_from ) { $obsid_where = "target_info.obsid >= $obsid_from"; }
+      if ($obsid_to ) { $obsid_where = "target_info.obsid <= $obsid_to"; }
+    }
+  }
+
+  #--------- Sequence  ---------------------------------------- 
+  $seq_from = param("seq_from");
+  $seq_to = param("seq_to");
+
+  #this is for call from OBSERVATION SEARCH 
+  if (param("field")) {
+    $fc = param("field");
+    if ($fc =~ /SeqNum/) {
+      if (param("id") =~ /[0-9]/) { 
+        $seq_from = param("id"); 
+        $seq_to = param("id"); 
+      }
+      else { 
+        $seq_from = 100000; 
+        $seq_to = 100000; 
+      }
+    }
+  }
+  
+  if ($custom_flg == 1 || (param("sequence_number"))) {
+    $seq_where = "";
+    $seq_from = int($seq_from);
+    $seq_to = int($seq_to);
+    if (($seq_from) && ($seq_to)) {
+      if ($seq_from > $seq_to) {
+        $seq_from = $tmp;
+        $seq_from = $seq_to;
+        $seq_to = $tmp;
+      }
+      $seq_where = "target_info.seq_nbr >= '$seq_from' AND target_info.seq_nbr <= '$seq_to'";
+    } 
+    else {
+      if ($seq_from ) { $seq_where = "target_info.seq_nbr >= '$seq_from'"; }
+      if ($seq_to ) { $seq_where = "target_info.seq_nbr <= '$seq_to'"; }
+    }
+  }
+  
+  #--------- RA --------------------------------------- 
+  $ra_from = param("ra_from");
+  $ra_to = param("ra_to");
+  $ra_from = parseFloat($ra_from);
+  $ra_to = parseFloat($ra_to);
+
+  if ($custom_flg == 1 || (param("ra_nom"))) {
+    $ra_where = "";
+    if (($ra_from) && ($ra_to)) {
+      if ($ra_from > $ra_to) {
+        $ra_from = $tmp;
+        $ra_from = $ra_to;
+        $ra_to = $tmp;
+      }
+      $ra_where = "target_info.ra >= $ra_from AND target_info.ra <= $ra_to";
+    } 
+    else {
+      if ($ra_from ) { $ra_where = "target_info.ra >= $ra_from"; }
+      if ($ra_to ) { $ra_where = "target_info.ra <= $ra_to"; }
+    }
+  }
+
+  #--------- Dec ---------------------------------------- 
+  $dec_from = param("dec_from");
+  $dec_to = param("dec_to");
+  $dec_from = parseFloat($dec_from);
+  $dec_to = parseFloat($dec_to);
+
+  if ($custom_flg == 1 || (param("dec_nom"))) {
+    $dec_where = "";
+    if (($dec_from) && ($dec_to)) {
+      if ($dec_from > $dec_to) {
+        $dec_from = $tmp;
+        $dec_from = $dec_to;
+        $dec_to = $tmp;
+      }
+      $dec_where = "target_info.dec >= $dec_from AND target_info.dec <= $dec_to";
+    } 
+    else {
+      if ($dec_from ) { $dec_where = "target_info.dec >= $dec_from"; }
+      if ($dec_to ) { $dec_where = "target_info.dec <= $dec_to"; }
+    }
+  }
+
+  #--------- Instrument ---------------------------------------- 
+  if ($custom_flg == 1 || (param("instrument"))) {
+    $inst_where = "";
+    if (param("instrument_none")) { 
+       $inst_where = "fp_detect = 'NONE'"; 
+    }
+    if (param("instrument_acisi")) {
+      if ($inst_where) {  
+        $inst_where .=  " OR ";
+      }
+      $inst_where .= "fp_detect = 'ACIS-I'";
+    }
+  
+    if (param("instrument_aciss")) {
+      if ($inst_where) {  
+        $inst_where .= " OR ";
+      }
+      $inst_where .= "fp_detect = 'ACIS-S'";
+    }
+  
+    if (param("instrument_hrci")) {
+      if ($inst_where) {  
+        $inst_where .=  " OR ";
+      }
+      $inst_where .= "fp_detect = 'HRC-I'";
+    }
+    if (param("instrument_hrcs")) 
+    {
+      if ($inst_where) {  
+        $inst_where .=  " OR ";
+      }
+      $inst_where .= "fp_detect = 'HRC-S'";
+    }
+  }
+
+  #--------- grating ---------------------------------------- 
+  $grat_where = "";
+  if ($custom_flg == 1 || (param("grating"))) {
+    if (param("grating_none")) { 
+      $grat_where = "target_info.grating = 'NONE'"; 
+    }
+    if (param("grating_hetg")) {
+      if ($grat_where) {  
+        $grat_where .= " OR ";
+      }
+      $grat_where .= "target_info.grating = 'HETG'";
+    }
+    if (param("grating_letg")) {
+      if ($grat_where) {  
+        $grat_where .=  " OR ";
+      }
+      $grat_where .= "target_info.grating = 'LETG'";
+    }
+  }
+  
+  #--------- Date obs----------------------------------------
+  $date_obs_where = "";
+  if (!param("field")) {
+    $date_obs_where = &date_where( "date_obs", param("date_obs_from_m"),
+          param("date_obs_from_d"), param("date_obs_from_y"),
+          param("date_obs_to_m"), param("date_obs_to_d"), 
+          param("date_obs_to_y"), param("date_obs_null") );
+  }
+
+  #--------- Notify Date----------------------------------------
+  $dd_date_where = ""; 
+  $dd_date_where1 = ""; 
+  if ($custom_flg == 1 || (param("notify_date"))) {
+    if (!param("field")) {
+      if (param("notify_date_null")) {
+        # use where1 for the basic query
+        # for null: not in the dd_status table or 
+        # if it is, there's no entry where it's not null
+        $dd_date_where1 = qq( 
+          (target_info.obsid not in
+            (select distinct obsid from axafobstat..view_email_notification )
+           and target_info.obsid not in  
+            (select distinct obsid from axafobstat..view_email_notification_cp)
+           )
+        );
+      }
+      else {
+        $dd_date_where = &date_where( "ven.email_notification_date", 
+	  param("notify_date_from_m"),
+	  param("notify_date_from_d"), param("notify_date_from_y"),
+	  param("notify_date_to_m"), param("notify_date_to_d"),
+	  param("notify_date_to_y"), param("notify_date_null") );
+        
+          if ($dd_date_where) {
+            $dd_date_where .= qq( and ven.email_notification_date is not null
+		);
+          }
+      }
+    }
+  }
+  
+  #--------- type ---------------------------------------- 
+  $type_where = "";
+  if ($custom_flg == 1 || (param("type"))) {
+    if (param("type_cal")) { 
+      $type_where = "target_info.type = 'CAL'"; 
+    }
+    if (param("type_go")) {
+      if ($type_where) {  
+        $type_where .= " OR ";
+      }
+      $type_where .= "target_info.type = 'GO'";
+    }
+    if (param("type_gto")) {
+      if ($type_where) {  
+        $type_where .= " OR ";
+      }
+      $type_where .= "target_info.type = 'GTO'";
+    }
+    if (param("type_too")) {
+      if ($type_where) {  
+         $type_where .=  " OR ";
+      }
+      $type_where .= "target_info.type = 'TOO'";
+    }
+    if (param("type_ddt")) {
+      if ($type_where) {  
+        $type_where .= " OR ";
+      }
+      $type_where .= "target_info.type = 'DDT'";
+    }
+    if (param("type_cct")) {
+      if ($type_where) {  
+         $type_where .=  " OR ";
+      }
+      $type_where .= "target_info.type = 'CCT'";
+    }
+    if (param("type_er")) {
+      if ($type_where) {  
+        $type_where .= " OR ";
+      }
+      $type_where .= "target_info.type = 'ER'";
+    }
+  }
+
+  #--------- Issues  ---------------------------------------- 
+  $issue_from = param("issue_from");
+  $issue_to = param("issue_to");
+
+  #this is for call from OBSERVATION SEARCH 
+  if (param("field")) {
+    $issc = param("field");
+    if ($issc =~ /Issues/) {
+      if (param("id") =~ /[0-9]/) { 
+        $issue_from = param("id"); 
+      }
+      else { 
+        $issue_from = 1; 
+      }
+    }
+  }
+
+  $issue_where = "";
+  if (param("issue_open")) {  
+    $issue_where = "Open"; 
+  }
+
+  if (param("issue_resolved")) {
+    if ($issue_where) {  
+      $issue_where .= "-";
+    }
+    $issue_where .= "Resolved";
+  }
+
+  if (param("issue_none")) {
+    if ($issue_where) {  
+      $issue_where .= "-";
+    }
+    $issue_where .= "None";
+  
+    if ($issue_where eq "Open-Resolved-None") { 
+      $issue_where = "All";
+    }
+  }
+
+  if (param("issue_all")) { $issue_where = "All"; }
+
+
+
+
+  ######## this is for call from OBSERVATION SEARCH ##########
+  if (param("field")) { $date_obs_where = ""; }
+
+  #------------------- WHERE ------------------------------
+  $where ="";
+
+  if ($obsid_where) { $where = "($obsid_where)"; }
+  if ($seq_where) {
+    if ($where) { $where = $where." AND (".$seq_where.")"; }
+    else { $where = "($seq_where)"; }
+  }
+  if ($ra_where) {
+    if ($where) { $where = $where." AND (".$ra_where.")"; }
+    else { $where = "($ra_where)"; }
+  }
+  if ($dec_where) {
+    if ($where) { $where = $where." AND (".$dec_where.")"; }
+    else { $where = "($dec_where)"; }
+  }
+  if ($inst_where) {
+    if ($where) { $where = $where." AND (".$inst_where.")"; }
+    else { $where = "($inst_where)"; }
+  }
+  if ($grat_where) {
+    if ($where) { $where = $where." AND (".$grat_where.")"; }
+    else { $where = "($grat_where)"; }
+  }
+  if ($date_obs_where) {
+    if ($where) { $where = $where." AND (".$date_obs_where.")"; }
+    else { $where = "($date_obs_where)"; }
+  }
+
+  if ($dd_date_where) {
+    if ($where) { $where = $where." AND \n(" . $dd_date_where . ")"; }
+    else { $where = "($dd_date_where)"; }
+  }
+  if ($dd_date_where1) {
+    if ($where) { $where = $where." AND \n(" . $dd_date_where1 . ")"; }
+    else { $where = "($dd_date_where1)"; }
+  }
+
+  if ($type_where) {
+    if ($where) { $where = $where." AND (".$type_where.")"; }
+    else { $where = "($type_where)"; }
+  }
+
+
+}
+
+#---------------------------------------------
+# Build order by clause
+#---------------------------------------------
+sub build_order_clause
+{
+  local (%order_list = (
+	"ObsId","target_info.obsid","Sequence","target_info.seq_nbr",
+	"Obs Date", "date_obs", 
+	"RA","target_info.ra","DEC","target_info.dec", 
+	"Instrument","fp_detect","Grating","target_info.grating"));
+  local (@order_fields = ("order_one","order_two","order_three"));
+  local ($otmp,$ii);
+  local (@oarray = ());
+
+  $order = "";
+  for ($ii=0;$ii<=$#order_fields;$ii++) {
+    if (param($order_fields[$ii]) && (param($order_fields[$ii]) !~ /None/)) {
+      $otmp = param($order_fields[$ii]);
+      push(@oarray,$order_list{$otmp});
+    }
+  }
+  
+  for ($ii=0;$ii<=$#oarray;$ii++) {
+    if (($oarray[$ii] !~ /None/) && ($order !~ /$oarray[$ii]/)) { 
+       if ($order) {
+         $order .= ",";
+       }
+       $order .= $oarray[$ii];
+    }
+  }
+
+  if (!$order) {   
+    $order = "target_info.obsid"; 
+  }
+
+}
+
+
+#----------------------------------------------------------------------
+# Retrieve the data  from various tables  (not issues)
+# The table keys are ($obsid)
+# Output:
+# %dbresults     - a hash array of all related info except issues
+# @display_order - array to place obsid in the correct order
+#----------------------------------------------------------------------
+sub retrieve_data  
+{
+  local ($ii);
+  local ($jj);
+  my (@mytmp,@tarr);
+
+  # first get the basic data
+  &retrieve_basic_data;
+ 
+  # now go get the issues 
+  # if constrained by issues, delete the obsids that don't meet criteria
+  if ($#display_order >= 0) {
+    @work_list = @display_order;
+    
+    $stmp = "";
+    for ($jj=0;$jj<=$#work_list;$jj++) {
+      if ($stmp) {$stmp.= ",";}
+      $stmp .= $work_list[$jj];
+      if ( ($jj > 0 && !($jj % $MAX_IN)) || 
+           $jj == $#work_list ) {
+        &get_issueids($stmp);
+        $stmp = "";
+      }
+    }
+
+    if ($issue_where !~ /All/) {
+       &constrain_by_issues;
+    }
+  }
+
+  # use this list as we traverse various tables
+  # delete entries as we find the correct one to use.
+  # This list is used to build the 'where obsid in (?)' SQL.
+  if ($#display_order >= 0) {
+    @work_list = @display_order;
+
+    # now get any Default entries from level 2 for the obsids
+    $quality_where = qq(science_2.quality != "R");
+    &retrieve_level_2;
+
+    #go try custom for each obsid
+    if ($#work_list >= 0) {
+      #&debug("work list: $#work_list\n") if $dbg;
+      &retrieve_custom;
+    }
+
+    
+    # remove any obsids already retrieved from the work list
+    @mytmp = %dbresults;
+    for ($ii=0; $ii < $#mytmp; $ii++) {
+      @tarr = split($db_dlm,$mytmp[$ii]);
+      &delete_from_work_list($tarr[0]);
+    }
+    #&debug("\nwork list: $#work_list\n") if $dbg;
+
+    # now get the latest AP 
+    # If they query on 'DD Date' ignore all these entries
+    if ($#work_list >= 0 && !$dd_date_where) {
+      &retrieve_latest_ap;
+    }
+
+    # now assume we have no additional info for the rest of these
+    if ($#work_list >= 0 ) {
+      foreach $ii (@work_list) {
+      #&debug("retrieve those with nothing: $ii\n") if $dbg;
+          &get_obsid_entry($ii);
+          &set_obsid_entry($ii);
+      }
+    }
+
+    #&debug("report type: $report_type and sci2 = $#sci_2_ids\n") if $dbg;
+    if (($report_type =~ /eds/ ) && 
+        ($#sci_2_ids >= 0)) {
+      &retrieve_dates_info;
+    }
+    &debug("Retrieve queries completed\n") if $dbg;
+  }
+}
+
+#----------------------------------------------------------------------
+# retrieve basic data from target_info so we know what
+# obsids to start working with (eventually add issues in)
+#----------------------------------------------------------------------
+sub retrieve_basic_data 
+{
+
+  local ($basic_dbcols) = qq( target_info.obsid,
+        target_info.seq_nbr,
+        target_info.targname,
+        target_info.ocat_status,
+        target_info.pipeline_config,
+        target_info.ra,
+        target_info.dec,
+        target_info.fp_detect,
+        target_info.readout_detect,
+        target_info.grating,
+        target_info.datamode,
+        target_info.readmode,
+        convert(decimal(7,2),target_info.appr_exp_time),
+        target_info.type,
+        target_info.data_rights,
+	target_info.sim_z_offset,
+        (convert(varchar(10),date_obs,$sql_date_fmt)
+         + " " + convert(varchar(5),date_obs,$sql_time_fmt)),
+         convert(varchar(10),public_date,$sql_date_fmt),
+        convert(decimal(6,2),obidet_0_5.roll),
+        bibcodes.obsid );
+
+
+  local ($basic_constraints) = qq(
+	target_info.obsid = obidet_0_5.obsid and
+        obidet_0_5.obi = (select min(obi) from obidet_0_5 o1 where
+	o1.obsid = obidet_0_5.obsid) and
+        obidet_0_5.revision = (select max(revision) from obidet_0_5 o2 where 
+	o2.obsid = obidet_0_5.obsid and o2.obi = obidet_0_5.obi) and
+        target_info.obsid *= bibcodes.obsid );
+
+        
+  my($sql_stmt,$sth,@row,$cnt);
+
+  if ($report_type =~ /fred/) {
+    $basic_dbcols .= qq(,axafocat..prop_info.prop_num,
+	axafocat..view_pi.first,
+        axafocat..view_pi.last );
+    $basic_constraints .= qq (
+	and target_info.obsid *= axafocat..target.obsid 
+	and axafocat..target.ocat_propid *= axafocat..prop_info.ocat_propid
+	and axafocat..target.ocat_propid *= axafocat..view_pi.ocat_propid);
+  }
+  if ($dd_date_where ) {
+    $basic_constraints .= qq (
+	and target_info.obsid = axafvv..vvreport.obsid 
+	and axafvv..vvreport.vvid = dd.vvid
+	and axafvv..vvreport.obsid = ven.obsid
+	and axafvv..vvreport.l2_version = ven.l2_version
+	);
+  } 
+
+
+  $sql_stmt = "select distinct $basic_dbcols ";
+  $sql_stmt .= qq(from target_info,obidet_0_5,cdabibliography..bibcodes bibcodes);
+  if ($report_type =~ /fred/) {
+    $sql_stmt .= ",axafocat..target,axafocat..prop_info, axafocat..view_pi ";
+  }
+  if ($dd_date_where) {
+    $sql_stmt .= "\n,axafvv..vvreport,axafobstat..dd_status dd,axafobstat..view_email_notification ven\n";
+  }
+   
+  $sql_stmt .= " where ";
+  if ($where) {
+    $sql_stmt .= "$where and ";
+  }
+
+  $sql_stmt .= "$basic_constraints ";
+  if ($order) {
+   $sql_stmt .= " order by $order";
+  }
+  else {
+   $sql_stmt .= " order by target_info.obsid ";
+  }
+  &debug("Basic query: $sql_stmt\n") if $dbg;
+  $sth = $dbh->prepare($sql_stmt);
+  if ($sth->execute()) {
+    while (@row = $sth->fetchrow_array)
+    {
+      $str = join($db_dlm,@row);
+      $basicresults{$row[0]} = $str;
+      push(@display_order,"$row[0]");
+    
+    }
+  }
+  else {
+    &debug("Basic query failed\n") if $dbg;
+  }
+
+  $obs_list = join(',',@display_order);
+
+  $cnt = $#display_order + 1;
+  &debug("Retrieved $cnt entries.\n") if $dbg;
+
+
+}
+
+#----------------------------------------------------------
+# Store basic data for observation 
+#----------------------------------------------------------
+sub get_basic_entry {
+  my ($key) = @_;
+  my ($str);
+
+  $str = $basicresults{$key};
+  #&debug("basic: $str\n") if $dbg;
+  if ($str) {
+    ($obsid,$seqnbr,$object,$ocat_status,$pipe_config,
+     $tgt_ra,$tgt_dec,$fp_detect,$readout,$grating, $datamode,$readmode,
+     $app_time,$type,$rights,$sim_z,$obsdate,$pub_date,$nom_roll,$bibcode,
+     $propno,$pifirst,$pilast ) = split($db_dlm,$str);
+  }
+  else {
+    @blanks = split(/,/,(" ," x 25));
+    $obsid = $key;
+    ($seqnbr,$object,$ocat_status,$pipe_config,
+     $tgt_ra,$tgt_dec,$fp_detect,$readout,$grating, $datamode,$readmode,
+     $app_time,$type,$rights,$sim_z,$obsdate,$pub_date,$nom_roll,$bibcode,
+     $propno,$pifirst,$pilast ) = @blanks;
+  }
+
+}
+
+#--------------------------------------------------------------------
+# retrieve from science_2 table based on specified quality code.
+#--------------------------------------------------------------------
+sub retrieve_level_2 
+{
+  local($long_dbcols) = qq( science_2.obsid,
+        science_2.revision,
+        science_2.quality,
+        vvrpt.proc_type,
+        convert(varchar(10),science_2.ap_date,$sql_date_fmt),
+        science_2.ap_status,
+        convert(decimal(7,2),vvrpt.charge_time),
+        convert(decimal(7,2),vvrpt.good_time),
+        science_2.ascdsver,
+        vvrpt.caldb_version,
+        convert(varchar(10),vvrpt.completion_date,$sql_date_fmt),
+        vvrpt.vv_state,vvrpt.vvid,
+        vvrpt.vv_version,
+        convert(varchar(10),ven.email_notification_date,$sql_date_fmt),
+        convert(varchar(10),dd.medium_mail_date,$sql_date_fmt),
+        science_2.ingested,
+	science_2.science_2_id);
+
+  local($long_sql) = qq(select distinct $long_dbcols 
+	from science_2,axafvv..vvreport vvrpt,
+	axafobstat..dd_status dd,
+	axafobstat..view_email_notification ven
+	 where $quality_where and
+        science_2.max_vv *= vvrpt.vvid and
+        science_2.max_vv *= dd.vvid and
+        science_2.obsid *= ven.obsid and
+        science_2.revision *= ven.l2_version and
+        science_2.obsid in  );
+
+  my($sql_add,$sth,$jj,$ii,@row,$sql_stmt,@mydelete,$sql_order);
+
+  $sql_add = "";
+  # put this in the basic retrieve now
+  if ($dd_date_where) {
+    $sql_add = " and ($dd_date_where) ";
+  }
+  $sql_order = "order by science_2.ap_date desc";
+
+
+  $stmp = "";
+  for ($jj=0;$jj<=$#work_list;$jj++) {
+    if ($stmp) {$stmp.= ",";}
+    $stmp .= $work_list[$jj];
+    if ( ($jj > 0 && !($jj % $MAX_IN)) || 
+         $jj == $#work_list ) {
+
+      $sql_stmt = $long_sql;
+      $sql_stmt .= "(" . $stmp . ") " . $sql_add; 
+      $sql_stmt .= " $sql_order ";
+      
+      if ($dd_date_where) {
+          $sql_stmt =~ s/\*= vvrpt/= vvrpt/g;
+          $sql_stmt =~ s/\*= dd/= dd/g;
+          $sql_stmt =~ s/\*= ven/= ven/g;
+          &debug("retrieve only if vvreport entry exists\n") if $dbg;
+      }
+      &debug("obsids: $sql_stmt\n") if $dbg;
+      $sth = $dbh->prepare($sql_stmt);
+      if ($sth->execute) {
+        while (@row = $sth->fetchrow_array)
+        {
+          &get_obsid_entry($row[0]);
+          if ($obsid =~ / / || 
+              ( $quality !~ /D/ && $quality !~ /Q/  && 
+               ($row[2] =~ /Q/ || $row[2] =~ /D/))) {
+            ($obsid,$version,$quality,$ap_cp,$ap_date,$ap_status,
+             $charge_time,$good_time,$release,$caldb,$vv_date,$vv_status,
+	     $vvid,$vv_version,
+             $dd_date,$mail_date,$ingested,$sci_2_id) = @row;
+   
+            #add to results table
+            &set_obsid_entry($obsid);
+    
+            if ($quality =~ /D/ || $quality =~ /Q/)  {
+              push(@mydelete,$obsid);
+              push(@sci_2_ids,$sci_2_id);
+            }
+          }
+        }
+      }
+      else {
+        &debug("L2 query failed\n") if $dbg;
+      }
+
+      $ii = $sth->rows;
+      &debug("L2: Retrieved $ii rows.\n") if $dbg;
+      $stmp = "";
+    }
+  }
+  for ($ii=0;$ii<=$#mydelete;$ii++) {
+    &delete_from_work_list($mydelete[$ii]);
+  }
+}
+
+
+
+#--------------------------------------------------------------------
+# retrieve entries from the custom table
+#--------------------------------------------------------------------
+sub retrieve_custom
+{
+  local($cp_dbcols) = qq( vvrpt.obsid, "Completed",
+        convert(varchar(10),vvrpt.l2_ap_date,$sql_date_fmt),
+        vvrpt.vv_state,vvrpt.vvid,
+        convert(varchar(10),vvrpt.completion_date,$sql_date_fmt),
+        convert(varchar(10),ven.email_notification_date,$sql_date_fmt),
+        convert(varchar(10),dd.medium_mail_date,$sql_date_fmt),
+        vvrpt.ascds_l2_release,vvrpt.caldb_version,vvrpt.vv_version,
+       convert(decimal(7,2),vvrpt.charge_time),
+        convert(decimal(7,2),vvrpt.good_time));
+
+
+  local($cp_sql) = qq(select distinct $cp_dbcols 
+	from axafvv..vvreport vvrpt,
+	axafobstat..dd_status dd ,
+	axafobstat..view_email_notification_cp ven 
+	where
+        vvrpt.vv_state like "%OK" and
+	vvrpt.proc_type = "CP" and
+	vvrpt.vvid *= dd.vvid and
+	vvrpt.obsid *= ven.obsid and
+	vvrpt.l2_version *= ven.l2_version and
+	vvrpt.vv_version *= ven.vv_version and
+        vvrpt.obsid in );
+  my($sth,$jj,$ii,@row,$sql_stmt,@mydelete,$h,$sql_add);
+
+
+  $sql_add = "";
+  if ($dd_date_where) {
+    $stmp = $dd_date_where;
+    $sql_add = " and ($stmp) ";
+  }
+  $sql_add .= qq( order by vvrpt.l2_ap_date desc);
+  &debug ("Custom: $cp_sql\n") if $dbg;
+  &debug ("        $sql_add\n") if $dbg;
+
+  $stmp = "";
+
+  for ($jj=0;$jj<=$#work_list;$jj++) {
+    if ($stmp) {$stmp.= ",";}
+    $stmp .= $work_list[$jj];
+    if ( ($jj > 0 && !($jj % $MAX_IN)) || 
+         $jj == $#work_list ) {
+
+
+      $sql_stmt = $cp_sql;
+      $sql_stmt .= "(" . $stmp .  ")" . $sql_add;
+      &debug("obsids: $stmp\n") if $dbg;
+      $sth = $dbh->prepare($sql_stmt);
+      if ($sth->execute) {
+        while (@row = $sth->fetchrow_array) {
+          &get_obsid_entry($row[0]);
+          
+          #&debug ("adding - $obsid - $ap_cp - $quality\n") if $dbg;
+          if ($obsid =~ / / || $quality !~ /D/i || $quality !~ /Q/i) {
+            #clear out the obsid fields
+            &get_obsid_entry("xxxx");
+
+            ($obsid,$ap_status,$ap_date,$vv_status,$vvid,
+             $vv_date,$dd_date,$mail_date,$release,$caldb,$vv_version,
+             $charge_time, $good_time)=@row;
+            $ap_cp="CP"; 
+            &set_obsid_entry($obsid);
+
+            # don't do this for now, we'll just clean up everything
+            # before we check the process_level for unfinished threads
+            #push(@mydelete,$obsid);
+          }
+        }
+      }
+      else {
+        &debug("custom query failed\n") if $dbg;
+      }
+      $ii = $sth->rows;
+      &debug("Custom: Retrieved $ii rows.\n") if $dbg;
+      $stmp = "";
+    }
+  }
+
+
+}
+
+#--------------------------------------------------------------------
+# try and find the ap status,ap date and pipeline for the latest
+# if no L2 or Custom
+#--------------------------------------------------------------------
+sub retrieve_latest_ap
+{  
+
+  my($sth,$jj,$ii,@row,$sql_stmt,$plevel);
+  local $ap_sql = qq(select distinct process_level.obsid,
+	ap_status, convert(varchar(10),ap_date,$sql_date_fmt), 
+	pipeline,ascdsver,revision
+ 	from process_level where
+	(ap_date = (select max(ap_date) from process_level p2 where
+        p2.obsid = process_level.obsid) or
+        (select max(ap_date) from process_level p3 where 
+	p3.obsid = process_level.obsid)  is NULL)
+	and obsid in );
+  &debug("Latest AP: $ap_sql\n") if $dbg;
+
+  $stmp = "";
+  for ($jj=0;$jj<=$#work_list;$jj++) {
+    if ($stmp) {$stmp.= ",";}
+    $stmp .= $work_list[$jj];
+    if ( ($jj > 0 && !($jj % $MAX_IN)) || 
+         $jj == $#work_list ) {
+
+      $sql_stmt = $ap_sql . "( " . $stmp . " )";
+      $sql_stmt .=  qq( order by ap_date desc);
+      &debug("obsids: $stmp\n") if $dbg;
+      $sth = $dbh->prepare($sql_stmt);
+      if ($sth->execute) {
+        while (@row = $sth->fetchrow_array) {
+    
+          &get_obsid_entry($row[0]);
+          if ($obsid !~ / /) {
+          } 
+          else {
+            ($obsid,$ap_status,$ap_date,$plevel,$release,$version)=@row;
+            $ap_status .= " $plevel";
+            &set_obsid_entry($obsid);
+          }
+        }
+        $ii = $sth->rows;
+        &debug("AP query retrieved $ii entries.\n") if $dbg;
+
+      }
+      else {
+        &debug("AP query failed\n") if $dbg;
+      }
+      $stmp = "";
+    }
+  }
+
+  
+}
+   
+# ----------------------------------------------------------
+# retrieve  dates type info
+# ----------------------------------------------------------
+sub retrieve_dates_info 
+{
+  my($sql_stmt,$sth,@row,$ii,$jj);
+
+
+  $stmp = "";
+
+  $sql_stmt = qq(create table #dtest (science_2_id int, 
+	sched_exp_time float NULL, ontime float NULL)); 
+  &debug("Dates: $sql_stmt\n") if $dbg;
+  $dbh->do($sql_stmt);
+
+  $sql_stmt = qq(insert #dtest select science_2_obi.science_2_id,
+        sum(science_1.sched_exp_time),
+        sum(science_1.adm_time)
+        from science_2_obi,science_1
+        where
+        science_2_obi.science_1_id = science_1.science_1_id 
+        and (science_2_obi.alt_exp_mode != "S"
+ 	or science_2_obi.alt_exp_mode is null)
+        group by science_2_obi.science_2_id);
+  &debug("Dates: $sql_stmt\n") if $dbg;
+  $dbh->do($sql_stmt);
+
+  local $dates_sql = qq(select distinct science_2.obsid,
+        convert(decimal(8,2),#dtest.sched_exp_time),
+        convert(decimal(8,2),#dtest.ontime)
+        from science_2,#dtest 
+        where science_2.science_2_id = #dtest.science_2_id  and
+        science_2.science_2_id in );
+
+  &debug("Dates Query:  $dates_sql\n") if $dbg;
+
+  for ($jj=0;$jj<=$#sci_2_ids;$jj++) {
+    if ($stmp) {$stmp.= ",";}
+    $stmp .= $sci_2_ids[$jj];
+    if ( ($jj > 0 && !($jj % $MAX_IN)) || 
+         $jj == $#sci_2_ids ) {
+  
+      $sql_stmt = $dates_sql . "(" . $stmp . ")";
+      &debug("obsids:  $stmp\n") if $dbg;
+      $sth = $dbh->prepare($sql_stmt);
+      if ($sth->execute()) {
+  
+        while (@row = $sth->fetchrow_array) {
+          &get_obsid_entry($row[0]);
+          ($stmp,$sched_time,$ontime) = @row;
+          &set_obsid_entry($obsid);
+        }
+  
+        $ii = $sth->rows;
+        &debug("Dates info  retrieved $ii rows.\n") if $dbg;
+      }
+      $stmp = "";
+    }
+  }
+}
+sub retrieve_review_info
+{
+  my($vvid) = @_;  
+  my($sql,$sth,@row,$retstr);
+  
+  $sql = qq(select distinct(review_type) from axafvv..vvreview vvrev where
+     vvrev.vvid = $vvid);
+  $sth = $dbh->prepare($sql);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+    if ($retstr) { $retstr .= ", "; }
+    $retstr .= $row[0];
+  }
+  
+  return $retstr;
+}
+#--------------------------------------------------------------------
+# delete an entry from the work list table
+#--------------------------------------------------------------------
+sub delete_from_work_list 
+{
+  local($key) = @_;
+  local($ii);
+
+  for ($ii=0;$ii<=$#work_list;$ii++) {
+    if ($key eq $work_list[$ii]) {
+      splice(@work_list,$ii,1);
+      last;
+    }
+  }
+}
+#--------------------------------------------------------------------
+# delete an entry from the Obsid list because it doesn't match
+# the query constraints
+#--------------------------------------------------------------------
+sub delete_obsid_entry {
+  my($lid) = @_;
+  my($ii,$key);
+
+  #first delete from the display_order
+  for ($ii=0;$ii<=$#display_order;$ii++) {
+    if ($lid eq $display_order[$ii]) {
+      splice(@display_order,$ii,1);
+      last;
+    }
+  }
+
+  #now delete from the hash
+  $key = "$lid";
+  delete $dbresults{$key};
+  #&debug("Deleting $key ") if $dbg;
+
+}
+
+#--------------------------------------------------------------------
+# retrieve all the data for a specified obsid entry
+#--------------------------------------------------------------------
+sub get_obsid_entry 
+{
+  local($key,$deleteit) = @_;
+  local($str);
+  local(@blanks);
+
+  $str = $dbresults{$key};
+  if ($str) {
+    ($obsid,$seqnbr,$object,$version,$ap_cp,$ap_date,$ap_status,$quality,
+     $charge_time,$good_time,$release,$caldb,$vv_date,$vv_status,$vvid,
+     $vv_version, $dd_date,$mail_date,$ocat_status,$ingested,$pipe_config,
+     $tgt_ra,$tgt_dec,$nom_roll,$bibcode,$fp_detect,
+     $readout,$grating,$datamode,$readmode,
+     $app_time,$type,$rights,$sim_z,$pub_date,
+     $ap_dir,$cp_comment,$cp_dist,$ap_dist,$obsdate,
+     $sched_time,$ontime,$obs_interval,$delta,
+     $propno,$pifirst,$pilast,$sci_2_id) = split($db_dlm,$str);
+  }
+  else {
+    @blanks = split(/,/,(" ," x 46));
+    ($obsid,$seqnbr,$object,$version,$ap_cp,$ap_date,$ap_status,$quality,
+      $charge_time,$good_time,$release,$caldb,$vv_date,$vv_status,$vvid,
+      $vv_version,$dd_date,$mail_date,$ocat_status,$ingested,$pipe_config,
+      $tgt_ra,$tgt_dec,$nom_roll,$bibcode,$fp_detect,
+      $readout,$grating,$datamode,$readmode,
+      $app_time,$type,$rights,$sim_z,$pub_date,
+      $ap_dir,$cp_comment,$cp_dist,$ap_dist,$obsdate,
+      $sched_time,$ontime,$obs_interval,$delta,
+      $propno,$pifirst,$pilast,$sci_2_id) = @blanks;
+  }
+  if ($deleteit == 1) {
+    #&debug(" deleting $obsid ") if $dbg;
+    $dbresults{$key} = "";
+  }
+}
+
+#--------------------------------------------------------------------
+# add/replace all the data for a specified obsid entry
+#--------------------------------------------------------------------
+sub set_obsid_entry {
+
+  my($key) = @_;
+  my(@myarr,$str);
+
+  if (!$ap_cp || $ap_cp eq ' ' ) {
+    $ap_cp = "AP";
+  }
+  &get_basic_entry($key);
+  @myarr = 
+     ($obsid,$seqnbr,$object,$version,$ap_cp,$ap_date,$ap_status,$quality,
+      $charge_time,$good_time,$release,$caldb,$vv_date,$vv_status,$vvid,
+      $vv_version,$dd_date,$mail_date,$ocat_status,$ingested,$pipe_config,
+      $tgt_ra,$tgt_dec,$nom_roll,$bibcode,$fp_detect,
+      $readout,$grating,$datamode,$readmode,
+      $app_time,$type,$rights,$sim_z,$pub_date,
+      $ap_dir,$cp_comment,$cp_dist,$ap_dist,$obsdate,
+      $sched_time,$ontime,$obs_interval,$delta,
+      $propno,$pifirst,$pilast,$sci_2_id);
+
+
+  $str = join($db_dlm,@myarr);
+  $dbresults{$key} = $str;
+
+}
+
+
+#---------------------------------------------
+# open up the output file
+#---------------------------------------------
+sub open_output_file 
+{
+  if($report_fmt =~ /ASCII/) {
+    $dlm = "   ";
+    $tmp_file = "$tmp_dir/op\_" . $tmp_host."_".$tmp_date.".txt";
+  }
+  else {
+    $dlm = "\t";
+    if($report_fmt =~ /HTML/) {
+      $tmp_file = "$tmp_dir/op\_" . $tmp_host."_".$tmp_date.".html";
+    }
+    elsif($report_fmt =~ /RDB/) {
+      $tmp_file = "$tmp_dir/op\_" . $tmp_host."_".$tmp_date.".rdb";
+    }
+    else {
+      $tmp_file = "$tmp_dir/op\_" . $tmp_host."_".$tmp_date.".tab";
+    }
+  }
+
+  open (OFILE,">$tmp_file");
+  #print STDERR "$tmp_file\n";
+
+}
+
+
+#------------------------------------------------------------------------
+#------------------------------------------------------------------
+sub print_multiple_fields {
+
+  local($ii);
+
+  if($report_fmt !~ /HTML/) {
+    printf OFILE ($fmt,@fields);
+    printf OFILE ("\n");
+ 
+  }
+  else  {
+    #&build_issue_files($issue_list);
+    &print_multiple_html;
+  }
+}
+
+#------------------------------------------------------------------------
+#------------------------------------------------------------------
+sub print_multiple_html
+{
+  local($jj,$ii,$line,$tstr,$myobsid,$s1,$s2,$s3);
+
+  print OFILE qq(\n<tr class="$rowColor" onmouseover="this.className='hover';" onmouseout="this.className='$rowColor';">);
+  if($rowColor =~ /alt2/i){ $rowColor = "alt1"; }
+            else { $rowColor = "alt2"; }
+
+  for ($jj=0;$jj<$#fields;$jj++) {
+    if (!$fields[$jj] || $fields[$jj] eq '' || $fields[$jj] eq ' ' ) {
+      $tstr = qq(&nbsp;);
+    } else {
+       $tstr = $fields[$jj];
+    }
+    $line = "<td align=center>";
+    if ($hdr[$jj] =~ /ObsId/) {
+       #build the parameter list of header labels/fields for the individual
+       #obsid display
+       $s1 = join("\_\_",@hdr);
+       $s1 =~ s/\&/\&amp;/g;
+       $s1 =~ s/ /$sp_char/g;
+       $s2 = join("\_\_",@fields);
+       $s2 =~ s/ /$sp_char/g;
+       $s3 = join("\_\_",@fields_link);
+       $s3 =~ s/ /$sp_char/g;
+       $line .= qq(<A HREF="/cgi-bin/op/op_status_obsid.cgi?$s1^^$s2^^$s3">);
+       $line .= $tstr;
+       $line .= "</A>";
+       $myobsid = $fields[$jj];
+       $tstr = &add_html_issue_link($fields[$#fields]);
+       if ($tstr) {
+        $line .= "<br>Issue:$tstr";
+       }
+       if ($fields_link[6] > 0) {
+         $tstr = &add_html_pub_link($myobsid);
+         if ($tstr) {
+          $line .= "<br>$tstr";
+         }
+       }
+    }
+    elsif ($hdr[$jj] =~ /Release/ && $fields[$jj]) {
+      $line .= &add_html_release_link($fields[$jj]);
+    }
+    elsif (($hdr[$jj] =~ /VV\_Status/ || $hdr[$jj] =~ /V\&V Status/) && 
+            $fields[$jj]) {
+      $line .= &add_html_vvreport_link($fields[$jj],$myobsid,
+                  $fields_link[1],$fields_link[2],
+                  $fields_link[3],$fields_link[4]);
+    }
+    else {
+       $line .= $tstr;
+    }
+    $line .= "</td>";
+    print OFILE "$line\n";
+  }
+  print OFILE "</tr>\n";
+
+}
+
+#---------------------------------------------------------------------
+sub add_html_issue_link
+{
+   local($myline) = @_;
+   local(@myissues,$tstr,$ii);
+
+   @myissues = split(/,/,$myline);
+   $ii = length($myissues[0]);
+   if (($#myissues  >= 0 ) && 
+       (length($myissues[0]) > 0) &&
+       ($myissues[0] ne " ") ) {
+     for ($ii=0;$ii<=$#myissues;$ii++) {
+        $tstr .= qq(<a href="/cgi-bin/op/op_status_issue.cgi?$myissues[$ii]" );
+        if ($myissues[$ii] =~ /\(/ ) {
+          $tstr .= " class=\"closed_color\">\#$myissues[$ii]</a> ";
+        }
+        else {
+          $tstr .= " class=\"open_color\">\#$myissues[$ii]</a> ";
+        }
+     }
+   }
+   return $tstr;
+}
+#---------------------------------------------------------------------
+sub add_html_pub_link
+{
+   local($myobsid) = @_;
+   local($tstr);
+
+   #&debug("Pub link $myobsid \n") if $dbg;
+   #$tstr .= qq(<A HREF="/cgi-gen/cda/bib.pl?ADS=search&amp;obsid=$myobsid">Publications</a>);
+   $tstr .= qq(<A HREF="https://cda.cfa.harvard.edu/srservices/ads.do?obsid=$myobsid">Publications</a>);
+   return $tstr;
+}
+
+#---------------------------------------------------------------------
+sub add_html_release_link
+{
+   local($ascdsl2ver) = @_;
+   local($tstr,$cxcver,$patch,$basever);
+
+
+   if ($ascdsl2ver &&
+       ($host =~ /icxc/i  || $host =~ /8021/)) {
+     ($cxcver, $patch) = split(/\./,$ascdsl2ver);
+     $cxcver =~ s/\s+//g;
+     $basever = (split(/UPD/,$cxcver))[0];
+
+     if  ($ascdsl2ver =~ /UPD/)  {
+       # covers the r$CU5UPD7 type
+     }
+     elsif ($ascdsl2ver !~ /^[0-9]/ ) { 
+       # these are nonstandard so we wouldn't find a link anyways
+       $basever = "dont_find_me";
+     }
+     else {
+       # covers the 6.13.4 type
+       $basever = "DS" . $cxcver;
+     }
+     &debug("Release: $soft_dir/$basever/\n"); 
+     if (-e "$soft_dir/$basever") {   
+       $tstr = "<a href=\"$soft_url/$basever\">$ascdsl2ver</a>"; 
+     }
+     else {
+       $tstr = $ascdsl2ver;
+     }
+  }
+  elsif ($ascdsl2ver && $ascdsl2ver ne "NULL") {
+    $tstr = $ascdsl2ver;
+  }
+  else {
+    $tstr = "&nbsp;";
+  }
+  return $tstr;
+
+}
+#---------------------------------------------------------------------
+# add vv report link only for internal!
+#---------------------------------------------------------------------
+sub add_html_vvreport_link
+{
+   local($myline,$myobs,$myl2,$myver,$mystat,$mytype) = @_;
+   local($tstr,$tlink);
+
+   
+   $tlink = $myobs . $sp_char . $myl2 . $sp_char . $myver;
+   if (($myline && $myline ne " ") && 
+        ($mystat =~ /archived/i ))   {
+       #$tstr = qq(<A HREF="/cgi-bin/op/op_vvreport.cgi?$vv_filename">$myline</a>);
+       $tstr = qq(<A HREF="/cgi-bin/op/op_vvreport.cgi?vvrpt=$tlink">$myline</a>);
+   }
+   elsif ($myline && $myline ne " ") {
+     $tstr = $myline;
+   }
+   else {
+    $tstr = "&nbsp;";
+   }
+   return $tstr;
+}
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+sub print_html_footer {
+
+  my ($f) = "";
+  my ($fstr);
+
+  $fstr = footer_no_date();
+
+  print OFILE <<footer;
+<p>$note<p>
+$fstr
+footer
+
+  print OFILE "</body>\n</html>\n";
+
+}
+sub print_html_footer_new {
+
+  my ($f) = "";
+  my ($fstr);
+
+  $fstr = getFooter();
+
+  print OFILE <<footer;
+<p>$note<p>
+$fstr
+footer
+
+  print OFILE "</body>\n</html>\n";
+}
+
+
+
+# -------------------------------------------------------------------
+# -------------------------------------------------------------------
+sub constrain_by_issues
+{
+  local($lobs,$got_open,$got_resolved,$ii,$jj,@otmp,@rtmp);
+
+  @otmp = split(/,/,$open_obsid_list);
+  @rtmp = split(/,/,$resolved_obsid_list);
+
+  &debug("Started with $#work_list entries for $issue_where\n") if $dbg;
+  #&debug("             open: $#otmp  and resl: $#rtmp\n") if $dbg;
+  for ($ii=0;$ii<=$#work_list;$ii++) {
+    $lobs  = $work_list[$ii];
+   
+    $got_open = 0;
+    for ($jj=0;$jj<=$#otmp;$jj++) {
+      if ($otmp[$jj] eq $lobs){
+        #&debug("ISSUES OPEN:  $lobs matches $otmp[$jj]\n") if $dbg;
+        $got_open = 1;
+        last;
+      }
+    }
+    $got_resolved = 0;
+    for ($jj=0;$jj<=$#rtmp;$jj++) {
+      if ($rtmp[$jj] eq $lobs){
+        #&debug("ISSUES RESOLVE:  $lobs matches $otmp[$jj]\n") if $dbg;
+        $got_resolved = 1;
+        last;
+      }
+    }
+    
+    if ($issue_where =~ /Open/ &&
+        $issue_where =~ /Resolved/ && $issue_where=~/None/) {
+      last;
+    }
+    if ($issue_where eq "Open" && !$got_open ) {
+      &delete_obsid_entry($lobs);
+    }
+    if ($issue_where eq "Resolved" && !$got_resolved)  {
+      &delete_obsid_entry($lobs);
+    }
+    if ($issue_where eq "Open-Resolved" && !$got_open && !$got_resolved ) {
+      &delete_obsid_entry($lobs);
+    }
+    if ($issue_where eq "None-Resolved" && !$got_resolved && $got_open) {
+      &delete_obsid_entry($lobs);
+    }
+    if ($issue_where eq "None-Open" && !$got_open && $got_resolved) {
+      &delete_obsid_entry($lobs);
+    }
+    if ($issue_where eq "None" && ($got_open==1 || $got_resolved==1) ) {
+      &delete_obsid_entry($lobs);
+    }
+
+  }
+  &debug("\nAfter issues:  $#display_order entries\n") if $dbg;
+}
+
+
+#----------------------------------------------------------
+sub display_output_results() 
+{
+  my($ecnt) = @_;
+  my($hh,$cgi,$hstr);
+
+  if($report_fmt =~ /HTML/ && $#the_results == 0) {
+    @fields = split($db_dlm,$the_results[0]);
+    @fields_link = split($db_dlm,$the_results_link[0]);
+    $s1 = join("\_\_",@hdr);
+    $s2 = join("\_\_",@fields);
+    $s3 = join("\_\_",@fields_link);
+    system("$CGI_BIN/op/op_status_obsid.cgi \"$s1\" \"$s2\" \"$s3\" ");
+  }
+  else {
+
+    #Display the results
+    &open_output_file;
+
+    #print the headers
+    $fmt = join($dlm,@fmt_tab);
+
+    &debug("$report_type **  $report_fmt **  $#the_results **\n") if $dbg;
+    if($report_fmt !~ /HTML/) {
+      if ($report_fmt =~ /ASCII/) {
+        $stmp = sprintf($fmt,@hdr);
+        print OFILE ("$stmp\n");
+      }
+      else {
+        foreach $hh (@hdr) {
+          print OFILE "$hh";
+          print OFILE "$dlm";
+        }
+        print OFILE ("\n");
+      }
+
+
+      if($report_fmt =~ /RDB/) {
+        for ($ii=0;$ii <= $#hdr;$ii++) {
+          printf OFILE ($fmt_tab[$ii],"-");
+          print OFILE ($dlm);
+        }
+        print OFILE "\n";
+      }
+      elsif($report_fmt =~ /ASCII/) {
+        $sepline = "-" x (length($stmp));
+        print OFILE ("$sepline\n");
+      }
+    }
+    else {
+      $rowColor = "alt2";
+      $ii = $#the_results + 1;
+      $hstr = cxc_header_new("Observation Processing Status Search Results ($title - $ii entries)",
+                         "/soft/op/op_olist.html");
+      print OFILE <<header;
+$hstr
+$note
+<br>
+header
+
+      print OFILE qq(<table border="1">\n<tr class="header2">\n);
+      $ecnt += $#hdr;
+      
+      $note = "";
+      for ($ii=0; $ii<$ecnt; $ii++)  {
+        $stmp = $hdr[$ii];
+        $stmp =~ s/\_/ /g;
+        $stmp =~ s/\&/\&amp;/; 
+        print OFILE "\n<th align=center>$stmp</th>";
+      }
+      print OFILE "\n</tr>\n";
+  
+    }
+
+    for ($ii=0; $ii <= $#the_results; $ii++) {
+      @fields = split($db_dlm,$the_results[$ii]);
+      @fields_link = split($db_dlm,$the_results_link[$ii]);
+      &print_multiple_fields;
+    }
+
+    if($report_fmt =~ /HTML/) {
+      print OFILE "</table></div>";
+  
+      #&print_html_footer_new;
+    }
+
+
+    close OFILE;
+    chmod(0777,"$tmp_file");
+    if($report_fmt =~ /RDB/) {
+      `$rdbrepair -q -exist -nNULL -o$tmp_file.hold $tmp_file`;
+      rename("$tmp_file.hold",$tmp_file);
+    }
+
+    
+    
+    if($report_fmt !~ /HTML/) {
+       display_file($tmp_file,0);
+    }
+    else {
+       display_file($tmp_file,1);
+    }
+    unlink ($tmp_file);
+
+  }
+}
+
+sub parseFloat {
+   my $str = shift;
+   $str =~ /([\d\.]+)/;
+   return $1;
+}
+
+
+

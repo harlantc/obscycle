@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE cxchelptopics SYSTEM "CXCHelp.dtd">
+<cxchelptopics>
+<ENTRY context="proposaltools" key="prop-time" refkeywords="timescales  calendars" seealsogroups=" prop-tools">
+<SYNOPSIS>
+
+Defines available calendars and timescales for command line versions of Chandra Proposal Tools
+
+</SYNOPSIS>
+<ADDRESS>
+<URL>
+prop-time.html
+</URL>
+
+</ADDRESS>
+<ADDRESS>
+<URL>
+http://cxc.harvard.edu/ciao/ahelp/prop-time.html
+</URL>
+
+</ADDRESS>
+<DESC>
+<VERBATIM>
+
+The default timescale types in DATES are:
+
+Timescale     Timescale Type
+----------------------------- 
+ TT         Terrestrial Time
+ UTC        Civil Time
+ TDB        Dynamical Time
+ TAI        Atomic Time
+ UT1        UT1 Time
+ GMST       Sidereal Time
+ LST        Local Siderial Time
+ 
+with additional timescales defined as offsets to UTC:
+
+Timescale    Timescale Name          Type      Zone Par   Zone
+---------------------------------------------------------------
+ Local  Zone +0000                 Civil Time         0   +0000
+  MST   Moscow Summer Time         Civil Time     14400   +0400
+  DMV   Moscow Decree Time         Civil Time     10800   +0300
+  BST   British Summer Time        Civil Time      3600   +0100
+  GMT   Greenwich Mean Time        Civil Time         0   +0000
+  EDT   Eastern Daylight Time      Civil Time    -14400   -0400
+  EST   Eastern Standard Time      Civil Time    -18000   -0500
+  CDT   Central Daylight Time      Civil Time    -18000   -0500
+  CST   Central Standard Time      Civil Time    -21600   -0600
+  MDT   Mountain Daylight Time     Civil Time    -21600   -0600
+  MST   Mountain Standard Time     Civil Time    -25200   -0700
+  PDT   Pacific Daylight Time      Civil Time    -25200   -0700
+  PST   Pacific Standard Time      Civil Time    -28800   -0800
+ 
+The supported calendar types are:
+ 
+  Calendar   Calendar Name              Type
+-------------------------------------------------------------- 
+  GREG	     Gregorian date             Gregorian Calendar
+  JD	     Julian Day                 Julian Day Number
+  MJD	     Modified Julian Day        Julian Day Number
+  DAYS	     JD - 2450814.5             Julian Day Number
+  DATE	     Date		        Gregorian Calendar  
+  PACK	     Packed date                Gregorian Calendar
+  DOY	     Day of year                Gregorian Calendar
+  OS	     Julian Calendar            Julian Calendar
+  ROMAN	     Roman calendar             Roman Calendar
+  RF	     French Rev. Calendar       French Revolutionary Cal
+  GSD	     Greenwich Sidereal Date    Greenwich Sidereal Date
+  GST	     Greenwich Sidereal Time    Greenwich Sidereal Date
+  TIME	     TIME(JD 2450814.5)         Elapsed Seconds
+  JEPOCH     Julian Epoch               Epoch
+  BEPOCH     Besselian Epoch            Epoch
+ 
+</VERBATIM>
+<LIST>
+<ITEM>
+
+JD/MJD/DAYS:  For the JD, MJD and days calendars, enter a numeric value. Only
+Julian days between -2 x 10^9 and 2 x 10^9 are supported.
+
+</ITEM>
+<ITEM>
+
+GREG:  There are a variety of formats for the GREG calendar.  The standard is
+the words AD or BC followed by the year, month name, day, time of
+day.  For example:  AD 1993 Jun 30 23:59:50.234.  The BC is mandatory,
+AD may be left off.  Day 0 is the last day of the preceding month.
+Month numbers may be used instead of names.  Colons may be omitted,
+replaced by spaces, or the letters h, m, s.  Trailing information may
+be omitted, in such case, the earliest date is assumed.  Further forms
+of imprecise and uncertain dates are supported: example:  1993 Jun 30
+23:59? or 1990s?.  Day of Year format is supported also: 1997 Day 104
+14:20:32.
+
+</ITEM>
+<ITEM>
+
+DOY:  Last three digits of the integral part is the day of the year, earlier
+digits are assumed to be the year.
+
+</ITEM>
+<ITEM>
+
+PACK:  Last four digits are MM and DD, earlier digits assumed to be
+the year, if less then 100, 1900 automatically added.
+
+</ITEM>
+<ITEM>
+
+TIME:  Elapsed time calendar, gives seconds since the zero point
+defined by the zero command.  The default is Chandra time: the time
+tag on events in the Chandra data files, measured in seconds since
+1998 Jan 1 00:00:0.0.
+
+</ITEM>
+<ITEM>
+
+GSD/GST:  GSD is essentially JD(GMST).  Calendar GSD outputs the
+result as JD and fraction of day.  GST outputs the result as an
+integer day number and hh:mm:ss.sss of sidereal time.
+
+</ITEM>
+
+</LIST>
+
+</DESC>
+<VERSION>CIAO 4.5</VERSION>
+<LASTMODIFIED>December 2012</LASTMODIFIED>
+
+</ENTRY>
+
+</cxchelptopics>

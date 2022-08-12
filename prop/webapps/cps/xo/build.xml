@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:ivy="antlib:org.apache.ivy.ant"
+         basedir="."
+         default="build"
+         name="cps-xo">
+
+    <property name="dbbasedir" value="${basedir}/../../../../../db/www" />
+
+    <description>
+        Support class for proposal and target data
+    </description>
+
+    <import file="${dbbasedir}/ant-buildsystem/build-common-jar.xml"/> 
+
+
+</project>

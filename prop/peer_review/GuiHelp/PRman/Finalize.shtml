@@ -1,0 +1,112 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head>
+   <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+   <link rel="stylesheet"
+	 href="js/css/smoothness/jquery-ui-1.7.1.custom.css"
+	 type="text/css"
+   />
+   <link rel="stylesheet"
+	 href="PRman.css"
+	 type="text/css"
+   />
+   <script src="js/jquery-1.3.2.min.js" type="text/javascript"></script>
+   <script src="js/jquery-ui-1.7.1.custom.min.js"
+	   type="text/javascript"></script>
+   <script type="text/javascript"> 
+     $(function(){  
+     $('#tabs').tabs({ selected: 0 });  
+     });  
+   </script>
+   <script type="text/javascript">    
+    $(function() {
+    $("#accordian").accordion({
+	    collapsible: true, 
+	    autoHeight: false,
+	    active: 3
+	    });
+      });
+   </script>
+   <title>Peer Review GUI User's Manual</title>
+  </head>
+
+  <body>
+    <div class="document">
+      <div class="banner">
+	<h2>Peer Review GUI User's Manual</h2>
+	<p><a
+    href="https://cxc.cfa.harvard.edu/rws/facilitator_info.php">Facilitator
+    Info Page</a> </p>
+      </div>
+
+
+      <div class="body">
+	<!-- Navigation -->
+	<div id="navigation">
+	  <!--#include file="nav.phtml" -->
+	</div>
+	<!-- Content Goes Here -->
+	<div id="main">
+	  <h2 id="section_heading">Finalize Menu</h2>
+	  <p>Options listed under <span class="menu_item">Finalize</span> are for finalize tools.</p>
+	  <div id="tabs">
+	    <ul id="tab_text">
+	      <li><a href="#finalize_time">Finalize Time Allocation</a></li>
+	      <li><a href="#backfac">Back to Facilitator View</a></li>
+	      <li><a href="#reset_rank">Reset Rank</a></li>
+	      <li><a href="#finalize_print">Print Finalize View</a></li>
+	    </ul>
+	    <!-- Finalize Time Allocation -->
+	    <div id="finalize_time">
+	      <h3 id="section_heading">Finalize Time Allocation</h3>
+	      <p>Once all of the proposals have been graded, the panel decides which of the proposals get recommended for approval.  The panel is given allotments for total observing time (this contains overhead for slew and includes the probability of being triggered for TOOs), joint time for the various observatories which Chandra has agreements with, total money awarded to archive and theory proposals, number of very fast and fast turn around TOOs, and number of easy, average, and difficult constrained observations.</p>
+              <p>The same set of columns are projected to the Panel screen and for the facilitator.  They operate in tandem and ranking and proposal status can be edited from either view.  The facilitator view also has proposal buttons to allow access to the proposal edit windows.</p>
+              <p><img src="images/finalize.png" /></p>
+	      <dl>
+		<dt class="level1">Buttons (facilitator view):</dt>
+		<ul>
+		  <li class="level2"><span class="button">Lock Panel</span> locks the panel to future edits.  Only a CDO member can lock and unlock a panel.  When a panel is locked, proposals may be viewed but not edited.</li>
+		  <li class="level2"><span class="button">Initialize Rank</span> initializes the <span class="column">Rank</span> column by numbering the proposals from 1 to N in descending average final grade order.</li>
+		</ul>
+		<dt class="level1">Turn-off Below Rank (facilitator view)</dt>
+		<dd>If you need to turn-off all proposals below rank X, enter X into the box and hit submit.  The status of the those proposals will be set to 'N' and running total columns will be recalculated.</dd>
+		  <dt class="level1">Panel Allotments</dt>
+		  <dd>The critical allotments for the panel are displayed in this box.</dd>
+		  <dt class="level1">Proposal List (both views)</dt>
+		  <dd>This is a table which is initially sorted by
+	descending average grade, but once ranks are initialized can
+	only be sorted by ascending rank.  The <span class="column">Final Status</span> column allows you to turn-off proposals or assign them to the gray area.  The <span class="column">Rank</span> column allows you to move proposals up and down in the rank list.  To change the rank of a proposal, enter the new rank in the box and click the <span class="button">Save</span> button next in that cell.  The proposals with ranks between the old and new value of your changed proposal will be renumbered to move the new proposal up or down in the list.  You must save after each change.</dd>
+	      </dl>
+	    </div>
+	    <!-- Back to Facilitator View -->
+	    <div id="backfac">
+	      <h3 id="section_heading">Back to Facilitator View</h3>
+	      <p>This will return the Facilitator window back to the standard Facilitator View instead of the Finalized view..</p>
+	    </div>
+	    <!-- Reset Rank -->
+	    <div id="reset_rank">
+	      <h3 id="section_heading">Reset Rank</h3>
+	      <p>If you need to reset the rank list based on descending average final grade, you can do so from this menu item.  Any prior changes to the rank ordering will be undone.</p>
+	    </div>
+	    <div id="finalize_print">
+	      <h3 id="section_heading">Print Finalize View</h3>
+               <p>Once the panel has been finalized and they are ready to bring the results to CDO, please print this view.  The chair may prefer looking at another view but CDO needs a printout of the standard view for their discussion.</p>
+	    </div>
+	  </div>
+	</div>
+	<!-- Symbol Key -->
+	<div id="key">
+	  <!--#include file="symbols.phtml" -->
+	</div>
+
+	<div id="footer">
+	  <hr>
+	    <address><a href="mailto:gokas@head.cfa.harvard.edu">Tara Gokas</a></address>
+	    <!-- Created: Mon Apr  6 14:07:24 EDT 2009 -->
+	    <!-- hhmts start -->Last modified: Mon June 7 2021<!-- hhmts end -->
+	</div>
+      </div>
+    </div>
+  </body>
+</html>

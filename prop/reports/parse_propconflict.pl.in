@@ -1,0 +1,293 @@
+#!@PERLDB@ 
+# 
+#*H****************************************************************************
+#* Copyright (c) 1995-2016, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: parse_propconflict.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script reads the output from the 'propconflict -f peer' option
+#     and creates a table of proposal conflicts.  It also will create a
+#     file with only proposal number conflicts to be used as input
+#     to the prop_panel_create function. 
+#
+#
+#     Sample line from propconflict -f peer:
+#---------------------------------------------------------------------------
+#
+#CONFLICTS FOR PROPOSAL 02100120
+#JANE S. SMITH, TEST TITLE FOR CHANDRA CYCLE 2 MULTIPLE TARGETS
+#---------------------------------------------------------------------------
+#
+#----------
+#Target 001 BIG STAR, 50.2 ks, ACIS-S(TE)/HETG,  02:08:56.3 -45:14:4.2
+#----------
+#
+#Hard Conflicts in Proposal DB
+#**Prop 02700123, target 1, JANE S. DOE, BIG STAR, 350.3 ks, ACIS-S/HETG,  02:08:56.3 -45:14:4.2,  separation=0.0'
+#
+#
+#Hard Conflicts in ObsCat                no conflicts
+#
+#Soft Conflicts in Proposal DB           no conflicts
+#
+#Soft Conflicts in ObsCat                no conflicts
+#
+#---------------------------------------------------------------------------
+#
+#
+#  This routine will create output with the 
+#
+#  proposal#,target#,conflict info  
+#  where conflict info is:
+#    proposal#,target#,target name,exp. time,instrument,type,separation
+#
+#
+#* NOTES:
+#
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+use Getopt::Long;
+use strict;
+
+use vars qw( %param $dlm
+	@PNOtable @sort_PNOtable @PanelTable @theconflict @sort_PanelTable
+	);
+
+
+# -------------------------------------------------------
+# MAIN
+# -------------------------------------------------------
+
+{
+  my($basedir,$ofile,$tfile,$ext);
+  my(@jj,$oldpno);
+  my($prop,$ll);
+  
+  &parse_input;
+
+  $dlm=$param{f};
+  if ($dlm =~ /,/) {
+    $ext="csv";
+  } else {
+    $ext="tsv";
+  }
+
+  open(INFILE,"< $param{i}") ||
+     die("Error: Unable to open $param{i} for reading: $!\n");
+
+  @jj = split(/\//,$param{o});
+  if ($#jj > 0) {
+    $jj[$#jj] = "";
+    $basedir = join('/',@jj);
+  }
+  else {
+    $basedir = "./";
+  }
+
+  $ofile = $param{o};
+  open OFILE,">$ofile" or die "Unable to open $ofile for writing.\n";
+  $tfile = $param{o};
+  if ($param{o} =~ /.txt$/) {
+    $tfile =~ s/txt/$ext/;
+  } else {
+    $tfile .=  "." . $ext;
+  }
+  open TFILE,">$tfile.tmp" or die "Unable to open $tfile for writing.\n";
+  print STDERR "Writing file to use as input for prop_conflict_clumps.pl: $tfile\n";
+  
+
+  print OFILE "                                                                          Conflict       Exp.\n";
+  print OFILE "Proposal P.I.         Tgt Target Name            Instrument     Exp.Time  Proposal Tgt   Time   Instrument      Type  Separat.\n";
+  print OFILE "---------------------------------------------------------------------------------------------------------------------------\n";
+
+  @PNOtable = ();
+
+  readConflictFile();
+
+  @sort_PNOtable = sort @PNOtable;
+  $oldpno="";
+  foreach $prop (@sort_PNOtable) {
+    @jj = split(/\^/,$prop);
+    if ($oldpno != $jj[0]) {
+      print OFILE "\n";
+    }
+    $jj[5] =~ s/ ks//g;
+    $jj[8] =~ s/separation/sep/;
+    printf OFILE ("%-8s %-12.12s %-3s %-20.20s  %-16.16s  %6.2f  %-8.8s %3.3s  %6s %-16s %4s %-s",
+	$jj[0],$jj[$#jj-2],$jj[1],$jj[2],$jj[$#jj-1],$jj[$#jj],$jj[3],
+	$jj[4],$jj[5],$jj[6],$jj[7],$jj[8]);
+    printf TFILE ("%-20.20s$dlm%-8.8s$dlm%3d$dlm%-8.8s$dlm%3d$dlm%6s$dlm%-16s$dlm%4s$dlm%-s",
+	$jj[2],$jj[0],$jj[1],$jj[3],$jj[4],$jj[5],$jj[6],$jj[7],$jj[8]);
+    $oldpno = $jj[0];
+  }
+  close TFILE;
+  `sort "$tfile.tmp" > $tfile`;
+  unlink("$tfile.tmp");
+  chmod(0660,$tfile);
+
+  close OFILE;
+  chmod(0660,$ofile);
+
+  process_panelTable($basedir);
+}
+
+
+sub readConflictFile
+{
+  my($oldpno,$myline,$pno);
+  my(@xx,$plast,$type,$sep,$texp,$tdet,$tname,$tno);
+  my($ctno,$ii,$tt,$ll,$cnt);
+
+  $oldpno = "";
+  while (<INFILE>) {
+    $myline = $_;
+    if ($_ =~ /CONFLICTS FOR PROPOSAL/ ) {
+       @xx = split;
+       $pno = $xx[3];
+       $_ = <INFILE>;
+       @xx = split(/,/);
+       $plast = $xx[0];
+    }
+    if ($_ =~ /Hard Conflict/ ) {
+       $type = "Hard"; 
+    }
+    if ($_ =~ /Soft Conflict/ ) {
+       $type = "Soft"; 
+    }
+    if ($_ =~ /Target/ && $_ !~ /\*\*Seq/ && $_ !~ /\*\*Prop/) {
+       @xx = split(/,/);
+       $texp = $xx[$#xx-2];
+       $tdet = $xx[$#xx-1];
+       @xx = split(' ',$myline);
+       $tno = $xx[1];
+       $tname = "";
+       for ($ii=2;$ii<$#xx-4;$ii++) {
+         $tname .= " $xx[$ii]";
+       }
+       chop $tname;
+       @xx = split(/,/);
+       if ($#xx > 3) {
+         for ($ii=1;$ii < ($#xx-2);$ii++) {
+           $tname .= ",$xx[$ii]";
+         }
+       }
+    }
+    if ($_ =~ /\*\*Prop/ ) {
+       @xx = split;
+       chop $xx[1];
+
+       if ($pno != $xx[1]) {
+         push @PanelTable,"$pno $xx[1]";
+
+         $ll = substr($_,7);
+         while ( $ll =~ s/  / /g) {;}
+         @theconflict = split(/,/,$ll);
+         $cnt = $#theconflict;
+         $ctno = $theconflict[1];
+         $ctno =~ s/target //;
+         $tt = "$pno^$tno^$tname^$xx[1]^";
+         $tt .= "$ctno^$theconflict[$cnt-3]^$theconflict[$cnt-2]^";
+         $tt .= "$type^$theconflict[$cnt]";
+         $tt .= "^$plast^$tdet^$texp";
+       
+         if ($pno != $oldpno && $oldpno != "") {
+            $ii = $#PNOtable;
+            if ($ii >= 0) {
+              chomp($PNOtable[$ii]);
+              $PNOtable[$ii] .= "\n";
+            }
+         }
+         $oldpno = $pno;
+         push @PNOtable,$tt;
+      }
+    }
+  }
+  close INFILE;
+
+
+
+
+}
+
+sub process_panelTable 
+{
+  my($basedir) = @_;
+  my(@sort_PanelTable);
+  my($pfile,$ii,@yy,$y1,$y2);
+
+  $pfile = $param{o} . ".proposals";
+  open PFILE,">$pfile" or die "Unable to open $pfile for writing.\n";
+  print STDERR "Writing file to use in panel assignments: $pfile\n";
+
+  @sort_PanelTable = sort @PanelTable;
+    
+
+  for ($ii=0;$ii <= $#sort_PanelTable;$ii++) {
+      @yy = split(/ /,$sort_PanelTable[$ii]);
+      $y1 = substr($yy[0],0,4) ;
+      $y2 = substr($yy[1],0,4) ;
+
+      if ($ii == 0) {
+        print PFILE "$sort_PanelTable[$ii]\n";
+      }
+      elsif ($sort_PanelTable[$ii] !~ $sort_PanelTable[$ii-1]) {
+          print PFILE "$sort_PanelTable[$ii]\n";
+      }
+  } 
+
+  close PFILE;
+  chmod(0660,$pfile);
+}
+      
+sub parse_input {
+  my $err = 0;
+
+  %param = ( i => undef,
+             o => undef,
+             f => "	"
+        );
+
+  GetOptions( \%param,
+          "i=s",
+          "o=s",
+          "f=s",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val;
+      warn("parameter `$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+}
+
+sub usage {
+  print STDERR "\nUSAGE: parse_propconflict.pl  -io [f] \n";
+  print STDERR "         -i  filename   output from -peer option of propconflict\n";
+  print STDERR "         -o  output file \n";
+  print STDERR "         -f  delimiter, default is tab\n";
+}
+
+

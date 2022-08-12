@@ -1,0 +1,175 @@
+<fieldset class="fshelp" id="prop"><legend>Proposal </legend>
+<ul>
+
+<li class="elehelp"><a name="ObservationType" class="lblhelp"> Proposal Type</a>
+<br>
+<TABLE BORDER="0" CELLSPACING="0" CELLPADDING="0" >
+<TR>
+<TH ALIGN="LEFT"><b>Choice</b><hr></TH>
+<TH ALIGN="LEFT"><b>Description</b><hr></TH>
+</TR>
+<TR>
+<TD>GO</TD><TD> General Observer</TD></TR><TR>
+<TD>LP</TD><TD> Large Project (&gt; 400ks including slew tax)</TD></TR><TR>
+<TD>VLP</TD><TD> Very Large Project (&gt; 1 Msec including slew tax)</TD></TR><TR>
+<TD>TOO</TD><TD> Target of Opportunity</TD></TR><TR>
+<TD>TOO/LP</TD><TD> TOO and Large Project</TD></TR><TR>
+<TD>ARCHIVE</TD><TD> Archive Request</TD></TR><TR>
+<TD>THEORY</TD><TD> Theory Request</TD></TR><TR>
+<TD>GTO</TD><TD> Guaranteed Time Observer</TD></TR><TR>
+<TD>GTO/LP</TD><TD> Guaranteed Time Observer, Large Project</TD></TR><TR>
+<TD>GTO/TOO&nbsp;&nbsp;&nbsp;</TD><TD> Guaranteed Time Observer, TOO</TD></TR><TR>
+<TD>CAL</TD><TD> Calibration  (Chandra personnel only)</TD></TR>
+</TABLE>
+<P>CPS is used by all Chandra groups as the input to the observation
+database, so the <b>Proposal Type</b> is important.  General
+Observers (GOs) should choose one of the <i>GO</i>, <i>TOO</i>, 
+<i>LP</i>(GO and Large Project), <i>VLP</i>(GO and Very Large Project),
+TOO/LP(TOO and Large Project),<i>Theory</i> or <i>Archive</i> types as appropriate.
+<p>The CXC expects to award ~6 Msec of observing time to the Big Project Panel as described in the  <a href="http://cxc.harvard.edu/proposer/CfP/">Call for Proposals</a>.
+
+<p> The <i>Proposal Type</i> of CAL is only to be used by CXC.
+No proposal from non-CXC personnel can be accepted that requests
+a Calibration observation.  
+The <i>Proposal Type</i> of GTO is only to be used by members of a GTO team 
+when submitting proposals using the time allocated to the GTO team.
+<p><I>Required</I>.
+
+<li class="elehelp"><a name="ArchiveBudget" class="lblhelp"> If archive/theory request, enter proposed budget</a>
+<br>
+If this is an archive or theory request, please enter the total amount of the
+proposed budget. Units =  $1000 (U.S. dollars).
+<br>Valid range is 1.0 to 1000.0 .
+
+<li class="elehelp"><a name="ProprietaryData" class="lblhelp"> Proprietary Rights</a>
+<br>
+The default is the standard 6 months for proprietary data rights.
+<i>'No proprietary rights'</i> means that the data flows directly into the
+archive.  
+Valid options are:
+<dl>
+<dd>Standard (6 months) (default)
+<dd>4 months
+<dd>3 months
+<dd>2 months
+<dd>1 month
+<dd>No proprietary rights
+</dl>
+<I>Required</I>.
+
+<li class="elehelp"><a name="ProposalTitle" class="lblhelp"> Proposal Title</a>
+<br>
+The title of the proposal. <br>Maximum of 120 characters. <I>Required</I>.
+
+
+<li class="elehelp"><a class="lblhelp" name="SubjectCategory">Subject Category</a>
+<br>
+The type of objects(s) to be viewed in the Proposal. Enter
+one of the following categories:
+<pre>
+Solar System and Exoplanets
+Stars and WD
+WD Binaries and CV
+BH and NS Binaries
+SN, SNR and Isolated NS
+Gravitational Wave Event
+Normal Galaxies: Diffuse Emission
+Normal Galaxies: X-ray Populations
+Active Galaxies and Quasars 
+Clusters of Galaxies
+Extragalactic Diffuse Emission and Surveys
+Galactic Diffuse Emission and Surveys
+</pre>
+<I>Required</I>.
+
+<li class="elehelp"><a name="Keywords" class="lblhelp"> Science Keywords</a>
+<br>
+<!--#include virtual="science_keywords.html" -->
+
+<p>
+<li class="elehelp"><a name="Abstract" class="lblhelp"> Abstract</a>
+<br>
+The abstract. Maximum of 800 characters.  Abstracts exceeding this limit will be truncated.
+LaTeX commands will remain as plain text.
+<I>Required</I>.
+
+<li class="elehelp"><a name="Multicycle" class="lblhelp"> Is this a multi-cycle observing proposal?</a>
+<br>
+When scientifically well-justified, Chandra observing time  
+for a target may be proposed to span up to 3 cycles.  Only targets
+proposed in the current cycle may have observations extending into
+future cycles.  Please refer to the information on Multi-Cycle
+Observing Proposals in the Chandra Call for Proposals and/or on the
+Proposer page: <a href="http://cxc.harvard.edu/proposer"> 
+http://cxc.harvard.edu/proposer</a>.  
+
+<p>
+<ul>
+<li>Multi-cycle proposals must request time for the current Cycle. 
+<li>TOO triggers cannot be proposed here for future cycles, though TOO
+followups may extend into future cycles. 
+<li>Multi-cycle proposals requesting joint time may be allocated up to 
+10% of cycleN+1 and  5% of cycleN+2 of the available joint time 
+if scientifically justified (subject to the continued availability 
+of that joint time).  If proposing joint time for future cycles, include
+the total joint observing time request across all cycles.
+<li>Archive/Theory proposals cannot be
+multi-cycle.  However, archival proposals can be linked with a
+multi-cycle observing proposal.
+</ul>
+
+<p>
+
+If multi-cycle observations are requested for a given target, the
+proposer must specify the observing constraints that require 
+the observations to extend into future cycles.  Constraints
+must be well-justified scientifically.  The PI must estimate
+based on these constraints the amount of time required in the subsequent cycles
+for each such target, assuming the earliest feasible start date for
+the first target observations.  
+
+<p>
+For accounting purposes, the cycles are defined as 01 January through 31 December, where the first available Cycle begins the January after the proposal is approved.
+<!--
+<pre>
+Cycle 21 from 01-Jan-2020 00:00 through 31-Dec-2020 23:59
+Cycle 22 from 01-Jan-2021 00:00 through 31-Dec-2021 23:59
+Cycle 23 from 01-Jan-2022 00:00 through 31-Dec-2022 23:59
+</pre>
+-->
+<p>
+The total observing time indicated for each cycle 
+will be tallied by CPS from the individual Target Pages.
+Total time requested for any proposal will be
+directly forwarded to the peer review, and (at least 90%) completed if
+the program is approved in its entirety. 
+The estimates of the allotment of exposure time between this
+and future cycles are for accounting purposes only and will be specified 
+in the ObsCat accordingly. Note that, as for all observations, 
+scheduling considerations may result in actual observation dates outside 
+of the cycle date ranges specified above.
+<p>
+The proprietary period for data from multi-cycle targets
+begins when 90% of the data for any given target (as allocated to each
+cycle) has been made available to the observer.
+<p>
+
+<i>Required.</i> Default is No.
+
+
+<li class="elehelp"><a name="Linked" class="lblhelp"> Is this proposal linked to another in this cycle ?</a>
+<br>
+Logical value indicating that this proposal is linked to another
+proposal submitted for the current Call for Proposals. 
+Two proposals in the same cycle which represent separate pieces of the same science project will be reviewed by the same panel if linked (e.g. archive/observing proposals to complete a sample).
+
+<li class="elehelp"><a name="Linked2" class="lblhelp"> If known, please enter the proposal number of the linked proposal</a>
+<br>
+If this proposal is linked with another proposal, please
+enter the proposal number assigned to the linked proposal. If unknown,
+leave blank.
+
+
+</ul>
+</fieldset>
+

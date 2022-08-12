@@ -1,0 +1,116 @@
+===============================================================================
+
+	            HELP FILE for prop_read_reviews
+
+===============================================================================
+
+
+General
+-------
+
+The prop_read_reviews application reads all files in the specified
+(-in) directory. It reads the formatted file, determines the type of 
+review and updates the database with the review data. If a review already
+exists for the proposal, the user is asked to verify before the 
+review is overwritten.
+
+All files that are successfully read are moved to a ./sav subdirectory.
+
+PARAMETERS
+----------
+
+Use proposals that match the following criteria:
+-in   <input directory>   OPTIONAL  - path for input review files
+               
+
+-U [user]       REQUIRED  - proposal database user name
+-S [server]     OPTIONAL  - proposal database server 
+                            default is DB_PROP_SQLSRV
+-p              OPTIONAL  - print parameters
+
+
+
+INPUT/OUTPUT
+-------------
+
+1) STDIN:  
+
+   >Enter Password:  User must enter password for access to the database.
+
+2) Input Files: 
+
+   File containing formatted Review data.
+   The format should match the email versions as described in the 
+   prop_email_forms.hlp file.
+
+   Required key words are:
+
+     Review: (with Primary,Secondary, or Peer appearing on this line)
+     Proposal Number:
+     Review Report:
+     End_Review_Report
+
+
+3) Output Files:  None
+
+
+4) Output Files for Archive: 
+
+   N/A
+
+
+SETUP AND USAGE
+---------------
+
+prop_read_reviews uses the environment variables that are set in the file 
+'ascds_setup_prop' and 'ascds_setup_db'.  These proposal environment 
+variables include :
+
+        ASCDS_PROP_DIR       - top level proposal directory
+        ASCDS_PROP_AO        - current open proposal cycle number
+        DB_PROP_SQLSRV       - database sybase server.
+
+The user should not ordinarily change their values. 
+
+Only those users having permissions to read proposals should have access to
+the proposal database and any files that contain proposal data.
+All files created should belong to the group 'prop'.  Permission should
+be set so that only the owner and group have permissions to access these
+files.  If you need access, contact the system administrator.
+
+
+
+
+DETAILED DESCRIPTION - GENERAL INSTRUCTIONS
+-------------------------------------------------------------------
+
+Each review file is read. The text is searched for the "Review Report:" 
+keyword to determine the type of review (primary,secondary or peer).
+The text is then searched for the "Proposal Number:" keyword to 
+determine the correct proposal entry.  If valid, the text is then
+searched for the "Review Report:" keyword.  All text between this
+keyword and the "End_Review_Report" keyword is read and inserted in
+the peer_review.comments field in the database.
+
+
+
+RESTRICTIONS
+------------
+
+This program is expecting only 1 review per file.  If the user has
+concatenated their reviews, please run the prop_splitreviews.pl script 
+first.
+
+USAGE: prop_splitreviews.pl <filename> [<output_directory>]
+       where: 
+         <filename> is the input file containing multiple reviews.
+                    The reviews should be split by formfeeds(\f).
+         <output_directory> is the output directory for the review files. 
+                    The default is the current directory.
+
+
+REFERENCES
+----------
+
+See the Proposal section of the Data System Software Design Document 
+(DS01) for more detail about the proposal submission cycle. 

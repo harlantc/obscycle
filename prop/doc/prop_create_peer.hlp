@@ -1,0 +1,129 @@
+===============================================================================
+
+	            HELP FILE for prop_create_peer
+
+===============================================================================
+
+
+General
+-------
+
+The prop_create_peer application creates the peer review forms to be used
+by the reviewers at the Peer Review. This form will contain the results
+of the primary, secondary and technical evaluations.
+
+The review forms are stored in the directory identified by the -out
+parameter.  Subdirectories are created under this directory for each
+primary reviewer.  The subdirectory name is LastName_FirstInitial(SMITH_J).
+
+PARAMETERS
+----------
+
+Use proposals that match the following criteria:
+-f    [filename]         OPTIONAL  - file of proposal numbers
+-prop [proposal number]  OPTIONAL  - specific proposal number
+-panel[panel id]         OPTIONAL  - email reviews to all proposals for panel
+-all                     OPTIONAL  - DEFAULT.  All proposals for current cycle
+
+
+Output parameters:
+-suffix [extension]      OPTIONAL  - 3 character extension
+                                     Default is 'txt'
+-out [directory]         OPTIONAL  - output directory
+                                     Default is current directory.
+
+-U [user]       REQUIRED  - proposal database user name
+-S [server]     OPTIONAL  - proposal database server 
+                            default is ASCDS_SQLOC_SERVER
+-p              OPTIONAL  - print parameters
+
+
+INPUT/OUTPUT
+-------------
+
+1) STDIN:  
+
+   >Enter Password:  User must enter password for access to the database.
+
+2) Input Files: 
+
+   File containing proposal numbers when using the -f input parameter option.  
+   This file contains proposal numbers separated by white-space characters
+   (blanks, tabs, new-lines, or form-feeds).
+
+
+3) Output Files:  
+
+   Output files are created for each proposal.  The output file contains 
+   the combined primary/secondary review information displayed for each 
+   of the Strengths, Weaknesses, and Overall Assessment fields. In
+   addition the results of the technical evaluations are displayed.
+   The technical evaluation data should NOT be updated.  The technical
+   data fields are ignored when this file is processed to update the
+   peer review data in the database.
+
+Review:            Chandra Peer Review Form for 
+Proposal Number:   
+Subject Category: 
+P.I. Name:       
+Proposal Title: 
+
+Technical Evaluation Results
+
+Reviewer : 
+Technical Problems (Y/N): 
+Conflict with GTO or Calibration targets (Y/N): 
+
+Conflict with targets in other proposals (Y/N): 
+
+Comments: 
+
+_______________________________________________________________________________
+
+
+Strengths: 
+
+Weaknesses: 
+
+Overall Assessment: 
+
+Grade: 
+
+4) Output Files for Archive: 
+
+   N/A
+
+
+SETUP AND USAGE
+---------------
+
+prop_create_peer uses the environment variables that are set in the file 
+'ascds_setup_prop' and 'ascds_setup_db'.  These proposal environment 
+variables include :
+
+        ASCDS_PROP_DIR       - top level proposal directory
+        ASCDS_PROP_AO        - current open proposal cycle number
+        ASCDS_SQLOC_SERVER   - database sybase server.
+
+The user should not ordinarily change their values. 
+
+Only those users having permissions to read proposals should have access to
+the proposal database and any files that contain proposal data.
+All files created should belong to the group 'prop'.  Permission should
+be set so that only the owner and group have permissions to access these
+files.  If you need access, contact the system administrator.
+
+
+
+
+DETAILED DESCRIPTION - GENERAL INSTRUCTIONS
+-------------------------------------------------------------------
+
+RESTRICTIONS
+------------
+
+REFERENCES
+----------
+
+See the Proposal section of the Data System Software Design Document 
+(DS01) for more detail about the proposal submission cycle. 

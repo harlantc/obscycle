@@ -1,0 +1,96 @@
+#!@PERL@ 
+
+#   ***********************************************************
+#   Copyright (c) 2001-2009  Smithsonian  Astrophysical  Observatory
+#   The contents of this file are protected under the copyright
+#   notice  contained in the file  COPYRIGHT_SAO located in the
+#   root directory of this distribution.
+#   ***********************************************************
+#
+#* FILE NAME: prop_get_caldb_ea.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script retrieves and parses the specified CALDB file
+#     and creates a formatted file for the ea_viewer.
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#     (12/2008) - updated for caldb4.
+#     (11/2009) - updated for calquiz
+#   ***********************************************************
+
+use Getopt::Std;
+
+&parse_input;
+
+
+# first determine the correct CALDB file
+$cmd = qq(calquiz $qcmd );
+print STDERR ("$cmd\n");
+$xx = `$cmd echo+`;
+print STDERR ("calquiz results: $xx\n");
+@yy = split(/\[/,$xx,2);
+$calfile = $yy[0];
+
+# find average of the 2 energy columns and write results  to temporary file
+if ($calfile && -e $calfile) {
+
+  $cmd = qq(dmtcalc infile=$calfile  outfile=$ofile_tmp expression="ENERG_AV=(float)((ENERG_HI+ENERG_LO)/2)" clobber=yes);
+  print STDERR "$cmd\n\n";
+  `$cmd`;
+
+  # dump the output to an ascii file
+  $cmd = qq(dmlist "$ofile_tmp\[cols ENERG\_AV,SPECRESP\]" data,clean > $ofile);
+  print STDERR "$cmd\n\n";
+  `$cmd`;
+  unlink("$ofile_tmp");
+}
+else {
+  print STDERR "\n***ERROR*** No CALDB file for $ofile\n\n";
+}
+
+
+
+# -------------------------------------------------------
+# parse the command line arguments
+# -------------------------------------------------------
+sub parse_input {
+
+  getopts('q:o:');
+  if (!$opt_q) {
+    &print_usage;
+    exit 1;
+  }
+
+  @qtmp  = split(/ /,$opt_q);
+  $qcmd  = qq(infile="" );
+  $qcmd .= qq(product=$qtmp[0] );
+  $qcmd .= qq(calfile="$qtmp[1]" );
+  $qcmd .= qq(outfile="" );
+  $qcmd .= qq(telescope="chandra" );
+  $qcmd .= qq(instrument="default" );
+
+
+  if (!$opt_o) {
+    &print_usage;
+    exit 1;
+  }
+  $ofile = $opt_o;
+  $ofile_tmp = "$ofile.tmp";
+
+}
+
+sub print_usage {
+  print STDERR "\nUSAGE: prop_get_caldb_ea.pl -q calquiz_params -o output_filename\n";
+  print STDERR "WHERE:\n";
+  print STDERR "       -q  calquiz input parameters \n";
+  print STDERR "       -o  full output filename (including directory)\n\n";
+  print STDERR "EXAMPLE: -q \"PIMMS_EA CALDB(aonumber=AO-10)\" -o a\n";
+}

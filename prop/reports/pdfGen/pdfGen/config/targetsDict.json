@@ -1,0 +1,310 @@
+{
+  "Individual Target Details": {
+    "Target No.": [
+      "targ_num",
+      "left_bld_new"
+    ],
+    "Target Name": [
+      "targname",
+      "left_bld_new"
+    ],
+    "RA Dec": [
+      [
+        "ra",
+        "dec"
+      ],
+      "left_bld_new"
+    ],
+    "Resource Cost": [
+      "time_critical",
+      "table"
+    ],
+    "Time Critical": [
+      "time_critical",
+      "left_bld_new"
+    ],
+    "Obs Time": [
+      "targ_num",
+      "table"
+    ],
+    "Grid_Dict": {
+      "Grid Name": [
+        "grid_name",
+        "table_no_grid_left"
+      ],
+      "Number of Pointings": [
+        "grid_num_pointings",
+        "table_no_grid_left"
+      ],
+      "Max Distance": [
+        "grid_max_radius",
+        "table_no_grid_left"
+      ]
+    },
+    "Detector_Dict": {
+      "Detector": [
+        "instrument_name",
+        "table_no_grid_lbold"
+      ],
+      "Grating": [
+        "grating_name",
+        "table_no_grid_lbold"
+      ],
+      "Blank": [
+        "grating_name",
+        "table_no_grid_lbold"
+      ]
+    },
+    "Zero_Dict": {
+      "Total Field Rate": [
+        "total_fld_cnt_rate",
+        "table_no_grid_left"
+      ],
+      "1st Order Count Rate": [
+        "forder_cnt_rate",
+        "table_no_grid_left"
+      ],
+      "Src/Zero-order count rate (cts/s)": [
+        "est_cnt_rate",
+        "table_no_grid_left"
+      ],
+      "Solar System Object": [
+        "ss_object",
+        "table_no_grid_left"
+      ],
+      "Blank1": [
+        "grating_name",
+        "table_no_grid_left"
+      ],
+      "Blank2": [
+        "grating_name",
+        "table_no_grid_left"
+      ],
+      "Extended Source": [
+        "extended_src",
+        "table_no_grid_left"
+      ],
+      "Blank3": [
+        "grating_name",
+        "table_no_grid_left"
+      ],
+      "Blank4": [
+        "grating_name",
+        "table_no_grid_left"
+      ]
+    },
+    "Offsets_Dict": {
+      "Ydet": [
+        "y_det_offset",
+        "table_no_grid_left"
+      ],
+      "Zdet": [
+        "z_det_offset",
+        "table_no_grid_left"
+      ],
+      "SIM Translation Offset": [
+        "sim_trans_offset",
+        "table_no_grid_left"
+      ],
+      "Optical Monitor": [
+        "photometry_flag",
+        "table_no_grid_left"
+      ],
+      "V-Mag": [
+        "vmagnitude",
+        "table_no_grid_left"
+      ],
+      "Blank3": [
+        "grating_name",
+        "table_no_grid_left"
+      ],
+      "HRC Timing Mode": [
+        "timing_mode",
+        "table_no_grid_left"
+      ],
+      "Blank4": [
+        "grating_name",
+        "table_no_grid_left"
+      ],
+      "Blank5": [
+        "grating_name",
+        "table_no_grid_left"
+      ]
+    }
+  },
+  "ACIS Parameters": {
+    "Exposure_Dict": {
+      "Exposure Mode": [
+        "exp_mode",
+        "table_no_grid_left"
+      ],
+      "Telemetry Format": [
+        "bep_pack",
+        "table_no_grid_left"
+      ],
+      "Blank1": [
+        "grating_name",
+        "table_no_grid_left"
+      ],
+      "Most Efficient": [
+        "most_efficient",
+        "table_no_grid_left"
+      ],
+      "CCD Frame Exposure Time": [
+        "frame_time",
+        "table_no_grid_left"
+      ],
+      "Blank2": [
+        "grating_name",
+        "table_no_grid_left"
+      ]
+    },
+    "ACIS_Chips_Dict": {
+      "Chip Layout": [
+        "ccdi0_on",
+        "table_no_grid_lbold"
+      ],
+      "Chip Selection": [
+        "ccdi0_on",
+        "table_no_grid_lbold"
+      ],
+      "Blank1": [
+        "grating_name",
+        "table_no_grid_lbold"
+      ]
+    },
+    "Subarray_Dict": {
+      "Subarray Type": [
+        "subarray",
+        "table_no_grid_left"
+      ],
+      "Start Row": [
+        "subarray_start_row",
+        "table_no_grid_left"
+      ],
+      "NumRows": [
+        "subarray_row_count",
+        "table_no_grid_left"
+      ],
+      "Alternating Exposure": [
+        "duty_cycle",
+        "table_no_grid_left"
+      ],
+      "Num Secondary Exposures": [
+        "secondary_exp_count",
+        "table_no_grid_left"
+      ],
+      "Exptime for Primary Cycle": [
+        "primary_exp_time",
+        "table_no_grid_left"
+      ],
+      "Spectra Max Count": [
+        "spectra_max_count",
+        "table_no_grid_left"
+      ],
+      "Spectra Multiple Lines": [
+        "multiple_spectral_lines",
+        "table_no_grid_left"
+      ],
+      "Blank1": [
+        "grating_name",
+        "table_no_grid_left"
+      ],
+      "Energy Filter": [
+        "eventfilter",
+        "table_no_grid_left"
+      ],
+      "Lower Thresh": [
+        "eventfilter_lower",
+        "table_no_grid_left"
+      ],
+      "Range": [
+        "eventfilter_range",
+        "table_no_grid_left"
+      ]
+    },
+    "Spatial Windows": [
+      "ACISWIN",
+      "table"
+    ]
+  },
+  "Constraint Specification": {
+    "Uninterrupted_Dict": {
+      "Uninterrupted": [
+        "uninterrupt",
+        "table_no_grid_left"
+      ],
+      "Pointing Update Constraint": [
+        "pointing_constraint",
+        "table_no_grid_left"
+      ],
+      "Split Interval (days)": [
+        "split_interval",
+        "table_no_grid_left"
+      ],
+      "Coordinated": [
+        "multitelescope",
+        "table_no_grid_left"
+      ],
+      "Maximum Time Interval": [
+        "multitelescope_interval",
+        "table_no_grid_left"
+      ],
+      "Observatories": [
+        "observatories",
+        "table_no_grid_left"
+      ]
+    },
+    "Win/Roll_Dict": {
+      "Window Constraints": [
+        "WINDOW",
+        "table_no_grid_lbold"
+      ],
+
+      "Roll Constraints": [
+        "ROLL",
+        "table_no_grid_lbold"
+      ]
+    },
+    "Phase/Group_Dict": {
+      "Phase Dependent": [
+        "phase_constraint_flag",
+        "table_no_grid_left"
+      ],
+      "Group": [
+        "group_id",
+        "table_no_grid_left"
+      ],
+      "Group Interval": [
+        "group_interval",
+        "table_no_grid_left"
+      ]
+    },
+    "Mon/Const_Rmrks_Dict": {
+      "Monitors": [
+        "OBS",
+        "table"
+      ],
+      "Additional Constraints in Remarks": [
+        "constr_in_remarks",
+        "center"
+      ]
+    }
+  },
+  "Target Remarks": {
+    "Target Remarks": [
+      "remarks",
+      "left_new"
+    ]
+  },
+  "TOO Specifications": {
+    "Target Criteria": [
+      "trig",
+      "left_new"
+    ],
+    "Followup Instructions": [
+      "tooremarks",
+      "left_new"
+    ]
+  }
+}

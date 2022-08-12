@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE formView SYSTEM "formView.dtd">
+
+<formView>
+
+  <title>ROLLREQ Form</title>
+
+  <info>
+    <supportsNew>clone null</supportsNew>
+  </info>
+
+  <key>
+    <tableName>rollreq</tableName>
+    <columnName>rollreq_id</columnName>
+  </key>
+
+  <navigation>
+    <display>
+      <name>ROLLREQ Identifier</name>
+      <tableName>rollreq</tableName>
+      <columnName>rollreq_id</columnName>
+    </display>
+    <display>
+      <name>ObsId+Order</name>
+      <tableName>rollreq</tableName>
+      <columnName>(convert(char(8),obsid)+convert(char(4),ordr))</columnName>
+    </display>
+  </navigation>
+
+  <GUI>
+    <label tag="11">
+      <labelText>ROLLREQ</labelText>
+      <row>
+        <number>0</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+    </label>
+
+    <textfield tag="12">
+      <labelText>Id</labelText>
+      <size>6</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>rollreq</tableName>
+        <columnName>rollreq_id</columnName>
+      </database>
+    </textfield>
+
+
+    <textfield tag="13">
+      <labelText>Obs Id</labelText>
+      <size>6</size>
+      <database>
+        <tableName>rollreq</tableName>
+        <columnName>obsid</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="14">
+      <labelText>Order</labelText>
+      <size>2</size>
+      <database>
+        <tableName>rollreq</tableName>
+        <columnName>ordr</columnName>
+      </database>
+    </textfield>
+    
+   <combobox tag="21" none="false">
+      <labelText>Roll Constraint</labelText>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <size>1</size>
+      <database>
+        <tableName>rollreq</tableName>
+        <columnName>roll_constraint</columnName>
+      </database>
+    </combobox>
+
+    <combobox tag="22">
+      <labelText>Roll 180?</labelText>
+      <database>
+        <tableName>rollreq</tableName>
+        <columnName>roll_180</columnName>
+      </database>
+    </combobox>
+
+    <textfield tag="31">
+      <labelText>Roll Angle</labelText>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <size>6</size>
+      <database>
+        <tableName>rollreq</tableName>
+        <columnName>roll</columnName>
+      </database>
+    </textfield>
+   
+    <textfield tag="32">
+      <labelText>Roll Tolerance</labelText>
+      <size>6</size>
+      <database>
+        <tableName>rollreq</tableName>
+        <columnName>roll_tolerance</columnName>
+      </database>
+    </textfield>
+
+
+ </GUI>
+
+</formView>
+

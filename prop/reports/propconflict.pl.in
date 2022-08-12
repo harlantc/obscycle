@@ -1,0 +1,236 @@
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 1995, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: propconflict.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script sets the arguments for a basic run of the propconflict
+#     application.  It should mainly be used for checking the coordinates
+#     of an observation against the proposal/obscat database.
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+use Getopt::Long;
+use strict;
+use lib $ENV{'ASCDS_BIN'};
+
+
+use vars qw(%param @reqfiles $reqfile $bindir
+	);
+
+@reqfiles = (
+        "prop_routines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print STDERR "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+
+{
+  my ($ra,$dec, $cmd,$db_search,$qfile,$hdr,$pcmd);
+
+  ($qfile) = &parse_input;
+
+  if (!$param{c} ) {
+    print STDERR "\nEnter RA (hh mm ss.ss): ";
+    chomp ($ra = <STDIN>);
+    while ($ra =~ s/:/ /g) {;}
+
+    print STDERR "Enter DEC (+/-dd mm ss.ss): ";
+    chomp ($dec = <STDIN>);
+    while ($dec =~ s/:/ /g) {;}
+
+    $param{c} = "$ra\/$dec";
+  }
+
+  $db_search = "ocat";
+  if ($param{o}) {
+    $hdr = get_date();
+    `echo "$hdr\n\n" > $param{o}`;
+  }
+
+  
+  # back proposal search (rejected proposals)
+  if ($param{t} =~ /b/) {
+    $hdr = "\n*************************************\nREJECTED Proposal results\n*************************************\n";
+    $cmd = $bindir . qq(propconflict -U $param{U} -q $qfile -f $param{f} -t'coord=\@$param{c}' -s db=prop $param{t} -r prop=$param{r},ocat=$param{r});
+    if ($param{o}) {
+      `echo "$hdr" >> $param{o}`;
+      $cmd .= " >> $param{o}";
+    } else {
+      print $hdr;
+    }
+    if ($param{z}) {
+      print STDERR "$cmd\n";
+    }
+    
+    system ($cmd);
+    # now reset to do the regular search too
+  }
+
+  $hdr = "\n*************************************\nHOLD Proposal results\n*************************************\n";
+  $cmd = $bindir . qq(propconflict -U $param{U} -q $qfile -f $param{f} -t'coord=\@$param{c}' -s db=prop -H  -r prop=$param{r},ocat=$param{r});
+  if ($param{o}) {
+    `echo "$hdr" >> $param{o}`;
+    $cmd .= " >> $param{o}";
+  } else {
+    print $hdr;
+  }
+
+  if ($param{z}) {
+    print STDERR "$cmd\n";
+  }
+  system ($cmd);
+
+
+  $hdr = "\n\n*******************************************\nObsCat and current Proposal results\n*******************************************\n";
+  $cmd = $bindir . qq(propconflict -U $param{U} -q $qfile -f $param{f} -t'coord=\@$param{c}' -s db=all -r prop=$param{r},ocat=$param{r});
+  if ($param{o}) {
+      `echo "$hdr" >> $param{o}`;
+      $cmd .= " >> $param{o}";
+  } else {
+    print $hdr;
+  }
+  if ($param{z}) {
+    print STDERR "\n\n$cmd\n";
+  }
+  system ($cmd);
+
+  unlink $qfile;
+}
+
+#---------------------------------------------------------------------------
+sub parse_input { 
+  my ($pwd);
+  my $err = 0;
+  my($qfile,$clearit,$ra,$dec,@arr,$cmd);
+
+  %param = ( U => undef,
+             S => $ENV{DB_LOCAL_SQLSRV},
+             r => 15,
+             t => "-b",
+             f => "peer" 
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "r=f",
+          "q=s",
+          "t=s",
+          "f=s",
+	  "o=s",
+          "c=s",
+          "d=s",
+          "h",
+          "z"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val;
+      warn("parameter '$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+
+  $bindir = $ENV{'ASCDS_BIN'};
+  if (!$bindir ) {
+    $bindir = "";
+  }
+  else {
+    $bindir .= "/";
+  }
+
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+    $param{q} = "/tmp/.ht" . $ENV{USER} . ".p1";
+    write_password($param{q},$pwd);
+    $clearit = 1;
+  }
+  else {
+    $pwd = read_password($param{q});
+    $clearit = 0;
+  }
+
+  $qfile = "/tmp/.ht" . $ENV{USER} . ".p2";
+  $cmd = $bindir . ".pingest";
+  `\\cat $param{q} | $cmd $qfile 2>&1 >> /dev/null`;
+  if ($clearit) {
+    unlink($param{q});
+  }
+
+  if ($param{d} ) {
+    if ($param{c}) { 
+      &usage;
+      exit (1);
+    }
+    else {
+      @arr = split(/\//,$param{d});
+      ($ra,$dec) = convert_coord($arr[0],$arr[1]);
+      while ($ra  =~ s/:/ /g) {;}
+      while ($dec  =~ s/:/ /g) {;}
+      $param{c} = $ra . "/" . $dec;
+    }
+     
+  }
+  elsif ($param{c}) { 
+    if ($param{d}) { 
+      &usage;
+      exit (1);
+    }
+    else {
+      ($ra,$dec) = split(/\//,$param{c});
+      while ($ra  =~ s/:/ /g) {;}
+      while ($dec  =~ s/:/ /g) {;}
+      $param{c} = $ra . "/" . $dec;
+    }
+  }
+
+  return($qfile);
+}
+
+
+sub usage
+{
+  print STDERR "\nUSAGE: propconflict.pl -U [-cdfor]\n";
+  print STDERR "         -U   database user name\n";
+  print STDERR "         -c   optional coords format=\"hh mm ss/dd mm ss\"\n";
+  print STDERR "         -d   optional coords format=\"ddd.ss/ddd.ss\"\n";
+  print STDERR "              use either -c or -d argument\n";
+  print STDERR "         -f   propconflict report type , default is peer\n";
+  print STDERR "         -o   output file, default is STDOUT\n";
+  print STDERR "         -r   radius, default is 15 arcmin\n";
+  print STDERR "\n\nIf -c or -d not entered, user will be prompted for coordinates:\n";
+  print STDERR "  RA       - format: hh mm ss.ss \n"; 
+  print STDERR "  Dec      - format: +/-dd mm ss.ss \n"; 
+  print STDERR "\n\nThis script only supports a the 'peer' report for conflicts\nin the Obscat, rejected proposals and any proposals for the current cycle.\n";
+  print STDERR "\nMore information on propconflict is available in:\n";
+  print STDERR "  /proj/ascds/staff/UDF/Databases/proposal/Notes/propconflict.doc\n";
+}
+

@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE formView SYSTEM "formView.dtd">
+
+<formView>
+
+  <title>SOE Form</title>
+
+  <info>
+    <supportsNew>nil</supportsNew>
+  </info>
+
+  <key>
+    <tableName>soe</tableName>
+    <columnName>row_id</columnName>
+  </key>
+
+  <navigation>
+    <display>
+      <name>Observation ID</name>
+      <tableName>soe</tableName>
+      <columnName>obsid</columnName>
+    </display>
+  </navigation>
+
+  <GUI>
+    <label tag="11">
+      <labelText>SOE</labelText>
+      <row>
+        <number>0</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+    </label>
+
+   <textfield tag="21">
+      <labelText>Counter</labelText>
+      <size>8</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>soe</tableName>
+	<columnName>counter</columnName>
+      </database>
+    </textfield>
+
+   <textfield tag="22">
+      <labelText>Sequence Number</labelText>
+      <size>8</size>
+      <database>
+        <tableName>soe</tableName>
+	<columnName>seq_nbr</columnName>
+      </database>
+    </textfield>
+
+   <textfield tag="23">
+      <labelText>Observation Interval</labelText>
+      <size>8</size>
+      <database>
+        <tableName>soe</tableName>
+	<columnName>obi</columnName>
+      </database>
+    </textfield>
+
+   <timestampbutton tag="31">
+      <labelText>Start Scheduled Time</labelText>
+      <size>18</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>soe</tableName>
+	<columnName>st_sched_date</columnName>
+      </database>
+    </timestampbutton>
+
+   <timestampbutton tag="32">
+      <labelText>End Scheduled Time</labelText>
+      <size>18</size>
+      <database>
+        <tableName>soe</tableName>
+	<columnName>end_sched_date</columnName>
+      </database>
+    </timestampbutton>
+
+   <textfield tag="41">
+      <labelText>Scheduled Exposure Time</labelText>
+      <size>8</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>soe</tableName>
+	<columnName>sched_exp_time</columnName>
+      </database>
+    </textfield>
+
+   <textfield tag="42">
+      <labelText>Scheduled Roll Angle</labelText>
+      <size>8</size>
+      <database>
+        <tableName>soe</tableName>
+	<columnName>soe_roll</columnName>
+      </database>
+    </textfield>
+
+   <textfield tag="51">
+      <labelText>Quaternion 0</labelText>
+      <size>10</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>soe</tableName>
+	<columnName>quat0</columnName>
+      </database>
+    </textfield>
+
+   <textfield tag="52">
+      <labelText>Quaternion 1</labelText>
+      <size>10</size>
+      <database>
+        <tableName>soe</tableName>
+	<columnName>quat1</columnName>
+      </database>
+    </textfield>
+
+   <textfield tag="53">
+      <labelText>Quaternion 2</labelText>
+      <size>10</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>soe</tableName>
+	<columnName>quat2</columnName>
+      </database>
+    </textfield>
+
+   <textfield tag="54">
+      <labelText>Quaternion 3</labelText>
+      <size>10</size>
+      <database>
+        <tableName>soe</tableName>
+	<columnName>quat3</columnName>
+      </database>
+    </textfield>
+
+   <textfield tag="61">
+      <labelText>Type</labelText>
+      <size>8</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>soe</tableName>
+	<columnName>rec_id</columnName>
+      </database>
+    </textfield>
+
+   <textfield tag="62">
+      <labelText>Request Id</labelText>
+      <size>8</size>
+      <database>
+        <tableName>soe</tableName>
+	<columnName>req_id</columnName>
+      </database>
+    </textfield>
+
+   <textfield tag="20">
+      <labelText>Row Id</labelText>
+      <size>8</size>
+      <database>
+        <tableName>soe</tableName>
+	<columnName>row_id</columnName>
+      </database>
+    </textfield>
+
+ </GUI>
+
+</formView>

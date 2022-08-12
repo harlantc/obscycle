@@ -1,0 +1,37 @@
+(
+:ao 23
+:observer Hu
+:prop-num 23400045
+:seq-nbr 999999
+:id 70949
+:name CXOU J133001.0+471344
+:type GO
+:ra 202.504208
+:dec 47.228861
+:prop-exp-time 190.000000
+:si ACIS-S
+:requested-chip-count 1
+:optional-chip-count 0
+:ccdi0 N
+:ccdi1 N
+:ccdi2 N
+:ccdi3 N
+:ccds0 N
+:ccds1 N
+:ccds2 N
+:ccds3 Y
+:ccds4 N
+:ccds5 N
+:uninterrupt N
+:pointing_constraint N
+:phase-constr-flag Y
+:phase-epoch 2018:117:00:00:00.000
+:phase-period 038:10:42:29.952
+:phase-start 0.250000
+:phase-start-margin 0.050000
+:phase-end 0.500000
+:phase-end-margin 0.050000
+:multi-tel-flag N
+:monitor N
+:monitor N
+)

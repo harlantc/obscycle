@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<!DOCTYPE web-app
+    PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.2//EN"
+    "http://java.sun.com/j2ee/dtds/web-app_2_2.dtd">
+
+
+<web-app>
+ <display-name>Reports Application</display-name>
+ <description>Handles the review reports website</description>
+ <servlet>
+   <servlet-name>reportsLogin</servlet-name>
+   <servlet-class>LoginServlet</servlet-class>
+ </servlet>
+
+ <servlet>
+   <servlet-name>LoginServlet</servlet-name>
+   <servlet-class>LoginServlet</servlet-class>
+ </servlet>
+
+ <servlet>
+   <servlet-name>reportsLogout</servlet-name>
+   <servlet-class>LogoutServlet</servlet-class>
+ </servlet>
+ <servlet>
+   <servlet-name>reviewReportsServlet</servlet-name>
+   <servlet-class>ReviewReportsServlet</servlet-class>
+ </servlet>
+
+ <servlet>
+   <servlet-name>ReviewReportsServlet</servlet-name>
+   <servlet-class>ReviewReportsServlet</servlet-class>
+ </servlet>
+
+ <servlet>
+   <servlet-name>viewGradesSummary</servlet-name>
+   <servlet-class>ViewGradesSummary</servlet-class>
+ </servlet>
+
+ <servlet>
+   <servlet-name>assignGroupsServlet</servlet-name>
+   <servlet-class>AssignGroupsServlet</servlet-class>
+ </servlet>
+
+ <servlet>
+   <servlet-name>listServlet</servlet-name>
+   <servlet-class>ListServlet</servlet-class>
+ </servlet>
+
+ <servlet>
+   <servlet-name>proposalListServlet</servlet-name>
+   <servlet-class>ProposalListServlet</servlet-class>
+ </servlet>
+
+ <servlet>
+   <servlet-name>techListServlet</servlet-name>
+   <servlet-class>TechListServlet</servlet-class>
+ </servlet>
+
+ <servlet>
+   <servlet-name>conflictsServlet</servlet-name>
+   <servlet-class>ConflictsServlet</servlet-class>
+ </servlet>
+
+ <servlet>
+   <servlet-name>preConflictServlet</servlet-name>
+   <servlet-class>PreConflictServlet</servlet-class>
+ </servlet>
+
+ <servlet>
+   <servlet-name>bppConflictServlet</servlet-name>
+   <servlet-class>BPPConflictServlet</servlet-class>
+ </servlet>
+
+ <servlet>
+   <servlet-name>reassignReportServlet</servlet-name>
+   <servlet-class>ReassignReportServlet</servlet-class>
+ </servlet>
+
+ <servlet>
+   <servlet-name>assignGradesServlet</servlet-name>
+   <servlet-class>AssignGradesServlet</servlet-class>
+ </servlet>
+ <servlet>
+   <servlet-name>getReportServlet</servlet-name>
+   <servlet-class>GetReportServlet</servlet-class>
+ </servlet>
+ <servlet>
+   <servlet-name>updateReportServlet</servlet-name>
+   <servlet-class>UpdateReportServlet</servlet-class>
+ </servlet>
+ <servlet>
+   <servlet-name>viewPanelServlet</servlet-name>
+   <servlet-class>ViewPanelServlet</servlet-class>
+ </servlet>
+ <servlet>
+   <servlet-name>viewLPServlet</servlet-name>
+   <servlet-class>ViewLPServlet</servlet-class>
+ </servlet>
+ <servlet>
+   <servlet-name>memberListServlet</servlet-name>
+   <servlet-class>MemberListServlet</servlet-class>
+ </servlet>
+ <servlet>
+   <servlet-name>printReportsServlet</servlet-name>
+   <servlet-class>PrintReportsServlet</servlet-class>
+ </servlet>
+
+
+<!-- Mappings -->
+
+ <servlet-mapping>
+   <servlet-name>reportsLogin</servlet-name>
+   <url-pattern>/login.jsp</url-pattern>
+ </servlet-mapping>
+
+ <servlet-mapping>
+   <servlet-name>LoginServlet</servlet-name>
+   <url-pattern>/servlet/LoginServlet</url-pattern>
+ </servlet-mapping>
+
+
+ <servlet-mapping>
+   <servlet-name>reportsLogout</servlet-name>
+   <url-pattern>/reportsLogout</url-pattern>
+ </servlet-mapping>
+
+
+
+ <servlet-mapping>
+   <servlet-name>reviewReportsServlet</servlet-name>
+   <url-pattern>/reviewReports.jsp</url-pattern>
+ </servlet-mapping>
+ <servlet-mapping>
+   <servlet-name>ReviewReportsServlet</servlet-name>
+   <url-pattern>/servlet/ReviewReportsServlet</url-pattern>
+ </servlet-mapping>
+
+
+ <servlet-mapping>
+   <servlet-name>viewGradesSummary</servlet-name>
+   <url-pattern>/viewGradesSummary</url-pattern>
+ </servlet-mapping>
+ <servlet-mapping>
+   <servlet-name>proposalListServlet</servlet-name>
+   <url-pattern>/proposalList.jsp</url-pattern>
+ </servlet-mapping>
+ <servlet-mapping>
+   <servlet-name>techListServlet</servlet-name>
+   <url-pattern>/techList.jsp</url-pattern>
+ </servlet-mapping>
+ <servlet-mapping>
+   <servlet-name>preConflictServlet</servlet-name>
+   <url-pattern>/preConflict.jsp</url-pattern>
+ </servlet-mapping>
+ <servlet-mapping>
+   <servlet-name>bppConflictServlet</servlet-name>
+   <url-pattern>/bppConflict.jsp</url-pattern>
+ </servlet-mapping>
+ <servlet-mapping>
+   <servlet-name>reassignReportServlet</servlet-name>
+   <url-pattern>/reassignReport.jsp</url-pattern>
+ </servlet-mapping>
+ <servlet-mapping>
+   <servlet-name>assignGroupsServlet</servlet-name>
+   <url-pattern>/assignGroups.jsp</url-pattern>
+ </servlet-mapping>
+ <servlet-mapping>
+   <servlet-name>listServlet</servlet-name>
+   <url-pattern>/list.jsp</url-pattern>
+ </servlet-mapping>
+ <servlet-mapping>
+   <servlet-name>conflictsServlet</servlet-name>
+   <url-pattern>/assignConflicts.jsp</url-pattern>
+ </servlet-mapping>
+ <servlet-mapping>
+   <servlet-name>assignGradesServlet</servlet-name>
+   <url-pattern>/assignGrades.jsp</url-pattern>
+ </servlet-mapping>
+ <servlet-mapping>
+   <servlet-name>getReportServlet</servlet-name>
+   <url-pattern>/getReport.jsp</url-pattern>
+ </servlet-mapping>
+ <servlet-mapping>
+   <servlet-name>updateReportServlet</servlet-name>
+   <url-pattern>/updateReport</url-pattern>
+ </servlet-mapping>
+ <servlet-mapping>
+   <servlet-name>viewPanelServlet</servlet-name>
+   <url-pattern>/viewPanel</url-pattern>
+ </servlet-mapping>
+ <servlet-mapping>
+   <servlet-name>viewLPServlet</servlet-name>
+   <url-pattern>/viewLP</url-pattern>
+ </servlet-mapping>
+ <servlet-mapping>
+   <servlet-name>memberListServlet</servlet-name>
+   <url-pattern>/viewMembers</url-pattern>
+ </servlet-mapping>
+ <servlet-mapping>
+   <servlet-name>printReportsServlet</servlet-name>
+   <url-pattern>/printReports</url-pattern>
+ </servlet-mapping>
+
+ <session-config>
+   <session-timeout>60</session-timeout>
+
+   <cookie-config>
+      <http-only>true</http-only>
+      <secure>false</secure>
+   </cookie-config>
+ </session-config>
+
+
+</web-app>

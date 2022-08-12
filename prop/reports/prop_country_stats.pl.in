@@ -1,0 +1,271 @@
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 2014, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_country_stats.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script provides country statistics requested vs approved for the 
+#     peer review (status=PROPOSED).
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use vars qw ($dbh %param $alttab @reqfiles $reqfile $dbdelim $gto
+  	@results @results2 @results_t @results2_t
+	);
+
+use strict;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+
+
+@reqfiles = (
+        "prop_routines.pl",
+        "prop_dbroutines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+$dbdelim = "---";
+
+{
+  my($dsn,$stmp,$title,$idx,$aname);
+
+# -------------------------- MAIN ----------------------------------
+  &parse_input;
+  $title = "Statistics for Peer Review Proposals for Cycle $param{a}";
+
+
+  #database connection
+  $dbh = dbProposalConnection($param{U}, $param{S}, $param{q});
+
+
+  open(OFILE,"> $param{o}")  ||
+    die "Unable to open $param{o} for writing!\n";
+  printf OFILE "\n$title      %s\n\n",get_date();
+  
+  $idx = 1;
+
+
+  $param{s} = qq((proposal.status like "PROPOSED" or proposal.rank is not null) and proposal.joint not like "%CXO-%" and proposal.type != "CAL" and proposal.type != "DDT" $gto);
+  $param{t} = "Requested";
+  $param{f} = "prop_exposure_time";
+  $param{n1} = "est_time_cycle_n1";
+  $param{n2} = "est_time_cycle_n2";
+  $alttab = "#dreqalt";
+
+  # exclude alternates and then build probability table
+  dbexclude_alternates($dbh);
+  dbbuild_probability($dbh);
+
+  # get requested results
+  @results_t = dbby_usa_foreign($dbh);
+  @results = dbby_country($dbh);
+
+
+  # get approved results
+  $param{s} = qq( proposal.rank >= 3.5 and proposal.joint not like "%CXO-%" and proposal.type != "CAL" and proposal.type != "DDT"   $gto);
+  $param{t} = "Approved";
+  $param{f} = "approved_exposure_time";
+  $param{n1} = "app_time_cycle_n1";
+  $param{n2} = "app_time_cycle_n2";
+  $alttab = "#dappalt";
+
+  $dbh->do("drop table #dtgt");
+  $dbh->do("drop table #dprob");
+
+  dbbuild_probability($dbh);
+
+  @results2_t = dbby_usa_foreign($dbh);
+  @results2 = dbby_country($dbh);
+
+  do_country_totals();
+  print OFILE "\n\n";
+  do_country();
+
+  close OFILE;
+  chgroup($param{o});
+  chmod 0660,$param{o};
+
+}
+# ----------------------------------------------------------------------
+
+# ----------------------------------------------------------------------
+sub do_country_totals
+{
+  my($ii) = @_;
+  my(@row,$stmp,$tcnt,$ttime,$tptime);
+  my(@row2,$astr,$atcnt,$attime,$atptime);
+
+  printf OFILE "%-15s\t%-10s\t%-10s\t%-10s\t%-10s\n",
+	"Country","Requested","","Approved","";
+  printf OFILE "%-15s\t%-10s\t%-10s\t%-10s\t%-10s\n",
+	"","#Proposals","Time(ksec)","#Proposals","Time(ksec)";
+  printf OFILE "%-15s\t%-10s\t%-10s\t%-10s\t%-10s\n",
+	"---------------",
+      "----------", "----------", "----------", "---------";
+ 
+  my %acountry;
+  foreach $stmp (@results2_t) {
+    @row = split($dbdelim,$stmp);
+    $acountry{$row[0]} = $stmp;
+  }
+  foreach $stmp (@results_t) {
+    @row = split($dbdelim,$stmp);
+    @row2 = split($dbdelim,$acountry{$row[0]});
+
+    printf OFILE "%-15s\t%8d  \t%9.2f \t%8d  \t%9.2f\n",
+      $row[0],$row[1],$row[2],$row2[1],$row2[2];
+
+    $tcnt += $row[1];
+    $ttime += $row[2];
+    $tptime += $row[3];
+    $atcnt += $row2[1];
+    $attime += $row2[2];
+    $atptime += $row2[3];
+  }
+}
+# ----------------------------------------------------------------------
+sub do_country
+{
+  my($ii) = @_;
+  my(@row,$stmp,$tcnt,$ttime,$tptime);
+  my(@row2,$astr,$atcnt,$attime,$atptime);
+
+  printf OFILE "%-15s\t%-10s\t%-10s\t%-10s\t%-10s\n",
+	"Country","Requested","","Approved","";
+  printf OFILE "%-15s\t%-10s\t%-10s\t%-10s\t%-10s\n",
+	"","#Proposals","Time(ksec)","#Proposals","Time(ksec)";
+  printf OFILE "%-15s\t%-10s\t%-10s\t%-10s\t%-10s\n",
+	"---------------",
+      "----------", "----------", "----------", "---------";
+ 
+  my %acountry;
+  foreach $stmp (@results2) {
+    @row = split($dbdelim,$stmp);
+    $acountry{$row[0]} = $stmp;
+  }
+  foreach $stmp (@results) {
+    @row = split($dbdelim,$stmp);
+    @row2 = split($dbdelim,$acountry{$row[0]});
+    my(@fmts)= ("%s","%10d","%10.2f","%10.2f");
+
+    for (my $ii=2;$ii<=$#row;$ii++) {
+      if ($row[$ii] == 0) {
+         $row[$ii] = "";
+      } else {
+         $row[$ii]= sprintf($fmts[$ii],$row[$ii]);
+      }
+      if ($row2[$ii] == 0) {
+         $row2[$ii] = "";
+      } else {
+         $row2[$ii]= sprintf($fmts[$ii],$row2[$ii]);
+      }
+    }
+
+    printf OFILE "%-15s\t%10s\t%10s\t%10s\t%10s\n",
+      $row[0],$row[1],$row[2],$row2[1],$row2[2];
+
+    $tcnt += $row[1];
+    $ttime += $row[2];
+    $tptime += $row[3];
+    $atcnt += $row2[1];
+    $attime += $row2[2];
+    $atptime += $row2[3];
+  }
+}
+
+# ----------------------------------------------------------
+# parse input parameters
+# ----------------------------------------------------------
+sub parse_input
+{
+  my($pwd);
+  my $err = 0;
+
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+             o=> undef,
+             a=> "$ENV{ASCDS_PROP_AO}"
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "o=s",
+          "a=s",
+          "q=s",
+          "g",
+          "d",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter '$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+  $param{q} = $pwd;
+  
+  if ($param{g}) {
+     $gto = qq (and proposal.type not like "%GTO%");
+  } else {
+     $gto = " ";
+  }
+    
+
+}
+
+sub usage
+{
+    print STDERR "\nUSAGE: prop_country_stats.pl -Uo [-Sag]\n";
+    print STDERR "       -U database user name\n";
+    print STDERR "       -o output filename \n";
+    print STDERR "       -S database server, default is DB_PROP_SQLSRV\n";
+    print STDERR "       -a AO , default is current ASCDS_PROP_AO\n";
+    print STDERR "       -g If present, ignores ALL GTO proposals.\n";
+}
+

@@ -1,0 +1,121 @@
+# Handle all webinstall functions
+
+# CM scripts depend upon ASCDS_WEBSRV_ROOT and setup for production servers
+# Override the Web server root on the command line
+
+#default web host , used in the obscat_editor script
+# can be overridden on the make line
+WEB_HOST = https://cxc.harvard.edu
+WEB_CLASSPATH = /proj/web-cxc/htdocs/soft/RELEASE/web_bin/java_class
+
+WEB_BIN_DIR = $(ASCDS_WEBSRV_ROOT)/web_bin
+WEB_APPS_DIR = $(ASCDS_WEBSRV_ROOT)/web_apps
+WWW_APPS_DIR = $(ASCDS_BLD_WWW_HTDOC)/web_apps
+HTML_DIR = $(ASCDS_WEBSRV_ROOT)
+CGI_DIR = $(ASCDS_WEBSRV_ROOT)/cgi-bin
+JAVA_CLASS_DIR = $(ASCDS_WEBSRV_ROOT)/java_class
+JSP_DIR = $(HTML_DIR)
+JAVASCRIPT_DIR = $(HTML_DIR)
+
+include $(MK_TOP)/infra/Makefile.all
+#include $(MK_TOP)/Makefile.master
+
+
+$(WEBINSTALL_FILES): $$(@F)
+	@# Install web files in server path
+
+	@# make install directory if it doesn't exist
+	@buildir() \
+	{ \
+	  if [ ! -d $$1 ] ; then \
+	     updir=`dirname $$1` ; \
+	     buildir $$updir; \
+	  fi  ; \
+	  if [ ! -d $$1 ] ; then echo "mkdir $$1" ; mkdir $$1 ; fi ; \
+	} ; \
+	if [ ! -d $(@D) ] ; then buildir $(@D) ; fi
+
+	@# first perform kludgey check to see if:
+	@# 	1.  we're overwriting a previously installed file
+	@#	2.  we're doing the installation into a "cm" directory
+	@# this will help us identify situations where we're attempting
+	@# to install 2 files with the same name from different 
+	@# directories.  let the installation proceed, but just blast
+	@# out an error message to the log file.
+	@-if [ -s $@ -a "`echo $(ASCDS_WEBSRV_ROOT) | grep /proj/cm`" != "" ] ;\
+	then echo "Duplicate error: Overwriting previously installed file $@ ";\
+	fi 
+
+	@# Rename old version of installed file to save for uninstall.
+	@#-if [ -f $@ ] ; then 
+	@#   echo "mv $@ $@.`date +%Y-%m-%d.%H:%M`.`cut -f1 -d' ' < $(VERFILE)`"
+	@#   mv $@ $@.`date +%Y-%m-%d.%H:%M`.`cut -f1 -d' ' < $(VERFILE)` 
+	@#fi
+
+	@# install file in specified directory
+	$(REMOVE_F) $@
+	$(COPY_P) $(@F) $(@D)
+	chmod a-w $@
+
+	@# If going in /web_bin directory, make sure permissions are set to
+	@# executable.
+	@# Note: No longer need to  set up link in tools directory
+	@#       Don't try to make local copy executable (clearcase
+	@#	 sometimes complains)
+
+	@-if [ `echo $(@D) | grep -c '/web_bin$\'` -eq 1 ]  ; then \
+	    echo "chmod a+x $@" ; \
+	    chmod a+x $@ ; \
+	fi 
+
+	@# set executable permission for cgi-bin scripts
+	@-if [ `echo $(@D) | grep -c '/cgi-bin$\'` -eq 1 ]  ; then \
+	    echo "chmod a+x $@" ;  chmod a+x $@ ; \
+	fi
+
+	@# set executable permission for server conf scripts
+	@-if [ `echo $(@D) | grep -c '/conf$\'` -eq 1 ]  ; then \
+	    echo "chmod a+x $@" ;  chmod a+x $@ ; \
+	fi
+
+	@# set executable permission for server conf scripts in web_apps dir
+	@-if [ `echo $(@D) | grep -c '/web_apps$\'` -eq 1 ]  ; then \
+	    echo "chmod a+x $@" ;  chmod a+x $@ ; \
+	fi
+
+	@# set executable permission for test scripts
+	@-if [ `echo $(@D) | grep -c '/test$\'` -eq 1 ]  ; then \
+	    echo "chmod a+x $@" ;  chmod a+x $@ ; \
+	fi
+
+webinstall: $(WEBINSTALL_FILES)
+	@# Run webinstall on any subordinate modules
+	@-if [ "$(WEBINSTALL_MODULES)" != "" ] ; then \
+	  $(MAKE) $(MKMACROS) $(WEBINSTALL_MODULES) MAKE_ARGS=webinstall ; \
+	fi
+
+webuninstall:
+	@# Remove web files from this module
+	@-if [ "$(WEBINSTALL_FILES)" != "" ] ; then \
+	  echo "Removing $(WEBINSTALL_FILES)" ; \
+	  $(RM) $(WEBINSTALL_FILES) ; \
+	fi
+
+	@# Run webuninstall on any subordinate modules
+	@-if [ "$(WEBINSTALL_MODULES)" != "" ] ; then \
+	  $(MAKE) $(MKMACROS) $(WEBINSTALL_MODULES) MAKE_ARGS=webuninstall ; \
+	fi
+
+javadoc: 
+	@-if [ ! -d $(DOC_DIR) ]; then mkdir $(DOC_DIR); fi
+	$(JAVADOC) -classpath $(CLASSPATH) -d $(DOC_DIR) -private -windowtitle $(DOC_TITLE)  $(DOC_PACKAGES)
+
+%.class: %.java
+	$(JAVAC) $(JAVAC_OPTIONS) $<
+
+%.properties: %.aps
+	$(RM) $@
+	$(CAT) $< | sed -e s%{JRUN}%$(JRUN_DIR)% \
+                        -e s%{APP_PATH}%$(WEB_APPS_DIR)% \
+                        -e s%{OBS_JRUN_SERVER}%$(JRUN_SERVER)% \
+                        -e s%{APP}%$(APP_NAME)% > $@

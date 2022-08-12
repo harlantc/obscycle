@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE table SYSTEM "table.dtd">
+
+<table name="rollreq" key="rollreq_id">
+  <column name="rollreq_id">
+    <type>INTEGER</type>
+    <tooltip>Database index for rollreq table</tooltip>
+  </column>
+  <column name="obsid">
+    <type>INTEGER</type>
+    <tooltip>Observation ID</tooltip>
+  </column>
+  <column name="ordr">
+    <type>INTEGER</type>
+    <tooltip>Order for rollreq table entry per ObsId</tooltip>
+  </column>
+  <column name="roll_constraint">
+    <type>CHOICE</type>
+    <tooltip>Flag indicating roll constraint is required(Y) or  preferred(P)</tooltip>
+    <choices>
+       <item>Y</item>
+       <item>P</item>
+    </choices>
+  </column>
+  <column name="roll_180">
+    <type>CHOICE</type>
+    <tooltip>Flag indicating roll constraint may be rotated 180 degrees</tooltip>
+    <choices>
+        <item>Y</item>
+        <item>N</item>
+    </choices>
+  </column>
+  <column name="roll">
+    <type>DOUBLE</type>
+    <tooltip>Roll angle</tooltip>
+    <number>
+      <maximum>360.0</maximum>
+      <minimum>0.0</minimum>
+    </number>
+  </column>
+  <column name="roll_tolerance">
+    <type>DOUBLE</type>
+    <tooltip>Roll tolerance</tooltip>
+    <number>
+      <maximum>360.0</maximum>
+      <minimum>0.0</minimum>
+    </number>
+  </column>
+</table>

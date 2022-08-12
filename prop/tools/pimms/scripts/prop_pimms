@@ -1,0 +1,26 @@
+#!/bin/sh
+#_SH_INSERT_SAO_COPYRIGHT_HERE_(1997-2007)_
+#_SH_INSERT_GPL_LICENSE_HERE_
+
+if [ "$ASCDS_PROP_PMS_DATA" = "" ]
+then
+    echo "ASCDS_PROP_PMS_DATA is not set;"
+    ASCDS_PROP_PMS_DATA="$ASCDS_INSTALL/config/pimms/data"
+    export ASCDS_PROP_PMS_DATA
+    echo "  default assignment to $ASCDS_INSTALL/config/pimms/data has been made."
+fi
+
+if [ "$ASCDS_PROP_PMS_MODEL" = "" ]
+then
+    echo "ASCDS_PROP_PMS_MODEL is not set;"
+    ASCDS_PROP_PMS_MODEL="$ASCDS_INSTALL/config/pimms/models"
+    export ASCDS_PROP_PMS_MODEL
+    echo "  default assignment to $ASCDS_INSTALL/config/pimms/models has been made."
+fi
+
+echo "ASCDS_PROP_PMS_DATA (for instrument effective area data) ="
+echo "  $ASCDS_PROP_PMS_DATA"
+echo "ASCDS_PROP_PMS_MODEL (for spectral models) ="
+echo "  $ASCDS_PROP_PMS_MODEL"
+
+prop_pimms_exe $*

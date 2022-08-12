@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE formView SYSTEM "formView.dtd">
+
+<formView>
+
+  <title>New ACISWin</title>
+
+  <info>
+    <supportsNew></supportsNew>
+  </info>
+
+  <key>
+    <tableName>aciswin</tableName>
+    <columnName>aciswin_id</columnName>
+  </key>
+
+  <navigation>
+    <display>
+      <name>ACISWIN Identifier</name>
+      <tableName>aciswin</tableName>
+      <columnName>aciswin_id</columnName>
+    </display>
+  </navigation>
+
+  <GUI>
+    <label tag="11">
+      <labelText>ACISWin</labelText>
+      <row>
+        <number>0</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+    </label>
+
+    <keycombobox tag="11" >
+      <labelText>Obs ID</labelText>
+      <size>6</size>
+      <database>
+        <tableName>aciswin</tableName>
+        <columnName>obsid</columnName>
+	<queryString>SELECT distinct target.obsid FROM target,acisparam WHERE NOT EXISTS (SELECT 1 FROM locked WHERE locked.obsid = target.obsid) AND target.acisid is NOT NULL AND target.acisid = acisparam.acisid and acisparam.spwindow='Y' ORDER BY target.obsid</queryString>
+      </database>
+      <keyinfo>
+        <keyTableName>target</keyTableName>
+        <keyColumnName>obsid</keyColumnName>
+      </keyinfo>
+    </keycombobox>
+
+    <textfield tag="120" >
+      <labelText>Order</labelText>
+      <size>2</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>aciswin</tableName>
+        <columnName>ordr</columnName>
+      </database>
+    </textfield>
+
+    
+    <combobox tag="121" >
+      <labelText>Chip</labelText>
+      <size>6</size>
+      <database>
+        <tableName>aciswin</tableName>
+        <columnName>chip</columnName>
+      </database>
+    </combobox>
+
+    <combobox tag="122" >
+      <labelText>Include Flag</labelText>
+      <database>
+        <tableName>aciswin</tableName>
+        <columnName>include_flag</columnName>
+      </database>
+    </combobox>
+
+
+    <textfield tag="131">
+      <labelText>Start Row</labelText>
+      <size>5</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>aciswin</tableName>
+	<columnName>start_row</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="132">
+      <labelText>Start Column</labelText>
+      <size>5</size>
+      <database>
+        <tableName>aciswin</tableName>
+	<columnName>start_column</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="141">
+      <labelText>Height</labelText>
+      <size>10</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>aciswin</tableName>
+	<columnName>height</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="142">
+      <labelText>Width</labelText>
+      <size>10</size>
+      <database>
+        <tableName>aciswin</tableName>
+	<columnName>width</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="151">
+      <labelText>Lower Energy</labelText>
+      <size>8</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>aciswin</tableName>
+	<columnName>lower_threshold</columnName>
+      </database>
+    </textfield>
+    
+    <textfield tag="152">
+      <labelText>Energy Range</labelText>
+      <size>8</size>
+      <database>
+        <tableName>aciswin</tableName>
+	<columnName>pha_range</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="153">
+      <labelText>Sample Rate</labelText>
+      <size>10</size>
+      <database>
+        <tableName>aciswin</tableName>
+	<columnName>sample</columnName>
+      </database>
+    </textfield>
+
+
+ </GUI>
+
+</formView>
+

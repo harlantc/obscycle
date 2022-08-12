@@ -1,0 +1,1031 @@
+#!@PERL@ 
+# -------------------------------------------------------
+#
+# prop_rps_too_mail.pl
+#
+# Script to send pager/email messages for the observation cycle
+# (proposal, mission planning)
+#
+# Arguments:
+# 
+#  -f <filename> Filename containing content of message 
+#  -s <subject>  Subject line for mail messsage
+#  -t <tagno>    tag number of message
+#  -p <priority> priority of message (F,M,S,NT)
+#  -status <status> Status Mail and update
+#  -sw           Send pager/regular email to software points of contact
+#  -normal       Send regular email ( no logging or time checking required)
+#  -check        Check for overdue status responses
+#  -pager        Pager Mail
+#  -poc          Print POC information 
+#  -cmt          Comment Only
+#
+# Notes:
+#
+#   If the subject line has "DDT" or "Discretionary" it's assumed to
+#   be a routine request ($DDT=1). Also requests of priority(one month)
+#   require no response.
+#
+# -------------------------------------------------------
+#
+$STAT_NORMAL = 0;
+$STAT_RESPONSE = 1;
+#available
+$STAT_NOTUSED = 2;    
+$STAT_DELAYED_PAGE_MPUSG = 3;
+$STAT_DELAYED_PAGE_DIR_MPUSG = 4;
+$STAT_EMERGENCY_PAGE1 = 5;
+$STAT_EMERGENCY_PAGE2 = 6;
+$STAT_DELAYED_RESPONSE = 7;
+$STAT_SENT_QUEUED = 8;
+$STAT_TIMED_OUT = 9;
+
+$MSG_STAT_NOACT = 0;
+$MSG_STAT_PAGE = 1;
+$MSG_STAT_REJECT = 2;
+
+$GETADDR_SOFTWARE     = 0;
+$GETADDR_NORMAL       = 1;
+$GETADDR_PAGE_DIR     = 2;
+$GETADDR_PAGE_MISC    = 3;
+$GETADDR_PAGE_ALL     = 4;
+$GETADDR_PAGE_MP      = 5;
+$GETADDR_PAGE_MP_DIR  = 6;
+$GETADDR_NONTRANSIENT = 7;
+
+
+$lfile = "$ENV{'ASCDS_PROP_RPS_LOG'}/prop_rps_too_pager.log";
+open(LOGFILE,">> $lfile") ||
+        die("Can't open $lfile for writing: $!\n");
+chmod(0660,$lfile);
+
+$db = 0;
+if ($ENV{'ASCDS_DEBUG'}) {
+  $db = 1;
+}
+
+  # parse the command line arguments
+  &parse_command_line;
+
+  $STATUS_FILE = "$ENV{'ASCDS_PROP_NOTIFY'}/rps_too_status.log";
+
+  # check if the current time is within normal working hours
+  $NORMAL_HOURS = &isNormalWorkingHours;
+
+  # check for overdue status
+  if ($CHECK_STATUS == 1)  {
+    &checkpagerstatus;
+  }
+  elsif ($GET_POC == 1) {
+    log_message("getting POC");
+    &get_mail_address($GETADDR_PAGE_MP);
+    print STDOUT $POCS;
+  }
+  else {
+
+    # Determine if the input file  exists
+    unless (-e $MAIL_FILE) {
+      die("$MAIL_FILE does not exist.\n");
+    }
+
+    # mail options with no special handling
+    #   sw_pager    = email immediately
+    #   normal_mail = email immediately
+
+    $MAIL_ARGS = "-s \"$SUBJECT\" ";
+  
+    log_message("processing $MAIL_FILE\n");
+    if ($SW_PAGER==1) {
+      # need to alert software support
+      &get_mail_address($GETADDR_SOFTWARE);
+      &mailit($MAIL_FILE);
+    }
+    elsif ($NORMAL_MAIL==1) {
+      # regular mail
+      if ($PRIORITY =~ /NT/i ) {
+        &get_mail_address($GETADDR_NONTRANSIENT);
+      } else {
+        &get_mail_address($GETADDR_NORMAL);
+      }
+      &mailit($MAIL_FILE);
+
+      # don't need a response for DDT's, so turn it off
+      if ($DDT == 1) {     
+        $PRIORITY = "S";
+	$MSG_STATUS = "First Notification";
+ 	&logpagerstatus($STAT_RESPONSE);
+      }
+    }
+
+    elsif ($STATUS_MAIL==1) {
+      # status mail response
+      &find_message_status;
+      &updatepagerstatus;
+
+      # now we need to send the updated status message out, 
+      # based on new status (2=disapproved) and maybe urgency
+      # we may also need to page....
+      if ($PRIORITY eq "NT") {
+        &get_mail_address($GETADDR_NONTRANSIENT);
+      } else {
+        &get_mail_address($GETADDR_NORMAL);
+      }
+      &mailit($MAIL_FILE);
+
+      # if it's not a routine request
+      if ($DDT == 0 && $PRIORITY ne "S" && $PRIORITY ne "NT") {     
+        log_message( "Status update based on non-routine request.\n");
+        &strip_header;
+        # after hours, fast, not an APPROVED status, always send to MP,Director
+        if ($NORMAL_HOURS != 1 && $msgstat != $MSG_STAT_PAGE &&
+	    $PRIORITY eq "F") { 
+          &get_mail_address($GETADDR_PAGE_MP_DIR);
+          &mailit($MAIL_FILE);
+          &logpagerstatus($STAT_RESPONSE);
+        }
+        # normal hours or it's a FAST and approved, send to all 
+        elsif ($NORMAL_HOURS == 1 || 
+	    ($msgstat == $MSG_STAT_PAGE && $PRIORITY eq "F" )) {
+          &get_mail_address($GETADDR_PAGE_ALL);
+          &mailit($MAIL_FILE);
+          &logpagerstatus($STAT_RESPONSE);
+        }
+        # not normal hours, send it out in the morning
+        else {
+          &logpagerstatus($STAT_DELAYED_RESPONSE);
+        }
+      }
+      else {
+        log_message( "Status update based on routine request.\n");
+        $PRIORITY = "S";
+        &logpagerstatus($STAT_RESPONSE);
+      }
+    }
+    elsif ($PAGER_MAIL==1) {
+
+
+      if ($NORMAL_HOURS == 1) {
+        # if tag number provided, log it so that 
+        # we can check for a response withing 2 hours 
+        if ($TAGNO > 0) {
+          &find_message_status;
+          &logpagerstatus($STAT_NORMAL);
+        }
+        &get_mail_address($GETADDR_PAGE_ALL);
+        &mailit($MAIL_FILE);
+      }
+      else {
+        # outside of normal hours, only page director the 1st time
+        # for emergency requests, queue other mail files
+        # if tag number provided, log it so that 
+        # we can check for a response within 2 hours 
+        if ($TAGNO > 0) {
+          &find_message_status;
+        }
+        if ($PRIORITY eq "F") {
+          &get_mail_address($GETADDR_PAGE_MP_DIR);
+          &mailit($MAIL_FILE);
+          &logpagerstatus($STAT_NORMAL);
+        }
+        else {
+          &logpagerstatus($STAT_DELAYED_PAGE_DIR_MPUSG);
+        }
+      }
+    }
+
+  }
+
+close(LOGFILE);
+exit 0;
+
+
+# **************  SUBROUTINES ***************************
+
+# We need the mail that allows the subject line!
+sub mailit {
+  my($cmd,$otsdir,$tmpname);
+
+  if ($ENV{'ASCDS_INSTALL'}) {
+    $otsdir = $ENV{'ASCDS_INSTALL'}. "/ots/bin";
+  } else {
+    $otsdir = "/home/ascds/DS.release/ots/bin";
+  }
+  $tmpname = $_[0];
+
+  #`$otsdir/perl -i.bk -pe 's/[^[:ascii:]]//g;' $tmpname`;
+
+  $cmd = "fmt -w 80 -s $tmpname | $otsdir/mailx $MAIL_ARGS -S ttycharset=utf-8 -S sendcharsets=utf-8 -S encoding=8bit $ADDR";
+  #$cmd = "fmt -w 80 -s $tmpname | $otsdir/mailx $MAIL_ARGS $ADDR";
+  system($cmd);
+ 
+  #only log if it's not software problem.  This is usually spam and
+  #there's no pager anyways
+  if ($SW_PAGER != 1) {
+    log_message($cmd);
+  }
+}
+
+# -------------------------------------------------------
+# determine which email address file to read and read it
+# 0 = sw
+# 1 = normal
+# 2 = director - page
+# 3 = mp/usg - page
+# 4 = 2 and 3
+# -------------------------------------------------------
+sub get_mail_address {
+
+  local($type) = $_[0] ;
+  local(@MAIL_ADDRESSES)= "";
+  local(@poc)= "";
+  local($miscpoc,$str);
+  $ADDR = "";
+  $POCS = "";
+
+  # Determine if the env var $ASCDS_PROP_NOTIFY is set
+  die("The environment variable \$ASCDS_PROP_NOTIFY must be set.\n")
+        unless($ENV{ASCDS_PROP_NOTIFY});
+
+  if ($GET_POC != 1 && $SW_PAGER != 1) {
+    log_message("***Addressing based on type= $type , priority=$PRIORITY and status of $MSG_STATUS ");
+  }
+  if ($type == $GETADDR_SOFTWARE) {
+    $ADDR_FILE = "$ENV{'ASCDS_PROP_NOTIFY'}/sw_pager.addr";
+    &read_addresses;
+    if ($db) {
+      log_message("Address: used SW Pager");
+    }
+  }
+  if ($type == $GETADDR_NONTRANSIENT) {
+    $ADDR_FILE = "$ENV{'ASCDS_PROP_NOTIFY'}/non_transient.addr";
+    if (-e $ADDR_FILE) {
+      &read_addresses;
+      log_message("Address: used NON-TRANSIENT")
+    } else {
+      log_message("No file exists for $ADDR_FILE. Reset to use SLOW");
+      $type = $GETADDR_NORMAL;
+    }
+  }
+  if ($type == $GETADDR_NORMAL) {
+    # this file includes mp and cdo and others
+    $ADDR_FILE = "$ENV{'ASCDS_PROP_NOTIFY'}/mp_usg.addr";
+    &read_addresses;
+    &read_misc_email;
+    log_message("Address: used MP,USG email and misc");
+  }
+  if ($type == $GETADDR_PAGE_MP_DIR ) {
+    $ADDR_FILE = "$ENV{'ASCDS_PROP_NOTIFY'}/mp1_pager.addr";
+    &read_addresses;
+    $ADDR_FILE = "$ENV{'ASCDS_PROP_NOTIFY'}/mp2_pager.addr";
+    &read_addresses;
+    log_message( "Address: used DIRECTOR and MP Pager");
+  }
+
+  if ($type == $GETADDR_PAGE_DIR || $type == $GETADDR_PAGE_ALL) {
+    $ADDR_FILE = "$ENV{'ASCDS_PROP_NOTIFY'}/mp1_pager.addr";
+    &read_addresses;
+    log_message("Address: used DIRECTOR only Pager");
+  }
+  if ($type == $GETADDR_PAGE_MP || $type == $GETADDR_PAGE_ALL) {
+    $ADDR_FILE = "$ENV{'ASCDS_PROP_NOTIFY'}/mp2_pager.addr";
+    &read_addresses;
+    log_message("Address: used MP Pager ");
+  }
+  if ($type == $GETADDR_PAGE_MISC || $type == $GETADDR_PAGE_ALL) {
+    &read_misc_pager;
+    log_message( "Address: used Misc and ACIS Pager");
+  }
+  if ($db) {
+    log_message( "addresses: @MAIL_ADDRESSES\n");
+  }
+  
+
+  $miscpoc = "";
+  if ($GET_POC) {
+    $ADDR_FILE = "$ENV{'ASCDS_PROP_NOTIFY'}/usint_poc";
+    if (open(UFILE,"< $ADDR_FILE")) {
+      $miscpoc .= "USINT POC: ";
+      while ($str = <UFILE>) {
+        if ($str !~ /^#/) {
+          $miscpoc .= $str;
+        }
+      }
+      close UFILE;
+    }
+    $POCS = "$POCS @poc $miscpoc";
+  }
+
+  foreach $entry (@MAIL_ADDRESSES) {
+    if ($ADDR eq "") {
+      $ADDR = $entry;
+    }
+    else  {
+      $ADDR = "$ADDR,$entry";
+    }
+  }
+
+}
+
+# -------------------------------------------------------
+# read specified address file
+# -------------------------------------------------------
+sub read_addresses {
+
+  local($line);
+  local(@sss);
+
+  # Open the file
+  open(INFILE,"< $ADDR_FILE") ||
+        die("Can't open $ADDR_FILE for reading: $!\n");
+
+  # read into array
+  LINE: while ($line = <INFILE>) {
+    chop($line);
+    if ($line =~ /^#(.*)/) {
+      #ignore comment lines
+      if ($line =~ /FOT/) {
+        last LINE if ($DDT == 1 && ($PRIORITY =~ "S" || $PRIORITY =~ /NT/));
+      }
+    }
+    else {
+      @sss = split(/ /,$line,2);
+      push (@MAIL_ADDRESSES,$sss[0]);
+      push (@poc,"$sss[1]\n");
+    }
+  }
+
+  #close the file
+  close(INFILE);
+}
+
+
+
+
+
+# ------------------------------------------------------------------
+# 0 - pager mail sent initially
+# 1 - response received
+# 2 - rejected response received
+# 3 - delayed message, send only to mp/usg during normal hours
+# 4 - delayed message, send to director & mp/usg during normal hours
+# 5 - resent Emergency message to director,next time through notify everyone
+# 8 - queued message, was sent during normal working hours
+# 9 - timed out, new entry appended with new timestamp
+# ------------------------------------------------------------------
+sub logpagerstatus
+{
+  local($tstat) = $_[0];
+  local($tmp,$tstamp);
+  local($tsub);
+  
+  $tstamp = time;
+  $tmp = localtime($tstamp);
+  #$tmp =~ s/ /^/g;
+  $tsub = $SUBJECT;
+  #$tsub =~ s/ /^/g;
+
+  # Open the file
+  open(OUTFILE,">> $STATUS_FILE") ||
+        die("Can't open $STATUS_FILE for writing: $!\n");
+  chmod(0660,$STATUS_FILE);
+
+  if ($db) {
+    #print LOGFILE "$TAGNO^$PRIORITY^$tstat^$tstamp^$tmp^$MAIL_FILE^$tsub^$MSG_STATUS\n";
+  }
+  print OUTFILE "$TAGNO^$PRIORITY^$tstat^$tstamp^$tmp^$MAIL_FILE^$tsub^$MSG_STATUS\n";
+
+  close(OUTFILE);
+
+}
+
+# ------------------------------------------------------------------
+# update the pager status log file 
+#    This routine will find a match on the tag number, update the status
+#    and fill in the global $PRIORITY field for later use
+# ------------------------------------------------------------------
+sub updatepagerstatus 
+{
+
+  local($tmp,$line);
+  local($gotmatch)= 0;
+  local($pos);
+
+  # Open the file
+  open(OUTFILE,"+< $STATUS_FILE") ||
+        die("Can't open $STATUS_FILE for writing: $!\n");
+
+
+  # find match on tag number.  If status has timed out, this is an "old" entry,
+  # and another message has already been resent
+  $pos = tell(OUTFILE);
+  while (($line = <OUTFILE>) && $gotmatch == 0) {
+      @sss = split(/\^/,$line);
+      #if ($db) {
+        #print LOGFILE "update search: $line\n";
+      #}
+      if ($sss[0] == $TAGNO) {
+        if (!$PRIORITY) {
+          $PRIORITY = $sss[1];
+        }
+        if ( ($sss[2] != $STAT_RESPONSE ) && 
+             ($sss[2] != $STAT_TIMED_OUT) &&
+             ($sss[2] != $STAT_SENT_QUEUED) ) { 
+          $gotmatch = 1;
+          if ($db) {
+            log_message( "gotmatch on old status: $sss[2]\n");
+          }
+        }
+      }
+      # gets the position after the last unmatched entry
+      # which will be the start of the "matched" entry if the next
+      # entry matches!
+      if ($gotmatch eq 0) {
+        $pos = tell OUTFILE;
+      }
+  }
+
+  # found a match, so replace the status 
+  if ($gotmatch eq 1 && !$CMT_ONLY) {
+    $sss[2] = $STAT_RESPONSE;
+    $_ = join '^',@sss;
+    seek(OUTFILE,$pos,0);
+    print OUTFILE "$_";
+    if ($db) {
+      print LOGFILE "$_\n";
+    }
+  }
+    
+  close(OUTFILE);
+
+}
+
+
+# -----------------------------------------------------------------
+# check for overdue pager messages
+# -----------------------------------------------------------------
+sub checkpagerstatus
+{
+
+  local($tstamp);
+  local($fname);
+  local($tmpstat);
+  local($overdue);
+  local($nstat);
+  local($pos);
+  
+  $tstamp = time;
+  $nstat = 0;
+
+  open(STATFILE,"+< $STATUS_FILE") ||
+        die("Can't open $STATUS_FILE for reading: $!\n");
+
+  $pos = tell(STATFILE);
+  while ($line = <STATFILE>)  {
+      @sss = split(/\^/,$line);
+      #if ($db) {
+        #print LOGFILE "TAGNO: $sss[0]  PRIORITY: $sss[1]\n";
+      #}
+      $stime = $tstamp - $sss[3];
+      $fname = $sss[5];
+      $PRIORITY = $sss[1];
+      $SUBJECT = $sss[6];
+      $MSG_STATUS = $sss[7];
+      chomp($MSG_STATUS);
+      $tmpstat = -1;
+
+
+      $MAIL_ARGS = "-s \"Delayed: $SUBJECT\" ";
+
+      #if normal working hours and it's a queued message, send it out
+      if ($NORMAL_HOURS == 1) {
+        if ($db) {
+          #print LOGFILE "TAGNO: $sss[0]  PRIORITY: $sss[1] STATUS: $sss[2]\n";
+        }
+        if ($sss[2] == $STAT_DELAYED_RESPONSE) {
+          $tmpstat = $STAT_SENT_QUEUED;
+          &get_mail_address($GETADDR_PAGE_ALL);
+          &mailit($fname);
+          $nstat = $STAT_RESPONSE;
+        } 
+        elsif ($sss[2] == $STAT_DELAYED_PAGE_MPUSG) {
+          #MP and director already paged
+          $tmpstat = $STAT_SENT_QUEUED;
+          &get_mail_address($GETADDR_PAGE_MISC);
+          &mailit($fname);
+        }
+        elsif ($sss[2] == $STAT_DELAYED_PAGE_DIR_MPUSG) {
+          $tmpstat = $STAT_SENT_QUEUED;
+          &get_mail_address($GETADDR_PAGE_ALL);
+          &mailit($fname);
+        }
+
+      }
+
+      #if time has expired and the status has never been updated
+      #send out the message again
+      if ($sss[1] eq "F" ) {
+          $overdue = 60*60;
+      }
+      else {
+          $overdue = 120*60;
+      }
+      if ($stime > $overdue && 
+          ($sss[2] == $STAT_NORMAL || $sss[2] == $STAT_EMERGENCY_PAGE1 ||
+	   $sss[2] == $STAT_EMERGENCY_PAGE2 )) {
+
+        if ($NORMAL_HOURS == 1 ) {
+          #get file name from log, so that we can resend the message
+          $MAIL_ARGS = "-s \"Overdue response on TOO\" ";
+          &get_mail_address($GETADDR_PAGE_ALL);
+          &mailit($fname);
+          $tmpstat = $STAT_TIMED_OUT;
+        }
+        elsif ($sss[1] eq "F") {
+          $MAIL_ARGS = "-s \"Overdue response on TOO\" ";
+          if ($sss[2] == $STAT_NORMAL) {
+            &get_mail_address($GETADDR_PAGE_DIR);
+            $nstat = $STAT_EMERGENCY_PAGE1;
+          }
+          elsif ($sss[2] == $STAT_EMERGENCY_PAGE1) {
+            &get_mail_address($GETADDR_PAGE_DIR);
+            $nstat = $STAT_EMERGENCY_PAGE2;
+          }
+          else {
+            &get_mail_address($GETADDR_PAGE_ALL);
+            $nstat = $STAT_EMERGENCY_PAGE2;
+          }
+        
+          if ($db) {
+            log_message( "Overdue using:  $ADDR \n");
+          }
+          &mailit($fname);
+          $tmpstat = $STAT_TIMED_OUT;
+        
+        }
+      }
+
+      # if we did something, reset the status for the current entry
+      # and add a new entry for the message just sent
+      if ($tmpstat > 0 && !$CMT_ONLY) {
+          # close out the status on the old message
+          seek(STATFILE,$pos,0);
+          $sss[2] = $tmpstat;
+          $_ = join '^',@sss;
+          print STATFILE "$_";
+          close(STATFILE);
+
+          # add a new entry for the "resent" status message 
+          $TAGNO = $sss[0]; 
+          $PRIORITY = $sss[1]; 
+          $MAIL_FILE = $sss[5]; 
+          &logpagerstatus($nstat);
+  
+          #reset the position in the file
+          open(STATFILE,"+< $STATUS_FILE") ||
+            die("Can't open $STATUS_FILE for reading: $!\n");
+
+          seek(STATFILE,$pos,0);
+         
+      }
+      $pos = tell(STATFILE);
+  }
+  close STATFILE;
+}
+
+# --------------------------------------------------------------
+# check for normal working hours
+# --------------------------------------------------------------
+sub isNormalWorkingHours 
+{
+    local ($retval) = 0;
+    local(@now_time);
+  
+    @now_time = localtime;
+
+
+    # during normal hours 8-10 (or 9:59)
+    #print LOGFILE "DEBUG -- normal hours modified\n";
+    if ($now_time[2] > 7 && $now_time[2] < 22) {
+       if ($db && $CHECK_STATUS == 0) {
+         log_message( "normal working hours\n");
+       }
+       $retval = 1;
+    }
+
+    return($retval);
+}
+# -------------------------------------------------------
+# parse the command line arguments
+# -------------------------------------------------------
+sub parse_command_line {
+
+  local($ndx,$tmp,$gotone);
+
+
+  if ($#ARGV < 0) {
+    print STDERR "Invalid number of arguments.\n";
+    &print_usage;
+    exit 0;
+  }
+
+# set defaults
+  $GET_POC = 0;
+  $MAIL_FILE = "";
+  $MSG_STATUS = "";
+  $SUBJECT="TOO message";
+  $TAGNO = 0;
+  $PRIORITY = 0;
+  $DDT = 0;
+  $NORMAL_MAIL = 0;
+  $PAGER_MAIL = 0;
+  $STATUS_MAIL = 0;
+  $SW_PAGER = 0;
+  $CHECK_STATUS = 0;
+  $CMT_ONLY = 0;
+
+  $gotone = 0;
+
+  for ($ndx = 0 ; $ndx <= $#ARGV ; $ndx++) {
+    $tmp = $ARGV[$ndx];
+
+    if ($tmp eq "-f") {
+
+      # email file name
+      if ($ndx == $#ARGV) {
+        print STDERR "\n-f requires an argument\n\n";
+        &print_usage;
+        exit 1;
+      }
+      $MAIL_FILE=$ARGV[++$ndx];
+    } 
+    elsif ($tmp eq "-s") {
+
+      # subject line 
+      if ($ndx == $#ARGV) {
+        print STDERR "\n-s requires an argument\n\n";
+        &print_usage;
+        exit 1;
+      }
+      $SUBJECT=$ARGV[++$ndx];
+      if ($SUBJECT =~ /Discretionary/ ) {
+        $DDT = 1;
+      }
+      elsif ($SUBJECT =~ /DDT/ ) {
+        $DDT = 1;
+      }
+    } 
+    elsif ($tmp eq "-p") {
+      # priority line 
+      if ($ndx == $#ARGV) {
+        print STDERR "\n-p requires an argument\n\n";
+        &print_usage;
+        exit 1;
+      }
+      $PRIORITY=$ARGV[++$ndx];
+      if ($PRIORITY eq "S"  || $PRIORITY eq "NT" ) {
+        $DDT = 1;
+      }
+      if ($db) {
+        log_message( "Setting priority :  $PRIORITY  DDT=$DDT ");
+      } 
+    } 
+    elsif ($tmp eq "-t") {
+      # priority line 
+      if ($ndx == $#ARGV) {
+        print STDERR "\n-t requires an argument\n\n";
+        &print_usage;
+        exit 1;
+      }
+      $TAGNO=$ARGV[++$ndx];
+    } 
+    elsif ($tmp =~ "-cmt") {
+      $CMT_ONLY=1;
+    }
+    elsif ($tmp =~ "-poc") {
+      $GET_POC=1;
+      $gotone += 1;
+    } 
+    elsif ($tmp =~ "-che") {
+      $CHECK_STATUS=1;
+      $gotone += 1;
+    } 
+    elsif ($tmp eq "-sw") {
+      $SW_PAGER=1;
+      $gotone += 1;
+    } 
+    elsif ($tmp =~ "-sta") {
+      $STATUS_MAIL = 1;
+      $gotone += 1;
+    } 
+    elsif ($tmp =~ "-pag") {
+      $PAGER_MAIL = 1;
+      $gotone += 1;
+    } 
+    elsif ($tmp =~ "-nor") {
+      $NORMAL_MAIL = 1;
+      $gotone += 1;
+    } 
+  }
+
+  if ($CHECK_STATUS == 0) {
+    if ($db) {
+      log_message( "arguments: @ARGV\n");
+    }
+  }
+
+  if ( $gotone eq 0 || ($MAIL_FILE eq "" && $CHECK_STATUS==0 && $GET_POC==0)) {
+    print STDERR "ERROR: Required arguments missing.\n";
+    print STDERR "       At least the filename and one switch argument is required.\n";
+    &print_usage;
+    exit 1;
+  }
+
+  if ($gotone > 1) {
+    print STDERR "ERROR: Too many arguments entered.\n";  
+    print STDERR "       Only 1 switch may be entered.\n";
+    &print_usage;
+    exit 1;
+  }
+
+
+}
+
+
+# -------------------------------------------------------
+# print usage 
+# -------------------------------------------------------
+sub print_usage {
+  print STDERR "\nUsage:  prop_rps_too_mail.pl [-sw | -normal | -check | -pager |-status n] -f <filename> -s \"subject\" -t <tag number> -pri <priority> \n\n";
+  print STDERR "  -f <filename> Filename containing content of message \n";
+  print STDERR "  -s <subject>  Subject line for mail messsage\n";
+  print STDERR "  -t <tagno>    tag number of message\n";
+  print STDERR "  -p <priority> priority of message (F,M,S)\n";
+  print STDERR "  -status <status> Status Mail and update\n";
+  print STDERR "  -sw           Send pager/regular email to software points of contact\n";
+  print STDERR "  -normal       Send regular email ( no logging or time checking required)\n";
+  print STDERR "  -check        Check pager status log for overdue,queued messages\n";
+  print STDERR "  -pager        Pager Mail\n";
+
+}
+
+#-----------------------------------------------------
+# find latest status in status Message
+#-----------------------------------------------------
+sub find_message_status {
+  local($myinfo);
+  local($buffer);
+  $msgstat = $MSG_STAT_NOACT;
+  $MSG_STATUS="";
+
+  $myinfo = stat($MAIL_FILE);
+  
+  open(ORIGFILE,"< $MAIL_FILE") ||
+     die("Can't open $MAIL_FILE for reading: $!\n");
+
+  while ($myline = <ORIGFILE>)  {
+    if ($myline =~ /\s*\[\s*\S\s*\]\s*First Notification/i) {
+      $MSG_STATUS = "First Notification";
+    }
+    if ($myline =~ /\s*\[\s*\S\s*\]\s*Acknowledged/i) {
+      $MSG_STATUS = "Acknowledged, Pending ";
+    }
+    if ($myline =~ /\s*\[\s*\S\s*\]\s*Approved/i &&
+        $myline !~ /\s*\[\s*\S\s*\]\s*NOT Approved/i) {
+      $MSG_STATUS = "Approved";
+      $msgstat = $MSG_STAT_PAGE;
+    }
+    if ($myline =~ /\s*\[\s*\S\s*\]\s*OK for Mission Planning/i) {
+      $MSG_STATUS = "Approved";
+      $msgstat = $MSG_STAT_PAGE;
+    }
+    if ($myline =~ /\s*\[\s*\S\s*\]\s*OK for FOT Scheduling/i) {
+      $MSG_STATUS = "Approved";
+      $msgstat = $MSG_STAT_PAGE;
+    }
+    if ($myline =~ /\s*\[\s*\S\s*\]\s*Approved for Upload/i) {
+      $MSG_STATUS = "Approved";
+      $msgstat = $MSG_STAT_PAGE;
+    }
+    if ($myline =~ /\s*\[\s*\S\s*\]\s*NOT Approved/i) {
+      $MSG_STATUS = "NOT Approved";
+      $msgstat = $MSG_STAT_REJECT;
+    }
+    if ($myline =~ /\s*\[\s*\S\s*\]\s*Request Withdrawn/i) {
+      $MSG_STATUS = "Request Withdrawn";
+      $msgstat = $MSG_STAT_REJECT;
+    }
+    if ($myline =~ /\s*\[\s*\S\s*\]\s*Immediate Action Required/i) {
+      $PRIORITY = "F";
+      $DDT = 0;
+    }
+  }
+}
+
+#------------------------------------------------------
+# strip excess mail headers on status update message
+#------------------------------------------------------
+sub strip_header {
+  local($strip_file);
+  local($copyit) = 0;
+  local($myinfo);
+  local($buffer);
+
+  $myinfo = stat($MAIL_FILE);
+  
+  open(ORIGFILE,"< $MAIL_FILE") ||
+     die("Can't open $MAIL_FILE for reading: $!\n");
+
+  $strip_file = "$MAIL_FILE.strip";
+  open(STRIPFILE,"> $strip_file") ||
+     die("Can't open $strip_file for writing: $!\n");
+
+  while ($myline = <ORIGFILE>)  {
+    if ($myline =~ "request was received from") {
+      $copyit = 1;
+    }
+    if ($myline =~ /Status for tag number/i) {
+      $copyit = 1;
+    }
+    elsif ($myline =~ /Status for observation sequence/i ) {
+      $copyit = 1;
+    }
+    elsif ($myline =~ /DDT\.CYCLE\[/ ) {
+      $copyit = 0;
+    }
+    if ($copyit) {
+      print STRIPFILE  "$myline";
+    }
+  }
+
+  close(STRIPFILE);
+  close(ORIGFILE);
+  chmod(0660,$strip_file);
+
+  $MAIL_FILE = $strip_file;
+
+}
+
+sub status_check {
+  my($requestedStatus) = @_;
+  my($retval) = 0; 
+
+  if (($requestedStatus eq " ") ||
+      ($requestedStatus =~ $MSG_STATUS)) {
+
+    #special case where we don't want to mix up Approved vs NOT Approved
+    # so ok if status doesn't have approved or it has NOT  
+    # but make sure if it's just Approved that the email status 
+    # doesn't have a NOT
+    if ($MSG_STATUS !~ /Approved/i ||
+        $MSG_STATUS =~ /NOT/i ||
+        ($MSG_STATUS =~ /Approved/i && $requestedStatus !~ /NOT/i)) {
+       $retval = 1;
+    }
+  }
+  return $retval;
+}
+
+sub read_misc_email {
+
+  local($line);
+  local(@sss);
+  local($ii);
+
+  $ME_FILE = "$ENV{'ASCDS_PROP_NOTIFY'}/misc_email.addr";
+  # Open the file
+  open(MISCFILE,"< $ME_FILE") ||
+        die("Can't open $ME_FILE for reading: $!\n");
+
+  if ($db) {
+    log_message( "Checking priority of $PRIORITY\n");
+  }
+
+  # read into array
+  LINE: while ($line = <MISCFILE>) {
+    chop($line);
+    if ($line =~ /^#(.*)/) {
+    }
+    else {
+      @sss = split(/\^/,$line);
+      if ( $sss[1] eq " " || $sss[1] eq "" ||
+           $sss[1] eq $PRIORITY) {
+        if (scalar(@sss) == 2) {
+            push (@MAIL_ADDRESSES,$sss[0]);
+            if ($db) {
+              log_message( "Address: Adding misc_email - $sss[0]  \n");
+            }
+        }
+        else  {
+          for ($ii=2;$ii< scalar(@sss);$ii++) {
+            if (status_check($sss[$ii])) {
+              push (@MAIL_ADDRESSES,$sss[0]);
+              if ($db) {
+                log_message( "Address: Adding misc_email - $sss[0]  \n");
+              }
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+  #close the file
+  close(MISCFILE);
+
+} 
+
+sub read_misc_pager {
+
+  local($line);
+  local(@sss);
+  local($ii);
+
+  $MP_FILE = "$ENV{'ASCDS_PROP_NOTIFY'}/misc_pager.addr";
+  # Open the file
+  open(MISCPAGERFILE,"< $MP_FILE") ||
+        die("Can't open $MP_FILE for reading: $!\n");
+
+  # read into array
+  LINE: while ($line = <MISCPAGERFILE>) {
+    chop($line);
+    if ($line =~ /^#(.*)/) {
+    }
+    else {
+      @sss = split(/\^/,$line);
+      if (($sss[1] eq " ") ||
+           $sss[1] eq $PRIORITY) {
+        if (scalar(@sss) == 2) {
+            push (@MAIL_ADDRESSES,$sss[0]);
+            if ($db) {
+              log_message( "Address: Adding misc_pager - $sss[0]  \n");
+            }
+        }
+        else  {
+
+          for ($ii=2;$ii< scalar(@sss);$ii++) {
+            if (status_check($sss[$ii])) {
+              if ($sss[0] =~ "acis_oncall") {
+                &read_acis_pager;
+              }
+              else {
+                push (@MAIL_ADDRESSES,$sss[0]);
+                if ($db) {
+                  log_message( "Address: Adding misc_pager - $sss[0]  \n");
+                }
+              }
+            break;
+            }
+          }
+        }
+      }
+    }
+  }
+  #close the file
+  close(MISCPAGERFILE);
+
+} 
+sub read_acis_pager {
+
+  local($line);
+  local(@sss);
+
+  $AP_FILE = "$ENV{'ASCDS_PROP_NOTIFY'}/acis_pager.addr";
+  # Open the file
+  open(ACISPAGERFILE,"< $AP_FILE") ||
+        die("Can't open $AP_FILE for reading: $!\n");
+
+  # read into array
+  LINE: while ($line = <ACISPAGERFILE>) {
+    chop($line);
+    if ($line =~ /^#(.*)/) {
+      #ignore comment lines
+      if ($line =~ /FOT/) {
+        last LINE if ($DDT == 1);
+      }
+    }
+    else {
+      @sss = split(/ /,$line,2);
+      push (@MAIL_ADDRESSES,$sss[0]);
+      if ($db) {
+        log_message( "Address: Adding acis_pager - $sss[0]  \n");
+      }
+    }
+  }
+
+  #close the file
+  close(ACISPAGERFILE);
+}
+
+
+
+sub log_message()
+{
+  my($msg) = @_;
+  my(@xx,$yy,$mm,$str);
+  @xx = localtime();
+  $yy = $xx[5] + 1900;
+  $mm = $xx[4] + 1;
+  
+  printf LOGFILE ("%04d_%02d_%02d:%02d:%02d - $msg\n",
+	$yy,$mm,$xx[3],$xx[2],$xx[1]);
+}

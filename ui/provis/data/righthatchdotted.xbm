@@ -1,0 +1,4 @@
+#define righthatchdotted_width 6
+#define righthatchdotted_height 6
+static unsigned char righthatchdotted_bits[] = {
+   0x00, 0x10, 0x00, 0x04, 0x00, 0x01 };

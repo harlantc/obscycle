@@ -1,0 +1,928 @@
+#!/home/ascds/DS.release/ots/bin/perl
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 1995, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_dbroutines.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script provides the database routines needed by prop_all_stats
+#     and prop_winner_stats
+#
+#* NOTES:
+#
+#        Script requires access to common input hash:  %param
+#        f     -  prop_exposure_time or approved_exposure_time
+#        n1,n2 -  est_time_cycle_n#, app_time_cycle_n#
+#        s     -  status SQL, PROPOSED vs APPROVED
+#        a     -  cycle
+#        g     -  exclude GTOS
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+$dbdelim = "---";
+1;
+
+# --------------------------------------------------------------------------
+# Returns  totalTime,total w/Prob ,GO Time, GO w/Prob,GTO Time,GTO w/Prob
+#          #proposals,#targets
+#
+# if ($param{g} is set, it excludes the GTOs
+# ----------------------------------------------------------------------
+sub dbget_totals 
+{
+
+  my($dbh,$ao) = @_;
+  my($sth,@row,$stmp);
+  my($allcnt,$allp,$allt,$allprob);
+  my($go,$gop,$gto,$gtop,$p1str,$pstr);
+  my($reqtime,$reqtimep);
+
+  $reqtime = "reqtime";
+  $reqtimep = "reqtimep";
+  if ($ao == $cyclen) {
+    $reqtime = "reqtime_n0";
+    $reqtimep = "reqtimep_n0";
+  } elsif ($ao == $cyclen1) {
+    $reqtime = "reqtime_n1";
+    $reqtimep = "reqtimep_n1";
+  } elsif ($ao == $cyclen2) {
+    $reqtime = "reqtime_n2";
+    $reqtimep = "reqtimep_n2";
+  }
+
+  $pstr = $param{s};
+  if ($param{f} =~ /appr/) {
+    $pstr .= qq( and target.status="accepted");
+  }
+  $p1str = $pstr;
+  while ($p1str =~ s/proposal/p1/) {;}
+  $stmp = qq(select sum($reqtime),sum($reqtimep),
+	count(distinct proposal.proposal_id),
+	sum(tcnt)
+	from proposal,#dprob where
+	proposal.ao_str = "$param{a}" and
+	$param{s} and
+	proposal.proposal_id *= #dprob.pid );
+  if ($param{d}) {
+    print STDERR "totals1: $stmp\n";
+  }
+  $sth = $dbh->prepare($stmp);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+    $allcnt  = $row[0];
+    $allprob = $row[1];
+    $allp = $row[2];
+    $allt = $row[3];
+  }
+
+
+
+  $stmp = qq(select sum($reqtime),sum($reqtimep)
+	from proposal,#dprob where
+        $param{s} and
+	proposal.type not like "GTO%" and
+	proposal.ao_str = "$param{a}" and
+	proposal.proposal_id = #dprob.pid);
+  if ($param{d}) {
+    print STDERR "totals2: $stmp\n";
+  }
+  $sth = $dbh->prepare($stmp);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+     $go = $row[0];
+     $gop = $row[1];
+  }
+  $stmp = qq(select sum($reqtime),sum($reqtimep)
+	from proposal,#dprob where
+        $param{s} and
+	proposal.type like "GTO%" and
+	proposal.ao_str = "$param{a}" and
+	proposal.proposal_id = #dprob.pid);
+  if ($param{d}) {
+    print STDERR "totals3: $stmp\n";
+  }
+  $sth = $dbh->prepare($stmp);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+     $gto = $row[0];
+     $gtop = $row[1];
+  }
+
+  return ($allcnt,$allprob,$go,$gop,$gto,$gtop,$allp,$allt);
+  
+}
+
+# ------------------------------------------------------------------
+# Cycle Input should be 0,1,2
+# Returns  type ,#proposals,#targets,#timeCritical,expTime,Time w/Prob
+# -------------------------------------------------------------------
+sub dbby_type
+{
+  
+  my($dbh,$cycle) = @_;
+  my($sth,@row,$stmp,%tccnt,$str,@results);
+ 
+  # determine number of time critical targets
+  # provided time is available in the requested cycle
+  $stmp = qq(select type, count(distinct #dtgt.tid)
+		from proposal,#dtgt
+		where proposal.proposal_id = #dtgt.pid
+		and proposal.ao_str = "$param{a}"
+		and reqtime_n$cycle > 0
+		and #dtgt.tid not in (select tid from $alttab) 
+		and ($param{s})
+		and #dtgt.time_critical = "Y" );
+  if ($param{f} =~ /approved/i) {
+    $stmp .= qq( and #dtgt.status = "accepted");
+  }
+  $stmp .= " group by type\norder by type";
+  if ($param{d}) { print STDERR "$stmp\n"; }
+  $sth = $dbh->prepare($stmp);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+     $tccnt{$row[0]} = $row[1];
+  }
+
+  
+  # counts/times of proposals by type with/without probability
+  # don't do archive/theory because those fields are $$ not time
+  $stmp = qq( select type, count(distinct proposal.proposal_id),
+        sum(#dprob.tcnt_$cycle), NULL,
+        sum(reqtime_n$cycle),sum(#dprob.reqtimep_n$cycle)
+        from proposal,#dprob where
+        proposal.ao_str = "$param{a}"
+        and proposal.proposal_id = #dprob.pid
+	and reqtime_n$cycle > 0
+        and (proposal.type not like "ARCH%" and proposal.type not like "THEO%")
+        and ($param{s}));
+  $stmp .= "group by type\norder by type";
+  if ($param{d}) { print STDERR "$stmp\n"; }
+  $sth = $dbh->prepare($stmp);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+     $row[3] = $tccnt{$row[0]};
+     $str = join($dbdelim,@row);
+     push(@results,$str);
+  }
+
+  # now do the archive and theory
+  if ($cycle <= 0) {
+    $stmp = qq( select type, count(distinct proposal.proposal_id),
+        "","",
+        sum(total_time)
+       from proposal where
+        proposal.ao_str = "$param{a}"
+        and ($param{s})
+        and (proposal.type like "ARCH%" or proposal.type like "THEO%")
+        group by type);
+    if ($param{f} =~ /approved/i) {
+      $stmp =~ s/total_time/recommended_funds/;
+    }
+    $sth = $dbh->prepare($stmp);
+    $sth->execute; 
+    while (@row = $sth->fetchrow_array) { 
+       $str = join($dbdelim,@row);
+       push(@results,$str);
+    }
+  }
+
+  return(@results);
+	
+
+}
+
+# ------------------------------------------------------------------
+# Returns  category descrip,#proposals,#targets,expTime,Time w/Prob
+# -------------------------------------------------------------------
+sub dbby_subcat
+{
+  my($dbh,$cycle) = @_;
+  my($sth,@row,$stmp);
+  my(@results,$str);
+ 
+
+  if ($param{a} > 5) {
+    $stmp = qq(select subcat.description,
+	count(distinct proposal.proposal_id), 
+	sum(tcnt_$cycle),
+        sum(reqtime_n$cycle), sum(reqtimep_n$cycle)
+	from proposal,#dprob,subcat where
+	proposal.ao_str = "$param{a}" 
+	and subcat.catcode != 60
+	and subcat.description *= proposal.category_descrip 
+	and #dprob.reqtime_n$cycle > 0
+        and proposal.proposal_id *= #dprob.pid 
+        and ($param{s}) );
+  }
+  else {
+    $stmp = qq(select subcat.description,
+	count(distinct proposal.proposal_id), 
+	sum(tcnt_n$cycle),
+        sum(reqtime_n$cycle), sum(reqtimep_n$cycle)
+	from proposal,#dprob,subcat where
+	proposal.ao_str = "$param{a}" 
+	and subcat.catcode != 61
+	and subcat.catcode != 62
+	and subcat.catcode = convert(int,substring(proposal_number,3,2))
+        and proposal.proposal_id *= #dprob.pid 
+        and ($param{s}) );
+  }
+  if ($cycle > 0) {
+        $stmp .= qq( and type  not like "%ARC%" and type  not like "%THE%" );
+	$stmp =~ s/distinct proposal.proposal_id/distinct #dprob.pid/; 
+  }
+  $stmp .= qq( \ngroup by subcat.description\norder by subcat.catcode );
+
+  if ($param{d} ) { print STDERR "$stmp\n"; }
+  $sth = $dbh->prepare($stmp);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+     $str = join($dbdelim,@row);
+     push(@results,$str);
+  }
+  return (@results);
+}
+
+# ------------------------------------------------------------------
+# Returns  category code,type,#proposals,#targets,expTime,Time w/Prob
+# -------------------------------------------------------------------
+sub dbby_subcat_type
+{
+  my($dbh,$cycle) = @_;
+  my($sth,@row,$stmp);
+  my(@results,$str);
+ 
+
+  $stmp = qq(select catcode,substring(type,1,7),
+	count(distinct proposal.proposal_id), 
+	sum(tcnt_$cycle),
+        sum(reqtime_n$cycle), sum(reqtimep_n$cycle)
+	from proposal,#dprob,subcat where
+	proposal.ao_str = "$param{a}" 
+	and reqtime_n$cycle > 0
+	and subcat.catcode = convert(int,substring(proposal_number,3,2))
+        and proposal.proposal_id *= #dprob.pid 
+        and ($param{s}) );
+
+  if ($cycle > 0) {
+        $stmp .= qq( and type  not like "%ARC%" and type  not like "%THE%" );
+	$stmp =~ s/distinct proposal.proposal_id/distinct #dprob.pid/; 
+  }
+  $stmp .= qq( group by catcode,type );
+  $stmp .= qq( order by catcode,type );
+
+  $sth = $dbh->prepare($stmp);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+     $str = join($dbdelim,@row);
+     push(@results,$str);
+  }
+  return (@results);
+}
+
+
+# ------------------------------------------------------------------
+# Returns  instrumnt,grating,#targets,expTime,Time w/Prob
+# -------------------------------------------------------------------
+sub dbby_detector
+{
+  my($dbh,$cycle) = @_;
+  my($sth,@row,$stmp);
+  my(@results,$str);
+
+
+  $stmp = qq(select instrument,grating,
+	count(tid),
+	sum(reqtime_n$cycle),sum(reqtime_n$cycle * #dtgt.probability)
+	from proposal,#dtgt
+	where proposal.ao_str = "$param{a}" and
+        ($param{s})  and
+	reqtime_n$cycle > 0 and
+	#dtgt.tid not in (select tid from $alttab) and
+	#dtgt.pid=proposal.proposal_id);
+  if ($param{f} =~ /approved/i) {
+    $stmp .= qq( and #dtgt.status = "accepted"\n);
+  }
+  $stmp .= qq(
+	group by instrument,grating
+	order by instrument,grating);
+
+  if ($param{d}) {
+    print STDERR "$stmp\n";
+  }
+  $sth = $dbh->prepare($stmp);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+     $str = join($dbdelim,@row);
+     push(@results,$str);
+  }
+  
+  return(@results);
+}
+
+# ------------------------------------------------------------------
+# Returns  grating,#proposals
+# -------------------------------------------------------------------
+sub dbprop_by_grating
+{
+  my($dbh,$cycle) = @_;
+  my($stmp,$sth,@row,$tcnt);
+  my(@results,$str);
+
+  $stmp = qq(select type,count (distinct pid)
+        from proposal ,#dtgt 
+        where proposal.proposal_id = #dtgt.pid
+        and grating != "NONE"
+	and reqtime_n$cycle > 0
+        and proposal.ao_str = "$param{a}"
+        and ($param{s}) );
+
+  if ($param{f} =~ /approved/i) {
+    $stmp .= qq( and #dtgt.status = "accepted"\n);
+  }
+  $stmp .= qq( group by proposal.type
+        order by proposal.type);
+
+  if ($param{d}) {
+    print STDERR "$stmp\n";
+  }
+  $sth = $dbh->prepare($stmp);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+     $str = join($dbdelim,@row);
+     push(@results,$str);
+  }
+
+  return @results;
+}
+
+
+
+# ------------------------------------------------------------------
+# Returns  #proposals, #PIs 
+# -------------------------------------------------------------------
+sub dbby_pi_cnt
+{
+  my($dbh) = @_;
+  my($sth,@row,$stmp);
+  my(@results,$str);
+
+
+
+  $stmp = qq(create table #dtest (demail varchar(50) NULL, num_prop int));
+  $dbh->do($stmp);
+  $stmp = qq(insert #dtest select distinct lower(email), 
+	count(distinct proposal_id)
+	from proposal ,axafusers..person_short 
+	where ao_str = "$param{a}"
+	and piid = pers_id
+	and ($param{s})
+	group by lower(email));
+  if ($param{d}) {
+    print STDERR "$stmp\n";
+  }
+  $dbh->do($stmp);
+
+  $stmp = qq(select num_prop,count(*) 
+	from #dtest group by num_prop order by num_prop);
+  if ($param{d}) {
+    print STDERR "$stmp\n";
+  }
+
+  $sth = $dbh->prepare($stmp);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+     $str = join($dbdelim,($row[0],$row[1]));
+     push(@results,$str);
+  }
+
+  $dbh->do("drop table #dtest");
+  return( @results);
+
+}
+
+# ------------------------------------------------------------------
+# Returns  #targets in proposal, #proposals with that many targets
+# -------------------------------------------------------------------
+sub dbby_tgt_cnt
+{
+  my($dbh) = @_;
+  my($sth,@row,$stmp);
+  my(@results,$str);
+
+
+  $stmp = qq(create table #dtmp (pid int, cnt int));
+  #print STDERR "$stmp\n";
+  $dbh->do($stmp);
+  $stmp = qq(insert #dtmp select pid,count(*) from #dtgt
+	group by pid);
+  #print STDERR "$stmp\n";
+  $dbh->do($stmp);
+
+  $stmp = qq(select cnt,count(proposal_id) 
+	from proposal, #dtmp
+	where 
+	#dtmp.pid = proposal.proposal_id and
+	proposal.ao_str = "$param{a}" and  $param{s}
+	group by #dtmp.cnt);
+
+  if ($param{d}) {
+    print STDERR "$stmp\n";
+  }
+  $sth = $dbh->prepare($stmp);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+     $str = join($dbdelim,@row);
+     push(@results,$str);
+  }
+  return @results;
+}
+
+
+# ----------------------------------------------------------------------
+# Returns  USA/Foreign,#proposals,expTime,Time w/prob
+# ----------------------------------------------------------------------
+sub dbby_usa_foreign
+{
+  my($dbh,$cycle) = @_;
+  my($sth,@row,$stmp);
+  my(@results,$str);
+
+  $stmp = qq(select "USA",count(distinct proposal.proposal_id),
+	sum(reqtime_n$cycle),sum(reqtimep_n$cycle)
+	from proposal,axafusers..person_short,#dprob where
+        ($param{s}) and
+	proposal.proposal_id *= #dprob.pid and
+	axafusers..person_short.pers_id = proposal.piid and
+	proposal.ao_str = "$param{a}"  and
+	upper(country) = "USA");
+
+   if ($cycle > 0)  {
+     $stmp =~ s/distinct proposal.proposal_id/distinct #dprob.pid/; 
+     $stmp =~ s/\*=/=/g;
+     $stmp .= qq( and reqtime_n$cycle > 0);
+     $stmp .= qq( \nand type not like "%ARC%" and type not like "%THE%");
+   }
+  if ($param{d}) {
+    print STDERR "$stmp\n";
+  }
+  $sth = $dbh->prepare($stmp);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+     $str = join($dbdelim,@row);
+     push(@results,$str);
+  }
+
+  $stmp = qq(select "Foreign",count(distinct proposal.proposal_id),
+	sum(reqtime_n$cycle),sum(reqtimep_n$cycle)
+	from proposal,axafusers..person_short,#dprob where
+	proposal.ao_str = "$param{a}" and 
+        ($param{s}) and
+	proposal.proposal_id *= #dprob.pid and
+	axafusers..person_short.pers_id = proposal.piid and
+	upper(country) != "USA" );
+   if ($cycle > 0)  {
+     $stmp =~ s/distinct proposal.proposal_id/distinct #dprob.pid/; 
+     $stmp =~ s/\*=/=/g;
+     $stmp .= qq( and reqtime_n$cycle > 0);
+     $stmp .= qq( \nand type not like "%ARC%" and type not like "%THE%");
+   }
+
+  if ($param{d}) {
+    print STDERR "$stmp\n";
+  }
+  $sth = $dbh->prepare($stmp);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+     $str = join($dbdelim,@row);
+     push(@results,$str);
+  }
+
+  return @results;
+}
+
+# ----------------------------------------------------------------------
+# Returns  country,#proposals,expTime,Time w/prob
+# ----------------------------------------------------------------------
+sub dbby_country
+{
+  my($dbh,$cycle) = @_;
+  my($sth,@row,$stmp);
+  my(@results,$str);
+
+
+  $stmp = qq(select distinct upper(country),
+	count(distinct proposal.proposal_id),
+	sum(reqtime_n$cycle),sum(reqtimep_n$cycle)
+	from proposal,axafusers..person_short,#dprob where
+        ($param{s}) and
+	proposal.ao_str = "$param{a}" and
+	proposal.proposal_id *= #dprob.pid and
+	reqtime_n$cycle > 0 and
+	proposal.piid = axafusers..person_short.pers_id  );
+
+   if ($cycle > 0)  {
+     $stmp =~ s/\*=/=/g;
+     $stmp .= qq( \nand type not like "%ARC%" and type not like "%THE%");
+   }
+   $stmp .= qq(
+	group by upper(country)
+	order by upper(country));
+
+  if ($param{d}) {
+    print STDERR "$stmp\n";
+  }
+
+  $sth = $dbh->prepare($stmp);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+     $str = join($dbdelim,@row);
+     push(@results,$str);
+  }
+
+  return @results;
+}
+
+# ----------------------------------------------------------------------
+# Returns  country,institution,#proposals,expTime,Time w/prob
+# ----------------------------------------------------------------------
+sub dbby_inst
+{
+  my($dbh,$cycle) = @_;
+  my($sth,@row,$stmp);
+  my(@results,$str);
+ 
+  $stmp = qq(select upper(country),upper(institution),
+	count(distinct proposal.proposal_id),
+	sum(reqtime_n$cycle),sum(reqtimep_n$cycle)
+	from proposal,axafusers..person_short,#dprob where
+        ($param{s}) and
+	proposal.ao_str = "$param{a}" and
+	axafusers..person_short.pers_id = proposal.piid and
+	proposal.proposal_id *= #dprob.pid);
+
+   if ($cycle > 0)  {
+     $stmp =~ s/\*=/=/g;
+     $stmp .= qq( \nand reqtime_n$cycle > 0 ) ;
+     $stmp .= qq( \nand type not like "%ARC%" and type not like "%THE%");
+   }
+   $stmp .= qq(
+	group by upper(country),upper(institution)
+	order by upper(country),upper(institution));
+  if ($param{d}) {
+    print STDERR "$stmp\n";
+  }
+  $sth = $dbh->prepare($stmp);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+     $str = join($dbdelim,@row);
+     push(@results,$str);
+  }
+
+  return(@results);
+}
+
+# ----------------------------------------------------------------------
+# Returns timespan, expTime, #targets
+# ----------------------------------------------------------------------
+sub dbby_target_time  
+{
+  my($dbh,$cycle) = @_;
+  my($sth,@row,$stmp,@results,$tstr,$str);
+  my(@timerange) = ( 0,2,4,8,16,32,64,128,400,1000,10000);
+
+  for ($ii=0;$ii<$#timerange;$ii++) {
+
+    $tstr = sprintf("%4d>=T<%-5.5s",$timerange[$ii],$timerange[$ii+1]);
+    $stmp = qq(select "$tstr",count(distinct tid)
+	from #dtgt,proposal
+	where reqtime_n$cycle >= $timerange[$ii]
+	and reqtime_n$cycle < $timerange[$ii+1] and 
+	($param{s}) and
+	proposal.ao_str = "$param{a}" and
+	#dtgt.tid not in (select tid from $alttab) and
+	reqtime_n$cycle != 0 and
+	proposal.proposal_id = #dtgt.pid);
+    if ($stmp =~ /approved/) {
+     $stmp .= qq( and #dtgt.status ="accepted");
+    }
+  if ($param{d}) {
+    print STDERR "$stmp\n";
+  }
+    $sth = $dbh->prepare($stmp);
+    $sth->execute();
+    while (@row = $sth->fetchrow_array) {
+      $str = join($dbdelim,@row);
+      push(@results,$str);
+    }
+  }
+
+  return @results;
+} 
+
+# ----------------------------------------------------------------------
+#
+# ----------------------------------------------------------------------
+sub dbby_proposal_time  
+{
+  my($dbh,$cycle) = @_;
+  my($sth,@row,$stmp,@results,$tstr,$str);
+  my(@timerange) = ( 0,2,4,8,16,32,64,128,400,1000,10000);
+
+  for ($ii=0;$ii< $#timerange;$ii++) {
+
+    $tstr = sprintf("%4d>=T<%-5.5s",$timerange[$ii],$timerange[$ii+1]);
+    $stmp = qq(select "$tstr",count(distinct pid)
+        from #dprob where reqtime_n$cycle >= $timerange[$ii]
+        and reqtime_n$cycle < $timerange[$ii+1] 
+	and reqtime_n$cycle > 0);
+  if ($param{d}) {
+    print STDERR "$stmp\n";
+  }
+    $sth = $dbh->prepare($stmp);
+    $sth->execute();
+    while (@row = $sth->fetchrow_array) {
+      $str = join($dbdelim,@row);
+      push(@results,$str);
+    }
+  }
+
+  return @results;
+} 
+
+#--------------------------------------------------------------------
+# build temporary database table to support probability adjustments
+# for exposure time sums
+#
+# #dtgt  = proposal_id,targid,exptime,n0,n1,n2,
+#          status,instrument,grating,time_critical,probability by target
+# #dprob = proposal_id,exptime,exptime w/prob,
+#          n0,n0 w/prob, n1,n1 w/prob, n2,n2 w/prob
+#	   t0cnt,t1cnt,t2cnt
+#--------------------------------------------------------------------
+sub dbbuild_probability
+{
+  my($dbh) = @_;
+  my($tname,$pname);
+  my($sql,$sth,@row);
+
+  $tname = "#dtgt";
+  $pname = "#dprob";
+ 
+  $sql =  qq(create table $tname (pid int, tid int,
+        reqtime float default 0 NULL,
+	reqtime_n0 float default 0 NULL,
+        reqtime_n1 float default 0 NULL,
+        reqtime_n2 float default 0 NULL,
+	status varchar(20) NULL,
+	instrument varchar(10),
+	grating varchar(10),
+	time_critical char default 'N' NULL,
+        probability float NULL));
+  if ($param{d}) { print STDERR ("$sql\n"); }
+  $dbh->do($sql);
+
+  $sql = qq(insert $tname select target.proposal_id,
+	target.targid, 
+        $param{f}, null,$param{n1}, $param{n2}, 
+	target.status,
+	instrument_name,grating_name,
+	time_critical,probability 
+	from proposal,target,too,instrument,grating
+        where proposal.proposal_id = target.proposal_id and
+        target.targid *= too.targid and
+        target.use_instrument_id = instrument.instrument_id and
+        target.use_grating_id = grating.grating_id and
+	target.targid not in (select tid from $alttab) and
+	$param{f} > 0 and
+        ($param{s}) and
+        proposal.ao_str like "$param{a}");
+  if ($param{f} =~ /approved/i) {
+    $sql .= qq( and target.status="accepted" );
+  }
+  if ($param{d}) { print STDERR ("$sql\n"); }
+  $dbh->do($sql);
+  $sql = qq(update $tname set probability=1.0 where
+     probability is null or probability=0.0);
+  if ($param{d}) {
+    print STDERR ("$sql\n");
+  }
+  $dbh->do($sql);
+  $sql = qq(update $tname set reqtime_n1=0 where reqtime_n1 is null);
+  if ($param{d}) {
+    print STDERR ("$sql\n");
+  }
+  $dbh->do($sql);
+  $sql = qq(update $tname set reqtime_n2=0 where reqtime_n2 is null);
+  if ($param{d}) {
+    print STDERR ("$sql\n");
+  }
+  $dbh->do($sql);
+  $sql = qq(update $tname set reqtime_n0=(reqtime-reqtime_n1-reqtime_n2) );
+  if ($param{d}) {
+    print STDERR ("$sql\n");
+  }
+  $dbh->do($sql);
+
+  $sql =  qq(create table $pname (pid int, 
+	reqtime    float default 0 NULL, reqtimep    float default 0 NULL, 
+	reqtime_n0 float default 0 NULL, reqtimep_n0 float default 0 NULL, 
+	reqtime_n1 float default 0 NULL, reqtimep_n1 float default 0 NULL, 
+	reqtime_n2 float default 0 NULL, reqtimep_n2 float default 0 NULL, 
+	tcnt int,
+	tcnt_0 int default 0 NULL, 
+	tcnt_1 int default 0 NULL, 
+	tcnt_2 int default 0 NULL));
+  if ($param{d}) {
+    print STDERR ("$sql\n");
+  }
+  $dbh->do($sql);
+  $sql = qq(insert $pname select $tname.pid,
+        sum($tname.reqtime), 
+        sum($tname.reqtime * $tname.probability),
+        sum($tname.reqtime_n0),
+        sum($tname.reqtime_n0 * $tname.probability),
+        sum($tname.reqtime_n1),
+        sum($tname.reqtime_n1 * $tname.probability),
+        sum($tname.reqtime_n2),
+        sum($tname.reqtime_n2 * $tname.probability),
+	count($tname.tid) , 0,0,0
+        from $tname
+        group by $tname.pid);
+  if ($param{d}) {
+    print STDERR ("$sql\n");
+  }
+  $dbh->do($sql);
+
+
+  $sql = qq(create table #d1 (pid int, tcnt int ) );
+  if ($param{d}) {
+    print STDERR ("$sql\n");
+  }
+  $dbh->do($sql);
+
+
+  #current cycle 
+  $sql = qq(insert #d1 select pid, count(distinct tid )
+	from $tname
+	where $tname.reqtime_n0 > 0
+	group by $tname.pid);
+  if ($param{d}) { print STDERR ("$sql\n"); }
+  $dbh->do($sql);
+
+  $sql = qq(update $pname set tcnt_0 = #d1.tcnt
+	from $pname,#d1
+	where $pname.pid = #d1.pid);
+  if ($param{d}) { print STDERR ("$sql\n"); }
+  $dbh->do($sql);
+
+  $sql = qq(delete #d1);
+  if ($param{d}) { print STDERR ("$sql\n"); }
+  $dbh->do($sql);
+
+
+  # cycle + 1
+  $sql = qq(insert #d1 select pid, count(distinct tid )
+	from $tname
+	where $tname.reqtime_n1 > 0
+	group by $tname.pid);
+  if ($param{d}) { print STDERR ("$sql\n"); }
+  $dbh->do($sql);
+
+  $sql = qq(update $pname set tcnt_1 = #d1.tcnt
+	from $pname,#d1
+	where $pname.pid = #d1.pid);
+  if ($param{d}) { print STDERR ("$sql\n"); }
+  $dbh->do($sql);
+
+  $sql = qq(delete #d1);
+  if ($param{d}) { print STDERR ("$sql\n"); }
+  $dbh->do($sql);
+
+  # cycle + 2
+  $sql = qq(insert #d1 select pid, count(distinct tid)
+	from $tname
+	where $tname.reqtime_n2 > 0
+	group by $tname.pid);
+  if ($param{d}) { print STDERR ("$sql\n"); }
+  $dbh->do($sql);
+
+  $sql = qq(update $pname set tcnt_2 = #d1.tcnt
+	from $pname,#d1
+	where $pname.pid = #d1.pid);
+  if ($param{d}) { print STDERR ("$sql\n"); }
+  $dbh->do($sql);
+
+  $dbh->do("drop table #d1");
+
+
+  return($tname,$pname);
+}
+ 
+        
+
+# ----------------------------------------------------------
+# find alternate targets to exclude
+# ----------------------------------------------------------
+sub dbexclude_alternates
+{
+  my($dbh) = @_;
+  my($raltname,$aaltname);
+  my($sth,@row,$stmp,$ii);
+  my(@ids,$id,$doold);
+
+  $aaltname= "#dappalt";
+  $raltname= "#dreqalt";
+  $stmp = qq(create table $aaltname (proposal_number varchar(10),
+        altid int, tid int, cnt int, ttime  float ,prob float));
+  if ($param{d}) {
+    print STDERR "\n$stmp\n";
+  }
+  $dbh->do($stmp);
+  $stmp = qq(exec exclude_alternates_approved "$param{a}" );
+  if ($param{d}) {
+    print STDERR "$stmp\n";
+  }
+  $sth = $dbh->prepare($stmp);
+  $sth->execute();
+  while (@row = $sth->fetchrow_array) {
+     $stmp = join($dbdelim,@row);
+     push(@ids,$stmp);
+  }
+  $sth->finish;
+  foreach $id (@ids) {
+     @row = split($dbdelim,$id);
+     if (!$row[5]) {
+       $row[5] = 1.0;
+     }
+     $stmp = qq(insert $aaltname values 
+	("$row[0]",$row[1],$row[2],$row[3],$row[4],$row[5]));
+     if ($param{d}) { print STDERR "$stmp\n"; }
+     $dbh->do($stmp);
+  }
+
+
+  $stmp = qq(create table $raltname (proposal_number varchar(10),
+        altid int, tid int, cnt int, ttime  float ,prob float));
+  if ($param{d}) { print STDERR "$stmp\n"; }
+  $dbh->do($stmp);
+  $stmp = qq(exec exclude_alternates_proposed "$param{a}" );
+  $sth = $dbh->prepare($stmp);
+  $sth->execute();
+  while (@row = $sth->fetchrow_array) {
+     $stmp = join($dbdelim,@row);
+     push(@ids,$stmp);
+  }
+  $sth->finish;
+  foreach $id (@ids) {
+    @row = split($dbdelim,$id);
+    if (!$row[5]) {
+      $row[5] = 1.0;
+    }
+    $stmp = qq(insert $raltname values 
+	("$row[0]",$row[1],$row[2],$row[3],$row[4],$row[5]));
+    if ($param{d}) { print STDERR "$stmp\n"; }
+    $dbh->do($stmp);
+  }
+
+  return($raltname,$aaltname);
+
+}
+
+
+
+# ------------------------------------------------------------------
+# Returns  min/max requested time for proposal
+# -------------------------------------------------------------------
+sub dbby_minmax
+{
+  my($dbh) = @_;
+  my($sth,@row,$stmp);
+  my($minT,$maxT);
+
+  $stmp = qq(select min(total_time),max(total_time) 
+	from proposal where
+	proposal.ao_str = "$param{a}" 
+        and (proposal.type not like "ARCH%" and proposal.type not like "THEO%")
+        and ($param{s}) );
+
+  $sth = $dbh->prepare($stmp);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+     $minT = $row[0];
+     $maxT = $row[1];
+  }
+  
+  return ($minT,$maxT)
+
+}
+

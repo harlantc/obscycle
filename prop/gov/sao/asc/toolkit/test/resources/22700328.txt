@@ -1,0 +1,35 @@
+(
+:ao 22
+:observer Tremblay
+:prop-num 22700328
+:seq-nbr 999999
+:id 69135
+:name HE 1353-1917
+:type GO
+:ra 209.152958
+:dec -19.529128
+:prop-exp-time 200.000000
+:si HRC-I
+:requested-chip-count 0
+:optional-chip-count 0
+:ccdi0 N
+:ccdi1 N
+:ccdi2 N
+:ccdi3 N
+:ccds0 N
+:ccds1 N
+:ccds2 N
+:ccds3 N
+:ccds4 N
+:ccds5 N
+:uninterrupt N
+:pointing_constraint N
+:roll-flag-1 Y
+:roll-180-1 Y
+:roll-1 340.000000
+:roll-tolerance-1 60.000000
+:phase-constr-flag N
+:multi-tel-flag N
+:monitor N
+:monitor N
+)

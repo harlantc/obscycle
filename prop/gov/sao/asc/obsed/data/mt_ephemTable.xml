@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE table SYSTEM "table.dtd">
+
+<table name="mt_ephem" key="obsid">
+  <column name="obsid">
+    <type>INTEGER</type>
+    <tooltip>Observation Identifier</tooltip>
+  </column>
+  <column name="epoch">
+    <type>DOUBLE</type>
+    <tooltip>epoch</tooltip>
+    <number>
+      <maximum>69807.0</maximum>
+      <minimum>15020.0</minimum>
+      <format>0.0000</format>
+    </number>
+  </column>
+  <column name="axis">
+    <type>DOUBLE</type>
+    <tooltip>semi-major axis</tooltip>
+  </column>
+  <column name="eccentricity">
+    <type>DOUBLE</type>
+    <tooltip>eccentricity</tooltip>
+  </column>
+  <column name="inclination">
+    <type>DOUBLE</type>
+    <tooltip>inclination</tooltip>
+    <number>
+      <maximum>180.0</maximum>
+      <minimum>0.0</minimum>
+      <format>0.0000</format>
+    </number>
+  </column>
+  <column name="raan">
+    <type>DOUBLE</type>
+    <tooltip>right ascension of the ascending node</tooltip>
+    <number>
+      <maximum>360.0</maximum>
+      <minimum>0.0</minimum>
+      <format>0.0000</format>
+    </number>
+  </column>
+  <column name="aop">
+    <type>DOUBLE</type>
+    <tooltip>argument of periastron</tooltip>
+    <number>
+      <maximum>360.0</maximum>
+      <minimum>0.0</minimum>
+      <format>0.0000</format>
+    </number>
+  </column>
+  <column name="ma">
+    <type>DOUBLE</type>
+    <tooltip>mean anomaly at epoch</tooltip>
+    <number>
+      <maximum>360.0</maximum>
+      <minimum>0.0</minimum>
+      <format>0.0000</format>
+    </number>
+  </column>
+</table>

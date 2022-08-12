@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE table SYSTEM "table.dtd">
+
+<table name="observing_cycle" key="ao_id">
+  <column name="ao_id">
+    <type>INTEGER</type>
+    <tooltip>Database index for observing_cycle table</tooltip>
+  </column>
+  <column name="ao_str">
+    <type>STRING</type>
+    <tooltip>Observation Cycle </tooltip>
+  </column>
+  <column name="ao_start">
+    <type>DATE</type>
+    <tooltip>Start of observing cycle </tooltip>
+  </column>
+  <column name="ao_end">
+    <type>DATE</type>
+    <tooltip>End of observing cycle </tooltip>
+  </column>
+</table>

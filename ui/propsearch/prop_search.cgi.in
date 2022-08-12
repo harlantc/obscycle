@@ -1,0 +1,586 @@
+#!@PERLDB@ 
+#----------------------------------
+# Copyright (c) 2013-2020, Smithsonian Astrophysical Observatory
+# You may do anything you like with this file. 
+#
+# FILE NAME:  prop_search.cgi
+#
+# DEVELOPMENT: 
+#      Display approved proposal search results
+#
+# NOTES:       
+#             
+# INPUT:      
+#
+# REVISION HISTORY:
+#
+# Date: 
+#---------------------------------------------------------
+#
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use strict;
+use Carp;
+use Cwd qw( abs_path );
+use File::Basename qw( dirname );
+use lib dirname(abs_path($0));
+use CGI qw( :standard );
+use DBI;
+use DBD::Sybase;
+use CDA::PropPaperLookup;
+
+unless (eval {require "prop_utils.pl"}) {
+    print "Missing prop_utils.pl\n"; exit(1);
+}
+unless (eval {require "../cxcds_utils.pl"}) {
+    print "Missing cxcds_utils.pl\n"; exit(1);
+}
+
+use vars qw($dbh);
+
+{
+  my($fmt,$hdr,$str,$pnos);
+  my ($resultHtml,$retcnt,$retmsg,$errmsg,$maxRows,$fmt);
+
+  $SIG{__WARN__} = \&catch_warn;
+
+  my($cgi) = new CGI;
+
+  $retcnt = 0;
+
+  $pnos = "";
+  if ($cgi->param("PaperSearch") ) {
+    my(@names) = $cgi->param;
+    foreach $str (@names) {
+      if ($str =~ /prop/) {
+        $str =~ s/prop//;
+        $pnos .= "," if ($pnos);
+        my $ival = int($str);
+        $pnos .= sprintf("%08d",$ival);
+      }
+   }
+   $fmt = $cgi->param("paperFmt");
+   if ($fmt ne "html" && $fmt ne "tsv") {
+     $fmt="tsv";
+   }
+   while ($pnos =~ s/ //g) {;}
+   if (length($pnos) <= 2) { $pnos = "0"; }
+   processPaperSearch($pnos,$fmt);   
+  }
+  else  {
+    my $query;
+    $retcnt = 0;
+    $resultHtml = "";
+    ($errmsg,$fmt,$maxRows,$query) = buildQuery($cgi);
+    if (defined $dbh && $dbh > 0) {
+      ($resultHtml,$retcnt) = buildRows($query,$maxRows,$fmt);
+      $dbh->disconnect;
+    }
+
+    if ($fmt =~ /html/) {
+      $retmsg="";
+      if ($retcnt > $maxRows) {
+        $retmsg .= "Only first $maxRows entries displayed.";
+      } elsif ($retcnt eq 1) {
+        $retmsg .= "$retcnt entry retrieved";
+      } elsif ($retcnt > 1) {
+        $retmsg .= "$retcnt entries retrieved";
+      } else {
+        $retmsg .= "No entries found.";
+      }
+
+      binmode(STDOUT, ":utf8");
+      print header ( -type => "text/html",
+                 -charset=>"utf-8"),"\n";
+
+      $hdr = buildHtml($resultHtml,$retmsg,$errmsg);
+    }  else {
+      print header ( -type => "text/plain",
+                 -charset=>"utf-8"),"\n";
+      $hdr = sprintf("%s\t%s\t%s\t%s\t%s\n",
+	   "Proposal","Type","P.I.","Title","Joint");
+      $hdr .= $resultHtml;
+      while ($errmsg =~ s/<br>/\n/g) {;}
+      $hdr .= "\n\n$errmsg" if ($dbh == 0);
+    }
+
+    print $hdr;
+  }    
+
+  exit;
+
+}
+
+# ----------------------------------------------------------------
+# Build search query
+# ----------------------------------------------------------------
+sub buildQuery
+{
+  my($cgi) = @_;
+  my(@proptype) = ("GO","LP","VLP","XVP","TOO","DDT","GTO","CCT","CAL","ARC","THE","CECS");
+  my(@joints) = ("None","HST","NOAO","NRAO","NuSTAR","RXTE","Spitzer","Suzaku","XMM","Swift");
+  my($fmt,$maxRows,$sqlstmt,$errmsg,$query);
+  my ($whereclause, @warr, $cc,$tmp,$ii);
+
+  my($doprop)=0;
+  my($dopi)=0;
+  $query="";
+
+  my $pno = sprintf("%-15.15s",$cgi->param("propnum"));
+  my $plast = sprintf("%-30.30s",$cgi->param("pilast"));
+  my $order1 = valid_order($cgi->param("order_one"));
+  my $order2 = valid_order($cgi->param("order_two"));
+
+  my $sorttype = $cgi->param("sort_type");
+  if ($sorttype ne "asc" && $sorttype ne "desc") {
+    $sorttype = "desc";
+  }
+  $fmt = $cgi->param("output_format");
+
+  if ($fmt =~ /html/i) {
+    $fmt="html";
+  } else {
+    $fmt="text";
+  }
+  $maxRows = $cgi->param("row_limit");
+  if (!$maxRows) {
+     $errmsg = "Invalid rows<br>";
+  }
+  elsif ($maxRows =~ /No Lim/i) {
+    # due to bad guys, need a limit
+    $errmsg = "Invalid request<br>";
+  } else  {
+    $maxRows=int($maxRows);
+  }
+  if ($maxRows > 500) { 
+    $maxRows=0; 
+    $errmsg = "invalid rows<br>";
+  }
+  while ($pno =~ s/ //)  {;}
+  while ($plast =~ s/ $//)  {;}
+ 
+  if (length($pno)> 0 ) {
+    if (($pno) = ($pno =~ /^([0-9 %_]{1,10})\z/)) {
+    } else {
+     $errmsg .= "Invalid proposal number entered.<br>";
+     $pno = "error_found";
+    }
+  }
+
+  if (length($plast) > 0 ) {
+    if (($plast) = ($plast =~ /^([A-Z_ %\.\-a-z0-9'",]{1,40})\z/)) {
+      $plast =~ s/'/''/g;
+    } else  {
+      $errmsg .= "Invalid PI Last name.<br>";
+      $plast="error_found";
+    }
+  }
+
+
+  # process input parameters to build the where clause
+  $tmp="(";
+  foreach $cc ($cgi->param("cycle")) {
+    if (($cc) = ($cc =~ /^([0-9]{1,2})\z/)) {
+      $cc = sprintf("%02d",$cc);
+      if (length($tmp) > 4) { $tmp .= " or "; }
+      $tmp .= qq(ao_str = '$cc');
+    }
+  }
+  $tmp .= ")";
+  if (length($tmp) > 5) {
+      push @warr,$tmp;
+  }
+
+  $tmp="(";
+  foreach $cc (@joints) {
+    if ($cgi->param($cc)) {
+      if (length($tmp) > 4) { $tmp .= " or "; }
+      $tmp .= qq(joint like '%$cc%');
+    } 
+  }
+  $tmp .= ")";
+  if (length($tmp) > 5) {
+      push @warr,$tmp;
+  }
+
+  $tmp="(";
+  foreach $cc (@proptype) {
+
+    if ($cgi->param($cc)) {
+      if (length($tmp) > 4) { $tmp .= " or "; }
+      if ($cc =~ /^LP/ ) {
+        $tmp .= qq((proposal_type like '%$cc' and proposal_type not like '%VLP%'));
+      } else {
+        $tmp .= qq(proposal_type like '%$cc%');
+      }
+    }
+  }
+  $tmp .= ")";
+  if (length($tmp) > 5) {
+      push @warr,$tmp;
+  } 
+
+  if (length($pno) > 1) {
+      push @warr,qq(prop_num like ?);
+      #push @warr,qq(prop_num like '%$pno%');
+      $doprop=1;
+  }
+
+  if (length($plast) > 1) {
+      push @warr,qq(lower(last) like lower(?));
+      #push @warr,qq(lower(last) like lower('%$plast%'));
+      $dopi=1;
+  }
+  if ($#warr < 0) {
+     $errmsg .= "Invalid request. Please specify at least 1 Search Criteria.<br>";
+     $pno = "error_found";
+     push @warr,qq(prop_num like ?);
+      $doprop=1;
+  } 
+
+
+  $dbh = 0;
+  if (length($errmsg) <= 1) {
+    $dbh = dbConnect();
+  }
+  if (defined $dbh && $dbh > 0) {
+  
+  my $mr = $maxRows + 1;
+  $sqlstmt = qq(select top  $mr  ocat_propid,prop_num,proposal_type,last,first,
+	prop_info.title,abstract,description,joint
+        from prop_info , axafusers..person_short where piid = pers_id );
+  if ($#warr >= 0) {
+    $whereclause = join(" and ",@warr);
+    $sqlstmt  .= " and  " . $whereclause;
+  }
+
+  
+  $sqlstmt .= " order by $order1 $sorttype";
+  if ($order1 ne $order2) {
+    $sqlstmt .= " , $order2 $sorttype";
+  }
+  &debug("prop_search query: $sqlstmt\n");
+  $query = $dbh->prepare($sqlstmt);
+  $ii = 1;
+  if ($doprop == 1) {
+     $query->bind_param($ii,"%$pno%");
+     &debug("prop_search query: pno=$pno\n");
+     $ii++;
+  }
+  if ($dopi==1) {
+    $query->bind_param($ii,"%$plast%");
+     &debug("prop_search query: plast=$plast\n");
+    $ii++;
+  }
+     
+  } else  {
+    debug("prop_search errmsg:" . $errmsg . "\n");
+  }
+  return ($errmsg,$fmt,$maxRows,$query) ;
+}
+
+#--------------------------------------------------------- 
+# Build the tables rows for the search results
+#--------------------------------------------------------- 
+sub buildRows
+{
+  my($query,$maxRows,$fmt) = @_;
+  my($resultHtml,$retcnt,$rowclass) ; 
+  my($pid,$propnum,$type,$pi_last,$pi_first,$title,$abstract,$subcat,$joint);
+
+  $query->execute();
+
+  $rowclass = "odd";
+  while (($pid,$propnum,$type,$pi_last,$pi_first,$title,$abstract,$subcat,
+	$joint)= $query->fetchrow_array()) {
+    if ($maxRows == -1 || $retcnt < $maxRows) {
+      if ($fmt =~ /html/) {
+	if ($title eq "") { $title = "&nbsp;"}
+	if ($type eq "") { $type = "&nbsp;"}
+ 
+        $resultHtml .=  <<EOT;
+<tr class="$rowclass" onmouseover="this.className='hover';" onmouseout="this.className='$rowclass';">
+<td><input type="checkbox" name="prop$propnum" > </td>
+<td><a href="prop_details.cgi?pid=$pid">$propnum</a></td>
+<td>$type</td>
+<td>$pi_last, $pi_first</td>
+<td>$title</td>
+<td>$joint</td>
+</tr>
+EOT
+        if ($rowclass eq "odd") {
+          $rowclass = "even";
+        } else  {
+          $rowclass = "odd";
+        }
+      } else {
+        $resultHtml .= sprintf("%s\t%s\t%s, %s\t%s\t%s\n",
+	   $propnum,$type,$pi_last,$pi_first,$title,$joint);
+      }
+    }
+    $retcnt++;
+  }
+  $query->finish;
+
+  return ($resultHtml,$retcnt);
+}
+#---------------------------------------------------------
+# build HTML for the Proposal Search Results page
+#---------------------------------------------------------
+sub buildHtml{
+  my($resultHtml,$retmsg,$errmsg) = @_;
+  my($hdr);
+  my($Footer) = getFooter();
+  $hdr = <<EOT;
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head lang="en">
+<title>Chandra Proposal Search Results </title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" href="/soft/include/cxcds.css" type="text/css" media="screen">
+<link rel="stylesheet" href="/soft/propsearch/prop_search.css" type="text/css" media="screen">
+<link rel="stylesheet" href="/soft/include/jquery/jquery-ui.css" type="text/css" media="screen,print">
+
+<script type="text/javascript" src="/soft/propsearch/prop_search.js"></script>
+<script type="text/javascript" src="/soft/include/jquery/jquery-1.11.2.min.js"></script>
+<script type="text/javascript" src="/soft/include/jquery/jquery-ui.js"></script>
+<script type="text/javascript" src="/soft/include/jquery/jquery.tablesorter.min.js"></script>
+<script type="text/javascript" src="/soft/include/jquery/jquery.tablesorter.widgets.min.js"></script>
+</head>
+<body class="normal">
+<script type="text/javascript">
+\$(document).ready(function() {
+  \$("#searchResultsTable").tablesorter( {
+        widgets: ["saveSort","zebra"],
+        emptyTo: 'none',
+        textSorter: function (a, b) {
+          return a.localeCompare(b);
+        },
+        headers: {
+        0: { sorter:false},
+        }
+  });
+});
+
+</script>
+
+
+<div class="topDiv">
+<div id="tophdr" class="tophdr">
+<div id="imghdr" class="imghdr">
+<a href="/">
+<img src="/soft/include/header_left.gif" alt=" " border="0" >
+</a>
+</div>
+<div id="mainhdr" class="titlehdr">
+Chandra Proposal Search Results 
+</div>
+</div>
+<form name="propResult" method=post action="/cgi-bin/propsearch/prop_search.cgi">
+<p>
+<input type="submit" class="searchBtn" name="PaperSearch" value="Chandra Paper Search">
+&nbsp;Format:<input type="radio" name="paperFmt" value="html">HTML
+&nbsp;&nbsp;<input type="radio" name="paperFmt" value="tsv" checked>Text
+<p>
+<a href="javascript:selectAll(true)">Select All</a>&nbsp;&nbsp;
+<a href="javascript:selectAll(false)">Deselect All</a>
+<table id="searchResultsTable" class="tablesorter" border = "1">
+<thead>
+<tr class="hdr">
+<th>&nbsp;</th>
+<th>Proposal</th>
+<th>Type</th>
+<th>PI</th>
+<th>Title</th>
+<th>Joint</th>
+</tr>
+</thead>
+<tbody>
+$resultHtml
+</tbody>
+</table>
+<p>
+$retmsg
+<p>
+<font class="err">
+$errmsg
+</font>
+</form>
+</div>
+$Footer
+</body>
+</html>
+EOT
+  return $hdr;
+}
+
+#---------------------------------------------------------
+# validate the "Sort by" parameters
+#--------------------------------------------------------- 
+sub valid_order 
+{
+  my($str)=@_;
+  my(@ordercols) = ("ocat_propid","ao_str","joint","last","prop_num","proposal_type");
+  my($retval)="prop_num";
+
+  if (($str) = ($str =~ /^([a-z _]{1,40})\z/)) {
+    for (my $oo=0;$oo<=$#ordercols;$oo++) {
+      if ($str eq $ordercols[$oo]) {
+        $retval = $ordercols[$oo];
+        last;
+      }
+    }
+  }
+
+  return $retval;
+}
+
+#--------------------------------------------------------- 
+# Process the Paper search request for selected proposals
+#--------------------------------------------------------- 
+sub processPaperSearch()   
+{
+  my($pnos,$fmt) = @_;
+  $dbh = dbConnect();
+  if (defined $dbh && $dbh > 0) {
+    my $obj = CDA::PropPaperLookup->new();
+    my ($papers, $keys) = $obj->compile_data($dbh,$pnos);
+    paper_search_html($papers) if $fmt eq 'html';
+    paper_search_tsv($papers) if $fmt eq 'tsv';
+    $dbh->disconnect;
+  }
+}
+
+#--------------------------------------------------------- 
+# papersearch tsv results
+#--------------------------------------------------------- 
+sub paper_search_tsv
+{
+  my $data = shift;
+
+  print header('text/plain');
+#  print Dumper($data);
+  print "proposal\tcycle\tprop_type\tstatus\tlink_type\tbibcode\ttitle\tauthor\tjournal\n";
+
+  foreach my $proposal (sort keys %$data) {
+    if ($$data{$proposal}{status} =~ /valid/i) {
+      print "$proposal\t\t\t$$data{$proposal}{status}\n";
+    }
+    elsif ($$data{$proposal}{status} =~ /Papers/) {
+      my $start_line = "$proposal\t$$data{$proposal}{ao_str}\t$$data{$proposal}{prop_type}\t$$data{$proposal}{status}";
+
+      # Print the data linked papers first
+      if ($$data{$proposal}{prop_papers}) {
+        my $papers = $$data{$proposal}{prop_papers};
+        write_papers_tsv($papers, "$start_line\tdata\t");
+      }
+      if ($$data{$proposal}{grant_papers}) {
+        my $papers = $$data{$proposal}{grant_papers};
+
+        write_papers_tsv($papers, "$start_line\tgrant\t");
+      }
+    }
+    else {
+      print qq(<div class="pshdr">$proposal: status is $$data{$proposal}{status}</div>);
+    }
+  }
+
+  return;
+}
+sub write_papers_tsv {
+  my $papers = shift;
+  my $start_line = shift;
+
+  foreach my $bibcode (sort keys %$papers) {
+    print qq($start_line$bibcode\t$$papers{$bibcode}{title_txt}\t$$papers{$bibcode}{author_txt}\t$$papers{$bibcode}{journal_txt}\n);
+  }
+
+  return;
+}
+
+#--------------------------------------------------------- 
+# paper search HTML results
+#--------------------------------------------------------- 
+sub paper_search_html {
+    my $data = shift;
+   
+    my($Footer) = getFooter();
+    print header ( -type => "text/html",
+                 -charset=>"utf-8"),"\n";
+    print <<EOT;
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head lang="en">
+<title>Chandra Science Paper Search Results </title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" href="/soft/include/cxcds.css" type="text/css" media="screen">
+<link rel="stylesheet" href="/soft/propsearch/prop_search.css" type="text/css" media="screen">
+</head>
+<body class="normal">
+<div class="topDiv">
+<div id="tophdr" class="tophdr">
+<div id="imghdr" class="imghdr">
+<img src="/soft/include/header_left.gif" alt=" " border="0" >
+</div>
+<div id="mainhdr" class="titlehdr">
+Chandra Paper Search Results 
+</div>
+</div>
+EOT
+
+
+    # The results
+    foreach my $proposal (sort keys %$data) {
+      if ($$data{$proposal}{status} =~ /Not/) {
+        print qq(<div class="pshdr">$proposal is not a valid Chandra proposal</div>);
+      }
+      elsif ($$data{$proposal}{status} =~ /Valid/) {
+        print qq(<div class="pshdr">$proposal has no associated papers in the Chandra bibliography</div>);
+      }
+      elsif ($$data{$proposal}{status} =~ /Papers/) {
+        print qq(<div class="pshdr">$proposal ( Cycle $$data{$proposal}{ao_str} $$data{$proposal}{prop_type})</div>);
+
+        # Print the data linked papers first
+        if (keys %{$$data{$proposal}{prop_papers}}) {
+          print qq(<div class="pshdr2">Chandra Science Papers linked to proposals through data links</div>);
+          my $papers = $$data{$proposal}{prop_papers};
+          write_papers($papers);
+        }
+        if (keys %{$$data{$proposal}{grant_papers}}) {
+          print qq(<div class="pshdr2">Chandra Science Papers linked to proposals through grant acknowledgment</div>);
+          my $papers = $$data{$proposal}{grant_papers};
+          write_papers($papers);
+        }
+      }
+      else {
+       print qq(<div class="pshdr">$proposal: status is $$data{$proposal}{status}</div>);
+      }
+    }
+
+    # Footer
+    print "</div><p>$Footer\n";
+    print end_html;
+
+    return;
+}
+
+sub write_papers {
+  my $papers = shift;
+  print "<table border='1' cellspacing='0' cellpadding='5'>\n";
+  print "<tr class='hdr'><th>BIBCODE</th><th>CITATION</th></tr>\n";
+  foreach my $bibcode (sort keys %$papers) {
+    my $hbibcode = $bibcode;
+    $hbibcode =~ s/&/&amp;/g;
+    print "<tr>\n";
+    #print qq(<td rowspan="3"><a href="http://adsabs.harvard.edu/abs/$hbibcode">$hbibcode</a></td><td><b>Title</b>: $$papers{$bibcode}{title}</td>\n<tr><td><b>Author(s)</b>: $$papers{$bibcode}{author}</td></tr>\n<tr><td><b>Journal</b>: $$papers{$bibcode}{journal}</td></tr>\n);
+
+    print qq(<td rowspan="3"><a href="https://ui.adsabs.harvard.edu/#abs/$hbibcode">$hbibcode</a></td><td><b>Title</b>: $$papers{$bibcode}{title}</td>\n<tr><td><b>Author(s)</b>: $$papers{$bibcode}{author}</td></tr>\n<tr><td><b>Journal</b>: $$papers{$bibcode}{journal}</td></tr>\n);
+  }
+  print "</table>\n";
+  return;
+}
+
+

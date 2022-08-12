@@ -1,0 +1,112 @@
+<web-app>
+ <display-name>TOO/DDT Manager</display-name>
+ <description>CDO manages peer-reviewed TOOs and DDTs </description>
+ <servlet>
+   <servlet-name>tooLoginServlet</servlet-name>
+   <servlet-class>TOOLoginServlet</servlet-class>
+ </servlet>
+ <servlet>
+   <servlet-name>tooLogoutServlet</servlet-name>
+   <servlet-class>TOOLogoutServlet</servlet-class>
+ </servlet>
+ <servlet>
+   <servlet-name>tooManagerServlet</servlet-name>
+   <servlet-class>TOOManagerServlet</servlet-class>
+ </servlet>
+ <servlet>
+   <servlet-name>tooUpdateServlet</servlet-name>
+   <servlet-class>TOOUpdateServlet</servlet-class>
+ </servlet>
+ <servlet>
+   <servlet-name>tooObscatUpdate</servlet-name>
+   <servlet-class>TOOObscatUpdate</servlet-class>
+ </servlet>
+ <servlet>
+   <servlet-name>tooConflictServlet</servlet-name>
+   <servlet-class>TOOConflictServlet</servlet-class>
+ </servlet>
+ <servlet>
+   <servlet-name>ddtManagerServlet</servlet-name>
+   <servlet-class>DDTManagerServlet</servlet-class>
+ </servlet>
+ <servlet>
+   <servlet-name>ddtUpdateServlet</servlet-name>
+   <servlet-class>DDTUpdateServlet</servlet-class>
+ </servlet>
+ <servlet>
+   <servlet-name>ddtOcatServlet</servlet-name>
+   <servlet-class>DDTOcatServlet</servlet-class>
+ </servlet>
+ <servlet>
+   <servlet-name>ddtConflictServlet</servlet-name>
+   <servlet-class>DDTConflictServlet</servlet-class>
+ </servlet>
+ <servlet>
+   <servlet-name>ddtMigrateOcatServlet</servlet-name>
+   <servlet-class>DDTMigrateOcatServlet</servlet-class>
+ </servlet>
+
+
+<!-- Mappings -->
+
+ <servlet-mapping>
+   <servlet-name>tooLoginServlet</servlet-name>
+   <url-pattern>/login</url-pattern>
+ </servlet-mapping>
+
+ <servlet-mapping>
+   <servlet-name>tooLogoutServlet</servlet-name>
+   <url-pattern>/logout</url-pattern>
+ </servlet-mapping>
+
+ <servlet-mapping>
+   <servlet-name>tooManagerServlet</servlet-name>
+   <url-pattern>/tooManager.jsp</url-pattern>
+ </servlet-mapping>
+
+ <servlet-mapping>
+   <servlet-name>tooUpdateServlet</servlet-name>
+   <url-pattern>/tooUpdate.jsp</url-pattern>
+ </servlet-mapping>
+
+ <servlet-mapping>
+   <servlet-name>tooObscatUpdate</servlet-name>
+   <url-pattern>/tooObscatUpdate.jsp</url-pattern>
+ </servlet-mapping>
+ <servlet-mapping>
+   <servlet-name>tooConflictServlet</servlet-name>
+   <url-pattern>/tooPropconflict</url-pattern>
+ </servlet-mapping>
+
+ <servlet-mapping>
+   <servlet-name>ddtManagerServlet</servlet-name>
+   <url-pattern>/ddtManager.jsp</url-pattern>
+ </servlet-mapping>
+
+ <servlet-mapping>
+   <servlet-name>ddtUpdateServlet</servlet-name>
+   <url-pattern>/ddtUpdate.jsp</url-pattern>
+ </servlet-mapping>
+
+ <servlet-mapping>
+   <servlet-name>ddtOcatServlet</servlet-name>
+   <url-pattern>/ddtOCat.jsp</url-pattern>
+ </servlet-mapping>
+ <servlet-mapping>
+   <servlet-name>ddtConflictServlet</servlet-name>
+   <url-pattern>/ddtPropconflict</url-pattern>
+ </servlet-mapping>
+ <servlet-mapping>
+   <servlet-name>ddtMigrateOcatServlet</servlet-name>
+   <url-pattern>/ddtMigrateOcat</url-pattern>
+ </servlet-mapping>
+    <session-config>
+     <cookie-config>
+        <http-only>true</http-only>
+        <secure>false</secure>
+      </cookie-config>
+    </session-config>
+
+
+
+</web-app>

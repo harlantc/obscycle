@@ -1,0 +1,41 @@
+body.body { color:black; background-color:#eeeeee; }
+body.menu { color:black; background-color:#eeeeee; }
+table.hdr { background-color:#e4e9f1;  }
+tr.hdr2 { text-align:center; background-color:#e4e9f1; }
+
+
+th.hdr { text-align:center; background-color:#eef2ff; }
+th.hdr2 { font-size:small; text-align:center; background-color:#ffffff; }
+td.table { text-align:center; }
+font.units { font-size:small; }
+img.hdrimg { border-width:0; }
+.tiny { font-size:x-small; }
+
+
+.red     { font-size:small; color:#000000; background-color:#ff0000; }
+.green   { font-size:small; color:#000000; background-color:#00ff00; }
+.magenta { font-size:small; color:#000000; background-color:#ff00ff; }
+.blue    { font-size:small; color:#ffffff; background-color:#0000cc; }
+.cyan    { font-size:small; color:#000000; background-color:#00ffff; }
+.brown   { font-size:small; color:#000000; background-color:#cc9900; }
+.yellow  { font-size:small; color:#000000; background-color:#ffff00; }
+.orange  { font-size:small; color:#000000; background-color:#ff9900; }
+.black   { font-size:small; color:#ffffff; background-color:#000000; }
+.white   { font-size:small; color:#000000; background-color:#ffffff; }
+.purple  { font-size:small; color:#ffffff; background-color:#6600ff; }
+
+
+
+select.select { background-color:#ffffff; }
+
+.button {
+   color:#ffffff;
+   background-color:#1f2569;
+   border-width:3px;
+   font-weight:normal;
+   margin:auto;
+   width:auto;
+   overflow:visible;
+}
+
+

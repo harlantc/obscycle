@@ -1,0 +1,158 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>Specific Help for Chandra</title>
+<%@ include file="/soft/include/cxcds_meta.html" %>
+<meta name="title" content="Specific Help for Chandra" >
+<link rel="stylesheet" href="/soft/include/cxcds.css" type="text/css" media="screen">
+<link rel="stylesheet" href="cpshelp.css" type="text/css" media="screen">
+</head>
+<body>
+<div class="helpDiv">
+<div id="cxcheader">
+  <div class="propheaderleft">
+       <a href="http://cxc.cfa.harvard.edu"> <img id="spacecraft" src="/soft/include/cxcheaderlogo.png" width="300px" alt="Chandra X-Ray Observatory (CXC)"></a>
+  </div>
+ <div class="propheadercenter">Chandra DDT Proposal Submission Help
+  </div>
+</div>
+
+
+
+<p>CPS provides a facility for composing and submitting Chandra Proposals.
+Electronic submission of forms and scientific justification is required.
+<p>
+Submission of DDT requests with Response Time of Fast and Medium will send texts and alarms to CXC staff - some 24 hrs per day 7 days per week and some between 8-22H (EDT/EST) 7 days per week. Please be sure that your program requires rapid turn-around before submitting DDT requests with response times of Fast/Medium and<b>to the extent possible please submit such requests during normal EDT/EST weekday working hours.</b>
+
+
+<p >
+<fieldset class="fshelp" id="propcreate"><legend>Home</legend>
+The Home page displays a table of proposals owned by or shared with the current user.  A gray background on a table row means the proposal is not editable but can be viewed.  They may be proposals you have withdrawn or submitted, are from previous cycles, or are proposals that someone else owns where you are listed as the Principal Investigator(PI) or as a Co-Investigator(CoI).
+
+The "Own?" column indicates whether or not you are the person responsible for the proposal.
+These are proposals that you are actively working on, or are proposals that you have submitted
+or withdrawn.
+You can only edit those proposals that you both own and that are in an editable state (e.g. not
+withdrawn, not from a previous cycle).
+
+<p >
+Buttons on the Home Page:
+<ul>
+<li class="elehelp"><a class="lblhelp" name="propcreate">New Proposal/Clone Proposal</a>
+<br> You may create a new 'empty' proposal or clone an existing proposal.
+<ul>
+<li class="elehelp"><a class="lblhelp" name="CloneProposal">Clone Proposal?</a>
+<br>Specify the proposal number you wish to clone.
+
+<li class="elehelp"><a class="lblhelp" name="Who">Who are you</a>
+<br>
+This field is used to auto-fill in your account profile information as either the
+P.I. or as a Co-Investigator.  Other should be used if you are submitting this
+proposal for someone else and are neither a P.I. nor Co-Investigator.
+
+<li class="elehelp"><a class="lblhelp" name="CreateSubj">Subject Category</a>
+<br>
+This field is used to help seed the proposal number which consists of the cycle , a subject category code and a tag number.  See <a href="#SubjectCategory">Subject Category</a>.
+
+<li class="elehelp"><a class="lblhelp" name="CreateType">Proposal Type</a>
+<br>
+Specify the type of proposal you are creating.  This should be set to Director's Discretionary Time(DDT).
+</ul>
+<li class="elehelp"><a class="lblhelp" name="propmodify">Modify Selected</a>
+<br>
+Takes you to the editable proposal form. If you attempt to modify a proposal that has already
+been submitted, you will first be asked to confirm that you intend to reset the proposal to
+"In progress".
+<li class="elehelp"><a class="lblhelp" name="propwithdraw">Withdraw/Restore Selected</a>
+<br>
+Allows you to restore a withdrawn proposal or withdraw an active proposal.
+<li class="elehelp"><a class="lblhelp" name="viewpdf">View Proposal Form</a>
+<br>
+Generates and displays/downloads the PDF version of the selected proposal form.
+<li class="elehelp"><a class="lblhelp" name="transferown">Transfer Ownership</a>
+<br>
+Allows you to transfer edit permission from yourself to another person who has an account.
+Note they need to have opted in to the searchable list or you won't be able to find them.
+</ul>
+
+
+
+</fieldset>
+
+
+
+
+<p>
+<!--#include virtual="chandra_ddt_cover.html"-->
+<!--#include virtual="chandra_pi.html"-->
+<!--#include virtual="chandra_coi.html"-->
+<!--#include virtual="chandra_ddt.html"-->
+<!--#include virtual="chandra_target.html"-->
+<!--#include virtual="chandra_instr.html"-->
+<!--#include virtual="chandra_constraints.html"-->
+<!--#include virtual="chandra_too.html"-->
+<!--#include virtual="chandra_files.html"-->
+
+<p >
+<fieldset class="fshelp" id="summary"><legend>Review & Submit</legend>
+<ul>
+
+<li class="elehelp"><a class="lblhelp" name="pstatus">Proposal Status</a>
+<br>
+<ul>
+<li><span class="reqlbl">Incomplete</span> - Proposal is in-progress and has not yet been submitted.
+<li><span class="reqlbl">Submitted</span> - Proposal has been submitted.
+<li><span class="reqlbl">Approved</span> - Proposal has been approved.
+<li><span class="reqlbl">Rejected</span> - Proposal was rejected .
+<li><span class="reqlbl">Withdrawn</span> - Proposal has been withdrawn from consideration.
+</ul>
+<p>
+<li class="elehelp"><a class="lblhelp" name="tottime">Total Time</a>
+<br>
+This entry is automatically filled in by CPS based upon the sum of the
+exposures requested for each target.
+<p>
+<li class="elehelp"><a class="lblhelp" name="nbrtgt">Number of Targets</a>
+<br>This entry is automatically filled in by CPS based upon the number of target
+pages.
+
+<p>
+
+<li class="elehelp"><a class="lblhelp" name="Checks">View</a>
+<ul>
+<li class="elehelp"><a class="lblhelp" name="Validation">Validation Results</a>
+<br>
+A table containing any errors or warnings that may impact the proposal. 
+All errors must be fixed before you will be able to submit the proposal. 
+The "Page" column tells you which portion of the proposal to review to find 
+the cause of the error. The "Tgt" column will let you know if the error is 
+specific to a target.
+<p>
+You can click "View Results in New Window" to pop the validation results table up into another browser window. Note that if you make a change in the proposal, you will need to reload the separate window in order to view the latest validation results.
+
+<li class="elehelp"><a class="lblhelp" name="Slew">Slew Tax/Resources</a>
+<br>
+Check this box to view a summary of an estimate of the amount of slew tax and
+resource costs that your proposal will be requesting.
+Please refer to the <a href="http://cxc.harvard.edu/proposer/CfP/"> https://cxc.harvard.edu/proposer/CfP/</a> for details.
+<br>
+<li class="elehelp"><a class="lblhelp" name="CoordCheck">Simbad/Ned Results</a>
+<br>
+Check this box to compare your given coordinates against the results of a Simbad/Ned query.
+
+<li class="elehelp"><a class="lblhelp" name="Conflicts">Chandra Conflicts</a>
+<br>Check this box to view a listing of existing Chandra Observations that may be in conflict with your target. 
+Please refer to the <a href="http://cxc.harvard.edu/proposer/CfP/"> https://cxc.harvard.edu/proposer/CfP/</a> for details.
+
+<li class="elehelp"><a class="lblhelp" name="ViewPDF">View Proposal Form </a>
+<br>Generates and displays/downloads the pdf version of the selected proposal form.
+</ul>
+
+</ul>
+</fieldset>
+
+</div>
+<p>
+<!--#include virtual="/soft/include/cxcfooter.html"-->
+</body>
+</html>

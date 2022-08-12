@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE table SYSTEM "table.dtd">
+
+<table name="grant_info" key="grant_id">
+  <column name="grant_id">
+    <type>INTEGER</type>
+    <tooltip>Database index for grant_info table</tooltip>
+  </column>
+  <column name="ocat_propid">
+    <type>INTEGER</type>
+    <tooltip>Associated prop_info table id  </tooltip>
+    <foreignKeyTable>prop_info</foreignKeyTable>
+  </column>
+  <column name="grant_number">
+    <type>STRING</type>
+    <tooltip>Grant number </tooltip>
+  </column>
+  <column name="grant_type">
+    <type>STRING</type>
+    <tooltip>Grant type </tooltip>
+  </column>
+  <column name="grant_ao">
+    <type>STRING</type>
+    <tooltip>Grant AO (proposal cycle) </tooltip>
+  </column>
+  <column name="grantor">
+    <type>STRING</type>
+    <tooltip>Grantor</tooltip>
+  </column>
+  <column name="grant_amount">
+    <type>DOUBLE</type>
+    <tooltip>Grant Amount</tooltip>
+  </column>
+</table>

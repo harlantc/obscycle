@@ -1,0 +1,701 @@
+DROP TABLE target;
+CREATE TABLE target (
+prop_id         integer       NOT NULL,
+targ_name       varchar(100)  NOT NULL,
+ra              real,
+dec             real,
+ec_lon          real,
+ec_lat          real,
+at_hel             varchar(1)
+CHECK (at_hel = 'Y' or
+       at_hel = 'N'),
+detector        varchar(6)    NOT NULL
+  CHECK (detector = 'ACIS-I' or
+         detector = 'ACIS-S' or 
+         detector = 'HRC-I' or
+         detector = 'HRC-S'),
+grating         varchar(4)    NOT NULL
+  CHECK (grating = 'HETG' or
+         grating = 'LETG' or
+         grating = 'NONE'),
+targ_id         integer       NOT NULL,
+targ_num        integer       NOT NULL,
+alt_id          integer,
+time_crit       varchar(1)    NOT NULL
+  CHECK (time_crit = 'Y' or 
+         time_crit = 'N' or 
+         time_crit = 'P'),
+too_start  real,
+response_time   varchar(5)              
+  CHECK (response_time = '0-5' or 
+         response_time = '5-20' or 
+         response_time = '20-40' or 
+         response_time = '>=40'),
+rev_too      varchar(5)  NOT NULL DEFAULT 'N'
+   CHECK (rev_too = 'N' or
+          rev_too = '0-5' or
+          rev_too = '5-20' or
+          rev_too = '20-40' or
+          rev_too = '>=40'),
+too_prob_req     real,
+too_prob_app     real,
+req_time         real,
+app_time         real,
+req_time_1       real,
+app_time_1       real,
+req_time_2       real,
+app_time_2       real,
+req_hel         real,
+app_hel         real,
+req_hel_1       real,
+app_hel_1       real,
+req_hel_2       real,
+app_hel_2       real,
+targ_status      varchar(1)
+  CHECK (targ_status = 'Y' or 
+         targ_status = 'N' or
+         targ_status = 'G' or
+         targ_status = 'B'),
+targ_status_1     varchar(1)
+  CHECK (targ_status = 'Y' or 
+         targ_status = 'N' or
+         targ_status = 'G' or
+         targ_status = 'B'),
+targ_status_2     varchar(1)
+  CHECK (targ_status = 'Y' or 
+         targ_status = 'N' or
+         targ_status = 'G' or
+         targ_status = 'B'),
+num_obs_req       integer      NOT NULL,
+num_obs_app       integer      NOT NULL,
+num_obs_req_1     integer      NOT NULL,
+num_obs_app_1     integer      NOT NULL,
+num_obs_req_2     integer      NOT NULL,
+num_obs_app_2     integer      NOT NULL,
+num_pnt_req       integer      NOT NULL  DEFAULT 0,
+num_pnt_app       integer      NOT NULL  DEFAULT 0,
+num_pnt_req_1     integer      NOT NULL  DEFAULT 0,
+num_pnt_app_1     integer      NOT NULL  DEFAULT 0,
+num_pnt_req_2     integer      NOT NULL  DEFAULT 0,
+num_pnt_app_2     integer      NOT NULL  DEFAULT 0,
+tax               real         NOT NULL  DEFAULT 0,
+tax_req           real         NOT NULL  DEFAULT 0,
+tax_1             real         NOT NULL  DEFAULT 0,
+tax_req_1         real         NOT NULL  DEFAULT 0,
+tax_2             real         NOT NULL  DEFAULT 0,
+tax_req_2         real         NOT NULL  DEFAULT 0,
+rc_score          real         NULL DEFAULT 0,
+rc_score_1        real         NULL DEFAULT 0,
+rc_score_2        real         NULL DEFAULT 0,
+tc                real         NOT NULL  DEFAULT 0,
+tc_req            real         NOT NULL  DEFAULT 0,
+tc_1              real         NOT NULL  DEFAULT 0,
+tc_req_1          real         NOT NULL  DEFAULT 0,
+tc_2              real         NOT NULL  DEFAULT 0,
+tc_req_2          real         NOT NULL  DEFAULT 0,
+tc_override       real,
+tc_override_1     real,
+tc_override_2     real,
+tc_coor           real,
+tc_const_rem      real,
+tc_const_rem_1    real,
+tc_const_rem_2    real,
+tc_roll           real,
+tc_phase          real,
+tc_phase_1        real,
+tc_phase_2        real,
+tc_time           real,
+tc_time_1         real,
+tc_time_2         real,
+tc_monitor        real,
+tc_monitor_req    real,
+tc_monitor_1      real,
+tc_monitor_req_1  real,
+tc_monitor_2      real,
+tc_monitor_req_2  real,
+tc_group_req      real,
+tc_group_app      real,
+tc_group_req_1    real,
+tc_group_app_1    real,
+tc_group_req_2    real,
+tc_group_app_2    real,
+tc_too            real,
+tc_too_req        real,
+tc_too_1          real,
+tc_too_req_1      real,
+tc_too_2          real,
+tc_too_req_2      real,
+tc_grade_req      varchar(1),
+tc_grade_app      varchar(1),
+tc_grade_req_1    varchar(1),
+tc_grade_app_1    varchar(1),
+tc_grade_req_2    varchar(1),
+tc_grade_app_2    varchar(1),
+mcop            varchar(1)    NOT NULL DEFAULT 'N'
+   CHECK (mcop = 'Y' or
+          mcop = 'N'),
+monitor           varchar(1)   NOT NULL,
+raster_scan       varchar(1)   NOT NULL,
+grid_name         varchar(30),
+max_radius        real,
+uninterrupt       varchar(1)   NOT NULL,
+group_name        varchar(50),
+group_obs         varchar(1)   NOT NULL,
+group_interval    real,
+group_interval_1  real,
+group_interval_2  real,
+multitelescope    varchar(1)   NOT NULL,
+constr_in_remarks varchar(1)   NOT NULL,
+mp_remarks        text, 
+panel_id          integer      NOT NULL,
+PRIMARY KEY (prop_id, targ_id, panel_id)
+);
+DROP TABLE too;
+CREATE TABLE too (
+prop_id         integer      NOT NULL,
+targ_id         integer      NOT NULL,
+ordr            integer      NOT NULL,
+mcop            varchar(1)   NOT NULL  DEFAULT 'N'
+   CHECK (mcop = 'Y' or
+          mcop = 'N'),
+ao              integer      NOT NULL  DEFAULT 0,
+req_obs_time    real         NOT NULL,
+app_obs_time    real         NOT NULL,
+num_too_pt      integer      NOT NULL,
+pre_min_lead    real,
+pre_max_lead    real,
+fractol         real,
+obs_status      varchar(1)
+  CHECK (obs_status = 'Y' or
+         obs_status = 'N' or 
+         obs_status = 'G' or 
+         obs_status = 'B'),
+trigflag        varchar(1)   NOT NULL
+  CHECK (trigflag = 'T' or
+         trigflag = 'F' or
+         trigflag = 'A' or
+         trigflag = 'M'),
+panel_id        integer     NOT NULL,
+PRIMARY KEY (prop_id, targ_id, ordr, panel_id)
+);
+DROP TABLE proposal;
+CREATE TABLE proposal (
+prop_id         integer       NOT NULL,
+category        varchar(2)    NOT NULL,
+scicat          varchar(50)   NOT NULL,
+tag_num         varchar(4)    NOT NULL,
+last_name       varchar(25),
+institution     varchar(35)   NOT NULL,
+type            varchar(7)    NOT NULL,
+type_sort       integer       NOT NULL,
+big_proj        varchar(6)    NOT NULL
+   CHECK (big_proj = 'LP' or
+          big_proj = 'JCLP' or
+          big_proj = 'VLP' or
+          big_proj = 'XVP' or
+          big_proj = 'GTO' or
+          big_proj = 'GTO-LP' or
+          big_proj = 'None' or
+          big_proj = 'N/A'),
+big_proj_sort   integer       NOT NULL,
+mcop            varchar(1)    NOT NULL DEFAULT 'N'
+   CHECK (mcop = 'Y' or
+          mcop = 'N'),
+tc_prop         varchar(1)    NOT NULL DEFAULT 'N'
+   CHECK (tc_prop = 'Y' or
+          tc_prop = 'N'),
+rev_too     varchar(1)    NOT NULL DEFAULT 'N'
+   CHECK (rev_too = 'N' or
+          rev_too = 'Y'),
+conflict        varchar(1)    NOT NULL DEFAULT 'N'
+   CHECK (conflict = 'Y' or
+          conflict = 'N'),
+title           varchar(255)  NOT NULL,
+short_ttl           varchar(25)  NOT NULL,
+abstract        text          NOT NULL,
+prop_req_time   real,
+prop_app_time   real,
+prop_req_time_1 real,
+prop_app_time_1 real,
+prop_req_time_2 real,
+prop_app_time_2 real,
+total_req_time    real          NOT NULL,
+total_app_time    real          NOT NULL,
+total_req_time_1  real          NOT NULL DEFAULT 0,
+total_app_time_1  real          NOT NULL DEFAULT 0,
+total_req_time_2  real          NOT NULL DEFAULT 0,
+total_app_time_2  real          NOT NULL DEFAULT 0,
+prop_req_hel   real,
+prop_app_hel   real,
+prop_req_hel_1 real,
+prop_app_hel_1 real,
+prop_req_hel_2 real,
+prop_app_hel_2 real,
+total_req_hel    real          NOT NULL DEFAULT 0,
+total_app_hel    real          NOT NULL DEFAULT 0,
+total_req_hel_1  real          NOT NULL DEFAULT 0,
+total_app_hel_1  real          NOT NULL DEFAULT 0,
+total_req_hel_2  real          NOT NULL DEFAULT 0,
+total_app_hel_2  real          NOT NULL DEFAULT 0,
+num_targets     integer       NOT NULL,
+num_targets_1   integer       NOT NULL DEFAULT 0,
+num_targets_2   integer       NOT NULL DEFAULT 0,
+num_targ_req    integer       NOT NULL,
+num_targ_app    integer       NOT NULL,
+num_targ_req_1  integer       NOT NULL DEFAULT 0,
+num_targ_app_1  integer       NOT NULL DEFAULT 0,
+num_targ_req_2  integer       NOT NULL DEFAULT 0,
+num_targ_app_2  integer       NOT NULL DEFAULT 0,
+num_obs_req     integer       NOT NULL DEFAULT 0,
+num_obs_app     integer       NOT NULL DEFAULT 0,
+num_obs_req_1   integer       NOT NULL DEFAULT 0,
+num_obs_app_1   integer       NOT NULL DEFAULT 0,
+num_obs_req_2   integer       NOT NULL DEFAULT 0,
+num_obs_app_2   integer       NOT NULL DEFAULT 0,
+tax_tot         real          NOT NULL DEFAULT 0,
+tax_req         real          NOT NULL DEFAULT 0,
+tax_tot_1       real          NOT NULL DEFAULT 0,
+tax_req_1       real          NOT NULL DEFAULT 0,
+tax_tot_2       real          NOT NULL DEFAULT 0,
+tax_req_2       real          NOT NULL DEFAULT 0,
+rc_score_req	real DEFAULT 0,
+rc_score_app    real DEFAULT 0,
+rc_score_req_1	real DEFAULT 0,
+rc_score_app_1  real DEFAULT 0,
+rc_score_req_2	real DEFAULT 0,
+rc_score_app_2  real DEFAULT 0,
+tc_e_req	real DEFAULT 0,
+tc_e_app        real DEFAULT 0,
+tc_e_req_1      real DEFAULT 0,
+tc_e_app_1      real DEFAULT 0,
+tc_e_req_2      real DEFAULT 0,
+tc_e_app_2      real DEFAULT 0,
+tc_a_req        real DEFAULT 0,
+tc_a_app        real DEFAULT 0,
+tc_a_req_1      real DEFAULT 0,
+tc_a_app_1      real DEFAULT 0,
+tc_a_req_2      real DEFAULT 0,
+tc_a_app_2      real DEFAULT 0,
+tc_d_req        real DEFAULT 0,
+tc_d_app        real DEFAULT 0,
+tc_d_req_1      real DEFAULT 0,
+tc_d_app_1      real DEFAULT 0,
+tc_d_req_2      real DEFAULT 0,
+tc_d_app_2      real DEFAULT 0,
+mon_flag        varchar(1)    NOT NULL DEFAULT 'N',
+grid_flag       varchar(1)    NOT NULL DEFAULT 'N',
+joint_flag      varchar(50)   NOT NULL,
+joint_sort      integer       NOT NULL,  
+panel_id        integer       NOT NULL,
+group_id        varchar(50)   NOT NULL  DEFAULT '_unassigned',
+link_id         integer,
+hst_req         integer,
+hst_app         integer,
+noao_req        real,
+noao_app        real,
+xmm_req         real,
+xmm_app         real,
+nrao_req        real,
+nrao_app        real,
+rxte_req        real,
+rxte_app        real,
+spitzer_req     real,
+spitzer_app     real,
+suzaku_req      real,
+suzaku_app      real,
+swift_req       real,
+swift_app       real,
+nustar_req      real,
+nustar_app      real,
+vf_req          real,
+vf_app          real,
+f_req           real,
+f_app           real,
+s_req           real,
+s_app           real,
+vs_req          real,
+vs_app          real,
+comments        text,
+prop_status     varchar(1)
+  CHECK (prop_status = 'Y' or 
+         prop_status = 'N' or 
+         prop_status = 'B' or
+         prop_status = 'G'),
+prop_status_bck  varchar(1)
+  CHECK (prop_status_bck = 'Y' or 
+         prop_status_bck = 'N' or 
+         prop_status_bck = 'B'),
+temp_status     varchar(1)    
+  CHECK (temp_status = 'Y' or
+         temp_status = 'N' or
+         temp_status = 'B'),
+cdo_approval    varchar(1)
+  CHECK (cdo_approval = 'Y' or
+         cdo_approval = 'N' or
+         cdo_approval = 'R' or
+         cdo_approval = 'E'),
+pg1             real,
+pg2             real,
+pg3             real,
+pg4             real,
+pg5             real,
+pg6             real,
+pg7             real,
+pg8             real,
+pg9             real,
+pg10            real,
+pg11            real,
+pg_avg          real,
+pg_med          real,
+pg_stdev        real,
+g1              real,
+g2              real,
+g3              real,
+g4              real,
+g5              real,
+g6              real,
+g7              real,
+g8              real,
+g9              real,
+g10             real,
+g11             real,
+g12             real,
+g13             real,
+g14             real,
+g15             real,
+g16             real,
+g17             real,
+g18             real,
+g19             real,
+g20             real,
+g21             real,
+g22             real,
+g23             real,
+g24             real,
+g25             real,
+fg_avg          real DEFAULT 0,
+fg_med          real,
+fg_stdev        real,
+fg_norm         real,
+g_cmt           varchar(100),
+ag1              real,
+ag2              real,
+ag3              real,
+ag4              real,
+ag5              real,
+ag6              real,
+ag7              real,
+ag8              real,
+ag9              real,
+ag10             real,
+ag11             real,
+ag12             real,
+ag13             real,
+ag14             real,
+ag15             real,
+ag16             real,
+ag17             real,
+ag18             real,
+ag19             real,
+ag20             real,
+ag21             real,
+ag22             real,
+ag23             real,
+ag24             real,
+ag25             real,
+afg_avg          real DEFAULT 0,
+afg_med          real,
+afg_stdev        real,
+afg_norm         real,
+a_cmt            varchar(100),
+rank            integer,
+sup_triage      varchar(1)  NOT NULL DEFAULT 'N'
+   CHECK (sup_triage = 'Y' or
+          sup_triage = 'N'),
+triage          varchar(1)   NOT NULL DEFAULT 'N'
+   CHECK (triage = 'Y' or
+          triage = 'R' or
+          triage = 'A' or 
+          triage = 'N'),
+triage_sort     integer DEFAULT 1,
+infeasible      varchar(1)   NOT NULL  DEFAULT 'N',
+PRIMARY KEY (prop_id, panel_id)
+);
+DROP TABLE final_comments;
+CREATE TABLE final_comments (
+panel_id        integer,
+comment         text,
+lower_triage    real,
+locked          varchar(1),
+PRIMARY KEY (panel_id)
+);
+DROP TABLE alternate_target_group;
+CREATE TABLE alternate_target_group (
+alt_id          integer      NOT NULL,
+prop_id         integer      NOT NULL,
+panel_id        integer      NOT NULL,
+alt_grp_name    varchar(30)  NOT NULL,
+req_cnt         integer      NOT NULL,
+app_cnt         integer      NOT NULL,
+PRIMARY KEY (alt_id, panel_id)
+);
+DROP TABLE rollreq;
+CREATE TABLE rollreq (
+targ_id         integer,
+ordr            integer,
+roll_constraint varchar(1)   NOT NULL
+  CHECK (roll_constraint = 'Y' or 
+         roll_constraint = 'P'),
+roll_180        varchar(1),
+roll            real,
+roll_tolerance  real,
+tc_roll         real,
+panel_id        integer      NOT NULL,
+PRIMARY KEY (targ_id, ordr, panel_id)
+);
+DROP TABLE timereq;
+CREATE TABLE timereq (
+targ_id         integer,
+ordr            integer,
+ao              integer  DEFAULT 0,
+time_constraint varchar(1)   NOT NULL
+  CHECK (time_constraint = 'Y' or 
+         time_constraint = 'P'),
+tstart          timestamp without time zone,
+tstop           timestamp without time zone,
+tc_time         real,
+panel_id        integer      NOT NULL,
+PRIMARY KEY (targ_id, ordr, panel_id)
+);
+DROP TABLE phasereq;
+CREATE TABLE phasereq (
+targ_id               integer,
+phase_period          real,
+phase_epoch           real,
+phase_start           real,
+phase_end             real,
+phase_start_margin    real,
+phase_end_margin      real,
+phase_constraint varchar(1)  NOT NULL
+  CHECK (phase_constraint = 'Y' or 
+         phase_constraint = 'P'),
+tc_phase              real,
+panel_id              integer     NOT NULL,
+PRIMARY KEY (targ_id, panel_id)
+);
+DROP TABLE conflicts;
+CREATE TABLE conflicts (
+prop_id               integer,
+targ_id               integer,
+targ_num              integer,
+targ_name             varchar(100),
+conflict_propid       integer,
+conflict_targ_id      integer,
+conflict_targnum      integer,
+conflict_exptime      real,
+conflict_detector     varchar(12),
+conflict_type         varchar(4),
+conflict_sep          varchar(20),
+pi                    varchar(40),
+exptime               real,
+detector              varchar(12),
+type                  varchar(15)
+); 
+DROP TABLE allotment;
+CREATE TABLE allotment (
+panel_id        integer    PRIMARY KEY,
+rc_score        real DEFAULT NULL,
+rc_score_1      real DEFAULT NULL,
+rc_score_2      real DEFAULT NULL,
+vf_too          real DEFAULT NULL,
+f_too           real DEFAULT NULL,
+s_too           real DEFAULT NULL,
+vs_too          real DEFAULT NULL,
+hst             integer DEFAULT NULL,
+noao            real DEFAULT NULL,
+xmm             real DEFAULT NULL,
+nrao            real DEFAULT NULL,
+rxte            real DEFAULT NULL,
+spitzer         real DEFAULT NULL,
+suzaku          real DEFAULT NULL,
+swift           real DEFAULT NULL,
+nustar          real DEFAULT NULL,
+total_exp_time   real DEFAULT 0,
+total_exp_time_1 real DEFAULT NULL,
+total_exp_time_2 real DEFAULT NULL,
+total_hel_time   real DEFAULT 0,
+total_hel_time_1 real DEFAULT NULL,
+total_hel_time_2 real DEFAULT NULL,
+lp              real DEFAULT NULL,
+lp_1            real DEFAULT NULL,
+lp_2            real DEFAULT NULL,
+vlp             real DEFAULT NULL,
+vlp_1           real DEFAULT NULL,
+vlp_2           real DEFAULT NULL,
+xvp             real DEFAULT NULL,
+xvp_1           real DEFAULT NULL,
+xvp_2           real DEFAULT NULL,
+hel_lp              real DEFAULT NULL,
+hel_lp_1            real DEFAULT NULL,
+hel_lp_2            real DEFAULT NULL,
+hel_vlp             real DEFAULT NULL,
+hel_vlp_1           real DEFAULT NULL,
+hel_vlp_2           real DEFAULT NULL,
+hel_xvp             real DEFAULT NULL,
+hel_xvp_1           real DEFAULT NULL,
+hel_xvp_2           real DEFAULT NULL,
+archive_allot   real DEFAULT NULL,
+theory_allot    real DEFAULT NULL,
+high_grade      real DEFAULT null,
+pass_grade      real DEFAULT null
+);
+DROP TABLE observatory;
+CREATE TABLE observatory (
+obs             varchar(10)             PRIMARY KEY,
+units           varchar(10)  NOT NULL,
+datatype        varchar(10)  NOT NULL
+);
+DROP TABLE columns;
+CREATE TABLE columns (
+col_id       integer      NOT NULL,
+panel_id     integer      NOT NULL,
+object       varchar(20)  NOT NULL
+   CHECK (object = 'proposal' or 
+          object = 'target' or 
+          object = 'dummy'),
+attribute    varchar(20)  NOT NULL,
+col_name     varchar(30)  NOT NULL,
+col_width    integer,
+edit_flag    varchar(1)   NOT NULL
+   CHECK (edit_flag = 'Y' or 
+          edit_flag = 'N'),
+display      varchar(6)   NOT NULL
+   CHECK (display = 'table' or
+          display = 'label' or
+          display = 'button' or
+          display = 'text' or
+          display = 'spreadsheet' or
+          display = 'combo' or
+          display = 'multi' or
+          display = 'entry' or
+          display = 'radiobutton'),
+table_id     integer,
+sortby       varchar(1)   NOT NULL
+   CHECK (sortby = 'Y' or
+          sortby = 'N'),
+groupby       varchar(1)   NOT NULL
+   CHECK (sortby = 'Y' or
+          sortby = 'N'),
+justify       varchar(1)
+   CHECK (justify = 'l' or
+          justify = 'r' or
+          justify = 'c'),
+pub          varchar(1)  NOT NULL
+   CHECK (pub = 'Y' or 
+          pub = 'N' or
+          pub = 'F'),
+PRIMARY KEY (col_id, panel_id, col_name)
+);
+DROP TABLE views;
+CREATE TABLE views (
+view_id      integer      NOT NULL,
+panel_id     integer      NOT NULL,
+view_name    varchar(50)  NOT NULL,
+pub          varchar(1)   NOT NULL
+   CHECK (pub = 'Y' or 
+          pub = 'N' or
+          pub = 'F' or
+          pub = 'B'),
+PRIMARY KEY (view_id, panel_id, view_name)
+);
+DROP TABLE sections;
+CREATE TABLE sections (
+section_id      integer      NOT NULL,
+view_id         integer      NOT NULL,
+panel_id        integer      NOT NULL,
+section_name    varchar(50)  NOT NULL,
+section_order   integer      NOT NULL,
+section_type varchar(20)  NOT NULL
+   CHECK (section_type = 'proposal' or 
+          section_type = 'target' or
+          section_type = 'prop_id' or
+          section_type = 'title' or
+          section_type = 'short_ttl' or
+          section_type = 'abstract' or
+          section_type = 'spreadsheet' or
+          section_type = 'combo_cols' or
+          section_type = 'multi_cols' or
+          section_type = 'prop_edit' or
+          section_type = 'prop_status'),
+section_width   integer,
+PRIMARY KEY (view_id, panel_id, section_order)
+);
+DROP TABLE section_columns;
+CREATE TABLE section_columns (
+section_id     integer       NOT NULL,
+view_id        integer       NOT NULL,
+panel_id       integer       NOT NULL,
+col_id         integer       NOT NULL,
+col_order      integer       NOT NULL,
+PRIMARY KEY (section_id, view_id, panel_id, col_order)
+);
+DROP TABLE table_columns;
+CREATE TABLE table_columns (
+table_id      integer       NOT NULL,
+panel_id      integer       NOT NULL,
+table_name    varchar(10)   NOT NULL,
+col_name      varchar(10)   NOT NULL,
+col_order     integer       NOT NULL,
+col_width     integer,
+PRIMARY KEY (table_id, col_name, panel_id)
+);
+DROP TABLE sorts;
+CREATE TABLE sorts (
+sort_id       integer       NOT NULL,
+panel_id      integer       NOT NULL,
+groupby       varchar(20),
+sortby        varchar(255)  NOT NULL,
+sort_name     varchar(255)  NOT NULL,
+PRIMARY KEY (panel_id, sort_name)
+);
+DROP TABLE passwords;
+CREATE TABLE passwords (
+uid          integer        NOT NULL,
+uname        varchar(10)    NOT NULL     PRIMARY KEY,
+pwd          varchar(10)    NOT NULL,
+identity     varchar(50)    NOT NULL
+);
+DROP TABLE groups;
+CREATE TABLE groups (
+group_id          integer        NOT NULL,
+panel_id          integer        NOT NULL,
+group_name        varchar(50)    NOT NULL,
+PRIMARY KEY (panel_id, group_name)
+);
+
+
+DROP TABLE bpp_panel_grades;
+CREATE TABLE bpp_panel_grades (
+prop_id   integer     NOT NULL,
+panel_id  integer     NOT NULL,
+fg_avg    real DEFAULT 0,
+fg_med    real,
+fg_stdev  real,
+fg_norm   real,
+rank      integer
+);
+
+DROP TABLE panel;
+CREATE TABLE panel (
+panel_id int,
+num_pgrades int,
+num_grades int
+);
+
+DROP TABLE panel_member;
+CREATE TABLE panel_member (
+panel_id int NOT NULL,
+last_name       varchar(25)   NOT NULL,
+type varchar(15) 
+);
+

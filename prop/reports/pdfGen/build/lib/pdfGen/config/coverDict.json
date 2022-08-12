@@ -1,0 +1,176 @@
+{
+  "PI": {
+    "Principal Investigator": [
+      "pi_first",
+      "left_bld_new"
+    ],
+    "ORCID": [
+      "orcid",
+      "left_new"
+    ],
+    "Primary Institute": [
+      "institution",
+      "left_bld_new"
+    ],
+    "Department": [
+      "department",
+      "left_new"
+    ],
+    "Street": [
+      "street",
+      "left_new"
+    ],
+    "Mail": [
+      "mailstop",
+      "left_new"
+    ],
+    "City": [
+      "city",
+      "left_new"
+    ],
+    "Country": [
+      "country",
+      "left_new"
+    ],
+    "Phone": [
+      "phone",
+      "left_new"
+    ],
+    "Email": [
+      "pi_email",
+      "left_new"
+    ]
+  },
+  "Proposal Overview": {
+    "Title": [
+      "title",
+      "left_bld_new"
+    ],
+    "Proposal Type": [
+      "type",
+      "left_bld_new"
+    ],
+    "Linked Prop": [
+      "linked_propnum",
+      "left_new"
+    ],
+    "Proprietary Rights": [
+      "proprietary_rights",
+      "left_new"
+    ],
+    "Justification of Request for Proprietary Rights": [
+      "rights_justification",
+      "left_new"
+    ],
+    "Subject Category": [
+      "subject category",
+      "left_bld_new"
+    ],
+    "Science Keywords": [
+      "science_keywords",
+      "left_new"
+    ],
+    "Requested Time_Dict": {
+      "Total Time/Budg": [
+        "time_or_budget",
+        "left_new"
+      ],
+      "# Targets": [
+        "num_targets",
+        "right_bold"
+      ],
+      "# TOO Triggers": [
+        "trigger_cnt",
+        "right_bold"
+      ]
+    },
+    "Joint Requests": [
+      "joint",
+      "left_new"
+    ]
+  },
+  "Abstract": {
+    "Abstract": [
+      "abstract",
+      "table"
+    ]
+  },
+  "COI": {
+    "CO-Investigators": [
+      "COI",
+      "table_zebra"
+    ],
+    "Is first Co-I responsible for the observation rather than the PI?": [
+      "coi_contact",
+      "left_new"
+    ],
+    "Observing Co-I Phone": [
+      "coi_phone",
+      "left_new"
+    ],
+    "If PI is not based in USA and proposal has USA CoIs, which Co-I will be the Cost PI?": [
+      "cost_pi_coin",
+      "left_new"
+    ]
+  },
+  "DDT Proposal Information": {
+    "Response Time": [
+      "response_time",
+      "left_new"
+    ],
+    "Justification of Response Time": [
+      "response_justification",
+      "left_new"
+    ],
+    "24 Hour Contact Info": [
+      "contact_info",
+      "left_new"
+    ],
+    "Justification for this Particular Target": [
+      "target_justification",
+      "left_new"
+    ],
+    "Why can't the observation wait for the next Chandra CfP": [
+      "next_cfp",
+      "left_new"
+    ],
+    "If transient, likelihood of detection, duration and recurrence of transient behavior": [
+      "transient_behavior",
+      "left_new"
+    ],
+    "Have you/Co-Is requested XMM DDT time for this/similar proposal?": [
+      "xmm_ddt",
+      "left_new"
+    ],
+    "Have you/Co-Is ever submitted similar/related proposals to a Chandra Call for Proposals (CfP)": [
+      "prev_request",
+      "left_new"
+    ],
+    "Status of XMM Request": [
+      "xmm_status",
+      "left_new"
+    ],
+    "Cycle(s), PI name, status": [
+      "prev_cycles",
+      "left_new"
+    ]
+  },
+  "Individual Target Details": {
+    "Target Summary": [
+      "TARGETS",
+      "table_summ"
+    ],
+    "TOO Target Summary": [
+      "TARGETS",
+      "too"
+    ],
+    "If this TOO is a resubmission of a proposal approved in the previous Cycle, should this TOO be canceled if the previous Cycle TOO is triggered?": [
+      "TARGETS",
+      "left_new"
+    ],
+    "TARGETS": [
+      "TARGETS",
+      "left"
+    ]
+  }
+}

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE table SYSTEM "table.dtd">
+
+<table name="dither" key="obsid">
+  <column name="obsid">
+    <type>INTEGER</type>
+    <tooltip>Observation Identifier</tooltip>
+  </column>
+  <column name="y_amp">
+    <type>DOUBLE</type>
+    <tooltip>Y-axis Amplitude (degrees)</tooltip>
+    <number>
+      <minimum>0.0</minimum>
+    </number>
+  </column>
+  <column name="y_freq">
+    <type>DOUBLE</type>
+    <tooltip>Y-axis Frequency (degrees/second)</tooltip>
+    <number>
+      <minimum>0.0</minimum>
+    </number>
+  </column>
+  <column name="y_phase">
+    <type>DOUBLE</type>
+    <tooltip>Y-axis Phase (degrees)</tooltip>
+    <number>
+      <minimum>0.0</minimum>
+    </number>
+  </column>
+  <column name="z_amp">
+    <type>DOUBLE</type>
+    <tooltip>Z-axis Amplitude (degrees)</tooltip>
+    <number>
+      <minimum>0.0</minimum>
+    </number>
+  </column>
+  <column name="z_freq">
+    <type>DOUBLE</type>
+    <tooltip>Z-axis Frequency (degrees/second)</tooltip>
+    <number>
+      <minimum>0.0</minimum>
+    </number>
+  </column>
+  <column name="z_phase">
+    <type>DOUBLE</type>
+    <tooltip>Z-axis Phase (degrees)</tooltip>
+    <number>
+      <minimum>0.0</minimum>
+    </number>
+  </column>
+</table>

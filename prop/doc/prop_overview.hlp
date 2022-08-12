@@ -1,0 +1,211 @@
+------------------------------------------------------------------------------
+Proposal Planning Tools
+------------------------------------------------------------------------------
+
+prop_colden_exe: 
+   Calculates the neutral hydrogen column density
+
+prop_colden: 
+   Sets up environment variables for colden tool and calls executable
+
+prop_colden_script: deferred - not requirement
+   Sets up environment variables for non-web GUI version (not released for use)
+
+prop_dates_exe: 
+   Converts between popular date systems
+
+prop_dates: 
+   Sets up environment variables for dates tool and calls executable
+
+prop_dates_script: deferred - not requirement
+   Sets up environment variables for non-web GUI version (not released for use)
+
+prop_pileup: 
+   Estimates ACIS pileup
+
+prop_pileup_script: deferred - not requirement
+   Sets up environment variables for non-web GUI version (not released for use)
+
+prop_pimms_exe: 
+   Estimates instrument count rates
+
+prop_pimms: 
+   Sets up environment variables for PIMMS tool and calls executable
+
+prop_xsing:
+   program within the pimms MODELS directory used to convert the XSPEC output 
+   into a form readable by PIMMS.
+
+prop_pimms_script: deferred - not requirement
+   Sets up environment variables for non-web GUI version (not released for use)
+
+prop_precess_exe: 
+   Precesses between coordinate systems
+
+prop_precess: 
+   Sets up environment variables for precess tool and calls executable
+
+prop_precess_script: deferred - not requirement
+   Sets up environment variables for non-web GUI version (not released for use)
+
+prop_waves:
+   Program to convert energy, wavelength, or frequency of electromagnetic 
+   radiation in one system of units to energy, wavelength, or frequency in 
+   another system.
+
+------------------------------------------------------------------------------
+Web-based Proposal Tools
+------------------------------------------------------------------------------
+"prop_toolkit" java and cgi files: 
+   Displays the WWW Toolkit including colden, dates, pileup, PIMMS, precess
+
+prop_toolkit_script: 
+   Sets up environment variables for the WWW Proposal Planning Toolkit
+
+"prop_ea_viewer" java and cgi files: 
+   Displays the PIMMS effective area curves in a user-selectable format
+
+"prop_quest" java and cgi files: 
+   Obtains questionnaire inputs from user and provides Java test page
+
+"prop_webspec"
+  WebSpec is a WWW interface for the X-ray spectral fitting package, XSPEC.
+  Currently, it can be used to simulate spectral data for a variety of X-ray 
+  missions/instruments.
+
+
+------------------------------------------------------------------------------
+Proposal GUI's
+------------------------------------------------------------------------------
+prop_rps_error_gui (Error Handling GUI):
+   Supports review/ingestion of proposals with issues/resubmissions
+
+prop_panel_gui (Panel Manager): 
+  Supports all functions related to Peer Review Panels
+
+prop_manager_gui (Proposal Manager): 
+  Supports functions related to proposals; permits editing of existing
+  technical review and peer review forms
+
+------------------------------------------------------------------------------
+Proposal Submission Tools
+------------------------------------------------------------------------------
+
+rpsd (RPS - Web version): 
+   Supports the submission of proposals through the WWW
+
+rpsmaild (RPS - e-mail version):
+   Supports the submission of proposals through e-mail
+
+prop_rps_receiver (Receiver Process): 
+   Supports the receipt of proposals submitted to the CXC
+
+prop_rps_ingest (Ingest Process): 
+   Supports the ingest of proposals into the proposal database
+
+
+------------------------------------------------------------------------------
+Proposal Scripts
+------------------------------------------------------------------------------
+
+prop_start_rps_ingest.pl:
+   Starts up the RPS ingest process for the normal AO cycle.
+
+prop_start_rps_too_ingest.pl:
+   Starts up the RPS ingest process for out-of-cycle requests (TOO's,DDT)
+
+prop_kill_rps_ingest.pl:
+   Kills the RPS ingest process
+
+prop_rps_ingest_died.pl:
+   Notifies identified user (environment variable) of the failure of the
+   ingest process
+
+prop_start_rps_receiver.pl: 
+   Starts up the RPS receiver process
+
+prop_start_rps_too_receiver.pl: 
+   Starts up the RPS receiver process for out-of-cycle requests (TOO's,DDT)
+
+prop_kill_rps_receiver.pl: 
+   Kills the RPS receiver process
+
+prop_rps_receiver_died.pl: 
+   Notifies identified user (environment variable) of failure of the
+   receiver process
+
+prop_rps_too_mail.pl: 
+  Script used by prop_rps_receiver to send pager/email messages for 
+  out-of-cycle observation requests (TOO's,DDT) 
+
+prop_rpsinc.pl:
+   Used by the prop_rps_receiver to include new mail and redirect STDERR
+   to STDOUT so that the messages get logged properly
+
+prop_rpsdiff: 
+   Performs UNIX diff command on specified files and pipes output to a
+   temporary file for display in the GUI
+
+
+------------------------------------------------------------------------------
+Proposal Review 
+------------------------------------------------------------------------------
+
+prop_email_forms: 
+  E-mails the review forms and preliminary grades to the reviewers; e-mails
+  hard copy confirmation message to the principal investigator for a proposal
+
+prop_read_prelim:
+  Reads in the preliminary grade forms
+
+prop_read_reviews: 
+  Reads in the primary, secondary, peer, and technical proposal review forms
+
+prop_archive_retrieve: 
+  Retrieves proposal file for specified proposal number from the database 
+  archive.
+
+prop_splitreviews.pl:
+  Splits multiple reviews received in a single file into multiple files
+  used by the prop_read_reviews application.
+
+prop_rps2email.pl
+  Creates an "email" version from an internal version of an RPS file.  This
+  is useful in order to get an up-to-date RPS form after a proposal has had
+  database updates.
+
+------------------------------------------------------------------------------
+Proposal Report Tools
+------------------------------------------------------------------------------
+
+prop_reports:
+  Generates final forms, prints review data from database, miscellaneous
+  proposal lists
+
+prop_rps_reports: 
+  Generates reports in proposal confirmation format or RPS internal format.
+
+prop_target_reports: 
+  Generates target reports requested by USG
+
+
+------------------------------------------------------------------------------
+Peer Review Panel Tools
+------------------------------------------------------------------------------
+
+prop_panel_create: 
+  Creates the baseline peer review panels by assigning proposals
+
+
+prop_create_peer: 
+  Creates the initial peer review forms for use at the Peer Review; displays
+  technical evaluation(s) and combines the primary/secondary review data
+
+------------------------------------------------------------------------------
+Peer Review Spreadsheet
+------------------------------------------------------------------------------
+
+peer.xls (Peer Review Spreadsheet): 
+   Supports the proposal and target approval process by Peer Review committee
+
+

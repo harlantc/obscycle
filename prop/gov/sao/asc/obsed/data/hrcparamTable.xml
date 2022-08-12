@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE table SYSTEM "table.dtd">
+
+<table name="hrcparam" key="hrcid">
+  <column name="hrcid">
+    <type>INTEGER</type>
+    <tooltip>HRC Identifier</tooltip>
+  </column>
+  <column name="si_mode">
+    <type>STRING</type>
+    <tooltip>Science Instrument Mode Mnemonic</tooltip>
+  </column>
+  <column name="trigger_level">
+    <type>INTEGER</type>
+    <tooltip>MCP signal event trigger threshold</tooltip>
+    <number>
+      <maximum>255</maximum>
+      <minimum>-1</minimum>
+    </number>
+  </column>
+  <column name="range_switch_level">
+    <type>INTEGER</type>
+    <tooltip>ADC amplifier switching threshold</tooltip>
+    <number>
+      <maximum>255</maximum>
+      <minimum>-1</minimum>
+    </number>
+  </column>
+  <column name="spect_mode">
+    <type>CHOICE</type>
+    <tooltip>HRC-S imaging/spectroscopy mode</tooltip>
+    <choices>
+	<item>DEF</item>
+	<item>IMAGING</item>
+	<item>NORMAL</item>
+    </choices>
+  </column>
+  <column name="antico_enable">
+    <type>CHOICE</type>
+    <tooltip>Anticoincidence veto enabled</tooltip>
+    <choices>
+	<item>Y</item>
+	<item>N</item>
+	<item>D</item>
+    </choices>
+  </column>
+  <column name="width_enable">
+    <type>CHOICE</type>
+    <tooltip>Width threshold veto enabled</tooltip>
+    <choices>
+	<item>Y</item>
+	<item>N</item>
+	<item>D</item>
+    </choices>
+  </column>
+  <column name="width_threshold">
+    <type>INTEGER</type>
+    <tooltip>Max allowed event width for veto</tooltip>
+    <number>
+      <maximum>255</maximum>
+      <minimum>-1</minimum>
+    </number>
+  </column>
+  <column name="uld_enable">
+    <type>CHOICE</type>
+    <tooltip>Upper level discriminator veto enabled</tooltip>
+    <choices>
+	<item>Y</item>
+	<item>N</item>
+	<item>D</item>
+    </choices>
+  </column>
+  <column name="upper_level_disc">
+    <type>INTEGER</type>
+    <tooltip>Upper level discriminator level</tooltip>
+    <number>
+      <maximum>255</maximum>
+      <minimum>-1</minimum>
+    </number>
+  </column>
+  <column name="blank_enable">
+    <type>CHOICE</type>
+    <tooltip>Region veto type</tooltip>
+    <choices>
+	<item>DEF</item>
+	<item>CENTER</item>
+	<item>EDGE</item>
+	<item>NONE</item>
+    </choices>
+  </column>
+  <column name="u_blank_hi">
+    <type>INTEGER</type>
+    <tooltip>U axis region blanking upper boundary</tooltip>
+    <number>
+      <maximum>255</maximum>
+      <minimum>-1</minimum>
+    </number>
+  </column>
+  <column name="v_blank_hi">
+    <type>INTEGER</type>
+    <tooltip>V axis region blanking upper boundary</tooltip>
+    <number>
+      <maximum>255</maximum>
+      <minimum>-1</minimum>
+    </number>
+  </column>
+  <column name="u_blank_lo">
+    <type>INTEGER</type>
+    <tooltip>U axis region blanking lower boundary</tooltip>
+    <number>
+      <maximum>255</maximum>
+      <minimum>-1</minimum>
+    </number>
+  </column>
+  <column name="v_blank_lo">
+    <type>INTEGER</type>
+    <tooltip>V axis region blanking lower boundary</tooltip>
+    <number>
+      <maximum>255</maximum>
+      <minimum>-1</minimum>
+    </number>
+  </column>
+  <column name="py_shutter_position">
+    <type>INTEGER</type>
+    <tooltip>+Y focus shutter position</tooltip>
+    <number>
+      <maximum>65535</maximum>
+      <minimum>-1</minimum>
+    </number>
+  </column>
+  <column name="my_shutter_position">
+    <type>INTEGER</type>
+    <tooltip>-Y focus shutter position</tooltip>
+    <number>
+      <maximum>65535</maximum>
+      <minimum>-1</minimum>
+    </number>
+  </column>
+  <column name="hrc_zero_block">
+    <type>BOOLEAN</type>
+    <tooltip>HRC zero order blocking</tooltip>
+  </column>
+  <column name="timing_mode">
+    <type>BOOLEAN</type>
+    <tooltip>HRC timing mode</tooltip>
+  </column>
+</table>

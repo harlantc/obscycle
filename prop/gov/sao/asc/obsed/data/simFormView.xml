@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE formView SYSTEM "formView.dtd">
+
+<formView>
+
+  <title>SIM Form</title>
+
+  <info>
+    <supportsNew>clone null</supportsNew>
+  </info>
+
+  <key>
+    <tableName>sim</tableName>
+    <columnName>obsid</columnName>
+  </key>
+
+  <navigation>
+    <display>
+      <name>Observation ID</name>
+      <tableName>sim</tableName>
+      <columnName>obsid</columnName>
+    </display>
+  </navigation>
+
+  <GUI>
+    <textfield tag="11">
+      <labelText>OBS ID</labelText>
+      <size>6</size>
+      <database>
+        <tableName>sim</tableName>
+        <columnName>obsid</columnName>
+      </database>
+      <row>
+        <number>0</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+    </textfield>
+
+    <textfield tag="12">
+      <labelText>Trans Offset</labelText>
+      <size>6</size>
+      <database>
+        <tableName>sim</tableName>
+        <columnName>trans_offset</columnName>
+      </database>
+    </textfield>
+    
+    <textfield tag="13">
+      <labelText>Focus Offset</labelText>
+      <size>6</size>
+      <database>
+        <tableName>sim</tableName>
+        <columnName>focus_offset</columnName>
+      </database>
+    </textfield>
+
+  </GUI>
+
+</formView>

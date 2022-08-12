@@ -1,0 +1,168 @@
+#!@PERLDB@ 
+#----------------------------------
+# Copyright (c) 1995, Smithsonian Astrophysical Observatory
+# You may not do anything you like with this file. 
+#
+# FILE NAME:  op_vvreport.cgi
+# DEVELOPMENT: 
+#
+# NOTES:       
+#             
+# INPUT:       user input
+#
+# REVISION HISTORY:
+#
+# Date: 
+#---------------------------------------------------------
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use CGI ':standard';
+use Cwd;
+use File::Basename;
+use strict;
+
+
+  unless (eval {require "op_config.pl"}) {
+    print "Unable to find op_config.pl\n"; exit(1);
+  }
+  unless (eval {require "op_subroutines.pl"}) {
+    print "Unable to find op_subroutines.pl\n"; exit(1);
+  }
+
+  use vars qw( $sp_char $tmp_dir $dbg $tmp_host $opdir $web_bin $uid
+	$tmp_err 
+	);
+
+
+###########################  M A I N  ######################################
+{
+  my($obsid,$l2ver,$vvver,$stmp);
+  my($outdir,$dirname,@fnames,$pdffile);
+  my($cgi,$retval,$msg,$emsg);
+
+  $SIG{__WARN__} = \&catch_warn;
+
+  $cgi = new CGI;
+  $stmp = $cgi->param("vvrpt");
+  if ($stmp) {
+    ($obsid,$l2ver,$vvver) = split(/$sp_char/,$stmp);
+  }
+  $obsid = int($obsid);
+  $l2ver = int($l2ver);
+  $vvver = int($vvver);
+
+  if ($obsid <= 0 || $l2ver <0 || $vvver <0) {
+    &error("Invalid parameter sent to op_vvreport.cgi\n");
+    display_file($tmp_err,1);
+    exit(0);
+  }
+     
+  $dirname = sprintf("%05.5dN%03.3d_VV%03.3d",$obsid,$l2ver,$vvver);
+  logit("op_vvreport: $dirname\n");
+  $outdir = $tmp_dir . "/$tmp_host\_" . $dirname;
+  if (!-e $outdir)  {
+    mkdir ($outdir,"0770");
+    my($gid)   = getgrnam("vvcache");
+    chown (-1,$gid,$outdir);
+    chmod (02770,$outdir);
+  }
+  #get file from archive
+  ($retval,$msg) = dbGetVVReportFromArchive($obsid,$l2ver,$vvver,$outdir);
+  @fnames = glob("$outdir/*pdf");
+  if ($#fnames > 0) {
+    #got too many;
+  }
+  if ($#fnames >= 0) {
+    $pdffile = $fnames[0];
+  }
+
+  if (-e $pdffile) {
+    print "Content-Type: application/pdf\n";
+    print qq(Content-Disposition: attachment; filename="$obsid.pdf"\n\n);
+    open (FH,"< $pdffile") or &error("Unable to open $pdffile");
+       while (<FH>) {
+         print $_;
+       }
+       close FH;
+       unlink($pdffile);
+       unlink(glob("$outdir/*log"));
+       rmdir $outdir;
+       exit 0;
+  }
+  else {
+    &debug("op_vvreport: Unable to retrieve PDF file for $obsid $l2ver $vvver \nRemoving $outdir\n") if $dbg;
+    #$emsg = "Unable to retrieve archive file for $obsid l2=$l2ver vv=$vvver\n" . $msg;
+    $emsg = "Unable to retrieve archive file for $obsid l2=$l2ver vv=$vvver\n";
+    &error($emsg);
+    rmdir $outdir;
+    display_file($tmp_err,1);
+    exit(0);
+
+  }
+
+}
+
+#------------------------------------------------------------------------
+# need to retrieve PDF file for specified obsid,pipeline version,
+# l2version, vv version
+# files go in specified directory
+#
+# 0 -> bad return     1 -> good return
+#------------------------------------------------------------------------
+sub dbGetVVReportFromArchive
+{
+  my($obsid,$l2ver,$vvver,$outdir) = @_;
+  my($retval,$tname,$cmd,$msg,$stmp);
+
+  $retval = 0;
+  $tname = "$outdir/opvv.$$";
+  if (open (TFILE,">$tname")) {
+    printf TFILE "operation=retrieve\ndataset=vv\nlevel=2\nfiletype=vvrpt\n";
+    printf TFILE ("obsid=%05.5d\ndataversion=%0d\nversion=%0d\ncompression=off\ngo\n",$obsid,$l2ver,$vvver);
+  }
+  close TFILE;
+  $stmp = cwd();
+  if ( chdir $outdir) {
+    ($retval,$msg) = db_arc4gl($tname,"r");
+    chdir $stmp;
+  }
+
+  # always remove the file with the arc4gl commands
+  unlink $tname;
+
+  return($retval,$msg);
+}
+#--------------------------------------------------------------------
+# perform arc4gl command
+#--------------------------------------------------------------------
+sub db_arc4gl
+{
+  my($tname,$flg)=@_;
+  my($stmp,$cmd,$msg,$retval);
+
+  $stmp = cwd();
+  $ENV{OP_DIR} = $opdir;
+  $cmd  = qq($web_bin/op_archive.tcsh $tname >&1) ;
+  &debug("$cmd\n\n\n");
+  open (TFILE,"$cmd |") ;
+  while (<TFILE> ) {
+      $msg .= $_;
+  }
+  close TFILE;
+  &debug("op_archive: retval=$retval  $msg\n") ;
+  if ($flg == "r" && $msg =~ /file\(s\) have been retrieved/i &&
+     $msg !~ /\n0 file/i) {
+    $retval = 1;
+  }
+  else {
+    $retval = 0;
+  }
+
+  return($retval,$msg);
+
+}
+
+

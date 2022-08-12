@@ -1,0 +1,23 @@
+<% if (useRecaptcha) { %>
+<div id='recaptcha' class="g-recaptcha"
+          data-sitekey="6LdyL08UAAAAAIN1Ssu3fj3xjHxZ5v_Ikb3CDYgx"
+          data-callback="onSubmit"
+          data-size="invisible">
+</div>
+<% } %>
+
+<div class="btnDiv">
+<input type="hidden" name="operation" value = "REFRESH">
+<%  if (useRecaptcha) { %>
+<input class="submitBtn" type="button" value=" CALCULATE "
+       onClick='jspForm.operation.value = "VIEW OUTPUT"; grecaptcha.execute(); return false;'>
+<% } else {%>
+<input class="submitBtn" type="button" value=" CALCULATE "
+       onClick='jspForm.operation.value = "VIEW OUTPUT"; this.form.submit(); this.disabled=true;'>
+<% } %>
+<input class="submitBtn" type="button" value=" CLEAR "
+       onClick='jspForm.operation.value = "CLEAR"; this.form.submit()'>
+<input class="submitBtn" type="button" value=" HELP "
+       onClick='window.location = "/toolkit/prop_help_toolkit.jsp"'>
+</div>
+<p>

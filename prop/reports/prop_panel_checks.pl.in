@@ -1,0 +1,653 @@
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 1995-2015, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_panel_checks.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script runs a few checks on proposals in the database
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+
+use vars qw( $dbh $hidx %param @reqfiles $reqfile
+	);
+
+use strict;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+
+@reqfiles = (
+        "prop_routines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+
+# ---------------- MAIN ----------------------------------------------
+{
+  my($thedate,$stmp);
+
+  &parse_input;
+
+  #database connection
+  $dbh = dbProposalConnection($param{U}, $param{S}, $param{q});
+
+  $thedate = get_date();
+
+  #open output file
+  open(OFILE,"> $param{o}") || 
+	die "ERROR: Unable to open $param{o} for writing.\n";
+
+  $hidx = 1;
+  print OFILE qq(Panel Checks for Cycle $param{a}          $thedate\n);
+  print OFILE qq(\n$hidx. Proposals not assigned to a panel or missing from panel gui.\n);
+  $hidx++;
+  doProposalQuery();
+
+  print OFILE qq(\n\n\n$hidx. Available reviewers not assigned to a panel.\n);
+  $hidx++;
+  $stmp = qq(select ps.pers_id,"",last,email,institution from
+	axafusers..person_short ps, axafusers..panel_status pp
+        where ao_str = "$param{a}" and pp.available = "Y" and
+        pp.pers_id = ps.pers_id and
+        ps.pers_id not in (select pers_id from panel_member, panel,ao
+        where ao.ao_str = "$param{a}" and 
+	panel.ao = ao.ao_id 
+	and panel.panel_id = panel_member.panel_id));
+   &doUserQuery($stmp);
+	
+  print OFILE qq(\n\n\n$hidx. Panel Members in more than one panel.\n);
+  $hidx++;
+  $stmp = qq(create table #dtmp (pers_id int, tt int)
+        insert #dtmp select pm.pers_id,count(pm.pers_id) 
+	from panel,panel_member pm,ao
+        where ao.ao_str = "$param{a}" 
+	and panel.ao = ao.ao_id 
+        and pm.panel_id = panel.panel_id 
+        group by pm.pers_id
+        select ps.pers_id,panel_name,last,email,institution from
+	axafusers..person_short ps, axafusers..panel_status pp,#dtmp,
+	panel,panel_member,ao
+        where pp.ao_str = "$param{a}" and pp.available = "Y" and
+	pp.ao_str = ao.ao_str and
+        pp.pers_id = ps.pers_id and
+        pp.pers_id = #dtmp.pers_id and
+        #dtmp.tt > 1 and
+	ps.pers_id = panel_member.pers_id and
+	ao.ao_id = panel.ao and
+        panel_member.panel_id = panel.panel_id);
+   &doUserQuery($stmp);
+   $dbh->do("drop table #dtmp");
+	
+
+  $stmp = qq(create table #drev (proposal_number varchar(10),
+	last varchar(30),panel_name varchar(10),pri_id int NULL,
+	sec_id int NULL, panel_id int, proposal_id int));
+  $dbh->do($stmp);
+  $stmp = qq(insert #drev select distinct proposal_number,
+	ps.last,panel_name,
+        primary_reviewer,secondary_reviewer,
+        pr.panel_id,p.proposal_id
+        from proposal p, axafusers..person_short ps, panel ,
+        proposal_review pr
+   	where p.ao_str = "$param{a}" and
+   	p.piid = ps.pers_id and
+   	p.proposal_id = pr.proposal_id and
+   	pr.panel_id = panel.panel_id);
+  $dbh->do($stmp);
+
+  print OFILE qq(\n\n\n$hidx. Proposals that have reviewers assigned from a different panel.\n);
+  $hidx++;
+  $stmp = qq(select distinct proposal_number,
+        (ps.last + ',' + substring(ps.first,1,1)), 
+	p1.panel_name,#drev.panel_name,"Primary"
+        from #drev,panel_member pm,axafusers..person_short ps,
+        panel p1,ao
+        where  #drev.pri_id is not null and
+        #drev.pri_id = ps.pers_id and
+        #drev.pri_id = pm.pers_id and
+        pm.panel_id = p1.panel_id and
+	p1.ao = ao.ao_id and
+        ao.ao_str = "$param{a}" and
+        pm.panel_id != #drev.panel_id
+        UNION
+  	select distinct proposal_number,
+        (ps.last + ',' + substring(ps.first,1,1)), 
+	p1.panel_name,#drev.panel_name , "Secondary"
+        from #drev,panel_member pm,axafusers..person_short ps,
+        panel p1, ao
+        where  #drev.sec_id is not null and
+        #drev.sec_id = ps.pers_id and
+        #drev.sec_id = pm.pers_id and
+        pm.panel_id = p1.panel_id and
+	p1.ao = ao.ao_id and
+        ao.ao_str = "$param{a}" and
+        pm.panel_id != #drev.panel_id
+	order by proposal_number);
+    
+
+  &doPQuery($stmp,1);
+
+  # drop temporary table
+  $dbh->do("drop table #drev");
+
+  print OFILE qq(\n\n\n$hidx. Proposals that have same reviewer assigned as Primary and Secondary reviewer.\n);
+  $hidx++;
+  $stmp = qq(select proposal_number, panel_name, 
+	(ps1.last+',' + substring(ps1.first,1,1)), 
+	(ps2.last+',' + substring(ps2.first,1,1))
+        from proposal,proposal_review,panel,panel_proposal,
+	axafusers..person_short ps1, axafusers..person_short ps2
+	where proposal.ao_str  = "$param{a}" 
+	and (proposal.status = "PROPOSED"   or rank is not null)
+	and proposal.proposal_id = proposal_review.proposal_id 
+	and proposal.proposal_id = panel_proposal.proposal_id 
+	and panel_proposal.panel_id = proposal_review.panel_id 
+	and panel.panel_id = panel_proposal.panel_id 
+	and panel.panel_name != "LP"
+	and proposal_review.primary_reviewer is not null 
+	and proposal_review.primary_reviewer = proposal_review.secondary_reviewer
+	and proposal_review.primary_reviewer = ps1.pers_id 
+	and proposal_review.secondary_reviewer = ps2.pers_id );
+   printf OFILE ("\n%-8.8s  %-3.3s %-20.20s %-s\n",
+      "Proposal","Pnl","Primary Reviewer","Secondary Reviewer");
+   printf OFILE ("---------------------------------------------------------------------------\n");
+   &doMQuery($stmp,"");
+
+  print OFILE qq(\n\n\n$hidx. Reviewers assigned to same panel as their proposal. \n);
+  $hidx++;
+  $stmp = qq(select distinct proposal_number, panel_name, 
+	(ps1.last+',' + substring(ps1.first,1,1)) 'Name', 
+	(ps2.last+',' + substring(ps2.first,1,1) + '  (Primary)'),type
+        from proposal,panel,panel_proposal,proposal_review,
+	axafusers..person_short ps1, axafusers..person_short ps2
+	where proposal.ao_str  = "$param{a}" 
+	and (proposal.status = "PROPOSED"   or rank is not null)
+	and proposal.proposal_id = proposal_review.proposal_id 
+	and proposal.proposal_id = panel_proposal.proposal_id 
+	and panel_proposal.panel_id = proposal_review.panel_id 
+	and panel.panel_id = panel_proposal.panel_id 
+	and (proposal_review.primary_reviewer = piid
+	or ps1.email = ps2.email or
+	  (lower(ps1.last) = lower(ps2.last) and 
+           convert(varchar(1),lower(ps1.first)) = convert(varchar(1),lower(ps2.first))))
+	and piid = ps1.pers_id
+	and proposal_review.primary_reviewer = ps2.pers_id 
+	UNION
+        select distinct proposal_number, panel_name, 
+	(ps1.last+',' + substring(ps1.first,1,1)) 'Name', 
+	(ps2.last+',' + substring(ps2.first,1,1) + '  (Secondary)'),type
+        from proposal,proposal_review,panel,panel_proposal,
+	axafusers..person_short ps1, axafusers..person_short ps2
+	where proposal.ao_str  = "$param{a}" 
+	and (proposal.status = "PROPOSED"   or rank is not null)
+	and proposal.proposal_id = proposal_review.proposal_id 
+	and proposal.proposal_id = panel_proposal.proposal_id 
+	and panel_proposal.panel_id = proposal_review.panel_id 
+	and panel.panel_id = panel_proposal.panel_id 
+	and (proposal_review.secondary_reviewer = piid
+	or ps1.email = ps2.email or
+	  (lower(ps1.last) = lower(ps2.last) and 
+           convert(varchar(1),lower(ps1.first)) = convert(varchar(1),lower(ps2.first))))
+	and piid = ps1.pers_id
+	and proposal_review.secondary_reviewer = ps2.pers_id 
+        UNION
+        select distinct proposal_number, panel_name, 
+	(ps1.last+',' + substring(ps1.first,1,1)) 'Name', 
+	(ps2.last+',' + substring(ps2.first,1,1) + '  (PI)'), type
+        from proposal,panel_member,panel,panel_proposal,
+	axafusers..person_short ps1, axafusers..person_short ps2
+	where proposal.ao_str  = "$param{a}" 
+	and (proposal.status = "PROPOSED"   or rank is not null)
+	and proposal.proposal_id = panel_proposal.proposal_id 
+	and panel_proposal.panel_id = panel_member.panel_id 
+	and panel.panel_id = panel_proposal.panel_id 
+	and (panel_member.pers_id = piid or
+	  ps1.email = ps2.email or
+	  (lower(ps1.last) = lower(ps2.last) and 
+           convert(varchar(1),lower(ps1.first)) = convert(varchar(1),lower(ps2.first))))
+	and piid = ps1.pers_id
+	and panel_member.pers_id = ps2.pers_id 
+	and panel_member.pers_id not in (
+		select distinct primary_reviewer from proposal_review pr
+		where proposal.proposal_id = pr.proposal_id and
+		primary_reviewer is not null)
+	and panel_member.pers_id not in (
+		select distinct secondary_reviewer from proposal_review pr
+		where proposal.proposal_id = pr.proposal_id and
+		secondary_reviewer is not null)
+	order by panel_name,Name,proposal_number
+        );
+   printf OFILE ("\n%-8.8s  %-3.3s %-20.20s %-26.26s %s\n",
+      "Proposal","Pnl","PI/CoI","Reviewer", "Type");
+   printf OFILE ("---------------------------------------------------------------------------\n");
+   &doMQuery($stmp,"%-26.26s");
+
+   # now add CoI check
+   print OFILE "\n" ;
+   $stmp = qq(select distinct proposal_number, panel_name, 
+	(ps1.last+',' + substring(ps1.first,1,1)) 'Name', 
+	(ps2.last+',' + substring(ps2.first,1,1) + '  (CoI)'),type
+        from proposal,panel_member,panel,panel_proposal,
+	axafusers..person_short ps1, axafusers..person_short ps2,coin
+	where proposal.ao_str  = "$param{a}" 
+	and (proposal.status = "PROPOSED"   or rank is not null)
+	and proposal.proposal_id = panel_proposal.proposal_id 
+	and proposal.proposal_id = coin.proposal_id 
+	and panel_proposal.panel_id = panel_member.panel_id 
+	and panel.panel_id = panel_proposal.panel_id 
+	and coin.pers_id = ps1.pers_id
+	and panel_member.pers_id = ps2.pers_id 
+	and (panel_member.pers_id = coin.pers_id or
+	  ps1.email = ps2.email or
+	  (lower(ps1.last) = lower(ps2.last) and 
+           convert(varchar(1),lower(ps1.first)) = convert(varchar(1),lower(ps2.first))))
+	order by panel_name,Name,proposal_number);
+   &doMQuery($stmp,"%-26.26s");
+
+
+  print OFILE qq(\n\n\n$hidx. Reviewers assigned to proposals with Personal conflicts. \n);
+  $hidx++;
+  $stmp = qq(select distinct proposal_number, panel_name, 
+	reviewer_conflicts.type,
+	(ps2.last+',' + substring(ps2.first,1,1) + "  (Primary)" )
+        from proposal,panel,panel_proposal,proposal_review,reviewer_conflicts,
+	axafusers..person_short ps2 
+	where proposal.ao_str  = "$param{a}" 
+	and (proposal.status = "PROPOSED"   or rank is not null)
+	and proposal.proposal_id = proposal_review.proposal_id 
+	and proposal.proposal_id = panel_proposal.proposal_id 
+	and proposal.proposal_id = reviewer_conflicts.proposal_id 
+	and panel_proposal.panel_id = proposal_review.panel_id 
+	and panel.panel_id = panel_proposal.panel_id 
+	and proposal_review.primary_reviewer = reviewer_conflicts.pers_id
+	and proposal_review.primary_reviewer = ps2.pers_id
+	and reviewer_conflicts.inactive != 'Y'
+	UNION
+        select distinct proposal_number, panel_name, 
+	reviewer_conflicts.type,
+	(ps2.last+',' + substring(ps2.first,1,1) + "  (Secondary)" )
+        from proposal,panel,panel_proposal,proposal_review,reviewer_conflicts,
+	axafusers..person_short ps2 
+	where proposal.ao_str  = "$param{a}" 
+	and (proposal.status = "PROPOSED"   or rank is not null)
+	and proposal.proposal_id = proposal_review.proposal_id 
+	and proposal.proposal_id = panel_proposal.proposal_id 
+	and proposal.proposal_id = reviewer_conflicts.proposal_id 
+	and panel_proposal.panel_id = proposal_review.panel_id 
+	and panel.panel_id = panel_proposal.panel_id 
+	and proposal_review.secondary_reviewer = reviewer_conflicts.pers_id
+	and proposal_review.secondary_reviewer = ps2.pers_id
+	and reviewer_conflicts.inactive != 'Y'
+	order by proposal_number,panel_name,type);
+
+   printf OFILE ("\n%-8.8s  %-3.3s %-20.20s  %-s\n",
+      "Proposal","Pnl","Type","Reviewer");
+   printf OFILE ("---------------------------------------------------------------------------\n");
+   &doMQuery($stmp,"");
+
+
+
+  print OFILE qq(\n\n\n$hidx. Reviewers missing institution data.\n);
+  $hidx++;
+  $stmp = qq(select ps.pers_id,"--",
+	(last+',' + substring(first,1,1)),
+	email,institution from
+	axafusers..person_short ps, axafusers..panel_status pp
+        where ao_str = "$param{a}" and pp.available = "Y" and
+        pp.pers_id = ps.pers_id and
+	(institution is null or institution = "" or institution = " "));
+   &doUserQuery($stmp);
+
+  print OFILE qq(\n\n\n$hidx. PIs/CoIs missing institution data.\n);
+  $hidx++;
+  $stmp = qq(
+        select proposal_number,"",
+	(last+',' + substring(first,1,1)),ps.pers_id, email 
+	from axafusers..person_short ps, proposal 
+        where ao_str = "$param{a}"
+	and (proposal.status = "PROPOSED"  or rank is not null)
+	and piid = ps.pers_id 
+	and (institution is null or institution = "" or institution = " ")
+	UNION
+        select proposal_number,"",
+	(last+',' + substring(first,1,1)), ps.pers_id,email
+	from axafusers..person_short ps, proposal , coin
+        where ao_str = "$param{a}"
+	and proposal.proposal_id = coin.proposal_id 
+	and (proposal.status = "PROPOSED"  or rank is not null)
+	and coin.pers_id = ps.pers_id 
+	and (institution is null or institution = "" or institution = " "));
+   printf OFILE ("\n%-8.8s  %-3.3s %-20.20s %7.7s %-s\n",
+      "Proposal"," ","Last ","pers_id","Email");
+   printf OFILE ("-----------------------------------------------------------------------------------\n");
+   &doMQuery($stmp,"%7d",);
+
+
+
+  print OFILE qq(\n\n\n$hidx. Linked proposals not in same panel\n);
+  $stmp = qq(select proposal_number,p1.panel_name,a1.last,linked_propnum
+	from proposal,panel_proposal pp1 ,panel p1,axafusers..person_short a1
+	where proposal.ao_str = "$param{a}"  and
+	(proposal.status = "PROPOSED"  or rank is not null) and
+	proposal.piid = a1.pers_id and
+	proposal.linked_propnum is not null and
+	proposal.proposal_id = pp1.proposal_id and
+	pp1.panel_id = p1.panel_id and
+        p1.panel_id not in 
+  	  (select pp2.panel_id from proposal p2,panel_proposal pp2
+           where proposal.linked_propnum = p2.proposal_number and
+           p2.proposal_id = pp2.proposal_id));
+  $hidx++;
+   printf OFILE ("\n%-8.8s  %-3.3s %-20.20s %-s\n",
+      "Proposal","Pnl","P.I. ","Linked Proposal   Panel");
+   printf OFILE ("--------------------------------------------------------------------\n");
+  &doLinkedQuery($stmp);
+
+
+  my($tstr) = "LP/VLP"; 
+  if (int($param{a}) > 12 && int($param{a}) < 17) {
+     $tstr = "LP/XVP"; 
+  }
+  print OFILE qq(\n\n\n$hidx. $tstr panels.\n);
+  $hidx++;
+
+  $stmp= qq(select proposal_number,last,type
+	from proposal, axafusers..person_short ps
+	where proposal.ao_str = "$param{a}"  and
+	(proposal.status = "PROPOSED"  or rank is not null) and
+	(proposal.type like "%LP%" or proposal.type like "%XVP%") and
+	proposal.piid = ps.pers_id );
+   &doLPQuery($stmp);
+
+  print OFILE qq(\n\n\n$hidx. Proposals that are missing a primary and/or secondary reviewer.\n);
+  $hidx++;
+  $stmp = qq(select proposal_number, panel_name, 
+	(ps1.last+',' + substring(ps1.first,1,1)), 
+	(ps2.last+',' + substring(ps2.first,1,1))
+        from proposal,proposal_review,panel,panel_proposal,
+	axafusers..person_short ps1, axafusers..person_short ps2
+	where proposal.ao_str  = "$param{a}" 
+	and (proposal.status = "PROPOSED"   or rank is not null)
+	and proposal.proposal_id = proposal_review.proposal_id 
+	and proposal.proposal_id = panel_proposal.proposal_id 
+	and panel_proposal.panel_id = proposal_review.panel_id 
+	and panel.panel_id = panel_proposal.panel_id 
+	and (proposal_review.primary_reviewer is null 
+	     or (proposal_review.secondary_reviewer is null 
+                 and panel.panel_name!="LP"))
+	and proposal_review.primary_reviewer *= ps1.pers_id 
+	and proposal_review.secondary_reviewer *= ps2.pers_id );
+   printf OFILE ("\n%-8.8s  %-3.3s %-20.20s %-s\n",
+      "Proposal","Pnl","Primary Reviewer","Secondary Reviewer");
+   printf OFILE ("---------------------------------------------------------------------------\n");
+   &doMQuery($stmp,"");
+
+  close OFILE;
+}
+  
+
+# ----------------------------------------------------------
+# perform query
+# pers_id,panel,last,email,institution
+# ----------------------------------------------------------
+sub doUserQuery
+{
+  my($sql) = @_;
+  my($sth,@row);
+
+  if ($param{d}) {
+    print STDERR "$sql\n";
+  }
+
+  printf OFILE ("\n%-8.8s %-3.3s %-25.25s %-50.50s  %s\n",
+    "pers_id","Pnl","Last", "Email","Institution");
+  printf OFILE ("----------------------------------------------------------------------------------------------------------------\n");
+
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  while (@row = $sth->fetchrow_array) {
+    printf OFILE ("%-8.8s %-3.3s %-25.25s %-50.50s  %s\n", @row);
+  }
+}
+
+sub doPQuery
+{
+  my($sql,$x) = @_;
+  my($sth,@row);
+
+  if ($param{d}) {
+    print STDERR "$sql\n";
+  }
+
+  if ($x) {
+    printf OFILE ("\n%-8.8s  %-25.25s %-10.10s %-8.8s %-s\n",
+      "", "","Reviewer","Proposal","",);
+    printf OFILE ("%-8.8s  %-25.25s %-10.10s %-8.8s %-s\n",
+      "Proposal", "Reviewer","Panel","Panel", "Type");
+    printf OFILE ("-----------------------------------------------------------------\n");
+  } 
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  while (@row = $sth->fetchrow_array) {
+    if ($row[2] == $row[3]) {
+      $row[2] = " ";
+    }
+    printf OFILE ("%-8.8s  %-25.25s %-10.10s %-8.8s %-s\n", @row);
+  }
+}
+
+# ----------------------------------------------------------------
+# reviewer query
+# proposal_number, panel_name, primary reviewer ,secondary reviewer
+# ----------------------------------------------------------------
+sub doMQuery
+{
+  my($sql,$fmt) = @_;
+  my($sth,@row);
+
+
+  if ($param{d}) {
+    print STDERR "$sql\n";
+  }
+
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  while (@row = $sth->fetchrow_array) {
+    if ($row[2] =~ /^,/) { $row[2] = ' '; }
+    if ($row[3] =~ /^,/) { $row[3] = ' '; }
+    printf OFILE ("%-8.8s  %-3.3s %-20.20s $fmt %-s\n",@row);
+  }
+}
+
+sub doLinkedQuery
+{
+  my($sql) = @_;
+  my($sth,@row,$sth2,@row2,$tmp);
+
+
+
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  while (@row = $sth->fetchrow_array) {
+    printf OFILE ("%-8.8s  %-3.3s %-20.20s %-s          ",@row);
+    $tmp = qq(select panel_name from proposal,panel_proposal,
+	panel where proposal.proposal_id = panel_proposal.proposal_id and
+	panel_proposal.panel_id = panel.panel_id and 
+	proposal_number = "$row[3]");
+    $sth2 = $dbh->prepare($tmp);
+
+    if ($param{d}) {
+      print STDERR "$tmp\n";
+    }
+    $sth2->execute();
+    $tmp = "";
+    while (@row2 = $sth2->fetchrow_array) {
+       if (length($tmp)>0) {
+         $tmp .= ",";
+       }
+       $tmp .= $row2[0];
+    }
+    print OFILE "$tmp\n";
+  }
+}
+
+sub doLPQuery
+{
+  my($sql) = @_;
+  my($sth,@row,$oldpno,%panels,$str);
+
+  #print STDERR "$sql\n";
+  $str = qq(select proposal_number,panel_name 
+	from proposal,panel_proposal pp1, panel p1
+        where (type like "%LP%" or type like "%XVP%") and ao_str="$param{a}"
+        and (status = "PROPOSED"  or rank is not null) and 
+        proposal.proposal_id = pp1.proposal_id and
+        pp1.panel_id = p1.panel_id  order by proposal_number);
+  $sth = $dbh->prepare($str);
+  $sth->execute();
+  while (@row = $sth->fetchrow_array) {
+    $str = $panels{$row[0]};
+    if ($str) { $str .= ','; }
+    $str .= $row[1];
+    $panels{$row[0]} = $str;
+  }
+  
+  printf OFILE ("\n%-8.8s  %-25.25s %-10.10s %-s\n",
+    "Proposal", "P.I.","Type","Panels");
+  printf OFILE ("----------------------------------------------------------\n");
+
+  if ($param{d}) {
+    print STDERR "$sql\n";
+  }
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  while (@row = $sth->fetchrow_array) {
+    if ($oldpno != $row[0]) {
+      printf OFILE ("%-8.8s  %-25.25s %-10.10s %-s\n", @row,$panels{$row[0]});
+    }
+    $oldpno = $row[0];
+  }
+        
+}
+sub doProposalQuery
+{
+  my($sql) ;
+  my($sth,@row);
+  $sql = qq(select distinct proposal_number,panel_name,last,type ,piid
+        from proposal,axafusers..person_short,panel_proposal,panel
+         where  piid = pers_id and
+        proposal.proposal_id *= panel_proposal.proposal_id
+        and panel_proposal.panel_id *= panel.panel_id
+        and ao_str = "$param{a}" and 
+        (status="PROPOSED" or rank is not null)
+        and
+        (proposal.proposal_id not in (select proposal_id from view_proposal
+          where ao_str="$param{a}")
+        or proposal.proposal_id not in 
+         (select proposal_id from panel_proposal,panel where panel_proposal.panel_id = panel.panel_id and panel_name not like "%P"))
+);
+  printf OFILE ("\n%-8.8s  %-5.5s  %-25.25s  %-12.12s %s\n",
+	"Proposal","Panel","P.I.", "Type","pers_id");
+  printf OFILE ("----------------------------------------------------------------\n");
+
+  if ($param{d}) {
+    print STDERR "$sql\n";
+  }
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  while (@row = $sth->fetchrow_array) {
+    printf OFILE ("%-8.8s  %-5.5s  %-25.25s  %-12.12s %d\n",@row);
+  }
+}
+
+# ----------------------------------------------------------
+# parse input parameters
+# ----------------------------------------------------------
+sub parse_input 
+{
+  my($pwd);
+  my $err = 0;
+
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+             o=> undef,
+             a=> "$ENV{ASCDS_PROP_AO}",
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "o=s",
+          "a=s",
+          "q=s",
+          "d",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter `$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+  $param{q} = $pwd;
+
+
+}
+
+
+
+
+sub usage 
+{
+    print STDERR "\nUSAGE: prop_panel_checks.pl -U -o [ -S -a ]\n";
+    print STDERR "       -U database user name\n";
+    print STDERR "       -o output filename \n";
+    print STDERR "       -S database server, default is DB_PROP_SQLSRV\n";
+    print STDERR "       -a AO , default is ASCDS_PROP_AO\n";
+}
+

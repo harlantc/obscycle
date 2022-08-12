@@ -1,0 +1,235 @@
+===============================================================================
+
+	            HELP FILE for RPS (Remote Proposal System)
+
+===============================================================================
+
+
+General
+-------
+
+The Remote Proposal System(RPS) is for the electronic submission of proposal 
+information (name, institution, targets, etc.). The scientific justification 
+can be submitted electronically.  RPS is available through the WWW and an 
+e-mail server. 
+
+Submitted proposals are sent to the non-human user rps_prop account during the
+normal cycle. Out-of-cycle TOO requests are sent to the non-human user
+rps_too account. They are then logged and ingested into the database by 
+separate processes.  Please refer to the prop_rps_receiver.hlp and 
+prop_rps_ingest.hlp files for further information.
+
+
+RPS servers - startRPS.pl
+--------------------------
+
+startRPS.pl is the script which initiates the servers for the WWW and e-mail
+remote proposal submissions.  The operational version should be run on the
+host 'asc'.  The script starts the 2 server processes 'rpsd' and 'rpsmaild'.
+
+
+
+PARAMETERS
+----------
+USAGE: startRPS.pl  -[mw] [-l]
+       -m   start rpsmaild  server only
+       -w   start rpsd server (www server)
+       -l   use local copies of code 
+
+
+
+If for any reason, the disk that contains the RELEASE software is unavailable,
+a local copy of the RPS servers may be run by using the -l parameter
+( > ~/bin/old/startRPS.pl -l ).
+
+
+INPUT/OUTPUT
+-------------
+
+1) Input Files: $RPSHOME/project/
+     
+   Normal Cycle
+   ------------
+   chandra.pnf                - proposal tag number  (created by hand)
+   chandra.paf                - e-mail address for submitted proposals
+   chandra.pcf                - Chandra field constraints
+   chandra.phf                - Chandra specific help file for e-mail requests
+   chandra.plf                - Chandra proposal LaTeX template
+   chandra_cover.pdf          - Chandra cover page and general field definitions
+   chandra_target.pdf         - Chandra target field definitions
+   chandra.pvf                - AO cycle year for phase epoch check
+   template                   - Chandra e-mail instructions
+
+   Out-of-cycle TOO requests
+   --------------------------
+   chandra_rfo.paf            - e-mail address for submitted proposals
+   chandra_rfo.pcf            - Chandra field constraints
+   chandra_rfo.phf            - Chandra specific help file for e-mail requests
+   chandra_rfo.plf            - Chandra proposal LaTeX template
+   chandra_rfo_cover.pdf      - Chandra cover page and general field definitions
+   chandra_rfo_target.pdf     - Chandra target field definitions
+   chandra_rfo.pvf            - AO cycle year for phase epoch check
+
+   Out-of-cycle Peer-Reviewed (NRA Approved) TOO requests
+   -------------------------------------------------------
+   chandra_rfo_nra.paf        - e-mail address for submitted proposals
+   chandra_rfo_nra.pcf        - Chandra field constraints
+   chandra_rfo_nra.phf        - Chandra specific help file for e-mail requests
+   chandra_rfo_nra.plf        - Chandra proposal LaTeX template
+   chandra_rfo_nra_cover.pdf  - Chandra cover page and general field definitions
+   chandra_rfo_nra_target.pdf - Chandra target field definitions
+   chandra_rfo_nra.pvf        - AO cycle year for phase epoch check
+
+   Director's Discretionary Time
+   -----------------------------
+   chandra_rfo_ddt.paf        - e-mail address for submitted proposals
+   chandra_rfo_ddt.pcf        - Chandra field constraints
+   chandra_rfo_ddt.phf        - Chandra specific help file for e-mail requests
+   chandra_rfo_ddt.plf        - Chandra proposal LaTeX template
+   chandra_rfo_ddt_cover.pdf  - Chandra cover page and general field definitions
+   chandra_rfo_ddt_target.pdf - Chandra target field definitions
+   chandra_rfo_ddt.pvf        - AO cycle year for phase epoch check
+
+
+   Chandra Cost Proposals
+   -----------------------------
+   chandra_budget.paf        - e-mail address for submitted proposals
+   chandra_budget.pcf        - Chandra field constraints
+   chandra_budget.phf        - Chandra specific help file for e-mail requests
+   chandra_budget.plf        - Chandra proposal LaTeX template
+   chandra_budget.pdf	     - Chandra cover page and general field definitions
+
+
+2) Output Files:
+  
+   $RPSHOME/log/rpsd.log          - log messages for the RPS server
+   $RPSHOME/log/rpsmaild.log      - log messages for the RPS Mail server
+   $RPSHOME/log/xhistorydb.dat    - history of e-mail messages received
+   $RPSHOME/log/rpswww_count.log  - log of submitted proposals by WWW
+   $RPSHOME/log/rpsmail_count.log - log of submitted proposals by email
+
+
+3) Output Files for Archive: NONE
+
+4) Temporary files are written to the $RPSHOME/tmp directory.
+
+5) Temporary files for the POSTSCRIPT option are written to 
+   $OBSCYCLE_DATA_PATH/prop/rps/tmp.  OBSCYCLE_DATA_PATH is an environment 
+   variable defined in the WWW server setup (httpd.conf).
+   
+
+
+
+SETUP AND USAGE
+---------------
+
+Please read the "prop_SETUP.hlp" file.
+
+startRPS.pl uses the environment variables that are set in the file
+'ascds_setup_prop'.  These environment variables are:
+
+	$RPSUSER   -  expected user for running RPS processes.
+	$RPSHOME   -  home directory for RPS templates, project files, logs.
+ 	$ASCDS_PROP_RPS_PROJ -  official versions of RPS project files
+
+Note:  For testing, the user should set ASCDS_PROP_TEST_MODE.
+       if ASCDS_PROP_TEST_MODE is set to 0, the <mission>_dev.paf files
+       will be copied to the <mission>.paf files. If ASCDS_PROP_TEST_MODE is
+       set to 1, the <mission>_test.paf files will be copied to the 
+       <mission>.paf files.  These files should be setup with the appropriate
+       addresses for receiving submitted proposals.
+
+  	$ASCDS_PROP_TEST_MODE - if set, script will use development/test
+                      setup for <mission>.paf files which contain the 
+		      mail address for submitted proposals.
+			
+The user should not ordinarily change their values.  The '~rps/.cshrc.user' 
+file has already been setup to execute the appropriate ASCDS scripts to set 
+the working environment.
+
+To start the RPS servers, type:
+	> ssh cxcweb2 -l rps
+        > Password: <enter password>
+	> startRPS.pl -m -w
+   
+        > ssh cxcweb1 -l rps
+        > Password: <enter password>
+	> startRPS.pl -w -l
+
+
+NOTE: The startRPS.pl script is set to copy files from the ASCDS path
+environment to the home directory structure.  If for any reason, the 
+ASCDS path files are unavailable, execute the startRPS.pl script with
+the -l option (startRPS.pl -l). This will start the servers using a local 
+copy of the executables and project files.
+
+NEW CYCLE PROCEDURES
+--------------------
+
+  1. Edit the RPS.pl script and enter the new $deadline date.
+  2. If not a "GTO" only cycle, edit the RPS.pl script and comment out the 
+     line $gto=1
+  3. Follow standard procedures to compile, link, and install in the correct 
+     directory structure.
+  4. Move the log files to an "archive" area: 
+	rpsd.log,rpsmaild.log,xhistorydb.dat,rpswww_count.log,rpsmail_count.log
+  5. Reset the chandra.pnf file to 0.
+  6. Restart the 'rpsd' and 'rpsmaild' servers.
+  7. READ this same section for the prop_rps_receiver process.
+
+
+
+DETAILED startRPS.pl DESCRIPTION - GENERAL INSTRUCTIONS
+--------------------------------------------------------
+
+E-mail server: 
+
+Instructions to use the e-mail server may be obtained by sending a blank e-mail
+message to: rps@head.cfa.harvard.edu.  The response will be an ASCII file of 
+instructions (about 1 page in length) that describes how to construct a mail 
+file to obtain a blank version of the parameter_field_name : answer file, 
+how to obtain a LaTeX version of the proposal forms, how to verify your 
+entered answers, and how to submit the final version of the forms. 
+
+WWW version: 
+
+The WWW version provides a form-based interface to the proposal processor. 
+Links exist for help for each page of the form and for each parameter to be 
+entered. The blue triangles (left side of first RPS page) toggle between a 
+collapsed page (the initial appearance) and an expanded page. Remember: 
+the WWW version is stateless, which means nothing is done with the entries 
+you have supplied UNTIL you the user carries out an action (such as saving 
+the form). Be certain to save your form entries often. You can save the html 
+file to your local disk and reload it. 
+
+RESTRICTIONS
+------------
+
+Occasionally, the socket connection is not cleared if you immediately restart
+the 'rpsd' server process. You may need to wait approximately one minute before
+trying to restart the rpsd server again.
+
+
+REFERENCES
+----------
+
+Read the prop_rps_receiver and prop_rps_ingest UDF and help files.
+
+See the Proposal section of the Data System Software Design Document 
+(DS01) for more detail about the proposal submission cycle. 
+
+RPS is a service of the Laboratory for High Energy Astrophysics (LHEA) 
+at NASA/ GSFC (Technical Rep: Sherri Calvo, 301-286-5668, 
+sherri.calvo@gsfc.nasa.gov).
+
+The installation instructions and more information about RPS is available
+in the offical source tree under './obs/prop/rps'. The files available 
+under this directory are:
+
+  ./Install/WebInstallGuide.txt   -  official RPS instructions for WWW
+  ./Install/rps-installation.txt  -  official RPS instructions for RPS servers
+                                     and e-mail processing
+  ./www/install_intro.html	  -  web page containing basic installation
+	                             instructions.
+  ./NOTES                         -  Chandra specific notes related to 
+                                     installation and maintenance of RPS

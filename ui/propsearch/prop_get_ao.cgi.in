@@ -1,0 +1,72 @@
+#!@PERLDB@ 
+#----------------------------------
+# Copyright (c) 2016, Smithsonian Astrophysical Observatory
+# You may do anything you like with this file. 
+#
+# FILE NAME:  prop_get_ao.cgi
+#
+# DEVELOPMENT: 
+#   Retrieve cycles available for search option.
+#
+# NOTES:       
+#             
+# INPUT:      
+#
+# REVISION HISTORY:
+#
+# Date: 
+#---------------------------------------------------------
+#
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+
+use strict;
+
+use Cwd qw( abs_path );
+use File::Basename qw( dirname );
+use lib dirname(abs_path($0));
+
+use Carp;
+use CGI qw( :standard );
+use DBI;
+use DBD::Sybase;
+
+unless (eval {require "prop_utils.pl"}) {
+    print "Missing prop_utils.pl\n"; exit(1);
+}
+
+
+{
+  my($resultHtml,$retcnt);
+  my($sqlstmt,$query,@row);
+
+  my $cgi = CGI->new;
+  print $cgi->header('text/plain;charset=UTF-8');
+
+  my $dbh = dbConnect();
+  if ($dbh != 0) {
+
+    # get cycles for proposal
+    #
+  
+    my ($aos);
+    my $sqlstmt = qq(select distinct ao_str from prop_info order by ao_str desc);
+    $retcnt=0;
+ 
+    $query = $dbh->prepare($sqlstmt);
+    $query->execute();
+    while (@row= $query->fetchrow_array()) {
+      $aos .= $row[0] . ",";
+    }
+
+    chop($aos);
+    print "$aos\n"; 
+  }
+  else  {
+    print "Unable to retrieve current Cycles from database\n";
+  }
+}
+

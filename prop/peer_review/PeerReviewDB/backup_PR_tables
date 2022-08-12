@@ -1,0 +1,49 @@
+#!/bin/tcsh
+ 
+#/*****************************************************
+# This script does a pgdump of the Peer Review tables.
+# It is meant to be run as a cron job.
+# The most current dumps are placed in $HOME/dbbak.
+# Older versions are first moved to $HOME/dbbak/old.  
+# The dump files contain a timestamp so as not to overwrite
+# older versions
+# *****************************************************/
+
+set user = `/usr/bin/whoami`
+
+set backupdir = "$HOME/dbbak"
+set olddir = "$backupdir/old"
+
+set year = `date +%Y`
+set mon = `date +%m`
+set mday = `date +%d`
+set day = ${year}_${mon}_${mday}
+set time = `date +%H%M%S`
+set timestamp = ${day}_${time}
+
+cd $backupdir
+
+mv ${user}_proposal $olddir/${timestamp}_${user}_proposal
+mv ${user}_target $olddir/${timestamp}_${user}_target
+mv ${user}_too $olddir/${timestamp}_${user}_too
+mv ${user}_alternate_target_group $olddir/${timestamp}_${user}_alternate_target_group
+mv ${user}_final_comments $olddir/${timestamp}_${user}_final_comments
+mv ${user}_views $olddir/${timestamp}_${user}_views
+mv ${user}_bpp_panel_grades $olddir/${timestamp}_${user}_bpp_panel_grades
+
+/usr/bin/pg_dump $user --data-only --table proposal --no-owner \
+    --file ${user}_proposal
+/usr/bin/pg_dump $user --data-only --table target --no-owner \
+    --file ${user}_target
+/usr/bin/pg_dump $user --data-only --table too --no-owner \
+    --file ${user}_too
+/usr/bin/pg_dump $user --data-only --table alternate_target_group --no-owner \
+    --file ${user}_alternate_target_group
+/usr/bin/pg_dump $user --data-only --table final_comments --no-owner \
+    --file ${user}_final_comments
+/usr/bin/pg_dump $user --data-only --table views --no-owner \
+    --file ${user}_views
+/usr/bin/pg_dump $user --data-only --table bpp_panel_grades --no-owner \
+    --file ${user}_bpp_panel_grades
+
+

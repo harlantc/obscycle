@@ -1,0 +1,188 @@
+#!@PYTHON@
+#_PYTHON_INSERT_SAO_COPYRIGHT_HERE_(2018-2020)
+import os
+import sys
+import warnings
+import getpass
+import itertools as it
+from argparse import ArgumentParser
+from pdfGen.genPDF import mk_pdf, merge_pdf, save_pdf
+from shutil import rmtree
+from PyPDF2.utils import PdfReadWarning
+
+
+def cli():
+    """ Command line interface for pdgGen module. Get/processes command line
+        args, run document builder, split/merge if appropriate.
+    """
+
+    parser = ArgumentParser()
+    parser.add_argument("-n", "--ao", help="Cycle number.", type=str,
+                        nargs="+", required=False, default=None)
+    parser.add_argument("-l", "--prop_list",
+                        help="List of proposal numbers, or @path_to_prop_list",
+                        nargs="+", type=str, required=False, default=[])
+    parser.add_argument("-u", "--usr", help="Database/Archive user name.",
+                        type=str, required=False, default=None)
+    parser.add_argument("-p", "--pw", help="Database/Archive password.",
+                        type=str, required=False, default=None)
+    parser.add_argument("-d", "--srvr", help="Database server.",
+                        type=str, required=False, default=None)
+    parser.add_argument("-o", "--out", help="Path to output PDF.",
+                        type=str, required=False, default="./")
+    parser.add_argument("-v", "--verbose",
+                        help="Output Messages. 0: None, 1: Progress, 2: debug",
+                        required=False, type=int, default=1)
+    parser.add_argument("-f", "--form", help="Type of output proposal",
+                        required=False, default="gen",
+                        choices=["grant", "gen", "split", "merge"])
+    parser.add_argument("-sh", "--show",
+                        help="Show PI/CoI info",
+                        required=False, action='store_true')
+    parser.add_argument("-hd", "--hide",
+                        help="Hide PI/CoI info",
+                        required=False, action='store_true')
+
+    args = parser.parse_args()
+    ao = args.ao
+    prop_list = args.prop_list
+    # Check for file list starting with @, expand, and append prop_list
+    for prop in it.islice(prop_list, 0, len(prop_list)):
+        if prop.startswith("@"):
+            with open(prop[1:], 'r') as file:
+                ps = file.read().splitlines()
+            prop_list += ps
+    prop_list = [xx for xx in prop_list if not xx.startswith("@")]
+    usr = args.usr
+    pw = args.pw
+    srvr = args.srvr
+    form = args.form
+    out = args.out
+    verbose = args.verbose
+    hide = args.hide
+    show = args.show
+
+    if hide and show:
+        err = "Either --hide or --show, not both. PDF Generation halted"
+        if verbose > 1:
+            raise Exception(err)
+        else:
+            sys.exit(err)
+
+    if not (hide or show):
+        if form not in ["grant"]:
+            hide = True
+        else:
+            hide = False
+
+    if "grant" in form and hide:
+        err = "Form = grant and --hide are incompatible. PDF Generation halted"
+        if verbose > 1:
+            raise Exception(err)
+        else:
+            sys.exit(err)
+
+    if "merge" in form and show:
+        form = "grant"
+
+    if not (ao or prop_list):
+        err = "Must input ao or prop_list. PDF Generation halted"
+        if verbose > 1:
+            raise Exception(err)
+        else:
+            sys.exit(err)
+
+    if not srvr:
+        try:
+            srvr = os.environ["DB_LOCAL_SQLSRV"]
+        except KeyError:
+            errMsg = "Can't set server. DB_LOCAL_SQLSRV env var not found.\n"
+            if verbose > 1:
+                print(errMsg)
+                raise
+            else:
+                sys.exit(errMsg)
+
+    if not pw:
+        # First check for file with the pw.
+        pw = os.environ.get("GENPDF")
+        if pw:
+            with open(pw, 'r') as f:
+                pw = f.read().splitlines()[0]
+        else:
+            pw = getpass.getpass("{} Password:".format(srvr))
+
+    if not (usr and pw):
+        err = "Must input usr / pw to access database. PDF Generation halted"
+        if verbose > 1:
+            raise Exception(err)
+        else:
+            sys.exit(err)
+
+    if not os.access(out, os.W_OK | os.R_OK):
+        err = "User does not have read and write permissions in" + \
+              " '{}'. PDF Generation halted.".format(out)
+        if verbose > 1:
+            raise Exception(err)
+        else:
+            sys.exit(err)
+
+    pdfs, pwrns, aowrns, prop_type = mk_pdf(ao, prop_list, usr, pw, srvr, form,
+                                            out, verbose, hide)
+
+    if form == "split":
+        for pth, sup in pdfs.items():
+            if all(xx is None for xx in sup):
+                if verbose > 0:
+                    print("Supplementary data for {} ".format(pth) +
+                          "does not exist.")
+            else:
+                if hide:
+                    # remove CV and PC
+                    sup = [ss for ss in sup if 'cv' not in ss and 'pc' not in ss]
+                # save_pdf will rename cv to te
+                save_pdf(pth, sup, verbose)
+    elif form == "merge" or form == "grant":
+        for pth, sup in pdfs.items():
+            if all(xx is None for xx in sup):
+                if verbose > 0:
+                    print("Supplementary data for {} ".format(pth) +
+                          "does not exist. Skipping merge.")
+            else:
+                if prop_type.endswith("lp") or prop_type.lower() == "xvp":
+                    pg_lim = 6
+                else:
+                    pg_lim = 4
+                if hide:
+                    # remove CV and SJ
+                    sup = [ss for ss in sup if 'cv' not in ss and 'pc' not in ss]
+                # Suppress PyPDF2 warnings that don't seem to affect output PDFs
+                with warnings.catch_warnings():
+                    warnings.simplefilter('ignore', PdfReadWarning)
+                    merge_pdf(pth, sup, verbose, pg_lim)
+
+    # Remove supplementary dirs
+    for prop in prop_list:
+        sup_dir = os.path.join(out, prop)
+        if verbose > 1:
+            print("Removing supplemental directory {}".format(sup_dir))
+        if os.path.isdir(sup_dir):
+            rmtree(sup_dir)
+
+    all_in = len((prop_list if prop_list else []) + (ao if ao else []))
+    if not (pwrns or aowrns):
+        print("All PDF proposals successfully generated!")
+    elif all_in == len(pwrns + aowrns):
+        print("All input proposals failed :( ")
+    else:
+        print("All PDFs successfully completed except:")
+        if pwrns:
+            print("Proposals: {}".format(pwrns))
+        if aowrns:
+            print("Cycles: {}".format(aowrns))
+
+
+if __name__ == "__main__":
+    """ Run command line interface
+    """
+    cli()

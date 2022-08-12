@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:ivy="antlib:org.apache.ivy.ant"
+         basedir="."
+         default="build"
+         name="cps-app">
+
+    <property name="dbbasedir" value="${basedir}/../../../../../db/www" />
+
+    <description>
+        Chandra Proposal Submission (CPS) web application
+    </description>
+
+    <import file="${dbbasedir}/ant-buildsystem/build-common-war.xml"/>
+
+    <target name="pre-war-hook">
+       <copy file="${ots.dir}/Aladin-v1.145/Aladin.jar" todir="lib-static-run/"  />
+       <copy todir="web/dhtmlx-skyblue">
+            <fileset dir="${ots.dir}/dhtmlx-suite-5.1.0.pro/skins/skyblue/" includes="**"/>
+       </copy>        
+       <copy todir="web/dhtmlx-web/imgs/">
+            <fileset dir="${ots.dir}/dhtmlx-suite-5.1.0.pro/skins/web/imgs/dhxtree_web" includes="**"/>
+       </copy>        
+       <copy file="${ots.dir}/dhtmlx-suite-5.1.0.pro/codebase/dhtmlx.js"       tofile ="web/dhtmlx.js"/>
+       <delete file="web/dhtmlx-skyblue/imgs/dhxtabbar_skyblue/dhxtabbar_arrows.gif"/>
+       <copy file="${ots.dir}/dhtmlx-suite-5.1.0.pro/skins/web/imgs/dhxtabbar_web/dhxtabbar_arrows.gif"       tofile ="web/dhtmlx-skyblue/imgs/dhxtabbar_skyblue/dhxtabbar_arrows.gif"/>
+      </target>
+
+    <target name="clean-hook">
+        <delete file="web/dhtmlx.js"/>
+        <delete dir ="web/dhtmlx-skyblue"/>
+        <delete dir ="web/dhtmlx-web"/>
+        <delete file="lib-static-run/Aladin.jar"  />
+    </target>    
+    
+
+
+
+
+
+</project>
+
+
+

@@ -1,0 +1,334 @@
+                Chandra Portable Proposal Planning Command Line
+		Interface (CLI) Toolkit and Obsvis Distribution
+                            Version 5 README.cycle5
+                               December 16, 2002
+
+
+   ******************************************************************
+   Copyright (c) 2001, 2002   Smithsonian  Astrophysical  Observatory
+   The contents of this file are protected under the copyright notice
+   contained in the file  COPYRIGHT_SAO located in the root directory
+   of this distribution.
+   ******************************************************************
+
+
+====================================================================
+I) Introduction
+====================================================================
+
+This README.cycle5 file provides the installation instructions for the 
+Standalone Chandra Proposal Planning CLI Toolkit / ObsVis
+Distributions available from the Chandra Web site and ftp site.
+
+If you are patching your CIAO 2.3 distribution please see instead:
+
+	README.cycle5_patch
+
+ Platforms
+ ---------
+
+As of this release the Proposal Toolkit / Obsvis have been built on:
+
+        Solaris 2.6
+        Redhat Linux 6.2
+        Compaq Alpha/Tru64 Unix 4.0f
+
+Proposal Toolkit / Obsvis binary distributions have also been tested on:
+
+        Solaris 8
+        SuSE Linux 7.2
+	Redhat Linux 7.1, 7.3
+
+ System Requirements
+ -------------------
+
+Chandra data files are large, which implies that certain processing and 
+analysis operations will work more efficiently when they have access to
+large amounts of RAM.  We recommend a minimum of 96MB main memory, and disk
+space on the order of 200-300 MB.
+
+ How to proceed
+ --------------
+
+Please proceed with:
+
+	- Section II for the steps to install stand-alone
+	  pre-built executables; or 
+
+	- Section III for the steps to compile and install the
+	  executables from source.
+
+
+====================================================================
+II) Binary Distribution Install Instructions
+====================================================================
+
+	 1) Create a directory for installation. If you have ciao 2.3 
+	    installed on your system you might want to consider applying 
+	    the cycle 5 patch instead (see README.cycle5_patch).
+
+	    > mkdir <install_root_dir>   
+	    > cd <install_root_dir>
+
+	 2) Download the appropriate tar file from the Web page or by 
+	    anonymous ftp:
+
+		cycle5_bin_sun.tar.gz	   Solaris binaries \
+		cycle5_bin_linux.tar.gz    Linux binaries    | one of these
+		cycle5_bin_alpha.tar.gz	   Alpha binaries   /
+
+	 3) Unpack the distribution:
+
+	    > gunzip cycle5_bin_<system>.tar.gz
+	    > tar xvf cycle5_bin_<system>.tar
+
+	 4) Run the GNU configuration script:
+
+	    > ./configure
+
+            Note that to provide more installation flexibility this script
+            supports a range of options.  For example, 
+
+                                --with-top=<path> 
+
+            will set the location of $ASCDS_INSTALL to something other than 
+            the current working directory, which is useful for read-only or
+            virtual file systems where the physical installation location is
+            NOT the same path that CIAO users would see.  For more information
+            on the configure script options please refer to the compilation
+            instructions section below.
+
+	 5) Run the CIAO setup script.
+
+	    Since you will need to do this step each time you log in to use 
+	    the Standalone Cycle 5 distribution, we recommend that you create 
+	    an alias in your $HOME/.cshrc file (c and tc shell users) or your 
+	    $HOME/.login file (sh, ksh, and bash shell users).
+
+            (csh and tcsh)
+	    > alias cycle5 "source <location of cycle5>/bin/ciao.csh"
+
+	    so if the installation root is in /soft/cycle5 you would have:
+
+	    >  alias cycle5 "source /soft/cycle5/bin/ciao.csh"
+
+            (bourne shell)
+	    > alias cycle5=". <location of cycle5>/bin/ciao.sh"
+
+	    so if the installation root is in /soft/cycle5 you would have:
+
+	    > alias cycle5=". /soft/cycle5/bin/ciao.sh"
+
+	    likewise, ksh and bash users would have:
+
+	    > alias cycle5=". /soft/cycle5/bin/ciao.ksh"
+	    > alias cycle5=". /soft/cycle5/bin/ciao.bash"
+
+	    At this point, and whenever you log in, you can type
+        
+	    > cycle5
+
+	    and Proposal Toolkit with Obsvis will be set up and ready to use.
+
+	Note: The standalone package already has the CALDB required for
+	      PIMMS loaded in. You do not need to download the CALDB.
+
+
+====================================================================
+III) Rebuilding Proposal Toolkit from the source code
+====================================================================
+
+Additional Required Software
+----------------------------
+
+Rebuilding Proposal Toolkit from source code requires additional
+software over and above that mentioned in section (I), namely:
+
+   Solaris:
+
+        SUN cc, CC (the Sun C++ compiler), and F77 compilers and libraries
+        (version 4.2; Note: Obsvis will currently not compile on Versions
+        5.0 or later; we are working on removing this limitation)
+
+   Linux:
+
+        gcc/g++         (version egcs 2.91.x or later, with fortran)
+                        Note:  Obsvis will not compile on gcc versions
+                        2.96 or later. We are working on removing this
+                        limitation)
+
+   Alpha:
+
+        gcc/g++         (version egcs 2.95.2 or later, with fortran)
+                        Note: Obsvis will not compile on gcc versions
+                        2.96 or later. We are working on removing this
+                        limitation)
+
+        Additional information specific to this platform can be found in
+        README.tru64 at the top of the Proposal Toolkit installation tree.
+
+   All platforms:
+
+        Tcl/Tk          (version 8.3 or later)
+        The GNU flex/bison parser generation tools
+
+To build the software you do not need the Standalone binary distribution, 
+rather you will need the Standalone OTS and source distributions. If you 
+have installed the binary distribution, you should remove the smaller ots 
+subtree that  was included within it, though if you forget to do this first 
+don't worry -- it's not fatal, but tar may complain or give minor permission 
+warnings when overlaying the new, larger OTS onto the previous subtree.
+
+Finally, note that due to licensing agreements we are unable to distribute
+the SM source code.  The SM libraries are packaged in the OTS distribution.
+
+Compiling instructions
+----------------------
+
+	 1) Create a directory for installation. If you have ciao 2.3 
+	    installed on your system you might want to consider applying 
+	    the cycle 5 patch instead (see README.cycle5_patch).
+
+	    > mkdir <install_root_dir>   
+	    > cd <install_root_dir>
+
+	 2) Download the appropriate tar files from the Web page or by 
+	    anonymous ftp:
+
+		cycle5_src.tar.gz	   AND
+
+		cxc_ots_sun.tar.gz	   Solaris OTS \
+		cxc_ots_linux.tar.gz	   Linux OTS    | one of these
+		cxc_ots_alpha.tar.gz	   Alpha OTS   /
+
+         3) Unpack the distributions:
+
+	    > gunzip cycle5_src.tar.gz
+	    > gunzip cxc_ots_<system>.tar.gz
+            > tar xf cycle5_src.tar
+            > tar xf cxc_ots_<system>.tar
+
+         4) Run the GNU configure script as follows (except linux and alpha):
+
+            > ./configure --with-comp --with-fits --with-iraf --with-iraflibs
+
+            If you are building on linux or alpha we do not currently
+            support qpoe files. This should be available in a future
+            release. You need to issue the following command:
+
+            > ./configure --with-comp --with-fits
+
+            Note: This is valid on all platforms if you wish to compile
+                  without the iraf kernel.
+
+         4b) Other switches with configure:
+            The configure script accepts several options to assist your 
+	    installation.
+            The default described is the action the switch will take
+            if =xxx is omitted.
+
+            --with-opt=Ox  - set optimization to level x. Default O3
+            --with-debug   - compile with -g (debug) switch
+            --with-top=/<path> - set the location of $ASCDS_INSTALL
+                            (instead of using your current working
+                              directory. This switch is useful for
+                              installing to a read-only files system
+                              where the installer is NOT in the directory
+                              the users will see.)
+            --with-tcltk=<path> - set the location to look for the Tcl/TK
+                              libraries and includes (lib and include
+                              directories). Default is /usr
+            --with-tclver=x   Set the version of TclTk to use. Default
+                              is 8.3
+            --with-lesstif=<dir> - set the location to look for Lesstif
+                              or Motif libraries and includes (lib and
+                              include) directories. Default is 
+                              /usr/X11R6/LessTif (This is not needed 
+                              if the files are already in your search 
+                              paths as the standard Solaris installations)
+            --x-libraries=<path> - Set the location of the X libraries.
+                              This is only needed if the automatic detection
+                              fails.
+            --x-includes=<path> - Set the location of the X include files.
+                              This is only needed if the automatic detection
+                              fails.
+
+	 5) Copy cxcconfig.h, which ./configure generated, to src/include:
+
+	    > cp cxcconfig.h src/include
+
+         6) > cd src
+
+	 7) Linux only:
+
+	    You will need to set the environment variable LD_LIBRARY_PATH 
+	    to your install lib directory:
+
+	    tcsh users:
+
+	    > setenv LD_LIBRARY_PATH <location of cycle5>/lib
+
+	    bash, ksh users:
+
+	    > LD_LIBRARY_PATH=<location of cycle5>/lib
+	    > export LD_LIBRARY_PATH
+
+         8) > make -k install >& prop_tk_log &
+
+            Note: The -k switch (to ignore errors) is needed to ignore
+            problems due to trying to build files intentionally omitted from 
+	    the cycle5 distribution.
+
+	 9) Assume the build is successful, despite error messages.  
+	    Change directory to the install location (cd ..), then follow 
+	    the steps detailed in Section II above, starting with step 4) 
+	    ("Run the GNU configuration script") and continuing through 
+	    the end of Section II.  
+	    Be careful to ensure that the newly built tree, rather than any
+	    previous installation, is specified as the root of the cycle5 
+	    tree.
+
+	10) Follow the "Installing CALDB" instructions in Section IIB of 
+	    README.cycle5_patch, to install updated data files from CALDB.
+
+
+====================================================================
+IV) Using the Proposal Toolkit with Obsvis
+====================================================================
+
+  To run ObsVis, please see the ObsVis Help File named "README.obsvis"
+  located in the top level <install_root_dir>.
+
+  You can also get ObsVis help at the command line by typing:
+
+	> ahelp obsvis
+
+
+  To run a Toolkit application, type:
+
+	> prop_<application_name>
+
+  The Toolkit Distribution contains six applications:  PIMMS, pileup, 
+  frametime, precess, colden, and dates, plus a CALDB interface.  The 
+  wrapper scripts are named prop_pimms, prop_pileup, prop_frametime, 
+  prop_precess, prop_colden, prop_dates, and prop_install_pimms_ea.pl.
+
+  At the command line, you can get application-specific help by typing any 
+  of the following:
+
+	> ahelp pimms
+	> ahelp colden
+	> ahelp precess
+	> ahelp dates
+
+  You can get more general overviews with:
+
+	> ahelp prop-tools
+	> ahelp prop-coords
+	> ahelp prop-time
+
+
+For further help, please contact the CXC Help Desk, available from 
+http://cxc.harvard.edu (see Help Desk link in page footer).
+
+-----------------------------------------------------------------------

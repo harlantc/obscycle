@@ -1,0 +1,59 @@
+# Override macro settings from Makefile.master
+
+MKDIR = mkdir -p
+RMDIR = rm -rf
+CP = cp
+CAT = cat
+
+# root path for the java application documentation
+OBS_DOC_DIR = $(MK_TOP)/obscycle/prop/gov/sao/asc/doc
+
+#recaptcha support
+IVY = $(DSOTS)/local-ivy-repository
+
+CAPTCHALIBS =    \
+	$(IVY)/com.google.code.gson/gson/jars/gson-2.8.2.jar \
+        $(IVY)/junit/junit/jars/junit-4.13.2.jar \
+        $(IVY)/com.google.guava/guava/bundles/guava-30.1-jre.jar 
+
+CAPTCHAPATH= $(IVY)/com.google.code.gson/gson/jars/gson-2.8.2.jar:$(IVY)/junit/junit/jars/junit-4.13.2.jar:$(IVY)/com.google.guava/guava/bundles/guava-30.1-jre.jar 
+
+LOG4J_JAR =  $(IVY)/log4j/log4j/bundles/log4j-1.2.17.jar
+
+#dthmlx
+DHTMLX_DIR = $(DSOTS)/dhtmlx-suite-5.1.0.pro/
+DHTMLX_SKYBLUE = $(DSOTS)/dhtmlx-suite-5.1.0.pro/skins/skyblue
+
+DHTMLX_FILES = \
+  $(DHTMLX_DIR)/codebase/dhtmlx.js 
+
+
+
+#jquery support
+
+JQUERY-TABLESORTER = $(DSOTS)/Mottie-tablesorter-08bf513/
+
+JQUERY_FILES =  \
+ $(DSOTS)/jquery-3.6.0/js/jquery.min.js \
+ $(DSOTS)/jquery-ui-1.13.0/js/jquery-ui.js \
+ $(DSOTS)/jquery-ui-1.13.0/js/jquery-ui.css \
+ $(JQUERY-TABLESORTER)/js/jquery.tablesorter.widgets.min.js \
+ $(JQUERY-TABLESORTER)/js/jquery.tablesorter.min.js \
+ $(JQUERY-TABLESORTER)/js/parsers/parser-input-select.js \
+ $(JQUERY-TABLESORTER)/css/images/white-asc.gif \
+ $(JQUERY-TABLESORTER)/css/images/white-desc.gif \
+ $(JQUERY-TABLESORTER)/css/images/white-unsorted.gif
+
+
+
+# Libraries
+ASCDSAPILIB = $(MK_TOP)/dsguilibs/java/ascdsapi.jar
+
+ROOTLIBS = $(ROOT_SRCDIR):$(ROOT_CLASSDIR):.
+CLASSPATH = $(ROOTLIBS):$(SERVLETLIB):$(JCONNECTLIB):$(ASCDSAPILIB):$(MAILLIB):$(COMMONSLANG3LIB)
+	
+
+# for the 1.5 java  use  -Xlint for warnings
+JAVAC_OPTIONS = -encoding UTF-8 -deprecation -classpath $(CLASSPATH) 
+
+

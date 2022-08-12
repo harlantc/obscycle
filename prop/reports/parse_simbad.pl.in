@@ -1,0 +1,246 @@
+#!@PERLDB@ 
+# 
+#*H****************************************************************************
+#* Copyright (c) 1995, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: parse_simbad.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script reads the output from the 'propconflict -f peer' option
+#     and creates a table of simbad conflicts.
+#     The report output is written to STDOUT.
+#
+#
+#     Sample line from propconflict -f peer:
+#---------------------------------------------------------------------------
+#
+#CONFLICTS FOR PROPOSAL 02100120
+#JANE S. SMITH, TEST TITLE FOR CHANDRA CYCLE 2 MULTIPLE TARGETS
+#---------------------------------------------------------------------------
+#
+#----------
+#Target 001 BIG STAR, 50.2 ks, ACIS-S(TE)/HETG,  02:08:56.3 -45:14:4.2
+#----------
+#
+# ** Simbad target position different, NGC2362 07:18:48.0 -24:56:60.0
+# ** Ned target position different, NGC2362 07:18:48.0 -24:56:60.0
+#
+#
+#---------------------------------------------------------------------------
+#
+#
+#
+#* NOTES:
+#
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+use Getopt::Long;
+use POSIX;
+use strict;
+
+use vars qw( %param $stmp
+	@PNOtable @sort_PNOtable @xx @yy @c1 @c2
+	$pno $oldpno $tno $tname $coords $simbad
+	$ddist $PI $last
+	$xx $tt $ii
+
+	);
+
+
+# -------------------------------------------------------
+# MAIN
+# -------------------------------------------------------
+
+  parse_input();
+  open(INFILE,"< $param{i}") or
+     die("Error: Unable to open $param{i} for reading: $!\n");
+
+  @PNOtable;
+  $oldpno = "";
+  while ($stmp = <INFILE>) {
+     while ($stmp =~ /  /) { $stmp =~ s/  / /; }
+    if ($stmp =~ /CONFLICTS FOR PROPOSAL/ ) {
+       @xx = split(' ',$stmp);
+       $pno = $xx[3];
+       if ($param{p}) {
+         $stmp = <INFILE>;
+         @xx = split(/, /,$stmp);
+         $last = $xx[0];
+       }
+    }
+    if ($stmp =~ /TECHNICAL REVIEW FOR PROPOSAL/ ) {
+       @xx = split(' ',$stmp);
+       $pno = $xx[5];
+       if ($param{p}) {
+         $stmp = <INFILE>;
+         @xx = split(/, /,$stmp);
+         $last = $xx[0];
+       }
+    }
+    if ($stmp =~ /Target / ) {
+       chomp($stmp);
+       $tname = "";
+       @xx = split(',',$stmp);
+       for ($ii=0;$ii<$#xx-2;$ii++) {
+         $tname .= $xx[$ii];
+       }
+       @xx = split(' ',$tname);
+       $tno = $xx[1];
+       $tname = "";
+       for ($ii=2;$ii<=$#xx;$ii++) {
+         $tname .= " $xx[$ii]";
+       }
+       @xx = split(/,/,$stmp);
+       $simbad = sprintf("%-30.30s",$tname);
+       $coords = sprintf("%-25.25s",$xx[$#xx]);
+       @c1 = split(' ',$coords);
+       $tname = "$simbad  $coords  "
+    }
+    if ($stmp =~ /Simbad target position different/i ||  
+        $stmp =~ /Ned target position different/i ) {
+       @xx = split(/Ned\:/,$stmp);
+       $stmp = $xx[0];
+       @xx = split(/,/,$stmp);
+       chop $xx[1];
+       @yy = split(' ',$stmp);
+       $coords = sprintf("%-12.12s %-12.12s",$yy[$#yy-1],$yy[$#yy]);
+       @c2 = split(' ',$coords);
+       $ddist = &calc_distance($c1[0],$c1[1],$c2[0],$c2[1]);
+       if ($param{p}) {
+         $tt = sprintf("$pno %-12.12s $tname  $coords %12.4f ",$last,$ddist);
+       } else {
+         $tt = sprintf("$pno $tname  $coords %12.4f ",$ddist);
+       }
+       if ($stmp =~ /Simbad/) { $tt .= " (SIMBAD)"; }
+       if ($stmp =~ /Ned/) { $tt .= " (NED)"; }
+       push @PNOtable,$tt;
+    }
+  }  
+  close INFILE;
+
+  if ($param{p}) {
+     @sort_PNOtable = sort byPI @PNOtable;
+  } else {
+    @sort_PNOtable = sort @PNOtable;
+  }
+  $oldpno="";
+  if ($#PNOtable >= 0) {
+    if ($param{p}) {
+      print STDOUT "Proposal  P.I.         Target Name                     Proposal RA/Dec             Simbad/Ned RA/Dec           Mismatch(arcmin)\n";
+    }
+    else {
+      print STDOUT "Proposal  Target Name                     Proposal RA/Dec             Simbad/Ned RA/Dec           Mismatch(arcmin)\n";
+    }
+    print STDOUT "-----------------------------------------------------------------------------------------------------------------\n";
+  }
+  foreach $xx (@sort_PNOtable) {
+    printf STDOUT ("$xx\n");
+  }
+
+    
+sub byPI {
+  my($s1,$s2);
+ 
+  $s1 = substr($a,9,20);
+  $s2 = substr($b,9,20);
+
+  $s1 cmp $s2;
+}
+sub parse_input {
+  my($err);
+
+  %param = (
+             i=> undef,
+        );
+
+  GetOptions( \%param,
+          "i=s",
+          "p",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter `$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+}
+
+
+sub usage {
+
+
+  print STDERR "\nUSAGE: parse_simbad.pl  -i [-p]\n";
+  print STDERR "         -i  filename   output from -peer option of propconflict\n";
+  print STDERR "         -p  if present, display PI name in output\n";
+  print STDERR "       Output is written to STDOUT.\n";
+}
+
+
+
+#---------------------------------------------------------
+# calculate distance between 2 points
+#---------------------------------------------------------
+sub calc_distance {
+  my($ira1,$idec1,$ira2,$idec2) = @_;
+  my($ra1,$dec1,$ra2,$dec2);
+  my($r1,$d1,$r2,$d2);
+  my (@rr1,@rr2,@dd1,@dd2);
+
+  $PI =  3.1415926535897932384626433832795028841971693993751;
+
+  @rr1 = split(/:/,$ira1);
+  @rr2 = split(/:/,$ira2);
+  @dd1 = split(/:/,$idec1);
+  @dd2 = split(/:/,$idec2);
+
+  $ra1 = ($rr1[0] + ($rr1[1] / 60.0) + ($rr1[2] / 3600.0)) * 15.0;
+  $ra2 = ($rr2[0] + ($rr2[1] / 60.0) + ($rr2[2] / 3600.0)) * 15.0;
+  $dec1 = (abs($dd1[0]) + ($dd1[1] / 60.0) + ($dd1[2] / 3600.0));
+  $dec2 = (abs($dd2[0]) + ($dd2[1] / 60.0) + ($dd2[2] / 3600.0));
+  if ($dd1[0] =~ /\-/) {
+    $dec1 = $dec1 * -1.;
+  }
+  if ($dd2[0] =~ /\-/) {
+    $dec2 = $dec2 * -1.;
+  }
+
+
+#print STDERR "$ra1  $ira1     $dec1  $idec1\n";
+#print STDERR "$ra2  $ira2     $dec2  $idec2\n";
+  $r1 = $ra1 * ($PI/180.0);
+  $r2 = $ra2 * ($PI/180.0);
+  $d1 = $dec1 * ($PI/180.0);
+  $d2 = $dec2 * ($PI/180.0);
+
+  $ddist = POSIX::acos (sin($d2) * sin($d1) +
+              cos($d2)*cos($d1) * cos($r2-$r1));
+
+  $ddist = $ddist * (180./$PI);
+  $ddist = $ddist * 60.;
+
+  return $ddist;
+
+}
+

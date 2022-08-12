@@ -1,0 +1,125 @@
+#!/bin/tcsh
+ 
+#/*****************************************************
+# This script takes the pgdumps of the Peer Review 
+# tables and loads them into the cdo database.
+# It is meant to be run as a cron job.
+# The most current dumps are placed in $HOME/dbbak.
+# *****************************************************/
+
+set user = `/usr/bin/whoami`
+
+set backupdir = "$HOME/dbbak"
+set clean = "$HOME/bin/clean_tables.sql"
+
+cd $backupdir
+
+psql $user -f $clean
+psql $user -f pan1_proposal
+psql $user -f pan1_target
+psql $user -f pan1_too
+psql $user -f pan1_alternate_target_group
+psql $user -f pan1_final_comments
+
+psql $user -f pan2_proposal
+psql $user -f pan2_target
+psql $user -f pan2_too
+psql $user -f pan2_alternate_target_group
+psql $user -f pan2_final_comments
+
+psql $user -f pan3_proposal
+psql $user -f pan3_target
+psql $user -f pan3_too
+psql $user -f pan3_alternate_target_group
+psql $user -f pan3_final_comments
+
+psql $user -f pan4_proposal
+psql $user -f pan4_target
+psql $user -f pan4_too
+psql $user -f pan4_alternate_target_group
+psql $user -f pan4_final_comments
+
+psql $user -f pan5_proposal
+psql $user -f pan5_target
+psql $user -f pan5_too
+psql $user -f pan5_alternate_target_group
+psql $user -f pan5_final_comments
+
+psql $user -f pan6_proposal
+psql $user -f pan6_target
+psql $user -f pan6_too
+psql $user -f pan6_alternate_target_group
+psql $user -f pan6_final_comments
+
+psql $user -f pan7_proposal
+psql $user -f pan7_target
+psql $user -f pan7_too
+psql $user -f pan7_alternate_target_group
+psql $user -f pan7_final_comments
+
+psql $user -f pan8_proposal
+psql $user -f pan8_target
+psql $user -f pan8_too
+psql $user -f pan8_alternate_target_group
+psql $user -f pan8_final_comments
+
+psql $user -f pan9_proposal
+psql $user -f pan9_target
+psql $user -f pan9_too
+psql $user -f pan9_alternate_target_group
+psql $user -f pan9_final_comments
+
+psql $user -f pan10_proposal
+psql $user -f pan10_target
+psql $user -f pan10_too
+psql $user -f pan10_alternate_target_group
+psql $user -f pan10_final_comments
+
+if (-e pan11_proposal) then
+  psql $user -f pan11_proposal
+  psql $user -f pan11_target
+  psql $user -f pan11_too
+  psql $user -f pan11_alternate_target_group
+  psql $user -f pan11_final_comments
+endif
+
+if (-e pan12_proposal) then
+  psql $user -f pan12_proposal
+  psql $user -f pan12_target
+  psql $user -f pan12_too
+  psql $user -f pan12_alternate_target_group
+  psql $user -f pan12_final_comments
+endif
+
+if (-e pan13_proposal) then
+  psql $user -f pan13_proposal
+  psql $user -f pan13_target
+  psql $user -f pan13_too
+  psql $user -f pan13_alternate_target_group
+  psql $user -f pan13_final_comments
+endif
+
+if (-e pan97_proposal) then
+  psql $user -f pan97_proposal
+  psql $user -f pan97_target
+  psql $user -f pan97_too
+  psql $user -f pan97_alternate_target_group
+  psql $user -f pan97_final_comments
+endif
+
+if (-e pan98_proposal) then
+  psql $user -f pan98_proposal
+  psql $user -f pan98_target
+  psql $user -f pan98_too
+  psql $user -f pan98_alternate_target_group
+  psql $user -f pan98_final_comments
+endif
+
+if (-e pan99_proposal) then
+  psql $user -f pan99_proposal
+  psql $user -f pan99_target
+  psql $user -f pan99_too
+  psql $user -f pan99_alternate_target_group
+  psql $user -f pan99_final_comments
+  psql $user -f pan99_bpp_panel_grades
+endif

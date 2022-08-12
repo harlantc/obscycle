@@ -1,0 +1,18 @@
+#!/bin/sh
+#_SH_INSERT_SAO_COPYRIGHT_HERE_(1997-2008,2012)_
+#_SH_INSERT_GPL_LICENSE_HERE_
+
+if [ "$ASCDS_PROP_NHBASE" = "" ]
+then
+    # 11/8/2012:    echo "ASCDS_PROP_NHBASE is not set;"
+    ASCDS_PROP_NHBASE="$ASCDS_INSTALL/config/jcm_data"
+    # 11/8/2012:    echo "  default assignment to $ASCDS_INSTALL/config/jcm_data has been made."
+fi
+
+JCMLIBDATA=$ASCDS_PROP_NHBASE
+export JCMLIBDATA
+
+# 11/8/2012:    echo "ASCDS_PROP_NHBASE (for neutral hydrogen column density data) ="
+# 11/8/2012:    echo "  $ASCDS_PROP_NHBASE"
+
+prop_colden_exe $*

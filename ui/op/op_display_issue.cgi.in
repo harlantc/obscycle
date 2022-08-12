@@ -1,0 +1,66 @@
+#!@PERLDB@ 
+#----------------------------------
+# Copyright (c) 1995, Smithsonian Astrophysical Observatory
+# You may not do anything you like with this file. 
+#
+# FILE NAME:  op_display_issue.cgi
+# DEVELOPMENT: 
+#
+# NOTES:       
+#             
+# INPUT:       user input
+#
+# REVISION HISTORY:
+#
+# Date: 
+#---------------------------------------------------------
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use CGI ':standard';
+use Cwd;
+use File::Basename;
+use strict;
+
+
+  unless (eval {require "op_config.pl"}) {
+    print "Unable to find op_config.pl\n"; exit(1);
+  }
+  unless (eval {require "op_subroutines.pl"}) {
+    print "Unable to find op_subroutines.pl\n"; exit(1);
+  }
+
+  use vars qw( $ISSUE_TMP $dbg $tmp_err 
+	);
+
+
+###########################  M A I N  ######################################
+{
+  my($issueid,$fname);
+  my($cgi,$retval,$msg,$emsg);
+
+  $SIG{__WARN__} = \&catch_warn;
+
+  $cgi = new CGI;
+  $issueid = int($cgi->param("issueid"));
+  $fname = $ISSUE_TMP . "/op\_$issueid.i.html";
+
+  if (-e $fname) {
+    logit("op_display_issue: $issueid\n");
+    display_file($fname,1);
+    exit(0);
+  }
+     
+  else {
+    &debug("op_display_issue: Unable to retrieve issue file for Issue $issueid\n") if $dbg;
+    $emsg = "Unable to retrieve issue file for Issue $issueid" ;
+    &error($emsg);
+    display_file($tmp_err,1);
+    exit(0);
+  }
+
+}
+
+

@@ -1,0 +1,863 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE formView SYSTEM "formView.dtd">
+
+<formView>
+
+  <title>New Obs</title>
+
+  <info>
+    <supportsNew>nil</supportsNew>
+  </info>
+
+  <key>
+    <tableName>target</tableName>
+    <columnName>obsid</columnName>
+  </key>
+
+  <navigation>
+    <display>
+      <name>Observation Id</name>
+      <tableName>target</tableName>
+      <columnName>obsid</columnName>
+    </display>
+    <display>
+      <name>Sequence Number</name>
+      <tableName>target</tableName>
+      <columnName>seq_nbr</columnName>
+    </display>
+  </navigation>
+
+  <GUI>
+
+    <label tag="170">
+      <labelText>Target Table Fields</labelText>
+      <row>
+        <number>0</number>
+      </row>
+      <column>
+        <number>0</number>
+        <width>></width>
+      </column>
+    </label>
+    
+    <obsidbutton tag="11">
+      <labelText>Obs Id</labelText>
+      <size>6</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>target</tableName>
+        <columnName>obsid</columnName>
+      </database>
+    </obsidbutton>
+
+    <seqnbrbutton tag="12">
+      <labelText>Seq #</labelText>
+      <size>6</size>
+      <database>
+        <tableName>target</tableName>
+        <columnName>seq_nbr</columnName>
+      </database>
+    </seqnbrbutton>
+
+    <combobox tag="23" none="false">
+      <labelText>Type</labelText>
+      <size>8</size>
+      <database>
+        <tableName>target</tableName>
+        <columnName>type</columnName>
+      </database>
+    </combobox>
+    
+    <textfield tag="81">
+      <labelText>Exp. Time</labelText>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <size>6</size>
+      <database>
+        <tableName>target</tableName>
+        <columnName>approved_exposure_time</columnName>
+      </database>
+    </textfield>
+
+
+
+    <keycombobox tag="012">
+      <labelText>TOO Id</labelText>
+      <size>8</size>
+      <database>
+        <tableName>target</tableName>
+        <columnName>tooid</columnName>
+      </database>
+      <keyinfo>
+        <keyTableName>too</keyTableName>
+        <keyColumnName>tooid</keyColumnName>
+      </keyinfo>
+    </keycombobox>
+
+    
+
+    <textfield tag="13">
+      <labelText>Target Name</labelText>
+      <size>18</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+	<width>></width>
+      </column>
+      <database>
+        <tableName>target</tableName>
+        <columnName>targname</columnName>
+      </database>
+    </textfield>
+    <textfield tag="51">
+      <labelText>Target Description</labelText>
+      <size>24</size>
+      <column>
+        <width>2</width>
+        <number>4</number>
+      </column>
+      <database>
+        <tableName>target</tableName>
+        <columnName>description</columnName>
+      </database>
+    </textfield>
+
+    
+    <combobox tag="21">
+      <labelText>Object Flag</labelText>
+      <size>8</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>target</tableName>
+        <columnName>obj_flag</columnName>
+      </database>
+    </combobox>
+    
+    <combobox tag="22" new="true" none="false">
+      <labelText>Object</labelText>
+      <size>8</size>
+      <database>
+        <tableName>target</tableName>
+        <columnName>object</columnName>
+      </database>
+    </combobox>
+
+    <textfield tag="54" new="true" none="false">
+      <labelText>Observation AO</labelText>
+      <size>2</size>
+      <database>
+        <tableName>target</tableName>
+        <columnName>obs_ao_str</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="55" new="true" none="false">
+      <labelText>Charge AO</labelText>
+      <size>2</size>
+      <database>
+        <tableName>target</tableName>
+        <columnName>charge_ao_str</columnName>
+      </database>
+    </textfield>
+
+    <combobox tag="121" none="false">
+      <labelText>Instrument</labelText>
+      <size>12</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>target</tableName>
+        <columnName>instrument</columnName>
+      </database>
+    </combobox>
+    
+    <combobox tag="122"  none="false">
+      <labelText>Grating</labelText>
+      <size>8</size>
+      <database>
+        <tableName>target</tableName>
+        <columnName>grating</columnName>
+      </database>
+    </combobox>
+    
+
+    
+    <combobox tag="92" new="true">
+      <labelText>ACA Mode</labelText>
+      <size>6</size>
+      <database>
+	<tableName>target</tableName>
+	<columnName>aca_mode</columnName>
+      </database>
+      <null>
+	<representation>NULL</representation>
+      </null>
+    </combobox>
+
+    <textfield tag="31">
+      <labelText>RA</labelText>
+      <size>6</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>target</tableName>
+        <columnName>ra</columnName>
+      </database>
+    </textfield>
+    
+    <textfield tag="32">
+      <labelText>DEC</labelText>
+      <size>6</size>
+      <database>
+        <tableName>target</tableName>
+        <columnName>dec</columnName>
+      </database>
+    </textfield>
+    
+    
+    <textfield tag="41">
+      <labelText>Count Rate</labelText>
+      <size>6</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>target</tableName>
+        <columnName>est_cnt_rate</columnName>
+      </database>
+    </textfield>
+    
+    <textfield tag="42">
+      <labelText>1st Order Rate</labelText>
+      <size>6</size>
+      <database>
+        <tableName>target</tableName>
+        <columnName>forder_cnt_rate</columnName>
+      </database>
+    </textfield>
+    
+    <textfield tag="43">
+      <labelText>Tot. Count Rate</labelText>
+      <size>6</size>
+      <database>
+        <tableName>target</tableName>
+        <columnName>total_fld_cnt_rate</columnName>
+      </database>
+    </textfield>
+    
+    <triplebox tag="53">
+      <labelText>Ext. Source</labelText>
+      <database>
+        <tableName>target</tableName>
+        <columnName>extended_src</columnName>
+      </database>
+    </triplebox>
+
+    <textfield tag="51">
+      <labelText>Y Det Offset</labelText>
+      <size>6</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>target</tableName>
+        <columnName>y_det_offset</columnName>
+      </database>
+    </textfield>
+    
+    <textfield tag="52">
+      <labelText>Z Det Offset</labelText>
+      <size>6</size>
+      <database>
+        <tableName>target</tableName>
+        <columnName>z_det_offset</columnName>
+      </database>
+    </textfield>
+
+   <triplebox tag="103">
+      <labelText>Raster Scan</labelText>
+      <size>1</size>
+      <database>
+        <tableName>target</tableName>
+        <columnName>raster_scan</columnName>
+      </database>
+    </triplebox>
+
+    
+    <triplebox tag="33">
+      <labelText>Photometry</labelText>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>target</tableName>
+        <columnName>photometry_flag</columnName>
+      </database>
+    </triplebox>
+    
+    <textfield tag="34">
+      <labelText>V Mag</labelText>
+      <size>6</size>
+      <database>
+        <tableName>target</tableName>
+        <columnName>vmagnitude</columnName>
+      </database>
+    </textfield>
+
+    <triplebox tag="62">
+      <labelText>Dither</labelText>
+      <database>
+        <tableName>target</tableName>
+        <columnName>dither_flag</columnName>
+      </database>
+    </triplebox>
+    
+    
+    <preferredbox tag="93">
+      <labelText>Phase</labelText>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>target</tableName>
+        <columnName>phase_constraint_flag</columnName>
+      </database>
+    </preferredbox>
+
+    <preferredbox tag="332">
+      <labelText>Uninterrupt Flag</labelText>
+      <database>
+        <tableName>target</tableName>
+        <columnName>uninterrupt</columnName>
+      </database>
+    </preferredbox>
+
+    <textfield tag="91">
+      <labelText>Seg Max Num</labelText>
+      <size>6</size>
+      <database>
+        <tableName>target</tableName>
+        <columnName>seg_max_num</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="84">
+      <labelText>Pre Id</labelText>
+      <size>6</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>target</tableName>
+        <columnName>pre_id</columnName>
+      </database>
+    </textfield>
+    
+    <textfield tag="82">
+      <labelText>Pre Min Lead</labelText>
+      <size>6</size>
+      <database>
+        <tableName>target</tableName>
+        <columnName>pre_min_lead</columnName>
+      </database>
+    </textfield>
+    
+    <textfield tag="83">
+      <labelText>Pre Max Lead</labelText>
+      <size>6</size>
+      <database>
+        <tableName>target</tableName>
+        <columnName>pre_max_lead</columnName>
+      </database>
+    </textfield>
+
+    <preferredbox tag="351">
+      <labelText>Multi-Telescope Flag</labelText>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>target</tableName>
+        <columnName>multitelescope</columnName>
+      </database>
+    </preferredbox>
+
+    <textarea tag="352">
+      <labelText>Observatories</labelText>
+      <size>60</size>
+      <row>
+      <height>1</height>
+      </row>
+      <column>
+        <width>></width>
+      </column>
+      <database>
+        <tableName>target</tableName>
+        <columnName>observatories</columnName>
+      </database>
+    </textarea>
+
+    <preferredbox tag="351">
+      <labelText>Constraints in remarks?</labelText>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>target</tableName>
+        <columnName>constr_in_remarks</columnName>
+      </database>
+    </preferredbox>
+
+    <textarea tag="352">
+      <labelText>Group Id</labelText>
+      <size>60</size>
+      <row>
+      <height>1</height>
+      </row>
+      <column>
+        <width>></width>
+      </column>
+      <database>
+        <tableName>target</tableName>
+        <columnName>group_id</columnName>
+      </database>
+    </textarea>
+
+    <textfield tag="361">
+      <labelText>Split Interval</labelText>
+      <size>8</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>target</tableName>
+        <columnName>split_interval</columnName>
+      </database>
+    </textfield>
+
+
+    
+    
+    
+    <keycombobox tag="111" new="true" none="false">
+      <labelText>Prop Info Id</labelText>
+      <size>10</size>
+      <database>
+        <tableName>target</tableName>
+        <columnName>ocat_propid</columnName>
+      </database>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <keyinfo>
+	<keyTableName>prop_info</keyTableName>
+	<keyColumnName>ocat_propid</keyColumnName>
+      </keyinfo>
+    </keycombobox>
+
+    <combobox tag="63" none="false">
+      <labelText>Data Rights</labelText>
+      <size>8</size>
+      <database>
+        <tableName>target</tableName>
+        <columnName>data_rights</columnName>
+      </database>
+    </combobox>
+    
+    <separator tag="131"></separator>
+
+    <label tag="141">
+      <labelText>Instrument </labelText>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+    </label>
+
+    <keycombobox tag="142">
+      <labelText>HRC Id</labelText>
+      <size>8</size>
+      <row>
+        <number>.</number>
+      </row>
+      <column>
+        <number>2</number>
+      </column>
+      <database>
+        <tableName>target</tableName>
+        <columnName>hrcid</columnName>
+      </database>
+      <keyinfo>
+	<keyTableName>hrcparam</keyTableName>
+	<keyColumnName>hrcid</keyColumnName>
+      </keyinfo>
+    </keycombobox>
+
+
+    <keycombobox tag="152">
+      <labelText>ACIS Id</labelText>
+      <size>8</size>
+      <database>
+        <tableName>target</tableName>
+	<columnName>acisid</columnName>
+      </database>
+      <keyinfo>
+	<keyTableName>acisparam</keyTableName>
+	<keyColumnName>acisid</keyColumnName>
+      </keyinfo>
+    </keycombobox>
+    
+    <separator tag="201"></separator>
+    
+    <textarea tag="181">
+      <anchor>CENTER</anchor>
+      <labelText>Remarks</labelText>
+      <size>66</size>
+      <row>
+        <number>+</number>
+        <height>4</height>
+      </row>
+      <column>
+        <number>0</number>
+        <width>></width>
+      </column>
+      <database>
+        <tableName>target</tableName>
+        <columnName>remarks</columnName>
+      </database>
+    </textarea>
+    <separator tag="171"></separator>
+    
+    <label tag="180">
+      <labelText>Ancillary Target Table Fields</labelText>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+        <width>></width>
+      </column>
+    </label>
+
+    <keycombobox tag="181">
+      <labelText>Proposal Target Id</labelText>
+      <size>6</size>
+      <column>
+        <number>2</number>
+        <width>></width>
+      </column>
+      <database>
+        <tableName>target</tableName>
+        <columnName>targid</columnName>
+      </database>
+      <keyinfo>
+	<keyTableName>anc_target</keyTableName>
+	<keyColumnName>targid</keyColumnName>
+      </keyinfo>
+    </keycombobox>
+    
+    <textfield tag="191">
+      <labelText>Proposal Target Number</labelText>
+      <size>6</size>
+      <database>
+        <tableName>anc_target</tableName>
+        <columnName>targ_num</columnName>
+        <joinTableName>target</joinTableName>
+        <joinColumnName>targid</joinColumnName>
+      </database>
+    </textfield>
+    
+
+    <separator tag="201"></separator>
+    
+    <label tag="210">
+      <labelText>Prop Info Table Fields</labelText>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+        <width>></width>
+      </column>
+    </label>
+
+    <textfield tag="221">
+      <labelText>Number</labelText>
+      <size>6</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>prop_num</columnName>
+        <joinTableName>target</joinTableName>
+        <joinColumnName>ocat_propid</joinColumnName>
+      </database>
+    </textfield>
+    
+    <textfield tag="231">
+      <labelText>Title</labelText>
+      <size>60</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+        <width>></width>
+      </column>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>title</columnName>
+        <joinTableName>target</joinTableName>
+        <joinColumnName>ocat_propid</joinColumnName>
+      </database>
+    </textfield>
+    
+    <combobox tag="241">
+      <labelText>Category</labelText>
+      <size>12</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+        <width>></width>
+      </column>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>description</columnName>
+        <joinTableName>target</joinTableName>
+        <joinColumnName>ocat_propid</joinColumnName>
+      </database>
+    </combobox>
+    
+    <combobox tag="251">
+      <labelText>PI Id</labelText>
+      <size>8</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>prop_info</tableName>
+	<columnName>piid</columnName>
+        <joinTableName>target</joinTableName>
+        <joinColumnName>ocat_propid</joinColumnName>
+      </database>
+    </combobox>
+    
+    <combobox tag="252">
+      <labelText>NRA Cycle#</labelText>
+      <size>6</size>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>ao_str</columnName>
+        <joinTableName>target</joinTableName>
+        <joinColumnName>ocat_propid</joinColumnName>
+      </database>
+    </combobox>
+    
+    <combobox tag="253">
+      <labelText>Joint Policy</labelText>
+      <size>8</size>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>joint</columnName>
+        <joinTableName>target</joinTableName>
+        <joinColumnName>ocat_propid</joinColumnName>
+      </database>
+    </combobox>
+    
+    <triplebox tag="261">
+      <labelText>CoInvestigator</labelText>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>coi_contact</columnName>
+        <joinTableName>target</joinTableName>
+        <joinColumnName>ocat_propid</joinColumnName>
+      </database>
+    </triplebox>
+    
+    <combobox tag="263">
+      <labelText>CoI Id</labelText>
+      <size>6</size>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>coin_id</columnName>
+        <joinTableName>target</joinTableName>
+        <joinColumnName>ocat_propid</joinColumnName>
+      </database>
+    </combobox>
+    
+    <combobox tag="264" new="true">
+      <labelText>CoI Phone</labelText>
+      <size>12</size>
+      <column>
+        <number>.</number>
+	<width>2</width>
+      </column>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>coi_phone</columnName>
+        <joinTableName>target</joinTableName>
+        <joinColumnName>ocat_propid</joinColumnName>
+      </database>
+    </combobox>
+    
+    <combobox tag="272" >
+      <labelText>Medium</labelText>
+      <size>6</size>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>medium</columnName>
+        <joinTableName>target</joinTableName>
+        <joinColumnName>ocat_propid</joinColumnName>
+      </database>
+    </combobox>
+    
+    <textfield tag="71">
+      <labelText>HST Orbits</labelText>
+      <size>6</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>hst_approved_time</columnName>
+        <joinTableName>target</joinTableName>
+        <joinColumnName>ocat_propid</joinColumnName>
+      </database>
+    </textfield>
+
+   
+    <textfield tag="71">
+      <labelText>XMM Time</labelText>
+      <size>6</size>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>xmm_approved_time</columnName>
+        <joinTableName>target</joinTableName>
+        <joinColumnName>ocat_propid</joinColumnName>
+      </database>
+    </textfield>
+
+    <textfield tag="71">
+      <labelText>NOAO Nights</labelText>
+      <size>6</size>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>noao_approved_time</columnName>
+        <joinTableName>target</joinTableName>
+        <joinColumnName>ocat_propid</joinColumnName>
+      </database>
+    </textfield>
+    <textfield tag="71">
+      <labelText>RXTE Time</labelText>
+      <size>6</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>rxte_approved_time</columnName>
+        <joinTableName>target</joinTableName>
+        <joinColumnName>ocat_propid</joinColumnName>
+      </database>
+    </textfield>
+
+    <textfield tag="71">
+      <labelText>NRAO Hours</labelText>
+      <size>6</size>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>nrao_approved_time</columnName>
+        <joinTableName>target</joinTableName>
+        <joinColumnName>ocat_propid</joinColumnName>
+      </database>
+    </textfield>
+
+    <textfield tag="71">
+      <labelText>Swift</labelText>
+      <size>6</size>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>swift_approved_time</columnName>
+        <joinTableName>target</joinTableName>
+        <joinColumnName>ocat_propid</joinColumnName>
+      </database>
+    </textfield>
+
+  </GUI>
+
+</formView>

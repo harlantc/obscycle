@@ -1,0 +1,258 @@
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 1995, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: peer_lists.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION: #	Executes lists for peer review:
+#	peer_reviewer_lists.pl
+#	peer_joint_lists.pl
+#	peer_panel_member_lists.pl
+#	peer_proposal_lists.pl
+#       prop_acis_lists.pl
+#	prop_reports -conflicts
+#       peer_bpp_chair_conflict.pl - conflicts for BPP for Chairs vs LPs assigned to their panel 
+#                               (help with review assignments that Paul gives at the BPP and
+#                               identify proposals where both Chairs have conflict)
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+
+use vars qw (%param $dbh  @reqfiles $reqfile $lockfile
+	);
+
+
+use strict;
+use Carp;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+
+@reqfiles = (
+        "prop_routines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+sub catch_warn {
+  my ($estr);
+  my($signame);
+
+  if ($lockfile && -e $lockfile) {
+     unlink($lockfile);
+  }
+}
+
+
+# -------------------------- MAIN ----------------------------------
+{
+  my ($pwd,$curdate,$dsn,$stmp,$savdir,$param_str);
+  my (@panels,$ii,$qfile,$cmd);
+
+  ($pwd,$param_str,$qfile) = parse_input();
+
+   $SIG{__DIE__} = \&catch_warn;
+
+
+  #database connection 
+  $dbh = dbProposalConnection($param{U}, $param{S}, $pwd);
+
+  $curdate = get_date();
+
+  $lockfile = $param{o} . "/.peer_lists_lock";
+  if (-e $lockfile)  {
+    print STDERR "Lock file exists: $lockfile, command not executed\n";
+    $dbh->disconnect();
+    exit 1;
+  }
+  open LFILE,">$lockfile" ;
+  print LFILE "locked by $param{U}, $ENV{USER}\n";
+  close LFILE;
+  chmod (0660,$lockfile);
+
+
+  if (!-d $param{o}) {
+    print STDERR "creating output directory $param{o}\n";
+    mkdir ($param{o},0770);
+    chgroup ($param{o});;
+    chmod((0770 ^ 02000),$param{o});
+  }
+  else {
+    $stmp = $curdate;
+    while ($stmp =~ s/\//_/) {;}
+    while ($stmp =~ s/ /_/) {;}
+    while ($stmp =~ s/\://) {;}
+    $savdir = $param{o} . "/peer_" . $stmp ."/";
+    print STDERR "Moving existing files to $savdir \n";
+    mkdir ($savdir,0770);
+    chgroup ($savdir);
+    chmod((0770 ^ 02000),$savdir);
+    `\\mv $param{o}/*.* $savdir `;
+  }  
+
+  `\\peer_proposal_lists.pl $param_str`;
+  `\\peer_joint_lists.pl $param_str`;
+  `\\peer_reviewer_lists.pl $param_str`;
+  `\\peer_panel_member_lists.pl $param_str`;
+  `\\prop_acis_lists.pl $param_str`;
+  `\\peer_bpp_chair_conflict.pl $param_str`;
+    my($rstr) = "-p LP -c -d " .  $param{o} . "/reviewer_conflicts_panelBPP.txt " . $param_str;
+  `\\peer_reviewer_conflicts.pl $rstr`;
+   print STDERR "Output file: $param{o}//reviewer_conflicts_panelBPP.txt\n";
+
+
+  #print STDERR "param: $param_str\n";
+  @panels = dbGetPanels($dbh,$param{a});
+  for ($ii=0; $ii<= $#panels;$ii++) {
+     $stmp = $param{o} . "/pi_coi_panel" . $panels[$ii] . ".txt";
+     $cmd = qq(\pi_coi.pl -U $param{U} -S $param{S} -q $param{q} -a $param{a} -p $panels[$ii] -o $stmp);
+     #print STDERR "$cmd\n";
+     `$cmd`;
+     chgroup($stmp);
+     chmod 0660,$stmp;
+
+     $stmp = $param{o} . "/reviewer_conflicts_panel" . $panels[$ii] . ".txt";
+     $cmd = qq(\prop_reports -U $param{U} -S $param{S} -pf $qfile -ao $param{a} -conflicts -panel $panels[$ii] > $stmp);
+     #print STDERR "processing reviewer conflicts for panel $panels[$ii]...\n";
+     #print STDERR "$cmd\n";
+     `$cmd`;
+     chgroup($stmp);
+     chmod 0660,$stmp;
+
+  }
+  $stmp = $param{o} . "/pi_coi_panelBPP.txt";
+     $cmd = qq(\pi_coi.pl -U $param{U} -S $param{S} -q $param{q} -l -a $param{a} -p BPP -o $stmp);
+     #print STDERR "$cmd\n";
+     `$cmd`;
+     chgroup($stmp);
+     chmod 0660,$stmp;
+
+  unlink($param{q});
+  unlink($qfile);
+  unlink($lockfile);
+
+  $dbh->disconnect;
+
+}
+
+
+
+sub parse_input { 
+  my ($pwd,$pstr,$qfile);
+  my $err = 0;
+
+  %param = ( U => undef,
+             S => $ENV{DB_PROP_SQLSRV},
+             o => ".",
+             a => $ENV{ASCDS_PROP_AO}
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "a=s",
+          "o=s",
+          "q=s",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val;
+      warn("parameter '$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+
+
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+
+    $param{q} = "$param{o}/.$ENV{USER}.peer";
+    write_password($param{q},$pwd);
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+  $qfile = $param{o} . "/.ht" . $ENV{USER} . ".peer";
+  `\\cat $param{q} | .pingest $qfile 2>&1 >> /dev/null`;
+   chmod (0600,$qfile);
+
+
+  while ( my ( $par, $val ) = each ( %param ) ) {
+     $pstr .= " -$par $val ";
+  }
+  return ($pwd,$pstr,$qfile);
+}
+
+sub usage {
+  print STDERR "\nUSAGE: peer_lists.pl -U [Sao] \n";
+  print STDERR "\n  Executes lists for peer review:\n";
+  print STDERR "  peer_joint_lists.pl peer_panel_member_lists.pl,\n";
+  print STDERR "  peer_proposal_lists.pl\n";
+  print STDERR "  prop_reports -conflicts for each panel\n\n";
+  print STDERR "        -U  database user name \n";
+  print STDERR "        -S  sql server, default is DB_PROP_SQLSRV\n";
+  print STDERR "        -a  AO , default is ASCDS_PROP_AO\n";
+  print STDERR "        -o  output directory, default is current directory\n";
+}
+
+
+
+#------------------------------------------------
+# retrieve panels from database
+#------------------------------------------------
+sub dbGetPanels
+{    
+  my($dbh,$ao_str) = @_;
+  my($stmp,$sth,@row,@panels);
+
+  $stmp = qq(select panel_name from panel,ao 
+	where ao.ao_str = "$ao_str" 
+        and ao.ao_id = panel.ao
+	and panel_name != "BPP"
+        order by panel_name
+        );
+  $sth = $dbh->prepare($stmp);
+  $sth->execute;
+    
+  @panels = ();
+  while((@row) = $sth->fetchrow_array()) {
+    push @panels,$row[0];
+  }
+   
+  return @panels;
+}
+
+
+

@@ -1,0 +1,68 @@
+<!-- _INSERT_SAO_COPYRIGHT_HERE_(2016-2020)_ -->
+<!-- _INSERT_GPL_LICENSE_HERE_ -->
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8;">
+  <title>inputframe</title>
+  <link rel="stylesheet" href="/soft/provis/provis.css" type="text/css" >
+  <script type="text/javascript" language="javascript" src="inputframe.js"></script>
+</head>
+
+
+<body class="body" onload="OnLoad();" >
+
+<div class="header" ><span class="header">TARGET PARAMETERS<br>
+</span>
+</div>
+
+<input type="hidden" id="coorderror" value="0" name="coorderror" size="2" >
+
+<table class="inputtable" id="targettable"> 
+
+  <tbody>
+    <tr >
+      <td >
+      
+      <table class="datetable" >
+
+  <tbody>
+    <tr>
+      <td style="text-align: center;">&nbsp;</td>
+      <td style="text-align: center; vertical-align: bottom;"><span class="xsbold">YYYY</span></td>
+      <td style="text-align: center; vertical-align: bottom;"><span class="xsbold">MM</span></td>
+      <td style="text-align: center; vertical-align: bottom;"><span class="xsbold">DD</span></td>
+    </tr>
+    <tr>
+      <td style="text-align:right; white-space:nowrap;"><span class="xsbold">Start Date:&nbsp;</span></td>
+      <td style="text-align: center;"><input value="2023" maxlength="4" id="SYYYY" size="4" name="SYYYY" onkeyup="top.buttonsframe.ConfigFrame();" onchange="top.buttonsframe.ConfigFrame();" onfocus="top.buttonsframe.ConfigFrame();" title="Start Year. Earliest is 2021 Oct 01"></td>
+      <td style="text-align: center;"><input title="Start Month. Earliest is 2021 Oct 01" value="01" maxlength="2" size="2" id="SMM" name="SMM" onkeyup="top.buttonsframe.ConfigFrame();" onchange="top.buttonsframe.ConfigFrame();" onfocus="top.buttonsframe.ConfigFrame();"></td>
+      <td style="text-align: center;"><input title="Start Day. Earliest is 2021 Oct 01" value="01" id="SDD" maxlength="2" size="2" name="SDD" onkeyup="top.buttonsframe.ConfigFrame();" onchange="top.buttonsframe.ConfigFrame();" onfocus="top.buttonsframe.ConfigFrame();"></td>
+    </tr>
+    <tr>
+      <td style="text-align:right; white-space:nowrap;"><span class="xsbold">End Date:&nbsp;</span></td>
+      <td style="text-align: center;"><input title="End Year. Latest is 2024 Jan 31" value="2023" id="EYYYY" maxlength="4" size="4" name="EYYYY" onkeyup="top.buttonsframe.ConfigFrame();" onchange="top.buttonsframe.ConfigFrame();" onfocus="top.buttonsframe.ConfigFrame();"></td>
+      <td style="text-align: center;"><input title="End Month. Latest is 2024 Jan 31" value="12" id="EMM" maxlength="2" size="2" name="EMM" onkeyup="top.buttonsframe.ConfigFrame();" onchange="top.buttonsframe.ConfigFrame();" onfocus="top.buttonsframe.ConfigFrame();"></td>
+      <td style="text-align: center;"><input title="End Day. Latest is 2024 Jan 31" value="31" id="EDD" maxlength="2" size="2" name="EDD" onkeyup="top.buttonsframe.ConfigFrame();" onchange="top.buttonsframe.ConfigFrame();" onfocus="top.buttonsframe.ConfigFrame();"></td>
+    </tr>
+        </tbody>
+      </table>
+      </td>
+    </tr>
+    <tr>
+      <td style="text-align: center; "><div style="margin-top:5px;font-weight: bold;">Target Coordinates(J2000)<br>RA Dec</div></td>
+    </tr>
+    <tr>
+      <td style="text-align: center;"><input name="targetcoords" size="25" id="targetcoords" onkeyup="top.buttonsframe.GeneratePlot(event);" onchange="top.buttonsframe.ConfigFrame();" onfocus="top.buttonsframe.ConfigFrame();" title="Type target coordinates and press enter to generate plot"></td>
+    </tr>
+    <tr>
+      <td style="text-align: center;"><span style="font-weight: bold;">Target Name</span></td>
+    </tr>
+    <tr>
+      <td style="text-align: center;"><input name="targetname" size="25" id="targetname" onkeyup="top.buttonsframe.ResolveTarget(SetTargetCoords,event);" onchange="top.buttonsframe.ConfigFrame();" onfocus="top.buttonsframe.ConfigFrame();" title="Type target name and press enter to resolve"></td>
+    </tr>
+  </tbody>
+</table>
+</body>
+</html>

@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE formView SYSTEM "formView.dtd">
+
+<formView>
+
+  <title>Prop Info Form</title>
+
+  <info>
+    <supportsNew>noDelete</supportsNew>
+  </info>
+
+  <key>
+    <tableName>prop_info</tableName>
+    <columnName>ocat_propid</columnName>
+  </key>
+
+  <navigation>
+    <display>
+	<name>ObsCat Prop. Id</name>
+	<tableName>prop_info</tableName>
+	<columnName>ocat_propid</columnName>
+    </display>
+    <display>
+	<name>Proposal Number</name>
+	<tableName>prop_info</tableName>
+	<columnName>prop_num</columnName>
+    </display>
+  </navigation>
+
+  <GUI>
+
+    <textfield tag="11">
+      <labelText>ObsCat Prop. Id</labelText>
+      <size>6</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+	<tableName>prop_info</tableName>
+	<columnName>ocat_propid</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="12">
+      <labelText>Proposal Number</labelText>
+      <size>6</size>
+      <database>
+	<tableName>prop_info</tableName>
+	<columnName>prop_num</columnName>
+      </database>
+    </textfield>
+    
+    <textfield tag="13">
+      <labelText>Proposal Id</labelText>
+      <size>6</size>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>proposal_id</columnName>
+      </database>
+    </textfield>
+    
+    <textfield tag="21">
+      <labelText>Title</labelText>
+      <size>56</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+        <width>></width>
+      </column>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>title</columnName>
+      </database>
+    </textfield>
+    
+    <combobox tag="31">
+      <labelText>Category</labelText>
+      <size>12</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+        <width>></width>
+      </column>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>description</columnName>
+      </database>
+    </combobox>
+
+    <combobox tag="42">
+      <labelText>NRA Cycle#</labelText>
+      <size>6</size>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>ao_str</columnName>
+      </database>
+    </combobox>
+    
+    <textfield tag="43">
+      <labelText>Proposal Type</labelText>
+      <size>20</size>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>proposal_type</columnName>
+      </database>
+    </textfield>
+    
+    <textfield tag="42">
+      <labelText>P.I. Last</labelText>
+      <size>24</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>view_pi</tableName>
+        <columnName>last</columnName>
+        <joinTableName>prop_info</joinTableName>
+        <joinColumnName>ocat_propid</joinColumnName>
+      </database>
+    </textfield>
+
+    <combobox tag="41">
+      <labelText>PI Id</labelText>
+      <size>8</size>
+      <database>
+        <tableName>prop_info</tableName>
+	<columnName>piid</columnName>
+      </database>
+    </combobox>
+
+    <combobox tag="50">
+      <labelText>Joint Policy</labelText>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <size>8</size>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>joint</columnName>
+      </database>
+    </combobox>
+
+
+    <textfield tag="13">
+      <labelText>HST Orbits</labelText>
+      <size>6</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>hst_approved_time</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="13">
+      <labelText>XMM Time</labelText>
+      <size>6</size>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>xmm_approved_time</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="71">
+      <labelText>RXTE Time</labelText>
+      <size>6</size>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>rxte_approved_time</columnName>
+      </database>
+    </textfield>
+    
+
+    <textfield tag="71">
+      <labelText>Spitzer Hours</labelText>
+      <size>6</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>spitzer_approved_time</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="72">
+      <labelText>Suzaku Time</labelText>
+      <size>6</size>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>suzaku_approved_time</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="73">
+      <labelText>Swift Time</labelText>
+      <size>6</size>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>swift_approved_time</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="71">
+      <labelText>NRAO Hours</labelText>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <size>6</size>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>nrao_approved_time</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="13">
+      <labelText>NOAO Nights</labelText>
+      <size>6</size>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>noao_approved_time</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="14">
+      <labelText>NuSTAR Time </labelText>
+      <size>6</size>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>nustar_approved_time</columnName>
+      </database>
+    </textfield>
+
+
+    <combobox tag="62" none="false">
+      <labelText>Medium</labelText>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <size>6</size>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>medium</columnName>
+      </database>
+    </combobox>
+    
+    
+    <triplebox tag="51">
+      <labelText>CoInvestigator</labelText>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>coi_contact</columnName>
+      </database>
+    </triplebox>
+    
+    <keycombobox tag="52">
+      <labelText>Co-I Id</labelText>
+      <size>6</size>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>coin_id</columnName>
+      </database>
+      <keyinfo>
+        <keyTableName>axafusers..person_short</keyTableName>
+        <keyColumnName>pers_id</keyColumnName>
+      </keyinfo>
+    </keycombobox>
+    
+    <textfield tag="2933" new="true">
+      <labelText>CoI Name</labelText>
+      <size>12</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>axafusers..person_short</tableName>
+        <columnName>last</columnName>
+        <joinTableName>prop_info</joinTableName>
+        <joinColumnName>coin_id</joinColumnName>
+      </database>
+    </textfield>
+
+
+    <textfield tag="53" new="true">
+      <labelText>Co-I Phone</labelText>
+      <size>12</size>
+      <column>
+        <number>.</number>
+	<width>2</width>
+      </column>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>coi_phone</columnName>
+      </database>
+    </textfield>
+    
+
+    <textarea tag="71">
+      <labelText>Abstract</labelText>
+      <size>56</size>
+      <row>
+        <number>+</number>
+	<height>8</height>
+      </row>
+      <column>
+        <number>0</number>
+        <width>></width>
+      </column>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>abstract</columnName>
+      </database>
+    </textarea>
+
+  </GUI>
+
+</formView>

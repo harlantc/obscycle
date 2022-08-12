@@ -1,0 +1,1249 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head>
+   <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+   <link rel="stylesheet"
+	 href="js/css/smoothness/jquery-ui-1.7.1.custom.css"
+	 type="text/css"
+   />
+   <link rel="stylesheet" type="text/css" 
+         href="js/tablesorter/themes/blue/style.css" />
+   <link rel="stylesheet"
+	 href="PRman.css"
+	 type="text/css"
+   />
+   <script src="js/jquery-1.3.2.min.js" type="text/javascript"></script>
+   <script src="js/tablesorter/jquery.tablesorter.min.js"> 
+	   type="text/javascript" </script>
+   <script src="js/jquery-ui-1.7.1.custom.min.js"
+	   type="text/javascript"></script>
+   <script type="text/javascript"> 
+     $(function(){  
+     $('#tabs').tabs({ selected: 0 });  
+     });  
+   </script>
+   <script type="text/javascript">    
+    $(function() {
+    $("#accordian").accordion({
+	    collapsible: true, 
+	    autoHeight: false,
+	    active: 8
+	    });
+      });
+   </script>
+  <script type="text/javascript">
+    $(function() { 
+    $("#columntable").tablesorter({widgets: ['zebra']}); 
+    } ); 
+  </script>
+   <title>Peer Review GUI User's Manual</title>
+  </head>
+
+  <body>
+    <div class="document">
+      <div class="banner">
+	<h2>Peer Review GUI User's Manual</h2>
+	<p><a
+    href="https://cxc.cfa.harvard.edu/rws/facilitator_info.php">Facilitator
+    Info Page</a> </p>
+      </div>
+
+  
+      <div class="body">
+	<!-- Navigation -->
+	<div id="navigation">
+	  <!--#include file="nav.phtml" -->
+	</div>
+	<!-- Content Goes Here -->
+	<div id="main">
+	  <h2 id="section_heading">Column Definitions</h2>
+	  <p>There are many attributes to a proposal, most of which are in the Peer Review database.  Most of those attributes are viewable through the GUI.  In addition, there are some calculated values in the GUI which are not saved in the database.  The table below gives a listing of the data available through the GUI.  Be aware that not every column is meaningful for every proposal.</p>
+	  <dl>
+	    <dt class="level1">Edit Values</dt>
+	    <ul>
+	      <li class="level2"><strong>N</strong> column is never editable</li>
+	      <li class="level2"><strong>Y</strong> column is editable for some or all proposals</li>
+	      <li class="level2"><strong>C</strong> column is calculated by GUI</li>
+	    </ul>
+	    <dt class="level1">Multiple Column Sort</dt>
+	    <dd>Sort multiple columns simultaneously by holding down the shift key and clicking a second, third or even fourth column header!</dd>
+	  </dl>
+	  <table id="columntable" class="sortable tablesorter">
+	    <thead>
+	      <tr>
+		<th>Column Name</th>
+		<th>Sort</th>
+		<th>Group</th>
+		<th>Editable</th>
+		<th>Section Type</th>
+		<th>Description</th>
+	      </tr>
+	    </thead>
+	    <tbody>
+	      <tr>
+		<td>PropNum</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Proposal Number</td>
+		<td>proposal number</td>
+	      </tr>
+	      <tr>
+		<td>PI</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Proposal Number</td>
+		<td>last name of principal investigator</td>
+	      </tr>
+	      <tr>
+		<td>TC</td>
+		<td>Y</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>Proposal</td>
+		<td>flag indicating whether the proposal is time constrained</td>
+	      </tr>
+	      <tr>
+		<td>MCOP</td>
+		<td>Y</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>Proposal</td>
+		<td>flag indicating whether the proposal contains multi-cycle targets</td>
+	      </tr>
+	      <tr>
+		<td>Conflict</td>
+		<td>Y</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>Proposal</td>
+		<td>flag indicating whether the proposal has a conflict</td>
+	      </tr>
+	      <tr>
+		<td>Grp</td>
+		<td>Y</td>
+		<td>Y</td>
+		<td>Y</td>
+		<td>Proposal</td>
+		<td>assigned group name</td>
+	      </tr>
+	      <tr>
+		<td>Cat</td>
+		<td>Y</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>Proposal</td>
+		<td>scientific category</td>
+	      </tr>
+	      <tr>
+		<td>Tag</td>
+		<td>Y</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>Proposal</td>
+		<td>last four digits of proposal number</td>
+	      </tr>
+	      <tr>
+		<td>Type</td>
+		<td>Y</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>Proposal</td>
+		<td>type of proposal (GO|TOO|ARCHIVE|THEORY)</td>
+	      </tr>
+	      <tr>
+		<td>LP/XVP</td>
+		<td>Y</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>Proposal</td>
+		<td>flag indicating whether the proposal is a Large Project or Xr-ray Visionary Project</td>
+	      </tr>
+	      <tr>
+		<td>Req Time (n)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Proposal</td>
+		<td>total time requested in proposal (or money for archive and theory proposals) for the current cycle</td>
+	      </tr>
+	      <tr>
+		<td>Req Time (n+1)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Proposal</td>
+		<td>total time requested in proposal for cycle n+1</td>
+	      </tr>
+	      <tr>
+		<td>Req Time (n+2)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Proposal</td>
+		<td>total time requested in proposal for cycle n+2</td>
+	      </tr>
+	      <tr>
+		<td>App Time (n)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Proposal</td>
+		<td>total time requested in proposal (or money for archive and theory proposals) for the current cycle</td>
+	      </tr>
+	      <tr>
+		<td>App Time (n+1)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Proposal</td>
+		<td>total time requested in proposal for cycle n+1</td>
+	      </tr>
+	      <tr>
+		<td>App Time (n+2)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Proposal</td>
+		<td>total time requested in proposal for cycle n+2</td>
+	      </tr>
+				<tr>
+					<td>App HEL (n)</td>
+					<td>Y</td>
+					<td>N</td>
+					<td>N</td>
+					<td>Proposal</td>
+					<td>total High Ecliptic Latitude time requested in proposal (or money for archive and theory proposals) for the current cycle</td>
+				</tr>
+				<tr>
+					<td>App HEL (n+1)</td>
+					<td>Y</td>
+					<td>N</td>
+					<td>N</td>
+					<td>Proposal</td>
+					<td>total High Ecliptic Latitude time requested in proposal for cycle n+1</td>
+				</tr>
+				<tr>
+					<td>App HEL (n+2)</td>
+					<td>Y</td>
+					<td>N</td>
+					<td>N</td>
+					<td>Proposal</td>
+					<td>total High Ecliptic Latitude time requested in proposal for cycle n+2</td>
+				</tr>
+	      <tr>
+		<td>Tot Req Time (n)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Proposal</td>
+		<td>total time requested in proposal including tax and probability (or money for archive and theory proposals) for the current cycle</td>
+	      </tr>
+	      <tr>
+		<td>Tot Req Time (n+1)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Proposal</td>
+		<td>total time requested in proposal including tax and probability for cycle n+1</td>
+	      </tr>
+	      <tr>
+		<td>Tot Req Time (n+2)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Proposal</td>
+		<td>total time requested in proposal including tax and probability for cycle n+2</td>
+	      </tr>
+	      <tr>
+		<td>Tot App Time (n)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Proposal</td>
+		<td>total time approved in proposal including tax and probability (or money for archive and theory proposals) for the current cycle</td>
+	      </tr>
+	      <tr>
+		<td>Tot App Time (n+1)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Proposal</td>
+		<td>total time approved in proposal including tax and probability for cycle n+1</td>
+	      </tr>
+	      <tr>
+		<td>Tot App Time (n+2)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Proposal</td>
+		<td>total time approved in proposal including tax and probability for cycle n+2</td>
+	      </tr>
+				<tr>
+					<td>Tot App HEL (n)</td>
+					<td>Y</td>
+					<td>N</td>
+					<td>C</td>
+					<td>Proposal</td>
+					<td>total High Ecliptic Latitude time approved in proposal for the current cycle</td>
+				</tr>
+				<tr>
+					<td>Tot App HEL (n+1)</td>
+					<td>Y</td>
+					<td>N</td>
+					<td>C</td>
+					<td>Proposal</td>
+					<td>total High Ecliptic Latitude time approved in proposal for cycle n+1</td>
+				</tr>
+				<tr>
+					<td>Tot App HEL (n+2)</td>
+					<td>Y</td>
+					<td>N</td>
+					<td>C</td>
+					<td>Proposal</td>
+					<td>total High Ecliptic Latitude time approved in proposal for cycle n+2</td>
+				</tr>
+	      <tr>
+		<td>Req Time n/n+1/n+2</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Multi-Cycle</td>
+		<td>total time requested in proposal split out by cycle</td>
+	      </tr>
+	      <tr>
+		<td>App Time n/n+1/n+2</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Multi-Cycle</td>
+		<td>total time requested in proposal split out by cycle</td>
+	      </tr>
+	      <tr>
+		<td>Tot Req Time n/n+1/n+2</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Multi-Cycle</td>
+		<td>total time requested in proposal including tax and probability split out by cycle</td>
+	      </tr>
+	      <tr>
+		<td>Tot App Time n/n+1/n+2</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Multi-Cycle</td>
+		<td>total time approved in proposal including tax and probability split out by cycle</td>
+	      </tr>
+	      <tr>
+		<td>Time App/Req (n)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Combo</td>
+		<td>total requested and approved time for the current cycle</td>
+	      </tr>
+	      <tr>
+		<td>Time App/Req (n+1)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Combo</td>
+		<td>total requested and approved time for cycle n+1</td>
+	      </tr>
+	      <tr>
+		<td>Time App/Req (n+2)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Combo</td>
+		<td>total requested and approved time for cycle n+2</td>
+	      </tr>
+	      <tr>
+		<td>Tot Time App/Req (n)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Combo</td>
+		<td>total requested and approved time including tax and probability for cycle n</td>
+	      </tr>
+	      <tr>
+		<td>Tot Time App/Req (n+1)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Combo</td>
+		<td>total requested and approved time including tax and probability for cycle n+1</td>
+	      </tr>
+	      <tr>
+		<td>Tot Time App/Req (n+2)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Combo</td>
+		<td>total requested and approved time including tax and probability for cycle n+2</td>
+	      </tr>
+	      <tr>
+		<td>Tax Total (n)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Proposal</td>
+		<td>total slew tax with probability for approved targets in proposal for the current cycle</td>
+	      </tr>
+	      <tr>
+		<td>Tax Total (n+1)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Proposal</td>
+		<td>total slew tax with probability for approved targets in proposal for cycle n+1</td>
+	      </tr>
+	      <tr>
+		<td>Tax Total (n+2)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Proposal</td>
+		<td>total slew tax with probability for approved targets in proposal for cycle n+2</td>
+	      </tr>
+	      <tr>
+		<td>Tax Total n/n+1/n+2</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Multi-Cycle</td>
+		<td>total slew tax with probability for approved targets in proposal split out by cycle</td>
+	      </tr>
+	      <tr>
+		<td>RC Total (n)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Proposal</td>
+		<td>Resource Score (RC) for approved targets in proposal for the current cycle</td>
+	      </tr>
+	      <tr>
+		<td>RC Total (n+1)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Proposal</td>
+		<td>Resource Score (RC) for approved targets in proposal for the cycle n+1</td>
+	      </tr>
+	      <tr>
+		<td>RC Total (n+2)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Proposal</td>
+		<td>Resource Score (RC) for approved targets in proposal for the cycle n+1</td>
+	      </tr>
+	      <tr>
+		<td>RC Total n/n+1/n+2</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Multi-Cycle</td>
+		<td>Resource Score (RC) for approved targets in proposal split out by cycle</td>
+	      </tr>
+	      <tr>
+		<td>Run App Time (n)</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Cumulative Totals</td>
+		<td>running total of approved time (includes slew tax and probability) for the current cycle</td>
+	      </tr>
+	      <tr>
+		<td>Run App Time (n+1)</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Cumulative Totals</td>
+		<td>running total of approved time (includes slew tax and probability) for cycle n+1</td>
+	      </tr>
+	      <tr>
+		<td>Run App Time (n+2)</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Cumulative Totals</td>
+		<td>running total of approved time (includes slew tax and probability) for cycle n+2</td>
+	      </tr>
+	      <tr>
+				<tr>
+					<td>Run App HEL (n)</td>
+					<td>N</td>
+					<td>N</td>
+					<td>N</td>
+					<td>Cumulative Totals</td>
+					<td>running total of approved High Ecliptic Latitude time for the current cycle</td>
+				</tr>
+				<tr>
+					<td>Run App HEL (n+1)</td>
+					<td>N</td>
+					<td>N</td>
+					<td>N</td>
+					<td>Cumulative Totals</td>
+					<td>running total of approved High Ecliptic Latitude time for cycle n+1</td>
+				</tr>
+				<tr>
+					<td>Run App HEL (n+2)</td>
+					<td>N</td>
+					<td>N</td>
+					<td>N</td>
+					<td>Cumulative Totals</td>
+					<td>running total of approved High Ecliptic Latitude time for cycle n+2</td>
+				</tr>
+				<tr>
+		<td>Run Arc$</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Cumulative Totals</td>
+		<td>running total of approved archive money</td>
+	      </tr>
+	      <tr>
+		<td>Run The$</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Cumulative Totals</td>
+		<td>running total of approved theory money</td>
+	      </tr>
+	      <tr>
+		<td>Run RC (N)</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Cumulative Totals</td>
+		<td>running total of resource cost for the current Cycle</td>
+	      </tr>
+
+	      <tr>
+		<td>Run <=5 TOO </td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Cumulative Totals</td>
+		<td>running total of TOOs with a response time of 0-5 days</td>
+	      </tr>
+	      <tr>
+		<td>Run 5-20 TOO</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Cumulative Totals</td>
+		<td>running total of TOOs with a response time of 5-20 days</td>
+	      </tr>
+	      <tr>
+		<td>Run 20-40 TOO</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Cumulative Totals</td>
+		<td>running total of TOOs with a response time of 20-40 days</td>
+	      </tr>
+
+	      <tr>
+		<td>Run HST</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Cumulative Totals</td>
+		<td>running total of HST approved orbits</td>
+	      </tr>
+	      <tr>
+		<td>Run NOAO</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Cumulative Totals</td>
+		<td>running total of NOAO approved nights</td>
+	      </tr>
+	      <tr>
+		<td>Run NRAO</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Cumulative Totals</td>
+		<td>running total of NRAO approved hours</td>
+	      </tr>
+	      <tr>
+		<td>Run XMM</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Cumulative Totals</td>
+		<td>running total of XMM approved ksec</td>
+	      </tr>
+	      <tr>
+		<td>Run Swift</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Cumulative Totals</td>
+		<td>running total of Swift approved ksec</td>
+	      </tr>
+	      <tr>
+		<td>Run NuSTAR</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Cumulative Totals</td>
+		<td>running total of NuSTAR approved ksec</td>
+	      </tr>
+	      <tr>
+		<td>Num Targ Req (n)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Proposal</td>
+		<td>number of targets requested in proposal for the current cycle </td>
+	      </tr>
+	      <tr>
+		<td>Num Targ Req (n+1)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Proposal</td>
+		<td>number of targets requested in proposal for cycle+1</td>
+	      </tr>
+	      <tr>
+		<td>Num Targ Req (n+2)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Proposal</td>
+		<td>number of targets requested in proposal for cycle+2</td>
+	      </tr>
+	      <tr>
+		<td>Num Targ App (n)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Proposal</td>
+		<td>number of targets approved in proposal for the current cycle</td>
+	      </tr>
+	      <tr>
+		<td>Num Targ App (n+1)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Proposal</td>
+		<td>number of targets approved in proposal for cycle+1</td>
+	      </tr>
+	      <tr>
+		<td>Num Targ App (n+2)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Proposal</td>
+		<td>number of targets approved in proposal for cycle+2</td>
+	      </tr>
+	      <tr>
+		<td>Num Targ App/Req (n)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Proposal</td>
+		<td>number of targets approved  and requested in proposal for the current cycle</td>
+	      </tr>
+	      <tr>
+		<td>Num Targ App/Req (n+1)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Proposal</td>
+		<td>number of targets approved  and requested in proposal for cycle n+1</td>
+	      </tr>
+	      <tr>
+		<td>Num Targ App/Req (n+2)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Proposal</td>
+		<td>number of targets approved  and requested in proposal for cycle+2</td>
+	      </tr>
+	      <tr>
+		<td>Num Targ Req n/n+1/n+2</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Multi-cycle</td>
+		<td>number of targets requested in proposal split out by cycle</td>
+	      </tr>
+	      <tr>
+		<td>Num Targ App n/n+1/n+2</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Multi-cycle</td>
+		<td>number of targets approved in proposal split out by cycle</td>
+	      </tr>
+	      <tr>
+		<td>Num Obs Req (n)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Proposal</td>
+		<td>number of pointings requested in proposal for the current cycle</td>
+	      </tr>
+	      <tr>
+		<td>Num Obs Req (n+1)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Proposal</td>
+		<td>number of pointings requested in proposal for cycle 2+1</td>
+	      </tr>
+	      <tr>
+		<td>Num Obs Req (n+2)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Proposal</td>
+		<td>number of pointings requested in proposal for cycle n+2</td>
+	      </tr>
+	      <tr>
+		<td>Num Obs Req n/n+1/n+2</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Multi-Cycle</td>
+		<td>number of pointings requested in proposal split out by cycle</td>
+	      </tr>
+	      <tr>
+		<td>Num Obs App (n)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Proposal</td>
+		<td>number of pointings approved in proposal for the current cycle</td>
+	      </tr>
+	      <tr>
+		<td>Num Obs App (n+1)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Proposal</td>
+		<td>number of pointings approved in proposal for cycle n+1</td>
+	      </tr>
+	      <tr>
+		<td>Num Obs App (n+2)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Proposal</td>
+		<td>number of pointings approved in proposal for cycle+2</td>
+	      </tr>
+	      <tr>
+		<td>Num Obs App n/n+1/n+2</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Multi-Cycle</td>
+		<td>number of pointings approved in proposal split out by cycle</td>
+	      </tr>
+	      <tr>
+		<td>Num Obs App/Req (n)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Combo</td>
+		<td>number of pointings approved and requested in proposal for the current cycle </td>
+	      </tr>
+	      <tr>
+		<td>Num Obs App/Req (n+1)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Combo</td>
+		<td>number of pointings approved and requested in proposal for cycle n+1</td>
+	      </tr>
+	      <tr>
+		<td>Num Obs App/Req (n+2)</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Combo</td>
+		<td>number of pointings approved and requested in proposal for cycle n+2</td>
+	      </tr>
+	      <tr>
+		<td>Joint</td>
+		<td>Y</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>Proposal</td>
+		<td>string showing all joint observatories requested in proposal</td>
+	      </tr>
+	      <tr>
+		<td>StatP</td>
+		<td>Y</td>
+		<td>Y</td>
+		<td>Y</td>
+		<td>Proposal</td>
+		<td>status of proposal</td>
+	      </tr>
+	      <tr>
+		<td>Prelim Grades</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Grades</td>
+		<td>individual preliminary grades</td>
+	      </tr>
+	      <tr>
+		<td>Final Grades</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Y</td>
+		<td>Grades</td>
+		<td>individual final grades</td>
+	      </tr>
+	      <tr>
+		<td>Pgrade Avg</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Proposal</td>
+		<td>average preliminary grade</td>
+	      </tr>
+	      <tr>
+		<td>Pgrade Median</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Proposal</td>
+		<td>median preliminary grade</td>
+	      </tr>
+	      <tr>
+		<td>PGrade Stdev</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Proposal</td>
+		<td>standard deviation of preliminary grades</td>
+	      </tr>
+	      <tr>
+		<td>Grade Avg</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Proposal</td>
+		<td>average final grade</td>
+	      </tr>
+	      <tr>
+		<td>Grade Median</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Proposal</td>
+		<td>median final grade</td>
+	      </tr>
+	      <tr>
+		<td>Grade Stdev</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Proposal</td>
+		<td>standard deviation of final grades</td>
+	      </tr>
+	      <tr>
+		<td>Grade Norm</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Proposal</td>
+		<td>normalized grade</td>
+	      </tr>
+	      <tr>
+		<td>Joint ReqT</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Proposal</td>
+		<td>requested joint time for each observatory</td>
+	      </tr>
+	      <tr>
+		<td>Joint AppT</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Y</td>
+		<td>Proposal</td>
+		<td>approved joint time for each observatory</td>
+	      </tr>
+	      <tr>
+		<td>Title</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Title</td>
+		<td>proposal title</td>
+	      </tr>
+	      <tr>
+		<td>Abstract</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Abstract</td>
+		<td>proposal abstract</td>
+	      </tr>
+	      <tr>
+		<td>Triage</td>
+		<td>Y</td>
+		<td>Y</td>
+		<td>Y</td>
+		<td>Proposal</td>
+		<td>flag indicating if proposal was triaged and/or resurrected</td>
+	      </tr>
+
+	      <tr>
+		<td>Targ Num</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Target</td>
+		<td>target number</td>
+	      </tr>
+	      <tr>
+		<td>Target</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Target</td>
+		<td>target name</td>
+	      </tr>
+	      <tr>
+		<td>Req Time (n)</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Target</td>
+		<td>requested time for target for the current cycle</td>
+	      </tr>
+	      <tr>
+		<td>Req Time (n+1)</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Target</td>
+		<td>requested time for target for cycle n+1</td>
+	      </tr>
+	      <tr>
+		<td>Req Time (n+2)</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Target</td>
+		<td>requested time for target for cycle n+2</td>
+	      </tr>
+	      <tr>
+		<td>App Time (n)</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Y</td>
+		<td>Target</td>
+		<td>approved time for target for the current cycle</td>
+	      </tr>
+	      <tr>
+		<td>App Time (n+1)</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Y</td>
+		<td>Target</td>
+		<td>approved time for target for cycle n+1</td>
+	      </tr>
+	      <tr>
+		<td>App Time (n+2)</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Y</td>
+		<td>Target</td>
+		<td>approved time for target for cycle n+2</td>
+	      </tr>
+	      <tr>
+		<td>Targ Tax (n)</td>
+		<td>N</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Target</td>
+		<td>slew tax for target based on approved time of target for the current cycle</td>
+	      </tr>
+	      <tr>
+		<td>Targ Tax (n+1)</td>
+		<td>N</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Target</td>
+		<td>slew tax for target based on approved time of target for cycle n+1</td>
+	      </tr>
+	      <tr>
+		<td>Targ Tax (n+2)</td>
+		<td>N</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Target</td>
+		<td>slew tax for target based on approved time of target for cycle n+2</td>
+	      </tr>
+	      <tr>
+		<td>Targ RC (n)</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Target</td>
+		<td>target resource score (RC) for target for the current cycle</td>
+	      </tr>
+	      <tr>
+		<td>Targ RC (n+1)</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Target</td>
+		<td>target resource score (RC) for target for the cycle+1</td>
+	      </tr>
+	      <tr>
+		<td>Targ RC (n+2)</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Target</td>
+		<td>target resource score (RC) for target for the cycle+2</td>
+	      </tr>
+             
+	      <tr>
+		<td>Targ TC Grade (n)</td>
+		<td>N</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Target</td>
+		<td>time constraint grade for target for the current cycle</td>
+	      </tr>
+	      <tr>
+		<td>Targ TC Grade (n+1)</td>
+		<td>N</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Target</td>
+		<td>time constraint grade for target for cycle n+1</td>
+	      </tr>
+	      <tr>
+		<td>Targ TC Grade (n+2)</td>
+		<td>N</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Target</td>
+		<td>time constraint grade for target for cycle n+2</td>
+	      </tr>
+	      <tr>
+		<td>Targ TC Tally (n)</td>
+		<td>N</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Target</td>
+		<td>time constraint tally for target for the current cycle</td>
+	      </tr>
+	      <tr>
+		<td>Targ TC Tally (n+1)</td>
+		<td>N</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Target</td>
+		<td>time constraint tally for target for cycle n+1</td>
+	      </tr>
+	      <tr>
+		<td>Targ TC Tally (n+2)</td>
+		<td>N</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Target</td>
+		<td>time constraint tally for target for cycle n+2</td>
+	      </tr>
+	      <tr>
+		<td>StatT (n)</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Y</td>
+		<td>Target</td>
+		<td>target status for the current cycle</td>
+	      </tr>
+	      <tr>
+		<td>StatT (n+1)</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Y</td>
+		<td>Target</td>
+		<td>target status for cycle n+1</td>
+	      </tr>
+	      <tr>
+		<td>StatT (n+2)</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Y</td>
+		<td>Target</td>
+		<td>target status for cycle n+2</td>
+	      </tr>
+	      <tr>
+		<td>Inst</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Target</td>
+		<td>instrument</td>
+	      </tr>
+	      <tr>
+		<td>Grat</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Target</td>
+		<td>grating</td>
+	      </tr>
+
+	      <tr>
+		<td>Grid</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Target</td>
+		<td>flag indicating whether target is a raster scan or grid observation</td>
+	      </tr>
+
+	      <tr>
+		<td>GridP</td>
+		<td>Y</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>Proposal</td>
+		<td>flag indicating proposal has at least one grid target</td>
+	      </tr>
+	      
+	      <tr>
+		<td>Time Const</td>
+		<td>N</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Target</td>
+		<td>flag indicating whether target is time constrained</td>
+	      </tr>
+	      <tr>
+		<td>MCOP</td>
+		<td>N</td>
+		<td>N</td>
+		<td>C</td>
+		<td>Target</td>
+		<td>flag indicating whether target is multi-cycle</td>
+	      </tr>
+	      <tr>
+		<td>Num Obs Req (n)</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Target</td>
+		<td>number of observations requested for target for the current cycle</td>
+	      </tr>
+	      <tr>
+		<td>Num Obs Req (n+1)</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Target</td>
+		<td>number of observations requested for target for cycle n+1</td>
+	      </tr>
+	      <tr>
+		<td>Num Obs Req (n+2)</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Target</td>
+		<td>number of observations requested for target for cycle n+2</td>
+	      </tr>
+	      <tr>
+		<td>Num Obs App (n)</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Y</td>
+		<td>Target</td>
+		<td>number of observations approved for target for the current cycle</td>
+	      </tr>
+	      <tr>
+		<td>Num Obs App (n+1)</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Y</td>
+		<td>Target</td>
+		<td>number of observations approved for target for cycle n+1</td>
+	      </tr>
+	      <tr>
+		<td>Num Obs App (n+2)</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Y</td>
+		<td>Target</td>
+		<td>number of observations approved for target for cycle n+2</td>
+	      </tr>
+	      <tr>
+		<td>Mon</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Target</td>
+		<td>flag indicating whether target is a monitoring observation</td>
+	      </tr>
+
+	      <tr>
+		<td>MonP</td>
+		<td>Y</td>
+		<td>Y</td>
+		<td>N</td>
+		<td>Target</td>
+		<td>flag indicating whether proposal includes at least
+		one monitoring observation</td>
+	      </tr>
+	      
+	      <tr>
+		<td>Prob</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Target</td>
+		<td>TOO probability</td>
+	      </tr>
+	      <tr>
+		<td>Resp Time</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Target</td>
+		<td>response time of TOO</td>
+	      </tr>
+	      <tr>
+		<td>Uninterrupt</td>
+		<td>N</td>
+		<td>N</td>
+		<td>N</td>
+		<td>Target</td>
+		<td>flag indicating whether observation can be observed in more than one pointing</td>
+	      </tr>
+	    </tbody>
+	  </table>
+	</div>
+
+	<!-- Symbol Key -->
+	<div id="key">
+	  <!--#include file="symbols.phtml" -->
+	</div>
+
+	<div id="footer">
+	  <hr>
+	    <address><a href="mailto:gokas@cfa.harvard.edu">Tara Gokas</a></address>
+	    <!-- Created: Mon Apr  6 14:07:24 EDT 2009 -->
+	    <!-- hhmts start -->Last modified: Mon June 7 2021<!-- hhmts end -->
+	</div>
+      </div>
+    </div>
+  </body>
+</html>

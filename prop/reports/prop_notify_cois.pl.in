@@ -1,0 +1,337 @@
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 2010-2019, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_notify_cois.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#    This script creates the email to notify all CoIs that they have been included
+#    in a proposal.  The output includes the *email.commands file which must be run
+#    to actually send the email. 
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use vars qw ($dbh %param @reqfiles $reqfile $emailfname $template
+	$PROP_ID $PROPOSAL_NUMBER $PI_NAME $PI_EMAIL $PROP_TITLE
+	$COI_ADD $SUBMITTER_NAME $SUBMISSION_DATE $totcnt $errcnt
+	);
+
+use strict;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+
+@reqfiles = (
+        "prop_routines.pl",
+);
+
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+# --- proposal select statement
+$PROP_ID=0;
+$PROPOSAL_NUMBER=1;
+$PI_NAME=2;
+$PI_EMAIL=3;
+$PROP_TITLE=4;
+$COI_ADD=5;
+$SUBMITTER_NAME=6;
+$SUBMISSION_DATE=7;
+
+$totcnt=0;
+$errcnt=0;
+# -------------------------- MAIN ----------------------------------
+{
+  my($dsn,$stmp,$idx);
+
+  &parse_input;
+  #database connection
+  $dbh = dbProposalConnection($param{U}, $param{S}, $param{q});
+
+  # make output directory
+  if (!-e $param{d}) {
+    mkdir($param{d},02770);
+    chgroup($param{d});
+    chmod(02770,$param{d});
+  }
+
+  if (-e $emailfname) {
+    my($ans);
+    print "$emailfname already exists.\nDo you want to overwrite this file(y/n)? ";
+    $ans = <STDIN>;
+    print "\n";
+    while ( $ans =~ s/^ //) {;}
+    if ($ans !~ /^y/i) {
+      die("Request canceled.\n");
+    }
+  }
+
+  open(EFILE,"> $emailfname") or
+    die "Unable to open $emailfname for writing!\n";
+  print STDERR "\nEmail commands are in $emailfname\n";
+
+  &do_proposals;
+
+  close EFILE;
+  chgroup($emailfname);
+  chmod (0660,$emailfname);
+
+  if ($param{z}) { print STDERR "TOTAL: $totcnt  Error: $errcnt\n";}
+
+}
+
+
+sub do_proposals
+{
+  my($sql,$sth,@prop,$jj);
+  my($cnt,$ecnt)=0;
+	
+  read_template($param{t});
+  $sql = qq(select proposal_id,proposal_number,
+	(ps.first + " " + ps.last),ps.email ,proposal.title,
+	coi_additional,(pss.first + " " + pss.last),submission_date
+	from axafusers..person_short ps, axafusers..person_short pss,proposal  
+	where
+	proposal.piid = ps.pers_id 
+	and submitter_id *= pss.pers_id
+	and proposal.status = "$param{r}"
+	);
+  if (defined $param{p} ) {
+    $sql .= qq( and proposal.proposal_number = "$param{p}" );
+  } elsif (defined $param{n}) { 
+    $sql .= qq( and proposal.ao_str like "$param{a}" );
+    $sql .= qq( and type not like "CAL" and type not like "%GTO%" );
+    $sql .= qq( and joint not like "%-%");
+  } elsif (defined $param{g}) {
+    $sql .= qq( and proposal.type like "%GTO%");
+    $sql .= qq( and proposal.ao_str like "$param{a}" );
+  } elsif (defined $param{c}) {
+    $sql .= qq( and proposal.type like "%CAL%");
+    $sql .= qq( and proposal.ao_str like "$param{a}" );
+  } elsif (defined $param{j}) {
+    $sql .= qq( and proposal.joint like "%-%");
+    $sql .= qq( and proposal.ao_str like "$param{a}" );
+  } else {
+     die("Unable to determine type of proposals to use.");
+  }
+  
+  $sth = $dbh->prepare($sql);
+  if ($param{z}) { print STDERR "$sql\n"; }
+  $sth->execute;
+  $jj=0;
+  while (@prop = $sth->fetchrow_array) {
+    $cnt++;
+    if ($jj > 5) {
+      print EFILE "sleep 1\n";
+      $jj= 0;
+    }
+    $ecnt += do_cois(@prop);
+    $jj++;
+  }
+
+  print STDERR "Processed $cnt proposals.\nEmail will be sent for $ecnt proposals with CoIs\n";
+  print STDERR "Found $errcnt invalid email addresses.\n";
+}
+
+sub do_cois
+{
+  my(@prop) = @_;
+  my($sql,$sthc,@row,$ii,$pname,$pfile,$coiemail);
+  my($aa,@arr);
+  my($cnt) = 0;
+  $coiemail = "";
+	
+  $sql = qq(select  distinct coin.pers_id,(first + " " +  last), email from
+        axafusers..person_short ps,coin where
+	coin.proposal_id = $prop[$PROP_ID] and
+	coin.pers_id = ps.pers_id );
+  $sthc = $dbh->prepare($sql);
+  #if ($param{z}) { print STDERR "$sql\n"; }
+  $sthc->execute;
+  $ii = 0;
+  my($cstr) = $template;
+
+  if ($prop[$COI_ADD] =~ /y/i) {
+    print STDERR "Additional Co-Investigators are listed in the Science Justification for $prop[$PROPOSAL_NUMBER];\n";
+  }
+  $cstr =~ s/<PROPOSAL_NUMBER>/$prop[$PROPOSAL_NUMBER]/g;
+  $cstr =~ s/<PROP_TITLE>/$prop[$PROP_TITLE]/g;
+  $cstr =~ s/<PI_NAME>/$prop[$PI_NAME]/g;
+  $cstr =~ s/<SUBMITTER_NAME>/$prop[$SUBMITTER_NAME]/g;
+  $cstr =~ s/<SUBMISSION_DATE>/$prop[$SUBMISSION_DATE]/g;
+
+
+  while (@row = $sthc->fetchrow_array) {
+    $pfile = $param{d} . "/$prop[$PROPOSAL_NUMBER]_" . $row[0] . ".txt" ;
+    open(PFILE,"> $pfile")  or
+     die "Unable to open output file $pfile for writing.\n";
+    $coiemail = $row[2];
+    $ii++;
+    my($ccstr) = $cstr;
+    $ccstr =~ s/<COI_NAME>/$row[1]/g;
+    print PFILE $ccstr;
+    close PFILE;
+    chgroup($pfile);
+    chmod(0660,$pfile);
+    if ($coiemail =~ /</ || $coiemail =~ />/) {
+      print STDERR "Invalid CoI Email for $prop[$PROPOSAL_NUMBER]:  $coiemail\n";
+      print EFILE qq(#/home/ascds/DS.release/ots/bin/mailx -s "$param{subj} $prop[$PROPOSAL_NUMBER]" -r cxchelp\@cfa.harvard.edu $coiemail < $pfile\n);
+      if ($coiemail =~ /([a-zA-Z0-9+._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/) {
+         $coiemail=$1;
+         print STDERR "*** Modified to  $coiemail\n";
+         print EFILE qq(/home/ascds/DS.release/ots/bin/mailx -s "$param{subj} $prop[$PROPOSAL_NUMBER]" -r cxchelp\@cfa.harvard.edu "$coiemail" < $pfile\n);
+      }
+      $errcnt++;
+    } else {
+      print EFILE qq(/home/ascds/DS.release/ots/bin/mailx -s "$param{subj} $prop[$PROPOSAL_NUMBER]" -r cxchelp\@cfa.harvard.edu "$coiemail" < $pfile\n);
+      $cnt ++;
+      $totcnt++;
+    }
+  }
+  if ($param{z}) { print STDERR "$prop[$PROP_ID] $prop[$PROPOSAL_NUMBER] ---- $cnt\n"; }
+
+  if ($ii == 0) {
+    print STDERR "No CoIs for $prop[$PROPOSAL_NUMBER]\n";
+  } else {
+    $cnt=1;
+  }
+
+  return $cnt;
+}
+
+sub read_template
+{
+  my($fname) =@_;
+  my($str);
+
+  open(TFILE,"< $fname") or die ("Unable to open template file: $fname");
+  while ($str = <TFILE>) {
+    $template .= $str;
+  }
+  close TFILE;
+  
+}
+
+
+# ----------------------------------------------------------
+# parse input parameters
+# ----------------------------------------------------------
+sub parse_input
+{
+  my ($pwd);
+  my $err = 0;
+  my $pcnt = 0;
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+             d=> undef,
+             a=> "$ENV{ASCDS_PROP_AO}",
+             r=> "PROPOSED",
+             subj => "Chandra Co-Investigator for Proposal",
+             t=> "$ENV{ASCDS_PROP_EL}/cps/templates/coi_notify.txt",
+	
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "d=s",
+          "a=s",
+          "p=s",
+          "q=s",
+          "r=s",    
+          "subj=s",    
+          "t=s",    
+          "c",    
+          "n",    
+          "g",    
+          "j",    
+          "z",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter '$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+  if (!-e $param{t}) {
+    warn("Template file not found: $param{t}");
+    $err++;
+  }
+  my($tstr) = "cycle$param{a}_";
+  if (defined $param{p}) {$pcnt++; $tstr = $param{p} . "_"; }
+  if (defined $param{c}) {$pcnt++; $tstr .= "CAL_" }
+  if (defined $param{n}) {$pcnt++;  };
+  if (defined $param{g}) {$pcnt++; $tstr .= "GTO_"; }
+  if (defined $param{j}) {$pcnt++; $tstr .= "JOINT_";}
+  if ($pcnt ==0) {
+      warn("At least one parameter must be specfied [ncgjp]\n");
+      $err++;
+  } elsif ($pcnt > 1) {
+      warn("Only one parameter may be specfied [ncgjp]\n");
+      $err++;
+  }
+
+  # output filename
+  $emailfname = $param{d} . "/" . $tstr . "coi_email.commands";
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+  $param{q} = $pwd;
+
+}
+
+sub usage
+{
+    print STDERR "\nUSAGE: prop_notify_cois.pl -Ud [-Sap]\n";
+    print STDERR "       -U database user name\n";
+    print STDERR "       -d output directory \n";
+    print STDERR "       -S database server, default is DB_PROP_SQLSRV\n";
+    print STDERR "       -a AO , default is ASCDS_PROP_AO\n";
+    print STDERR "       -c only CAL\n";
+    print STDERR "       -g only GTOs\n";
+    print STDERR "       -j only joint from other review\n";
+    print STDERR "       -n only regular proposals (no GTO,no CAL, no Joint)\n";
+    print STDERR "       -p proposal number \n";
+    print STDERR "       -r default status of PROPOSED\n";
+    print STDERR "       -s default subject: Chandra Co-Investigator for Proposal\n";
+    print STDERR "       -t template filename for mail format. Default is ASCDS_PROP_EL/cps/template/coi_notify.txt\n";
+}
+

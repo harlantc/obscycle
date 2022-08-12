@@ -1,0 +1,234 @@
+ 
+===============================================================================
+
+		            HELP FILE for prop_panel_gui
+
+===============================================================================
+
+prop_panel_gui
+------------
+
+The prop_panel_gui application supports the functions necessary to prepare
+for the peer review. These functions include the creation and modification
+of panels, assignment of members to panels, and  the assignment of proposals
+to specified panel members for review.  You may also mail the initial review
+forms to the assigned reviewer.
+
+
+PARAMETERS
+----------
+
+Application specific command line arguments:
+-U [user]       OPTIONAL  - proposal database user name
+-S [server]     OPTIONAL  - proposal database server 
+                            default is DB_PROP_SQLSRV
+-p              OPTIONAL  - print parameters
+
+
+INPUT/OUTPUT
+-------------
+
+1) Input Data Files:  N/A
+
+
+2) Output Data Files: N/A
+
+
+3) Output Data Files for Archive: N/A
+
+
+SETUP AND USAGE
+---------------
+
+prop_panel_gui uses the environment variables that are set in the file
+'ascds_setup_prop' and 'ascds_setup_db'.  These mission planning
+environment variables include :
+
+        ASCDS_PROP_DIR       - top level proposal directory
+        ASCDS_PROP_AO        - current open proposal cycle number
+        DB_PROP_SQLSRV       - database sybase server.
+
+
+The user should not ordinarily change their values. 
+
+Only those users having permissions to read proposals should have access to
+the proposal database and any files that contain proposal data.
+All files created should belong to the group 'prop'.  Permission should
+be set so that only the owner and group have permissions to access these
+files.  If you need access, contact the system administrator.
+
+
+Execute the proposal panel application:
+   prop_panel_gui &
+  
+
+DETAILED prop_panel_gui DESCRIPTION - GENERAL INSTRUCTIONS
+--------------------------------------------------------
+
+After initiating the proposal panel manager application, the user is presented 
+with a screen containing the main menubar.  From the main menubar, the user 
+can select pulldown menus for the following headings: file, edit, and view.
+The options available for each of these headings are described below.
+
+  File:
+	Button		Description				
+	------		-----------				
+        Create/Modify   Create/modify panel information data: allocated    
+        Panels          time and subject categories
+
+        Calculate       Calculate allotted times for each panel based on
+	Allotted Time   number of proposals, number of targets per panel.
+
+        Email           Send email forms for the primary,secondary,
+                        technical evaluation, and/or preliminary grades
+                        forms.
+
+        Print           Print panel and/or proposal information.
+
+        Exit            Exit the application.
+
+
+  Edit:
+	Button		Description				
+	------		-----------				
+  	Refresh Current Refresh the current proposal list from the database.
+        Proposals       This will update count of reviews received.
+
+        Select Clumped  Read $PROP_CLUMP_CONFLICT file and highlights all
+        Proposals       "clumped" proposals for the current selected proposal.
+
+        Select Linked   Select any linked proposals for the current selected 
+        Proposals       proposals.
+
+        Deselect All    Unhighlight (deselect) all proposals.
+        Proposals
+
+        Sort        	Sort proposals in the displayed list by the
+			selected option.
+
+	Find		Find and highlight(select) a character string in the 
+			list.
+
+	Find Next	Find highlight(select) the next tool which matches 
+			the search criteria. 
+
+
+  View: 
+	Button		Description				
+	------		-----------				
+	Proposal        View the proposal in the proposal confirmation format.
+
+        Co-Investigator View the Co-Investigators for all proposals assigned
+      			to the selected panel.
+
+        Linked Proposal View linked proposal information.
+    
+        Proposals by    View a list of keywords and associated proposals.
+        Keywords 
+
+        Keywords by     View a list of keywords for each proposal.
+        Proposal 
+
+        Selected        View information about a selected panel member
+        Panelist
+
+        All Panelists   View list of currently assigned panel members for all
+                        panels.
+
+  Assign:
+	Button		Description				
+	------		-----------				
+        Move Proposals  Move selected proposals to a different panel.
+
+	Primary         Assign a panel member as a primary reviewer for
+	Reviewer        the selected proposals.
+
+	Secondary       Assign a panel member as a seconary reviewer for
+        Reviewer        the selected proposals.
+
+ 	Panelist        Assign Chairperson, panel member, or technical
+			evaluator to a selected panel
+
+        Remove          Remove a selected member from the panel.
+        Panelist
+
+
+ 	Unassigned      Assign selected proposals to a selected panel
+        Proposals
+
+
+  Tools: 
+        Notes           Toggle switch for turning on Notes facility
+        View/Edit Notes Allow user to edit additional notes. If 'Notes'
+                        is on, this will automatically pop-up whenever
+                        an assignment is changed for a panelist or a 
+                        proposal.
+
+        View Log        View log file for prop_panel_gui
+
+        Panel Checks    Execute some basic panel checks for the current
+                        cycle.
+
+	Proposal        Initiate the prop_manager_gui application.
+        Manager GUI
+    
+
+
+
+
+  
+PRINT Descriptions for the 'File','Print' menu
+-----------------------------------------------
+
+1. All Panels, Panel Data
+
+         Allotted  Subject     No.    No.  No. Tgts     TOO Response Type                                            Primary Revs.   Secondary Revs.
+Panel        Time  Categories  Props  Tgts w/Constr.  0-4  4-12  12-30  >30  Joint    GO  GTO   LP  VLP  Arc  The    Received        Received
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+  
+
+
+2. All Panels or Selected Panel, Proposals w/Titles
+ 
+PANEL:
+Proposal# P.I.       #Tgts Exp.Time Title
+-------------------------------------------------------------------------------
+
+
+3. Selected Panel, Panel Member Data
+
+PANEL: 
+Panel      Name         Type   #Pri   #Sec    Conflicts
+-------------------------------------------------------------------------------
+
+
+4. Selected Panel, Proposal 
+
+   A "*" next to the reviewer name indicates that the review 
+   has been received and entered in the database.
+
+
+PANEL: 
+                             Obs.  No.  No. w/   Exp.     Primary          Secondary
+Proposal#    PI              Type Tgts. Constr.  Time     Reviewer         Reviewer        Joint      P.I. Institution
+-------------------------------------------------------------------------------------------------------------
+
+
+
+SIDE EFFECTS AND RESTRICTIONS
+-----------------------------
+
+
+
+REFERENCES
+----------
+
+See the Proposal section of the Data System Software Design Document 
+(DS01) for more detail about the proposal submission cycle. 
+
+
+
+
+
+

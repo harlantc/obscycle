@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<ivy-module version="2.0" 
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:noNamespaceSchemaLocation="http://ant.apache.org/ivy/schemas/ivy.xsd">
+    <info organisation="foo" module="bar"/>
+    <configurations>
+        <conf name="compile-time"  description="artifacts for the compile-time classpath"                                    />
+        <conf name="run-time"      description="artifacts for the run    -time classpath"                                    />
+        <conf name="test-time"     description="artifacts for the test   -time classpath (in addition to the run-time ones)" />
+    </configurations>
+    <dependencies>
+        <!-- compile time dependencies - no transitive deps -->
+        <dependency org="com.google.code.gson"      name="gson"               rev="2.8.2"     conf="compile-time->master"/>
+        <dependency org="com.google.guava"          name="guava"              rev="30.1-jre"  conf="compile-time->master"/>
+        <dependency org="commons-fileupload"        name="commons-fileupload" rev="1.4"       conf="compile-time->master"/>
+        <dependency org="javax.servlet"             name="javax.servlet-api"  rev="4.0.1"     conf="compile-time->master"/>
+        <dependency org="joda-time"                 name="joda-time"          rev="2.9.7"     conf="compile-time->master"/>  
+        <dependency org="junit"                     name="junit"              rev="4.13.2"    conf="compile-time->master"/>
+        <dependency org="log4j"                     name="log4j"              rev="1.2.17"    conf="compile-time->master"/> 
+        <dependency org="org.apache.commons"        name="commons-lang3"      rev="3.9"       conf="compile-time->master"/> 
+        <dependency org="org.apache.pdfbox"         name="pdfbox"             rev="2.0.25"    conf="compile-time->master"/>
+        <dependency org="org.apache.tika"           name="tika-core"          rev="2.2.1"     conf="compile-time->master"/>  
+
+        <!-- run-time dependencies                                              -->
+        <!-- we need the below during runtime, along with their transitive deps -->
+        <dependency org="com.google.code.gson"      name="gson"                rev="2.8.2"     conf="run-time->default"/>
+        <dependency org="com.google.guava"          name="guava"               rev="30.1-jre"  conf="run-time->default"/>
+        <dependency org="com.sun.jersey"            name="jersey-bundle"       rev="1.19.4"    conf="run-time->default"/>
+        <dependency org="com.sun.mail"              name="javax.mail"          rev="1.6.2"     conf="run-time->default"/>
+        <dependency org="commons-collections"       name="commons-collections" rev="3.2.2"     conf="run-time->default"/>
+        <dependency org="commons-digester"          name="commons-digester"    rev="2.1"       conf="run-time->default"/>
+        <dependency org="commons-fileupload"        name="commons-fileupload"  rev="1.4"       conf="run-time->default"/>
+        <dependency org="commons-io"                name="commons-io"          rev="2.11.0"    conf="run-time->default"/>
+        <dependency org="commons-logging"           name="commons-logging"     rev="1.2"       conf="run-time->default"/>
+        <dependency org="javax.servlet"             name="jstl"                rev="1.2"       conf="run-time->default"/>
+        <dependency org="joda-time"                 name="joda-time"           rev="2.9.7"     conf="run-time->default"/>  
+        <dependency org="junit"                     name="junit"               rev="4.13.2"    conf="run-time->default"/>        
+        <dependency org="log4j"                     name="log4j"               rev="1.2.17"    conf="run-time->default"/> 
+        <dependency org="org.apache.commons"        name="commons-lang3"       rev="3.9"       conf="run-time->default"/>
+        <dependency org="org.apache.httpcomponents" name="httpclient"          rev="4.5.13"    conf="run-time->default"/> 
+        <dependency org="org.apache.httpcomponents" name="httpcore"            rev="4.4.13"    conf="run-time->default"/>
+        <dependency org="org.apache.pdfbox"         name="pdfbox"              rev="2.0.25"    conf="run-time->default"/>
+        <dependency org="org.apache.tika"           name="tika-core"           rev="2.2.1"     conf="run-time->default"/>  
+
+        <!-- test-time dependencies                                             -->
+        <!-- we need the below during testing, along with their transitive deps -->
+    </dependencies>
+</ivy-module>

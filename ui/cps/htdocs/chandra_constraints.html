@@ -1,0 +1,334 @@
+<fieldset class="fshelp" id="Constraints"><legend>Target Constraints</legend>
+
+
+This section contains additional parameters for a time critical observation. 
+<p>
+If any constraint is required, the observation is considered time constrained 
+and will be subject to the limits set for the number of approved constrained 
+observations during the Chandra Peer Review.
+<p>
+<p>The types of constraint are:</p>
+<ul>
+<li><span class="lblhelp">Window:</span>In a fixed time-window
+<li><span class="lblhelp">Roll:</span> Roll angle on the sky is constrained to a specified range
+<li><span class="lblhelp">Phase dependent:</span> Observation of a periodically-varying target within a specified phase range
+<li><span class="lblhelp">Grouping:</span> Single or multiple targets observed in any order and encompassed by a single time interval.
+<li><span class="lblhelp">Coordinated Obs.:</span> Coordination with other observatories/telescopes
+</ul>
+On other pages:
+<ul>
+<li><span class="lblhelp">Offset/Pointings:</span> Pointing/offsets need to be modified based on the roll angle.
+<li><span class="lblhelp">Uninterrupted:</span> Absolutely no interruptions
+<li><span class="lblhelp">Split Interval:</span> Interval if observation needs to be split
+<li><span class="lblhelp">Monitoring:</span> Repeated observations of a single target at specified intervals. 
+<li><span class="lblhelp">TOO Followups:</span> Repeated observations of a TOO target at specified intervals.
+<li><span class="lblhelp">Remarks:</span> Constraints are defined in the remarks because it is not possible to define them using the existing fields.
+</ul>
+
+'Monitoring', 'Grouping' and 'TOO Followup' observations are mutually exclusive.
+<p>
+<p>
+  'Grouping' and 'Split Interval' observations are mutually exclusive.
+</p>
+<p>
+  'Uninterrupted' and 'Split Interval' observations are mutually exclusive.
+</p>
+<span class="warnmsg"><i>Note:</i></span>If any constraint is set to <b>Y</b>
+(i.e., required), the observation is time
+constrained and therefore subject to the limits set for the number of
+approved constrained observations during the Chandra Peer Review.
+<span class="warnmsg"><i>BEFORE SUBMISSION,  </i></span> please check the
+SlewTax/Resources in the "Target Checks" section to estimate the 
+constraint difficulty level
+of each target and the total slew tax for your proposal.
+</p> 
+<p>
+You may want to use the
+<a href="http://cxc.harvard.edu/soft/provis/"> PRoVis </a>
+tool to investigate Chandra spacecraft
+roll, pitch and visibility for your target as a function of date.
+Chandra Mission Planning schedules all observations, but information from
+PRoVis can be especially useful for proposers whose observations require 
+constraints.
+</p>
+
+<ul>
+<li class="elehelp"><a class="lblhelp" name="WindowConstraints"> Window Constraints</a>
+<br>
+
+These parameters indicate the earliest observation start time and the latest observation end time. <span class="warnmsg">USE THE LARGEST VIABLE WINDOW.</span>
+Do not enter window constraints merely to indicate periods of sunblock, 
+as these are accounted for by Chandra Mission Planning. 
+<p>
+The start and end times must be given in UT .
+Up to 4 window constraints may be entered per observation.
+See the <a href="http://cxc.harvard.edu/proposer">
+Call for Proposals</a> document for the anticipated dates covered by this cycle. 
+The window start/stop format is <i>dd-mon-yyyy hh:mm</i> where :
+</p>
+<pre>
+    dd = day of month
+   mon = 3 character abbreviation of month. Valid Values:
+         Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec
+  yyyy = full year (ie: 2019)
+    hh = hours (valid values 0-23)
+    mm = minutes (valid values 0-59)
+</pre>
+
+<li class="elehelp"><a class="lblhelp"  name="WindowConstraint"> Window Constraint?</a>
+<br>
+Logical value indicating a window constraint exists for this observation.
+<br>Options are: Y (Yes, required),  N (No).
+When adding a constraint entry to the table, the default is Yes, required.
+
+<li class="elehelp"><a class="lblhelp"  name="WindowConstraintStart"> Window Constraint:  Start </a>
+<br>
+The time in UT specifying the earliest observation start time. 
+Format is <i>dd-mon-yyyy&nbsp;hh:mm</i>.<br>
+<i>Required</i> if <i>Window Constraint?</i> is 'Y' or 'P'.
+
+<li class="elehelp"><a class="lblhelp"  name="WindowConstraintStop"> Window Constraint:  Stop </a>
+<br>
+The time in UT specifying the latest observation end time. 
+Format is <i>dd-mon-yyyy&nbsp;hh:mm</i>.<br>
+<i>Required</i> if <i>Window Constraint?</i> is 'Y' or 'P'.
+
+<li class="elehelp"><a class="lblhelp"  name="RollConstraint"> Roll Constraints</a>
+<br>
+<p>The spacecraft roll is the angle between celestial north and the
+spacecraft -Z (minus Z) axis projected on the sky, as measured from 
+N through W. The roll angle is
+constrained as a function of time for thermal control and because power 
+must be supplied by the solar cells. For any given time and target, there 
+is a nominal
+roll angle for which the solar power arrays are aimed directly at the
+sun.  
+The nominal roll for a target may be displayed using 
+<a href="http://cxc.harvard.edu/soft/provis/">PRoVis</a>, the
+Chandra Pitch-Roll-Visibility tool, available on the web at
+http://cxc.harvard.edu/soft/provis/. 
+The Observation Visualizer (ObsVis)
+further allows display of the Chandra instrument field-of-view on the sky, 
+and is available
+in the latest CIAO downloadable package at
+<a href="http://cxc.harvard.edu/ciao/download">
+http://cxc.harvard.edu/ciao/download</a>.
+
+<p>A roll constraint translates directly into a constraint on the
+day and time when an observation may be carried out.
+It should only be specified for cases in which a specific attitude
+is required to meet scientific objectives. 
+The <a href="http://cxc.harvard.edu/soft/provis/">PRoVis</a> tool interactively plots roll angle as a function of time for a given target.
+</p>
+A maximum of 4 roll constraints may be entered.
+
+<li class="elehelp"><a class="lblhelp"  name="RollFlag"> Roll Constraint?</a>
+<br>
+Value indicating a roll constraint exists for this observation.
+<br>Options are: Y (Yes, required),  N (No).
+The default is 'N'.
+
+
+<li class="elehelp"><a class="lblhelp"  name="RollAngle"> Roll Angle and Roll Tolerance</a>
+<br>
+The spacecraft roll angle and roll tolerance(defined as the half-range and
+assumed symmetric) for the observation. Valid range is 0.0 - 360.
+<br><i>Required</i> if <i>Roll Constraint?</i> is 'Y' or 'P'.
+
+<li class="elehelp"><a class="lblhelp"  name="Roll180"> Is 180 Rotation OK?</a>
+<br>
+Logical value indicating whether a 180 degree rotation of the roll angle
+is acceptable.  The default is 'N'.
+
+
+<li class="elehelp"><a class="lblhelp"  name="PhaseDependentObservation"> Phase Dependent Observation</a>
+<br>
+Value indicating that the observation is to performed only within a specified phase range for a periodically-varying target.  
+<br>Options are: Y (Yes, required),  N (No).
+The default is 'N'.
+
+<li class="elehelp"><a class="lblhelp"  name="PhaseDependentEpoch"> Phase Dependent:   Epoch (MJD)</a>
+<br>
+For Phase Dependent observations, the reference date (MJD) corresponding to 
+a phase of 0.0. Observations will be made at an integral number of Periods from this date,plus offsets as needed to locate the observations within the 
+specified phase range.  
+The reference date must be within 5 years of the current date.
+<br><i>Required</i> if <i>Phase Dependent Observation?</i> is 'Y' or 'P'.
+
+<li class="elehelp"><a class="lblhelp"  name="PhaseDependentPeriod"> Phase Dependent:   Period (days)</a>
+<br>
+The period in days characterizing the target variability.
+<br><i>Required</i> if <i>Phase Dependent Observation?</i> is 'Y' or 'P'.
+
+<li class="elehelp"><a class="lblhelp"  name="MinimumPhase"> Phase Dependent:  Minimum Phase</a>
+<br>
+Minimum phase in the variable phenomenon to be observed. 
+Values must be between 0 and 1.
+<br><i>Required</i> if <i>Phase Dependent Observation?</i> is 'Y' or 'P'.
+
+<li class="elehelp"><a class="lblhelp"  name="MinimumPhaseError"> Phase Dependent:  Minimum Phase Error</a>
+<br>
+Tolerance in the minimum phase.  This parameter sets how precisely 
+the phase range will be covered.  Values must be between 0 and 0.5.  
+<br><i>Required</i> if <i>Phase Dependent Observation?</i> is 'Y' or 'P'.
+
+<li class="elehelp"><a class="lblhelp"  name="MaximumPhase"> Phase Dependent:  Maximum Phase</a>
+<br>
+Maximum phase in the variable phenomenon to be observed.  
+Values must be between 0 and 1.
+<br>
+(The Maximum Phase value may be less than the Minimum Phase value: this will 
+be interpreted to mean that the observation could take place from the Minimum 
+Phase through phase 0.0 to the Maximum Phase.)
+<br><i>Required</i> if <i>Phase Dependent Observation?</i> is 'Y' or 'P'.
+
+<li class="elehelp"><a class="lblhelp"  name="MaximumPhaseError"> Phase Dependent:  Maximum Phase Error</a>
+<br>
+Tolerance in the maximum phase.  This parameter sets how precisely 
+the phase range will be covered.  Values must be between 0 and 0.5.  
+<br><i>Required</i> if <i>Phase Dependent Observation?</i> is 'Y' or 'P'.
+
+<li class="elehelp"><a class="lblhelp"  name="PhaseUnique"> Phase Dependent:  Unique Phase</a>
+  <br>
+   If a phase constrained observation is split and the observations end up in different phase windows, 
+   do the split observations need to sample unique parts of the phase window, or can they overlap?
+  <br><i>Required</i> if <i>Phase Dependent Observation?</i> is 'Y' or 'P'.
+  <br>Options are: Y (Yes, sample unique parts of phase window),  N (No, they can overlap).
+
+<li class="elehelp"><a class="lblhelp"  name="GroupObservation"> Group Observation</a>
+<br>
+Logical value indicating whether the observation needs to be observed
+within a relative time range with other targets in this
+proposal.
+The default is 'N'.
+
+<li class="elehelp"><a class="lblhelp"  name="GroupIdentification"> Group Identification</a>
+<br>
+Enter the group identification (e.g. short name selected by the observer) 
+to be used to identify which targets
+in this proposal need to be grouped within a relative time range. 
+Maximum of 10 characters.
+<br><i>Required</i> if <i>Group Observation?</i> is 'Y'.
+
+<li class="elehelp"><a class="lblhelp"  name="GroupInterval"> Interval for Grouping Observations</a>
+<br>
+Relative Time Interval for grouping observations; all observations are to 
+occur within this interval, from the beginning of the first to the end of 
+the last.
+Valid range is 0.0 - 364.0 days.
+<br><i>Required</i> if <i>Group Observation?</i> is 'Y'.
+
+
+<li class="elehelp"><a class="lblhelp"  name="UninterruptedObservation"> Uninterrupted or Contiguous Observation Required</a>
+<br>
+Value indicating that the science can only be optimized
+if the observation is interrupted as little as possible.
+Use sparingly, as this <span class="warnmsg">WILL BE COUNTED AS A CONSTRAINT</span>. 
+<p>Options are: Y (Yes, required), N (No).
+The default is 'N'.
+<p> 
+'Y' indicates that the science goals can only be achieved if the 
+observation is not interrupted.  Use 'Y' sparingly, as this 
+WILL BE COUNTED AS A CONSTRAINT.    
+</p>
+<p>	Note that for short observations, normal Chandra scheduling results 
+in the allocated observing time being assigned to a single pointing, 
+but there is no guarantee of this.
+<p>Observations >180 ksec will have to be interrupted due to the satellite
+orbit. If the uninterrupted flag is checked, the observations are 
+constrained such that the pieces will be observed as contiguously as 
+possible, and certainly in adjacent spacecraft orbits.
+</p>
+
+<li class="elehelp"><a class="lblhelp"  name="SplitObservation"> Interval for Splitting Observations</a>
+  <br>
+  Relative Time Interval between observations if they need to be split; all observations are to 
+  occur within this interval, from the beginning of the first to the end of the last. Use sparingly, as this <span class="warnmsg">WILL BE COUNTED AS A CONSTRAINT</span>. 
+  <p>
+    For non-Monitor Series observations, valid range is: 
+    <a href="#TotalObservationTime">Total Observing Time</a> <= Split Interval  < 2 years.
+    
+    
+  </p>
+    For Monitor Series observations, valid range is: 
+    Split Interval  < 
+      <a href="#MonitorMaxInterval">Maximum Time Interval</a>  - <a href="#MonitorMinInterval">Minimum Time Interval</a>. <i>Required</i> if <i>"Do you want more than one observation of this target?"</i> is 'Y'.
+  
+  <p>
+    If Monitor Series observation is chosen, a separate Split Interval value needs to be set for each observation in the monitor series. These values will override any value entered in the Observing Time box, Split Interval field.
+  </p>
+
+
+
+<li class="elehelp"><a class="lblhelp"  name="Telescopes"> Must this observation be coordinated with that 
+of another observatory?</a>
+Value indicating that the Chandra observations are to be coordinated
+with another observatory.
+If set to <i>Yes, required</i>, 
+the observation <span class="warnmsg">WILL BE COUNTED AS A CONSTRAINT</span> 
+and is subject to the limits set for the number of approved constrained 
+observations during the Chandra Peer Review. 
+<p>
+<b>Options:</b>
+</p>
+<table border="1" >
+<tr>
+<td>N (No constraint)</td>
+<td>No coordination needed</td></tr>
+<tr>
+<td>Y (Yes, required) </td>
+<td> Coordination required</td></tr>
+</table>
+
+<li class="elehelp"><a class="lblhelp"  name="TelescopesInterval"> Maximum Time Interval Encompassing Coordinated Observations</a>
+<br>
+Time Interval for coordinated observations. 
+Valid range is 0.0 - 364.0 days.
+Required if Coordinated Observation? is '<b>Y</b>es, Required' .
+<p>
+This is the maximum permitted interval encompassing the Chandra observation and
+ those of the coordinating observatory(ies). The minimum value is the duration 
+of the longer of the observations of either of two coordinating observatories, 
+which implies that the shorter observation will nest entirely within the longer
+ one.  For more than two coordinating observatories, provide details in the 
+<b>Remarks</b> field and check <b>Are there additional constraints in the remarks?</b>
+
+<li class="elehelp"><a class="lblhelp"  name="Observatories"> Observatories</a>
+<br>
+If 'Y' is selected in the '<i>Must this observation be coordinated 
+with that of another observatory? </i>' field, specify the other 
+space-based observatories, NRAO or Ground.  
+Joint proposals should be 
+specified using the <a href="#Joint">joint proposal fields</a> 
+<br><br> Choices are: HST, XMM, Spitzer, Swift, NuSTAR, NRAO, Ground.<br> 
+Maximum of 60 characters.
+
+</ul>
+</fieldset>
+<p>
+<fieldset class="fshelp" id="Remarks"><legend>Target Remarks</legend>
+
+<ul>
+<li class="elehelp"><a class="lblhelp"  name="AddConstraints"> Are there additional constraints in the remarks? </a>
+<br>
+Value indicating there are additional observational constraints 
+described in the <i>Remarks</i> field.  
+If set to <b>Y</b>, the 
+observation is subject to the limits set for the number of approved 
+constrained observations during the Chandra Peer Review.  
+Required instrument configurations are not considered to be 
+observing constraints.  
+<p>Options are: Y (Yes, required), N (No).</p>
+
+<li class="elehelp"><a class="lblhelp"  name="Remarks"> Remarks</a>
+<br>
+Enter any additional target remarks in this field.  Remember that
+constraints should be entered into the appropriate <em>Constraint</em>
+fields on this form.
+Only those constraints that cannot be specified using the existing
+constraint fields should be entered in this 'Remarks' field.
+<br>Maximum of 600 characters.
+
+</ul>
+</fieldset>
+

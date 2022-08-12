@@ -1,0 +1,263 @@
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 1995, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_obscat_for_xmm.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script extracts entries from the ObsCat and/or proposal
+#     database for XMM.
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use vars qw (%param $dbh @obsids $skipproposal @reqfiles $reqfile
+	);
+
+
+use strict;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+
+@reqfiles = (
+        "prop_routines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+
+
+# -------------------------- MAIN ----------------------------------
+{
+  my($str,@sorted_obsids);
+  my($dsn,$stmp );
+
+  &parse_input;
+
+
+  open (OFILE,"> $param{o}") or 
+	die "Unable to open $param{o} for writing\n";
+
+  #database connection
+  $dbh = dbOcatConnection($param{U}, $param{S}, $param{q});
+
+  &do_ocat;
+
+  $dbh->disconnect;
+
+
+
+  if (!$skipproposal) {
+    #database connection
+    $dbh = dbProposalConnection($param{U}, $param{S}, $param{q});
+
+    &do_proposal;
+
+    $dbh->disconnect;
+  }
+
+  @sorted_obsids = sort{ substr($a,23) cmp substr($b,23) } @obsids;
+
+  printf OFILE ("%-21.21s  %22.22s  %-8.8s  %-8.8s  %-6.6s  %-5.5s %8s %-11.11s  %-15.15s %-5.5s %-20.20s %-20.20s  %s\n",
+	"Target Name","Coordinates","Type","Proposal","SeqNbr","ObsId","Exp.Time","Detector","P.I.","Cycle","ObsDate","Public Date","Status");
+  printf OFILE ("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+  foreach $str (@sorted_obsids) {
+    print OFILE "$str";
+  }
+  close OFILE;
+
+}
+
+
+# -------------------------------------------------------------------
+# query to retrieve the reviewers for a panel
+# -------------------------------------------------------------------
+sub do_ocat
+{    
+  my($rastr,$decstr,$det);
+  my($sdate,$ostatus,$oquery,$str);
+  my($sth,@row);
+
+  $oquery = qq(select distinct prop_num,type,last,
+	target.targname,approved_exposure_time,instrument,grating,
+	ra,dec, obs_ao_str,soe_st_sched_date,public_avail,
+	seq_nbr,target.obsid,
+	lts_lt_plan,target.status
+        from target,prop_info,axafusers..person_short ps
+	where target.ocat_propid = prop_info.ocat_propid and
+        prop_info.piid = ps.pers_id  and 
+	target.status != "canceled" and target.status != 'discarded');
+
+  $sth = $dbh->prepare($oquery);
+  $sth->execute;
+  while((@row) = $sth->fetchrow_array()) {
+    ($rastr,$decstr) = convert_coord($row[7],$row[8]);
+    $det = $row[5];
+    if ($row[6]) {
+         $det .= "/" . $row[6];
+    }
+    $sdate = $row[10];
+    if (!$sdate) {
+      $sdate = $row[14];
+    }
+       
+    $str = sprintf("%-21.21s  %10.10s/%12.12s %-8.8s  %-8.8s  %-6.6s  %-05.5d  %7.2f  %-11.11s  %-15.15s %-5.5s %-20.20s %-20.20s  %s\n", 
+	$row[3],$rastr,$decstr,$row[1],$row[0],$row[12],$row[13],$row[4],
+	$det,$row[2],
+	$row[9],$sdate,$row[11],$row[15]);
+    push @obsids,$str;
+  }
+}
+
+
+#-------------------------------------------------------------------
+# use this if the approved proposals for the current cycle haven't
+# been migrated to the ObsCat yet
+#-------------------------------------------------------------------
+sub do_proposal
+{    
+  my($rastr,$decstr,$det,$pquery,$str);
+  my($sth,@row);
+
+  # entries from the proposal database
+  $pquery = qq( select distinct proposal_number,type,last,
+	targname,approved_exposure_time,instrument_name,
+	grating_name,ra,dec,ao_str,NULL,NULL from
+	proposal,context,target,axafusers..person_short ps,
+	instrument,grating
+	where proposal.ao_str = context.current_ao_str and
+	proposal.piid = ps.pers_id and
+	proposal.proposal_id = target.proposal_id and
+	use_grating_id = grating.grating_id and
+	use_instrument_id = instrument.instrument_id and
+	target.status =  "accepted" and
+	(proposal.status="APPROVED" or rank >= 3.5) 
+	);
+
+   if (!$param{p}) {
+     $pquery .= qq( and rank is null);
+   }
+   if (!$param{g}) {
+      $pquery .= qq( and type not like "%GTO%");
+   }
+   if (!$param{c}) {
+      $pquery .= qq( and type not like "%CAL%");
+   }
+   if (!$param{j}) {
+      $pquery .= qq( and joint not like "CXO-%");
+   }
+   
+
+
+   $sth = $dbh->prepare($pquery);
+   $sth->execute;
+   while((@row) = $sth->fetchrow_array()) {
+    ($rastr,$decstr) = convert_coord($row[7],$row[8]);
+    $det = $row[5];
+    if ($row[6]) {
+         $det .= "/" . $row[6];
+    }
+    $str = sprintf("%-21.21s  %10.10s/%12.12s %-8.8s  %-8.8s  %-6.6s  %-5.5s  %-8.8s  %7.2f  %-11.11s  %-15.15s %-5.5s %-20.20s %-20.20s  %s\n", 
+	$row[3],$rastr,$decstr,$row[1],$row[0]," "," ",$row[4],$det,$row[2],
+	$row[9]," "," "," ");
+    push @obsids,$str;
+   }
+}
+
+
+#-------------------------------------------------------------------
+#-------------------------------------------------------------------
+sub parse_input
+{
+  my($pwd);
+  my $err = 0;
+
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+             o=> undef
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "o=s",
+	  "p",
+	  "j",
+	  "g",
+	  "q=s",
+	  "c",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter `$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+  $skipproposal = 1;
+  if ($param{p} || $param{g} || $param{c} || $param{j}) {
+    $skipproposal = 0;
+  }
+
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+  $param{q} = $pwd;
+  
+}
+
+
+
+#----------------------------------------------------------------------
+sub usage 
+{
+  print STDERR "\nUSAGE: prop_obscat_for_xmm.pl -Uo [-Spgcj]\n";
+  print STDERR "       -U database user name\n";
+  print STDERR "       -S database server, default is DB_PROP_SQLSRV\n";
+  print STDERR "       -o output filename \n";
+  print STDERR "       -p if present, pull current cycle from proposal database\n";
+  print STDERR "       -g include current cycle APPROVED GTO from proposal database\n"; 
+  print STDERR "       -c include current cycle APPROVED CAL from proposal database\n"; 
+  print STDERR "       -j include current cycle Joint(approved at other peer review)\n";
+  print STDERR "          from the  proposal database\n"; 
+  
+}
+
+

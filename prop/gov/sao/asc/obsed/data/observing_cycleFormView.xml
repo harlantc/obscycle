@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE formView SYSTEM "formView.dtd">
+
+<formView>
+
+  <title>Observing Cycle Form</title>
+
+  <info>
+    <supportsNew>clone null</supportsNew>
+  </info>
+
+  <key>
+    <tableName>observing_cycle</tableName>
+    <columnName>ao_id</columnName>
+  </key>
+
+  <navigation>
+    <display>
+      <name>Observing Cycle Identifier</name>
+      <tableName>observing_cycle</tableName>
+      <columnName>ao_id</columnName>
+    </display>
+    <display>
+      <name>Cycle</name>
+      <tableName>observing_cycle</tableName>
+      <columnName>ao_str</columnName>
+    </display>
+
+  </navigation>
+
+  <GUI>
+    <label tag="11">
+      <labelText>Observing Cycle</labelText>
+      <row>
+        <number>0</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+    </label>
+
+    <textfield tag="12">
+      <labelText>Cycle</labelText>
+      <size>6</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>observing_cycle</tableName>
+        <columnName>ao_str</columnName>
+      </database>
+    </textfield>
+
+   <timestampbutton tag="22">
+      <labelText>Start Date</labelText>
+      <size>8</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>observing_cycle</tableName>
+        <columnName>ao_start</columnName>
+      </database>
+    </timestampbutton>
+
+   <timestampbutton tag="22">
+      <labelText>End Date</labelText>
+      <size>8</size>
+      <database>
+        <tableName>observing_cycle</tableName>
+        <columnName>ao_end</columnName>
+      </database>
+    </timestampbutton>
+
+ </GUI>
+
+</formView>
+

@@ -1,0 +1,375 @@
+#!/proj/cm/Release/ots.install.DS10.11/perl-5.34.0.Linux64/bin/perl 
+use strict;
+use CGI;
+
+use Cwd qw( abs_path );
+use File::Basename qw( dirname );
+use lib dirname(abs_path($0));
+
+use vars qw ( $def_cycle $def_lineWidth $def_scale
+                $def_canvasX $def_canvasY
+                @energyLabel @colorArray @colorStyle @colorRGB
+                $def_minX $def_maxX $def_minXP $def_maxXP
+                $def_minY $def_maxY $def_minYP $def_maxYP
+
+);
+
+require 'prop_ea_ao.pl';
+
+# This script will build the correct viewer
+MAIN:
+{
+  my ($inputParamList, @inputParamArray, $buffer, @pairs,
+      $pair, $name, $value, %FORM, %filenameArray, %titleArray,
+      $correctType, $params, $pageTitle, 
+	$select,
+      $ao1, $ao2, $title, $filename,  $selectedMenuItem,
+      $menuParams, $plotParams, $table1Params, $table2Params, $DV_SERVER,
+      $DV_SCRIPT_PATH, $type,  
+      $fileType, $fileType2, $titleWindowSize, $detector, 
+      $key, $numTables, $ecf, @unordered_keylist, @keylist,
+      $tempDirectory, $currentFile, $accessAge, 
+	$plotWindowSize, $menuWindowSize, $titleWindowSize, 
+	$filename2, $title2, $selectedMenuItem2, $titleURL,
+	$minXValue,$maxXValue,$lineWidth,$xscale,$yscale,$canvasX,$canvasY,
+	$color1,$color2,$ii,$colorParams,$lbl,
+	$minYValue,$maxYValue,$logscale,$scale
+     );
+
+
+  #Determine what type of viewer is requested
+  $inputParamList = $ENV{'QUERY_STRING'};
+  @inputParamArray = split(/,/,$inputParamList);
+  $type = $inputParamArray[0];
+  
+  #If there is input from the form, process it
+  if($ENV{'CONTENT_LENGTH'} > 0) {
+    read(STDIN, $buffer, $ENV{'CONTENT_LENGTH'});
+    @pairs = split(/&/, $buffer);
+    foreach $pair (@pairs) {
+      ($name, $value) = split(/=/, $pair);
+      $value =~ tr/+/ /;
+      $value =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/eg;
+      if (length($value) > 0 && $value !~ /^[\w .!?-]/) { 
+             $value="BAD";
+      }
+      chomp($value);
+      $FORM{$name} = $value;
+      #print STDERR "$name --$value--\n";
+    }
+  }
+
+    
+  %filenameArray = ("acis-i", "chandra_acis-i_.area",
+		    "acis-s", "chandra_acis-s_.area",
+		    "acis-s-bi", "chandra_acis-s-bi_.area",
+		    "acis-s-hetg-heg1", "chandra_hetg-acis-s_heg1.area",
+		    "acis-s-hetg-hegmeg1", "chandra_hetg-acis-s_heg1meg1.area",
+		    "acis-s-hetg-meg1", "chandra_hetg-acis-s_meg1.area",
+		    "acis-s-hetg-order0", "chandra_hetg-acis-s_order0.area",
+		    "acis-i-hetg-order0", "chandra_hetg-acis-i_order0.area",
+		    "hrc-i", "chandra_hrc-i_.area",
+		    "hrc-s", "chandra_hrc-s_.area",
+		    "acis-s-letg-order0", "chandra_letg-acis-s_order0.area",
+		    "acis-i-letg-order0", "chandra_letg-acis-i_order0.area",
+		    "acis-s-letg-letg1", "chandra_letg-acis-s_letg1.area",
+		    "hrc-s-letg-order0", "chandra_letg-hrc-s_order0.area",
+		    "hrc-i-letg-order0", "chandra_letg-hrc-i_order0.area",
+		    "hrc-s-letg-letg1", "chandra_letg-hrc-s_letg1.area",
+		    "hrc-s-letg-letghi", "chandra_letg-hrc-s_letghi.area");
+  
+  %titleArray = ("acis-i", "Chandra-ACIS-I", 
+		 "acis-s","Chandra-ACIS-S",
+		 "acis-s-bi","Chandra-ACIS-S-BI",
+		 "acis-s-hetg-heg1","Chandra-ACIS-S-HETG-HEG1",
+		 "acis-s-hetg-hegmeg1","Chandra-ACIS-S-HETG-HEGMEG1",
+		 "acis-s-hetg-meg1","Chandra-ACIS-S-HETG-MEG1",
+		 "acis-s-hetg-order0", "Chandra-ACIS-S-HETG-ORDER0",
+		 "acis-i-hetg-order0","Chandra-ACIS-I-HETG-ORDER0",
+		 "hrc-i","Chandra-HRC-I",
+		 "hrc-s","Chandra-HRC-S",
+		 "acis-s-letg-order0","Chandra-ACIS-S-LETG-ORDER0",
+		 "acis-i-letg-order0","Chandra-ACIS-I-LETG-ORDER0",
+		 "acis-s-letg-letg1", "Chandra-ACIS-S-LETG-LETG1",
+		 "hrc-s-letg-order0","Chandra-HRC-S-LETG-ORDER0",
+		 "hrc-i-letg-order0", "Chandra-HRC-I-LETG-ORDER0",
+		 "hrc-s-letg-letg1", "Chandra-HRC-S-LETG-LETG1",
+		 "hrc-s-letg-letghi", "Chandra-HRC-S-LETG-LETGHI");
+  
+
+  # Clean out any old .png files in the temp directory
+  # These will be of the form EATOOL_<pid>.png
+  $tempDirectory = $ENV{'CXCDS_TMP_PATH'};
+  opendir(TEMPDIR, $tempDirectory);
+  while($currentFile = readdir(TEMPDIR)) {
+    #WLM#if($currentFile =~ /EATOOL_(.*)\.png/ &&
+    if($currentFile =~ /EATOOL_(.*)\.svg/ &&
+      (-A "$tempDirectory/$currentFile" > 1)) {
+      $currentFile = "$tempDirectory/$currentFile";
+      print STDERR "prop_viewer: Deleting file $currentFile \n";
+      unlink($currentFile);
+    }
+  }
+
+  
+  
+  
+  
+  $correctType = 1;  # Set to 0 if we can't handle this type
+  $params = "none";
+  if($type eq "ea") {
+    $pageTitle = "Chandra EA VIewer";
+    $titleURL = "/soft/prop_viewer/prop_ea_header.html";
+    $titleWindowSize = "13%,77%,10%";
+    $menuWindowSize = "22%,78%";
+    $plotWindowSize = "85%,15%";
+    
+    $fileType = $FORM{"fileType"};
+
+    #Initalize ao1 and ao2 if necessary, from the file
+    $ao1 = $FORM{"cycle1"};
+    $ao1 = verify_number($ao1,$def_cycle,3);
+    $ao2 = $FORM{"cycle2"};
+    $ao2 = verify_number($ao2,($ao1-1),3);
+
+    if ($fileType eq "")  {
+      $title = "Chandra-ACIS-I";
+      $filename = "chandra_acis-i_.area";
+    } else {
+      $title = $titleArray{$fileType};
+      $filename = $filenameArray{$fileType};
+    }
+    $fileType2 = $FORM{"fileType2"};
+    if ($fileType2 eq "")  {
+      $title2 = "Chandra-ACIS-I";
+      $filename2 = "chandra_acis-i_.area";
+    } else {
+      $title2 = $titleArray{$fileType2};
+      $filename2 = $filenameArray{$fileType2};
+    }
+
+    $color1 = $FORM{"color1"};
+    #if ($color1 == "") { $color1 = 1; }
+    $color1 = verify_number($color1,1,1,($#colorStyle+1));
+
+    $color2 = $FORM{"color2"};
+    #if ($color2 == "") { $color2 = 2; }
+    $color2 = verify_number($color2,2,1,($#colorStyle+1));
+
+
+
+    $minXValue = $FORM{"lowEnergy"};
+    $minXValue = verify_number($minXValue,$def_minX,0);
+    $maxXValue = $FORM{"highEnergy"};
+    $maxXValue = verify_number($maxXValue,$def_maxX,0);
+
+    $minYValue = $FORM{"lowEA"};
+    $minYValue = verify_number($minYValue,$def_minY,0);
+    $maxYValue = $FORM{"highEA"};
+    $maxYValue = verify_number($maxYValue,$def_maxY,0);
+
+    $lineWidth = $FORM{"lineWidth"};
+    $lineWidth = verify_number($lineWidth,$def_lineWidth,0,50);
+
+    $canvasX = $FORM{"canvasX"};
+    $canvasX = verify_number($canvasX,$def_canvasX,0,5000);
+    $canvasY = $FORM{"canvasY"};
+    $canvasY = verify_number($canvasY,$def_canvasY,0,5000);
+
+
+    $xscale = $FORM{"xScale"};
+    if (lc($xscale) ne "linear" &&
+        lc($xscale) ne "log") {
+      $xscale = "Linear"; 
+    }
+
+    $yscale = $FORM{"yScale"};
+    if (lc($yscale) ne "linear" &&
+        lc($yscale) ne "log") {
+      $yscale = "Linear"; 
+    }
+    
+
+    # Build parameter string for the menu cgi script
+    $selectedMenuItem = substr($title, 8); #Want string after the Chandra- part
+    $selectedMenuItem2 = substr($title2, 8); #Want string after the Chandra- part
+    $menuParams = qq($selectedMenuItem,$selectedMenuItem2,$ao1,$ao2,$color1,$color2,$minXValue,$maxXValue,$minYValue,$maxYValue,$lineWidth,$xscale,$yscale,$canvasX,$canvasY);
+
+    $plotParams = qq($filename,$filename2,$ao1,$ao2,$color1,$color2,$minXValue,$maxXValue,$minYValue,$maxYValue,$lineWidth,$xscale,$yscale,$canvasX,$canvasY);
+
+    
+
+    $table1Params = "$filename,$ao1,$color1,$title";
+    $table2Params = "$filename2,$ao2,$color2,$title2";
+    $numTables = 2;
+
+  } elsif($type eq "psf") {
+    $pageTitle = "Chandra PSF VIewer";
+    $titleURL = "/soft/prop_viewer/prop_psf_header.html";
+    $titleWindowSize = "13%,77%,10%";
+    $menuWindowSize = "22%,78%";
+    $plotWindowSize = "85%,15%";
+
+    $detector = $FORM{"detector"};
+    if($detector eq "") {
+      $title = "Chandra-ACIS-I";
+      $detector = "Chandra-ACIS-I";
+    } else {
+      $title = $titleArray{$detector};
+    }
+
+
+    # Need to define the number of tables
+    $numTables = 1;
+
+    # Get the rest of the data from the form. 
+    $ecf = int($FORM{"ecf"});
+    if($ecf == "") {
+      $ecf = 50;
+    }
+    $minXValue = $FORM{"minTheta"};
+    $minXValue = verify_number($minXValue,$def_minXP,0);
+    $maxXValue = $FORM{"maxTheta"};
+    $maxXValue = verify_number($maxXValue,$def_maxXP,0);
+    $minYValue = $FORM{"minRadius"};
+    $minYValue = verify_number($minYValue,$def_minYP,0);
+    $maxYValue = $FORM{"maxRadius"};
+    $maxYValue = verify_number($maxYValue,$def_maxYP,0);
+
+    $lineWidth = $FORM{"lineWidth"};
+    $lineWidth = verify_number($lineWidth,$def_lineWidth,0,50);
+
+    $xscale = $FORM{"xScale"};
+    if (lc($xscale) ne "linear" &&
+        lc($xscale) ne "log") {
+      $xscale = "Linear"; 
+   }
+
+    $yscale = $FORM{"yScale"};
+    if (lc($yscale) ne "linear" &&
+        lc($yscale) ne "log") {
+      $yscale = "Linear"; 
+    }
+
+
+    $canvasX = $FORM{"canvasX"};
+    $canvasX = verify_number($canvasX,$def_canvasX,0,5000);
+    $canvasY = $FORM{"canvasY"};
+    $canvasY = verify_number($canvasY,$def_canvasY,0,5000);
+
+    for ($ii=0;$ii<=$#energyLabel;$ii++) {
+      $lbl = "color" . $energyLabel[$ii];
+      $color1 = $FORM{$lbl};
+      if ($color1 == "") {
+        $FORM{$lbl} = $colorStyle[$ii];
+        $color1 = $colorStyle[$ii];
+      } else {
+        $color1= verify_number($color1,$ii+1,1,($#colorStyle+1));
+      }
+      $colorParams .= ",$color1";
+    }
+
+    $table1Params = $ecf;
+
+    my($psfParams) = "";
+    my($plotfParams) = "";
+    my($numPlots) = 0;
+    foreach $key (@energyLabel) {
+      $value = $FORM{$key};
+      if($value eq "on") {
+	# A checkbox was marked, add it to the list
+        $lbl = "color" . $key;
+
+	$table1Params = $table1Params . "," . $key . "," . $FORM{$lbl};
+	$psfParams = $psfParams . $key;
+	$filename = sprintf("ecf_e%05.2f_f00.%d.rdb", $key, $ecf);
+	$filename = "$filename";
+	$plotfParams = "$plotfParams,$filename,$FORM{$lbl}";  #FIX THIS
+        $numPlots++;
+      }
+    }
+    $lbl = sprintf("%d",$numPlots);
+    $plotParams = "$minXValue,$maxXValue,$minYValue,$maxYValue,$lineWidth,$xscale,$yscale,$canvasX,$canvasY,";
+    $plotParams .= $lbl  .  $plotfParams;
+# print STDERR "Build PSF PLOT:$lbl\n\n $plotParams\n";
+    $menuParams = "$detector,$ecf,$minXValue,$maxXValue,$minYValue,$maxYValue,$lineWidth,$xscale,$yscale,$canvasX,$canvasY,$psfParams" . $colorParams;
+# print STDERR "Build PSF: $menuParams\n";
+# print STDERR "Build PSF Table: $table1Params\n\n";
+  } else {
+    $correctType = 0;
+  }
+
+
+  # DV==DataViewer
+  # Setup the path variables 
+  if ( $ENV{'HTTP_HOST'}) {
+    $DV_SERVER = $ENV{'HTTP_HOST'};
+  } elsif ($ENV{'SERVER_NAME'}) {
+    $DV_SERVER  = $ENV{'SERVER_NAME'} . ":" . $ENV{'PROP_CGI_PORT'};
+  }
+  $DV_SCRIPT_PATH = "cgi-bin"; 
+  
+  
+  
+  if($correctType == 0) {
+    error("Invalid input parameters.");
+    exit 0;
+  } 
+  
+    
+  # Create main page
+  print STDOUT "Content-type: text/html", "\n\n";
+  #print STDOUT <<End_of_Page;
+print STDOUT "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Frameset//EN\"> \n";
+print STDOUT "<html> \n";
+print STDOUT "<head> \n";
+print STDOUT "<title> $pageTitle </title> \n";
+print STDOUT qq(<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\n);
+print STDOUT qq(<meta http-equiv="content-language" content="en-US" >\n);
+print STDOUT qq(<meta name="creator" content="SAO-HEA" >\n);
+print STDOUT qq(<meta name="date" content="2013-12-12" >\n);
+print STDOUT qq(<meta name="subject" content="Astronomical Software" >\n);
+#print STDOUT "<BASE href=\"http://${DV_SERVER}/${DV_SCRIPT_PATH}/\"> \n";
+print STDOUT "</head> \n";
+print STDOUT "<frameset rows=\"$titleWindowSize\"> \n";
+print STDOUT "<frame src=\"$titleURL\" scrolling=\"no\"> \n";
+print STDOUT "<frameset cols=\"$menuWindowSize\"> \n";
+print STDOUT "<frame src=\"prop_viewer_create_menu.cgi?$type,$menuParams\"> \n";
+print STDOUT "<frameset rows=\"$plotWindowSize\"> \n";
+print STDOUT "<frame src=\"prop_viewer_create_plot.cgi?$type,$plotParams\" name=\"image_fr\"> \n";
+if ($type =~ /ea/i) {
+print STDOUT "<frameset cols=\"50%,50%\">";
+print STDOUT "<frame src=\"prop_viewer_create_table.cgi?$type,$table1Params\" name=\"table_fr\"> \n";
+print STDOUT "<frame src=\"prop_viewer_create_table.cgi?$type,$table2Params\" name=\"table_fr2\"> \n";
+print STDOUT "</frameset> \n";
+} else {
+print STDOUT "<frame src=\"prop_viewer_create_table.cgi?$type,$table1Params\" name=\"table_fr\"> \n";
+}
+
+print STDOUT "</frameset> \n";
+print STDOUT "</frameset> \n";
+print STDOUT "<frame src=\"/soft/prop_viewer/prop_viewer_footer.html\" scrolling=\"no\"> \n";
+print STDOUT "</frameset> \n";
+print STDOUT "</html>\n";
+
+}
+
+# This routine taken from the Learning Perl book
+sub by_number {
+  if ($a < $b) {
+    -1;
+  } elsif($a == $b) {
+    0;
+  } elsif ($a > $b) {
+    1;
+  }
+}
+
+
+sub error {
+  my($msg,$nocache) =@_;
+  my $cgi = new CGI;
+  print $cgi->header( -type => "text/plain", -expires => $nocache);
+  print "$msg\n\n";
+}
+

@@ -1,0 +1,349 @@
+                Chandra Portable Proposal Planning Command Line
+		Interface (CLI) Toolkit and Obsvis Distribution
+                        Version 5 README.cycle5_patch
+                               December 16, 2002
+
+
+   ******************************************************************
+   Copyright (c) 2001, 2002   Smithsonian  Astrophysical  Observatory
+   The contents of this file are protected under the copyright notice
+   contained in the file  COPYRIGHT_SAO located in the root directory
+   of this distribution.
+   ******************************************************************
+
+
+====================================================================
+I) Introduction
+====================================================================
+
+This README.cycle5_patch provides the instructions for patching an
+existing CIAO 2.3 install. Please see Section II for patching a
+binary installation and Section III for building from source.
+
+
+====================================================================
+II) Patching CIAO 2.3 with Cycle 5
+====================================================================
+
+If you already have CIAO 2.3 installed you may apply the cycle5
+software as a patch.
+
+
+IIA Installing a pre-built binary package
+--- -------------------------------------
+
+	 1) Change directory to the root of your CIAO installation. If you 
+	    have already set up (using a ciao.*sh setup script) you can 
+	    use the command:
+
+            > cd $ASCDS_INSTALL
+
+	    to go to the correct directory.
+
+	 2) Download the appropriate tar file from the Web page or by 
+	    anonymous ftp:
+
+		ciao_cycle5_bin_sun.tar.gz	Solaris binaries \  one
+		ciao_cycle5_bin_linux.tar.gz    Linux binaries    | of
+		ciao_cycle5_bin_alpha.tar.gz	Alpha binaries   /  these
+
+	 3) Unpack the distribution:
+
+	    > gunzip ciao_cycle5_bin_<system>.tar.gz
+	    > tar xvf ciao_cycle5_bin_<system>.tar
+
+	 4) Run the command:
+
+	    > ./nra_patch.sh
+
+	    This will move in the updated CIAO binaries, parameters
+	    and xml files and rename the files it replaced to
+	    .<file_name>_CIAO_4.0. Since these files begin with a
+	    dot (.) they will not be visible under normal situations.
+	    You may keep these files if you might want to uninstall the
+	    Cycle 5 patch.
+
+	 5) Re-run the configure script:
+
+	    > ./configure <user options>
+
+	    Most users will not need any options. These options should match
+	    the options used during the initial setup of CIAO. This step
+	    needs to be done as there were some minor changes to the generated
+	    user setup files.
+
+	 6) Set up CIAO depending on your shell; you will need to add the 
+	    "-o" option if you were already set up for CIAO:
+
+	    (csh or tcsh users)
+	    > source bin/ciao.csh [-o]
+
+	    (sh users)
+	    > . bin/ciao.sh [-o]
+
+	    (bash users)
+	    > . bin/ciao.bash [-o]
+
+	    (ksh users)
+	    > . bin/ciao.ksh [-o]
+
+	 7) Regenerate the help indexes:
+
+	    > ahelp -r
+
+	 8) (optional) If you will not want to uninstall your Cycle 5
+	    patch and want to remove the old files you may run the script:
+
+	    > ./nra_cleanup.sh
+
+	    This will delete the old files that were replaced by the
+	    Cycle 5 patch.
+
+    Uninstalling the Cycle 5 distribution
+    -------------------------------------
+
+    In the unlikely event that you would like to revert to the Cycle 4
+    release and you have NOT executed step 8 above you may:
+
+	    > ./nra_patch.sh -u NRA_4.0     <- to uninstall the binary 
+                                               package.
+
+    This will restore the original files from your CIAO 2.3 distribution.
+    Note: This will NOT work if you did the optional cleanup step (step 8) 
+          above.
+
+
+IIB Installing CALDB
+--- ----------------
+
+With the release of the cycle 5 software you will need to update 
+to the new version of CALDB. You can download from the CIAO download
+page at: http://cxc.harvard.edu/ciao/download.html
+
+To install the CALDB:
+
+	 1) > cd $ASCDS_INSTALL		<- top level of CIAO distribution
+
+	 2) If you do NOT have the CALDB installed:
+
+	    > mkdir CALDB
+
+	 3) Change directory to the CALDB directory:
+
+	    > cd CALDB
+
+	 4) Download the new CALDB files.
+
+	 5) Unpack the files:
+
+	    > gunzip <caldb gzipped tar file>
+	    > tar xvf <caldb tar file>
+
+	 6) The perl script prop_install_pimms_ea.pl must be executed once
+	    per CALDB download in order to install the PIMMS Effective
+	    Area data required by PIMMS.  (Unfortunately if your system's
+	    perl distribution is not located in /usr/bin/perl, you will
+	    need to edit the four prop*.pl scripts in the bin directory to
+	    indicate your system's perl location.)
+
+	    Run the script to install the PIMMS Effective Area data:
+
+	    > prop_install_pimms_ea.pl
+
+	    The default installation area is:
+
+		$ASCDS_INSTALL/config/pimms/data 
+
+
+====================================================================
+III) Patching from the source code
+====================================================================
+
+Additional Required Software
+----------------------------
+
+Rebuilding Proposal Toolkit from source code requires additional
+software over and above that required to install and use the binary 
+distribution. You should already have the OTS (cxc_ots_<system>.tar.gz) 
+and CIAO source (cxc_src.tar.gz) distributions installed on your system. 
+You will also need:
+
+   Solaris:
+
+        SUN cc, CC (the Sun C++ compiler), and F77 compilers and libraries
+        (version 4.2; Note: Obsvis will currently not compile on Versions
+        5.0 or later; we are working on removing this limitation)
+
+   Linux:
+
+        gcc/g++         (version egcs 2.91.x or later, with fortran)
+                        Note: Obsvis will not compile on gcc versions
+                        2.96 or later; we are working on removing this
+                        limitation)
+
+   Alpha:
+
+        gcc/g++         (version egcs 2.95.2 or later, with fortran)
+                        Note: Obsvis will not compile on gcc versions
+                        2.96 or later; we are working on removing this
+                        limitation)
+
+        Additional information specific to this platform can be found in
+        README.tru64 at the top of the Proposal Toolkit installation tree.
+
+   All platforms:
+
+        Tcl/Tk          (version 8.3 or later)
+        The GNU flex/bison parser generation tools
+
+To apply the source patch you need to have CIAO 2.3 installed with
+the CIAO source and OTS distributions.
+
+Finally, note that due to licensing agreements we are unable to distribute
+the SM source code.  The SM libraries are packaged in the OTS distribution.
+
+Compiling instructions
+----------------------
+
+	 1) Change directory to the root of your CIAO installation. If you 
+	    have already set up (using a ciao.*sh setup script) you can 
+	    use the command:
+
+	    > cd $ASCDS_INSTALL
+
+	 2) Download the source patch tar file from the Web page or by 
+	    anonymous ftp:
+
+		ciao_cycle5_src.tar.gz
+
+	 3) Unpack the distribution:
+
+	    > gunzip ciao_cycle5_src.tar.gz
+	    > tar xf ciao_cycle5_src.tar
+
+	 4) Apply the source changes:
+
+	    > ./nra_patch.sh -s
+
+	    The -s switch tells the nra_patch.sh script to apply 
+	    only source file changes.
+
+	 5) Run the GNU configure script as follows (except linux and alpha):
+
+	    > ./configure --with-comp --with-fits --with-iraf --with-iraflibs
+
+	    If you are building on linux or alpha we do not currently
+	    support qpoe files. This should be available in a future
+	    release. You need to issue the following command:
+
+	    > ./configure --with-comp --with-fits
+
+	    Note: This is valid on all platforms if you wish to compile
+	          without the iraf kernel.
+
+	 5b) Other switches with configure:
+	    The configure script accepts several options to assist your 
+	    installation.
+	    The default described is the action the switch will take
+	    if =xxx is omitted.
+
+	    --with-opt=Ox  - set optimization to level x. Default O3
+	    --with-debug   - compile with -g (debug) switch
+	    --with-top=/<path> - set the location of $ASCDS_INSTALL
+	                    (instead of using your current working
+	                      directory. This switch is useful for
+	                      installing to a read-only files system
+	                      where the installer is NOT in the directory
+	                      the users will see.)
+	    --with-tcltk=<path> - set the location to look for the Tcl/TK
+	                      libraries and includes (lib and include
+	                      directories). Default is /usr
+	    --with-tclver=x   Set the version of TclTk to use. Default
+	                      is 8.3
+	    --with-lesstif=<dir> - set the location to look for Lesstif
+	                      or Motif libraries and includes (lib and
+	                      include) directories. Default is 
+	                      /usr/X11R6/LessTif (This is not needed 
+	                      if the files are already in your search 
+	                      paths as the standard Solaris installations)
+	    --x-libraries=<path> - Set the location of the X libraries.
+	                      This is only needed if the automatic detection
+	                      fails.
+	    --x-includes=<path> - Set the location of the X include files.
+	                      This is only needed if the automatic detection
+	                      fails.
+
+	 6) Copy cxcconfig.h, which ./configure generated, to src/include:
+
+	    > cp cxcconfig.h src/include
+
+	 7) Linux only:
+
+	    You will need to set the environment variable LD_LIBRARY_PATH 
+	    to your install lib directory:
+
+	    tcsh users:
+
+	    > setenv LD_LIBRARY_PATH $ASCDS_INSTALL/lib
+
+	    bash, ksh users:
+
+	    > LD_LIBRARY_PATH=$ASCDS_INSTALL/lib
+	    > export LD_LIBRARY_PATH
+
+	 8) Run the script:
+
+	    > ./nra_build.sh
+
+	    This will re-compile the necessary directories for the
+	    cycle 5 upgrade.
+
+	 9) Assume the build is successful, despite error messages.  
+	    Follow the steps detailed in Section IIA above, starting 
+	    with step 5) ("Re-run the configure script") and continuing 
+	    through the end of "Installing a pre-built binary package".
+
+	10) Follow the "Installing CALDB" instructions in Section IIB 
+	    above, to install updated data files from CALDB.
+
+
+====================================================================
+IV) Using the Proposal Toolkit with Obsvis
+====================================================================
+
+  To run ObsVis, please see the ObsVis Help File named "README.obsvis"
+  located in the top level <install_root_dir>.
+
+  You can also get ObsVis help at the command line by typing:
+
+	> ahelp obsvis
+
+
+  To run a Toolkit application, type:
+
+	> prop_<application_name>
+
+  The Toolkit Distribution contains six applications:  PIMMS, pileup, 
+  frametime, precess, colden, and dates, plus a CALDB interface.  The 
+  wrapper scripts are named prop_pimms, prop_pileup, prop_frametime, 
+  prop_precess, prop_colden, prop_dates, and prop_install_pimms_ea.pl.
+
+  At the command line, you can get application-specific help by typing any 
+  of the following:
+
+	> ahelp pimms
+	> ahelp colden
+	> ahelp precess
+	> ahelp dates
+
+  You can get more general overviews with:
+
+	> ahelp prop-tools
+	> ahelp prop-coords
+	> ahelp prop-time
+
+
+For further help, please contact the CXC Help Desk, available from 
+http://cxc.harvard.edu (see Help Desk link in page footer).
+
+-----------------------------------------------------------------------

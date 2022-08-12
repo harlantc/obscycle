@@ -1,0 +1,236 @@
+===============================================================================
+
+	            HELP FILE for prop_panel_create
+
+===============================================================================
+
+
+General
+-------
+
+The prop_panel_create provides functions to create panels, assign 
+proposals to panels and print information about the panels.  
+The user may create panels using the default as described in the 
+$ASCDS_DATA/panel.default file.  The user may also choose to use the
+same panel structure as in a previous AO cycle or choose to create a 
+new panel structure using the same file format as the panel.default file.  
+
+The user may choose to automatically assign proposals to the panels 
+based on subject category and conflicts.  If the -a option is chosen, 
+the proposals are retrieved from the database by a single subject category
+code.  They are then split between the panels that contain that subject
+category.  The -s option uses output from a previously executed SQL 
+script that retrieves proposal information based on multiple category
+codes.  This option only works if a category code is always combined with
+the same set of category codes for each panel.
+
+If the PROP_CONFLICT_FILE environment variable is set,  the proposals will
+be assigned to panels based on their conflicts with other proposals in the
+same category(s).  Otherwise it will just compare target names.
+
+This program may be used to print a list of the proposals assigned 
+to each panel.
+
+
+PARAMETERS
+----------
+-U [user]       REQUIRED  - proposal database user name
+-S [server]     OPTIONAL  - proposal database server 
+                            default is DB_PROP_SQLSRV
+-p              OPTIONAL  - print parameters
+
+   
+-list [filename]      OPTIONAL  - produce list of proposals assigned to panel.
+-a                    OPTIONAL  - assign proposals to panels based
+                                  on subject category.
+-s                    OPTIONAL  - assign proposals to panels using SQL files
+                                  produced by prop_panel_assign.pl.  
+                                  These files must be
+                                  in $ASCDS_PROP_DIR/reports/assign*list.
+                                  See prop_panel_create.hlp.
+-f  [filename]        OPTIONAL  - filename for default panels
+-d                    OPTIONAL  - use default file for panels
+-ao [AO]              OPTIONAL  - use panels from specified AO
+-g  [output filename] OPTIONAL  - get the default file and copy   
+                                  it to the given filename.
+
+
+
+INPUT/OUTPUT
+-------------
+
+1) STDIN:  
+
+   >Enter Password:  User must enter password for access to the database.
+
+2) Input Files: 
+
+   o  panel.default - This file is used to create the panels initially and
+      assign subject category codes. The user may obtain a copy of this
+      file and make modifications. The format is:
+
+      #This file defines the default panel setup
+      #
+      #      CODE SUBJECT CATEGORY
+      #      -----------------------------
+      #        10 Solar System and Misc
+      #        20 Normal Stars and WD
+      #        30 WD Binaries and CV
+      #        40 BH and NS Binaries
+      #        50 SN, SNR, and Isolated NS
+      #        61 Normal Galaxies: Diffuse Emission
+      #        62 Normal Galaxies: X-ray Populations
+      #        70 Active Galaxies and Quasars
+      #        80 Clusters of Galaxies
+      #        90 Extragalactic Diffuse Emission and Surveys
+      #        91 Galactic Diffuse Emission and Surveys
+      #
+      #  Since this is a "dumb" program:  ID= and CAT= must be all capital
+      #  letters and no spaces allowed.  Multiple category codes must be 
+      #  separated by a comma.
+      #
+      ID=01 CAT=10,20
+      ID=02 CAT=10,20
+      ID=03 CAT=50,91
+      ID=04 CAT=50,91
+      ID=05 CAT=30,40
+      ID=06 CAT=30,40
+      ID=07 CAT=61,80
+      ID=08 CAT=61,80
+      ID=09 CAT=62,70,90
+      ID=10 CAT=62,70,90
+      ID=11 CAT=62,70,90
+      ID=12 CAT=62,70,90
+      
+
+   o  If option -s is used, the following files are needed:
+
+      > prop_panel_assign.pl 
+
+        Files produced:
+        $ASCDS_PROP_DIR/reports/assign_1020.list
+        $ASCDS_PROP_DIR/reports/assign_3040.list
+        $ASCDS_PROP_DIR/reports/assign_5091.list
+        $ASCDS_PROP_DIR/reports/assign_6180.list
+        $ASCDS_PROP_DIR/reports/assign_627090.list
+    
+   o  PROP_CONFLICT_FILE
+
+      This environment variable should point to the output of the
+      parse_propconflict.pl script or the clump_conflicts.pl script.
+      These files contain 2 columns of proposal numbers.  The first is
+      the current proposal number and the second is the proposal number 
+      that has a target conflict with the current proposal. This file is
+      used to try to keep proposals with target conflicts in the same panel.
+      Please view http://icxc.harvard.edu/soft/R4/UDF/ObsCycle/Proposals/PANEL_MANAGER/operations_overview.html in your browser.
+
+3) Output Files:  
+
+  If the -list <filename> option is specified, the proposals for each
+  panel are listed as described below.
+
+PANEL: 
+Proposal# P.I.       #Tgts Exp.Time Title
+-------------------------------------------------------------------------------
+
+
+
+4) Output Files for Archive: 
+
+   N/A
+
+
+SETUP AND USAGE
+---------------
+
+prop_panel_create uses the environment variables that are set in the file 
+'ascds_setup_prop' and 'ascds_setup_db'.  These proposal environment 
+variables include :
+
+        ASCDS_DATA           - directory path for panel.default file
+        ASCDS_PROP_DIR       - top level proposal directory
+        ASCDS_PROP_AO        - current open proposal cycle number
+        DB_PROP_SQLSRV       - database sybase server.  
+        PROP_CONFLICT_FILE   - pointer to panel_conflicts.list 
+
+The user should not ordinarily change their values. 
+
+Only those users having permissions to read proposals should have access to
+the proposal database and any files that contain proposal data.
+All files created should belong to the group 'prop'.  Permission should
+be set so that only the owner and group have permissions to access these
+files.  If you need access, contact the system administrator.
+
+
+
+
+DETAILED DESCRIPTION - GENERAL INSTRUCTIONS
+-------------------------------------------------------------------
+
+The prop_panel_create application first tries to access/create the panel
+default files as requested by the user. If the user specified a
+default file, the application reads and validates the file.
+It will then ask the user to confirm deletion of any existing panels for
+the current AO cycle. If the user confirms deletion, the existing panel
+data is deleted from the database.
+
+The next step is to rebuild the panel data based on the user input 
+criteria.  It can rebuild the panel data based on a user defined
+file, the default file, or the panel configuration from a previous AO
+cycle.  If the panels are successfully created, the program then checks
+if the user requested that proposals be initially assigned to the panels
+based on the subject categories. The program attempts to keep the
+number of targets assigned to each panel evenly split between the
+subject categories.  It also attempts to keep proposals submitted by
+the same P.I. or that have the same 1st target in the same panel.
+
+In most cases the PROP_CONFLICT_FILE will be used to tie proposals with
+target conflicts to the same panel.  If the environment variable is not
+set, the target names are compared.  In addition proposals with the same
+PI (same last name, and same 2 beginning letters of the first name) are
+tied to the same panel.
+
+-a option:  This option retrieves all proposals for a single category ,
+            checks the conflicts and then tries to evenly split them
+            between the panels containing that category code.  The 
+            drawback for this option is that many proposals have conflicts
+            with proposals of different categories.  If those categories 
+            are on the same panel, you may end up with the conflicting
+            proposals are different panels.  
+
+-s option:  This option only processes the proposals in the files produced 
+            by /proj/ascds/staff/UDF/ObsCycle/tools/SQL/proposals/doassign.
+            This method is much faster than option -a.  The proposals 
+            are then assigned to panels based on any of the categories 
+            in the list. This is much more effective if a little slimy....
+             
+       
+Once the panels are created and proposal assigned, the allotted time
+per panel is calculated and stored in the database.  The allotted time
+is calculated based on 75% percent of the total time available and the
+average of the requested exposure time of the middle 10 proposals 
+excluding ARCHIVE, LP, GTO, and CAL proposals.
+
+If requested, a list is produced displaying the proposals assigned to each
+panel. In addition, the program always prints to STDOUT the new
+panel configuration in the format shown below.
+
+AO:         
+Panel Name:
+Categories: 
+    
+Allotted Time: 0
+No. Proposals: 0
+No. Targets  : 0
+
+
+
+
+RESTRICTIONS
+------------
+
+REFERENCES
+----------
+
+See the Proposal section of the Data System Software Design Document 
+(DS01) for more detail about the proposal submission cycle. 

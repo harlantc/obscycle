@@ -1,0 +1,175 @@
+#!@PERLDB@
+#*H************************************************************************
+#* Copyright (c) 2015, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_possible_reviewers.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script retrieves all proposers who have ever checked the 
+#     "available for peer review" question
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H************************************************************************
+
+
+BEGIN 
+{
+   $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use vars qw ($dbh  %param
+        );
+
+use DBI;
+use Getopt::Long;
+
+sub catch_warn {
+  my ($estr);
+  my($signame);
+
+  while ( $signame = shift) {
+     print "$signame\n";
+  }
+}
+# -------------------------- MAIN ----------------------------------
+{
+  my($dsn,$stmp,$idx);
+
+  $SIG{__WARN__} = \&catch_warn;
+
+
+  &parse_input;
+
+  open OFILE,"> $param{o}" or die "Unable to open $param{o} for writing.\n";
+
+
+  #database connection
+  $stmp = "server=$param{S};database=proposal";
+  $dsn = "DBI:Sybase:$stmp";
+  $dbh = DBI->connect($dsn, $param{U}, $param{q}, {
+        AutoCommit => 1,
+        PrintError => 1,
+       RaiseError => 0});
+  if ( !defined $dbh) {
+    exit 1;
+  }
+
+  $str = qq(select distinct (last + "," + first),avail_peer_review,ao_str,
+	category_descrip,email
+        from proposal,axafusers..person_short
+        where
+        proposal.piid = axafusers..person_short.pers_id  and
+        proposal.ao_str like "$param{a}" and
+        (lower(avail_peer_review) like "y%" or 
+         lower(avail_peer_review) like "m%")
+        order by last,first,ao_str);
+
+  if ($param{v}) { print STDERR "$str\n"; }
+  $sth = $dbh->prepare($str);
+  $sth->execute() or die ($sth->errstr());
+  printf OFILE ("%-40.40s,  %-6.6s,  %-6.6s,  %-45.45s,  %s \n",
+        "P.I.","Avail","Cycle","Science Category","Email");
+
+  while (@row = $sth->fetchrow_array) {
+     $pi= qq("$row[0]");
+     $scicat= qq("$row[3]");
+     $email= qq("$row[4]");
+     printf OFILE ("%-40.40s,  %-6.6s,  %-6.6s,  %-45.45s,  %s \n",$pi,$row[1],$row[2],$scicat,$email);
+  }
+
+  $sth->finish;
+  close OFILE;
+  chmod (0660,"$param{o}");
+  
+}
+
+
+# ----------------------------------------------------------
+# parse input parameters
+# ----------------------------------------------------------
+sub parse_input
+{
+  my ($pwd);
+  my $err = 0;
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+             a=> "%",
+             o=> undef,
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "a=s",
+          "o=s",
+          "q=s",
+          "v",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter `$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+
+  if(!$param{q}) {
+    use Term::ReadKey;
+     {
+       ReadMode 'noecho';
+       print "Enter password for $param{U} on $param{S}: ";
+       $pwd = ReadLine( 0 );
+       chomp $pwd;
+       ReadMode 'restore';
+       print "\n";
+     }
+  }
+  else {
+    open PFILE,"< $param{q}";
+    while ( <PFILE> ){
+      chomp;
+      $pwd = $_;
+    }
+  }
+  $param{q} = $pwd;
+
+}
+
+sub usage
+{
+    print STDERR "\nUSAGE: prop_possible_reviewers.pl -USao\n";
+    print STDERR "       -U database user name\n";
+    print STDERR "       -S database server\n";
+    print STDERR "       -a AO to use, default is all\n";
+    print STDERR "       -o output file \n";
+}
+
+
+
+

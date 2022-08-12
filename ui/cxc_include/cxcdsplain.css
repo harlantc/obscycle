@@ -1,0 +1,77 @@
+
+img {
+ margin: 0;
+ padding: 0;
+ border: 0;
+ outline: 0;
+ vertical-align: baseline;
+}
+
+body {
+        width: 98%;
+        margin: 1%;
+        line-height: 1;
+}
+
+
+/* Footer Stuff */
+
+
+#cxcfooter {
+	background:#e4e9f1 url(/soft/include/blank.gif) ;
+        background-repeat: repeat-x ;
+        background-position: center;
+	float: none;
+	clear: both;
+	overflow: hidden;
+        position: relative; 
+	width:99%;
+}
+
+#cxcfooter img { 
+  color: #ffffff;
+  font-size: 1.5em;
+  font-style: italic;
+ }
+
+#cxcfooter ul li {
+	text-align:center;
+	width:20%;
+	float:left;
+	display: block;
+	padding: .5em 0 .5em 0;
+}
+
+#cxcfooter a {
+	color:black;
+	text-decoration:underline;
+}
+
+#cxcfooterleft {
+	max-width: 10%;
+	float: left;
+	clear: left;
+        margin-left: .2em;
+}	
+
+#cxcfootercenter {
+        max-width: 80%;
+	float: left;
+        margin-left: .4em;
+}
+#cxcfooterright {
+        max-width: 10%;
+	float: right;
+	clear: right;
+        margin-top: .4em;
+        margin-right: .2em;
+}
+
+
+#cxcfootercenter p {
+	color: black;
+	font-size:90%;
+	text-align:center;
+	margin-left: 1%;
+	clear: both;
+}

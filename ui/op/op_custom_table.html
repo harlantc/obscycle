@@ -1,0 +1,434 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<!--#include virtual="op_header.html"-->
+<div id="tophdr" class="tophdr">
+<div id="imghdr" class="imghdr">
+<img src="/soft/include/header_left.gif" alt=" " border="0" >
+</div>
+<div id="titlehdr" class="titlehdr">
+Customized Status Tables
+</div>
+<div id="helphdr" class="helphdr">
+<a href="op_help.html"><b>Help</b> - <font size=-1>on how to use this page</font></a>
+</div>
+</div>
+</center>
+<form method=post action="/cgi-bin/op/op_custom_table.cgi" >
+<center>
+<table class="plain" width="100%" >
+<tr class="header2">
+<th>Data Field</th>
+<th>Output Column#</th>
+<th>Selection Criteria</th>
+</tr>
+
+<tr class="alt1">
+<td><input type="checkbox" name="obsid"><a href="op_olist.html#ObsId">ObsId</a></td>
+<td class="col"><i>Col.#</i><select name="obsid_col">
+<option selected>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24<option>25<option>26<option>27<option>28<option>29<option>30<option>31<option>32</select></td>
+
+<td>
+<table class="noborder"  >
+<tr>
+<td>From:&nbsp;<input type="text" name="obsid_from" size=6 maxlength=6></td>
+<td>&nbsp;&nbsp;&nbsp;&nbsp;To:&nbsp;<input type="text" name="obsid_to" size=6  maxlength=6></td>
+</tr>
+</table>
+</td>
+</tr>
+
+<tr class="alt2">
+<td><input type="checkbox" name="sequence_number"><a href="op_olist.html#SeqNum " >SeqNum</a></td>
+
+<td class="col"><i>Col.#</i><select name="sequence_number_col">
+<option>1<option selected>2<option>3<option>4<option>5<option>6<option>7<option>8<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24<option>25<option>26<option>27<option>28<option>29<option>30<option>31<option>32</select></td>
+
+<td>
+<table class="noborder" >
+<tr >
+<td>From:&nbsp;<input type="text" name="seq_from" size=6 maxlength=6></td>
+<td>&nbsp;&nbsp;&nbsp;&nbsp;To:&nbsp;<input type="text" name="seq_to" size=6  maxlength=6></td>
+</tr>
+</table>
+</td>
+</tr>
+
+<tr class="alt1">
+<td><input type="checkbox" name="object"><a href="op_olist.html#Object " >Object</a></td>
+
+<td class="col"><i>Col.#</i><select name="object_col"><option>1<option>2<option selected>3<option>4<option>5<option>6<option>7<option>8<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16<option >17<option  >18<option>19<option>20<option>21<option>22<option>23<option>24<option>25<option>26<option>27<option>28<option>29<option>30<option>31<option>32</select></td>
+
+<td>&nbsp;</td>
+</tr>
+
+<tr class="alt2">
+<td ><input type="checkbox" name="ra_nom"><a href="op_olist.html#RA " >RA</a></td>
+
+<td class="col"><i>Col.#</i><select name="ra_nom_col"><option>1<option>2<option>3<option selected>4<option>5<option>6<option>7<option>8<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24<option>25<option>26<option>27<option>28<option>29<option>30<option>31<option>32</select></td>
+
+<td >
+<table class="noborder">
+<tr>
+<td>From:&nbsp;<input type="text" name="ra_from" size=8 maxlength=8></td>
+
+<td>&nbsp;&nbsp;To:&nbsp;<input type="text" name="ra_to" size=8  maxlength=8></td>
+</tr>
+</table>
+&nbsp;</td>
+</tr>
+
+<tr class="alt1">
+<td><input type="checkbox" name="dec_nom"><a href="op_olist.html#Dec " >Dec</a></td>
+
+<td class="col"><i>Col.#</i><select name="dec_nom_col"><option>1<option>2<option>3<option>4<option selected>5<option>6<option>7<option>8<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24<option>25<option>26<option>27<option>28<option>29<option>30<option>31<option>32</select></td>
+
+<td>
+<table class="noborder">
+<tr>
+<td>From:&nbsp;<input type="text" name="dec_from" size=8 maxlength=8></td>
+<td>&nbsp;&nbsp;To:&nbsp;<input type="text" name="dec_to" size=8 maxlength=8></td>
+</tr>
+</table>
+</td>
+</tr>
+
+<tr class="alt2">
+<td><input type="checkbox" name="roll_num"><a href="op_olist.html#Roll " >Roll</a></td>
+
+<td class="col"><i>Col.#</i><select name="roll_num_col"><option>1<option>2<option>3<option>4<option>5<option selected>6<option >7<option>8<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16<option>17<option >18<option>19<option>20<option>21<option>22<option>23<option>24<option>25<option>26<option>27<option>28<option>29<option>30<option>31<option>32</select></td>
+
+<td>&nbsp;</td>
+</tr>
+
+<tr class="alt1">
+<td><input type="checkbox" name="instrument"><a href="op_olist.html#Instrument" >Instrument</a></td>
+
+<td class="col"><i>Col.#</i><select name="instrument_col"><option>1<option>2<option>3<option>4<option>5<option>6<option selected >7<option  >8<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24<option>25<option>26<option>27<option>28<option>29<option>30<option>31<option>32</select></td>
+
+<td>
+
+<table class="noborder">
+<tr>
+<td><input type="checkbox" name="instrument_acisi"><i>ACIS-I</i></td>
+<td><input type="checkbox" name="instrument_aciss"><i>ACIS-S</i></td>
+<td><input type="checkbox" name="instrument_hrci"><i>HRC-I</i></td>
+<td><input type="checkbox" name="instrument_hrcs"><i>HRC-S</i></td>
+</tr></table>
+</tr>
+
+<tr class="alt2">
+<td><input type="checkbox" name="grating"><a href="op_olist.html#Grating " >Grating</a></td>
+
+<td class="col"><i>Col.#</i><select name="grating_col"><option>1<option>2<option>3<option>4<option>5<option >6<option>7<option selected>8<option >9<option>10<option>11<option>12<option>13<option>14<option>15<option>16<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24<option>25<option>26<option>27<option>28<option>29<option>30<option>31<option>32</select></td>
+
+<td>
+<table class="noborder">
+<tr>
+<td><input type="checkbox" name="grating_none"><i>None</i></td>
+<td><input type="checkbox" name="grating_hetg"><i>HETG</i></td>
+<td><input type="checkbox" name="grating_letg"><i>LETG</i></td>
+</tr></table>
+
+</td>
+</tr>
+
+<tr  class="alt1">
+<td><input type="checkbox" name="type"><a href="op_olist.html#Type " >Type</a></td>
+
+<td class="col"><i>Col.#</i><select name="type_col"><option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8<option  selected >9<option>10<option>11<option>12<option>13<option>14<option>15<option>16<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24<option>25<option>26<option>27<option>28<option>29<option>30<option>31<option>32</select></td>
+
+<td>
+<table class="noborder" >
+<tr>
+<td><input type="checkbox" name="type_go"><i>GO</i></td>
+<td><input type="checkbox" name="type_gto"><i>GTO</i></td>
+<td><input type="checkbox" name="type_too"><i>TOO</i></td>
+<td><input type="checkbox" name="type_ddt"><i>DDT</i></td>
+<td><input type="checkbox" name="type_cal"><i>CAL</i></td>
+<td><input type="checkbox" name="type_cct"><i>CCT</i></td>
+<td><input type="checkbox" name="type_er"><i>ER</i></td>
+</tr>
+</table>
+</td>
+</tr>
+
+<tr class="alt2">
+<td><input type="checkbox" name="date_obs"><a href="op_olist.html#Obs_Date " >Obs Date</a></td>
+
+<td class="col"><i>Col.#</i><select name="date_obs_col"><option>1<option>2<option >3<option>4<option>5<option>6<option>7<option>8<option>9<option selected>10<option>11<option>12<option>13<option>14<option>15<option>16<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24<option>25<option>26<option>27<option>28<option>29<option>30<option>31<option>32</select></td>
+
+<td>
+<table class="noborder"  >
+<tr>
+<td><i>Include NULLs</i><input type="checkbox" checked name="date_obs_null"></td>
+
+<td>&nbsp;</td>
+
+<td>&nbsp;</td>
+
+<td>From:</td>
+
+<td><select name="date_obs_from_m"><option>Mon<option>Jan<option>Feb<option>Mar<option>Apr<option>May<option>Jun<option>Jul<option>Aug<option>Sep<option>Oct<option>Nov<option>Dec</select></td>
+
+<td><select name="date_obs_from_d"><option>DD<option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24<option>25<option>26<option>27<option>28<option>29<option>30<option>31</select></td>
+
+<td><select name="date_obs_from_y"><option>Year<option>1999<option>2000<option>2001<option>2002<option>2003<option>2004<option>2005<option>2006<option>2007<option>2008<option>2009<option>2010<option>2011<option>2012<option>2013<option>2014<option>2015<option>2016<option>2017<option>2018<option>2019<option>2020</select></td>
+
+<td>&nbsp;</td>
+
+<td>&nbsp;To:</td>
+
+<td><select name="date_obs_to_m"><option>Mon<option>Jan<option>Feb<option>Mar<option>Apr<option>May<option>Jun<option>Jul<option>Aug<option>Sep<option>Oct<option>Nov<option>Dec</select></td>
+
+<td><select name="date_obs_to_d"><option>DD<option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24<option>25<option>26<option>27<option>28<option>29<option>30<option>31</select></td>
+
+<td><select name="date_obs_to_y"><option>Year<option>1999<option>2000<option>2001<option>2002<option>2003<option>2004<option>2005<option>2006<option>2007<option>2008<option>2009<option>2010<option>2011<option>2012<option>2013<option>2014<option>2015<option>2016<option>2017<option>2018<option>2019<option>2020</select></td>
+</tr>
+</table>
+</td>
+</tr>
+
+
+<tr  class="alt1">
+<td><input type="checkbox" name="proc_version"><a href="op_olist.html#Version " >Proc Version</a></td>
+
+<td class="col"><i>Col.#</i><select name="proc_version_col"><option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8<option>9<option>10<option selected>11<option>12<option >13<option>14<option>15<option>16<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24<option>25<option>26<option>27<option>28<option>29<option>30<option>31<option>32</select></td>
+<td>&nbsp;</td>
+</tr>
+
+<tr  class="alt2">
+<td><input type="checkbox" name="ap_cp"><a href="op_olist.html#AP/CP " >Proc Type</a></td>
+
+<td class="col"><i>Col.#</i><select name="ap_cp_col"><option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8<option>9<option>10<option>11<option  selected>12<option>13<option>14<option>15<option>16<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24<option>25<option>26<option>27<option>28<option>29<option>30<option>31<option>32</select></td>
+<td>&nbsp;</td>
+</tr>
+
+<tr  class="alt1">
+<td><input type="checkbox" name="ap_date"><a href="op_olist.html#Processing_Date " >Proc Date</a></td>
+
+<td class="col"><i>Col.#</i><select name="ap_date_col"><option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8<option>9<option>10<option>11<option>12<option  selected>13<option >14<option>15<option>16<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24<option>25<option>26<option>27<option>28<option>29<option>30<option>31<option>32</select></td>
+
+<td>
+&nbsp;</td>
+</tr>
+
+<tr class="alt2">
+<td><input type="checkbox" name="ap_status"><a href="op_olist.html#Processing_Status " >Proc Status</a></td>
+
+<td class="col"><i>Col.#</i><select name="ap_status_col"><option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8<option>9<option >10<option>11<option>12<option>13<option selected>14<option >15<option>16<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24<option>25<option>26<option>27<option>28<option>29<option>30<option>31<option>32</select></td>
+
+<td>
+&nbsp 
+</td>
+</tr>
+
+<tr class="alt1">
+<td><input type="checkbox" name="chargetime"><a href="op_olist.html#Charge_Time " >Charge Time</a></td>
+
+<td class="col"><i>Col.#</i><select name="chargetime_col"><option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8<option>9<option>10<option>11<option>12<option>13<option>14<option selected>15<option >16<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24<option>25<option>26<option>27<option>28<option>29<option>30<option>31<option>32</select></td>
+
+<td>&nbsp;</td>
+</tr>
+
+<tr  class="alt2">
+<td><input type="checkbox" name="goodtime"><a href="op_olist.html#Good_Time " >Good Time</a></td>
+
+<td class="col"><i>Col.#</i><select name="goodtime_col"><option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option selected>16<option >17<option>18<option>19<option>20<option>21<option>22<option>23<option >24<option>25<option>26<option>27<option>28<option>29<option>30<option>31<option>32</select></td>
+
+<td>&nbsp;</td>
+</tr>
+
+<tr  class="alt1">
+<td><input type="checkbox" name="cxcds_version"><a href="op_olist.html#Release">Release</a></td>
+
+<td class="col"><i>Col.#</i><select name="cxcds_version_col"><option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8<option>9<option>10<option>11<option>12<option>13<option >14<option>15<option>16<option selected>17<option >18<option>19<option>20<option>21<option>22<option>23<option>24<option>25<option>26<option>27<option>28<option>29<option>30<option>31<option>32</select></td>
+
+<td> &nbsp</td>
+</tr>
+
+<tr class="alt2">
+<td><input type="checkbox" name="caldb"><a href="op_olist.html#CALDB">CALDB Version</a></td>
+<td class="col"><i>Col.#</i><select name="caldb_col"><option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8<option>9<option>10<option>11<option>12<option>13<option >14<option>15<option>16<option >17<option selected>18<option>19<option>20<option>21<option>22<option>23<option>24<option>25<option>26<option>27<option>28<option>29<option>30<option>31<option>32</select></td>
+
+<td> &nbsp</td>
+</tr>
+<tr class="alt1">
+<td><input type="checkbox" name="vv_date"><a href="op_olist.html#VV_Date " >V&amp;V Date</a></td>
+<td class="col"><i>Col.#</i><select name="vv_date_col"><option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16<option>17<option >18<option  selected >19<option>20<option>21<option>22<option>23<option>24<option>25<option >26<option>27<option>28<option>29<option>30<option>31<option>32</select></td>
+<td>&nbsp;
+</td>
+</tr>
+
+<tr class="alt2">
+<td><input type="checkbox" name="vv_version"><a href="op_olist.html#VV_Version " >V&amp;V Version</a></td>
+
+<td class="col"><i>Col.#</i><select name="vv_version_col"><option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16<option>17<option>18<option >19<option  selected >20<option>21<option>22<option>23<option >24<option>25<option>26<option>27<option>28<option>29<option>30<option>31<option>32</select></td>
+
+<td>&nbsp;</td>
+</tr>
+
+<tr  class="alt1">
+<td><input type="checkbox" name="vv_disposition"><a href="op_olist.html#VV_Status " >V&amp;V Status</a></td>
+
+<td class="col"><i>Col.#</i><select name="vv_disposition_col"><option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8<option>9<option>10<option >11<option>12<option>13<option>14<option>15<option>16<option>17<option>18<option>19<option >20<option  selected>21<option>22<option>23<option>24<option>25<option>26<option>27<option>28<option>29<option>30<option>31<option>32</select></td>
+
+<td>&nbsp; </td>
+</tr>
+
+<tr class="alt2">
+<td><input type="checkbox" name="public_date"><a href="op_olist.html#Public_Date " >Public_Rel_Date</a></td>
+
+<td class="col"><i>Col.#</i><select name="public_date_col"><option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16<option>17<option>18<option>19<option>20<option >21<option  selected>22<option>23<option>24<option>25<option>26<option>27<option>28<option >29<option>30<option>31<option>32</select></td>
+<td>&nbsp;
+</tr>
+
+<tr  class="alt1">
+<td><input type="checkbox" name="notify_date"><a href="op_olist.html#DD_Date">DD Date</a></td>
+
+<td class="col"><i>Col.#</i><select name="notify_date_col"><option>1<option>2<option>3<option>4<option>5<option>6<option>7<option >8<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16<option>17<option>18<option>19<option>20<option>21<option >22<option  selected>23<option>24<option>25<option>26<option>27<option>28<option>29<option>30<option>31<option>32</select></td>
+<td valign="middle">
+<table class="noborder">
+<tr>
+<td><i><b>Only</b> NULLs</i> <input type="checkbox" name="notify_date_null"></td>
+<td>&nbsp;&nbsp;--<i>or</i>--&nbsp;&nbsp;&nbsp;&nbsp;</td>
+<td>From</td><td><select name="notify_date_from_m"><option>Mon<option>Jan<option>Feb<option>Mar<option>Apr<option>May<option>Jun<option>Jul<option>Aug<option>Sep<option>Oct<option>Nov<option>Dec</select></td>
+<td><select  name="notify_date_from_d">
+<option>DD<option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8
+<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16
+<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24
+<option>25<option>26<option>27<option>28<option>29<option>30<option>31
+</select></td>
+<td><select name="notify_date_from_y"><option>Year<option>1999<option>2000<option>2001<option>2002<option>2003<option>2004<option>2005<option>2006<option>2007<option>2008<option>2009<option>2010<option>2011<option>2012<option>2013<option>2014<option>2015<option>2016<option>2017<option>2018<option>2019<option>2020</select></td>
+
+<td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+
+<td>&nbsp;To</td><td><select name="notify_date_to_m"><option>Mon<option>Jan<option>Feb<option>Mar<option>Apr<option>May<option>Jun<option>Jul<option>Aug<option>Sep<option>Oct<option>Nov<option>Dec</select></td>
+<td><select  name="notify_date_to_d">
+<option>DD<option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8
+<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16
+<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24
+<option>25<option>26<option>27<option>28<option>29<option>30<option>31
+</select></td>
+
+<td><select name="notify_date_to_y"><option>Year<option>1999<option>2000<option>2001<option>2002<option>2003<option>2004<option>2005<option>2006<option>2007<option>2008<option>2009<option>2010<option>2011<option>2012<option>2013<option>2014<option>2015<option>2016<option>2017<option>2018<option>2019<option>2020</select></td>
+</tr>
+</table>
+
+</td>
+</tr>
+
+<tr class="alt2">
+<td><input type="checkbox" name="mail_date"><a href="op_olist.html#Mail_Date">Data Mail Date</a></td>
+
+<td class="col"><i>Col.#</i><select name="mail_date_col"><option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16<option>17<option>18<option>19<option>20<option>21<option>22<option >23<option  selected>24<option>25<option>26<option>27<option>28<option>29<option >30<option>31<option>32</select></td>
+
+<td>&nbsp;
+</td>
+</tr>
+<tr class="alt1">
+<td><input type="checkbox" name="ocat_status"><a href="op_olist.html#OCat_status " >OCat Status</a></td>
+
+<td class="col"><i>Col.#</i><select name="ocat_status_col"><option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option >24<option  selected>25<option>26<option>27<option>28<option>29<option>30<option >31<option>32</select></td>
+
+<td>&nbsp;</td>
+</tr>
+
+<tr class="alt2">
+<td><input type="checkbox" name="ingested"><a href="op_olist.html#Ingested" >Ingested</a></td>
+
+<td class="col"><i>Col.#</i><select name="ingested_col"><option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option >24<option >25<option  selected>26<option>27<option>28<option>29<option>30<option >31<option>32</select></td>
+
+<td>&nbsp;</td>
+</tr>
+
+<tr class="alt1">
+<td ><input type="checkbox" name="pipe_conf"><a href="op_olist.html#Pipe_Config" >Pipe. Config.</a></td>
+
+<td class="col"><i>Col.#</i><select name="pipe_conf_col"><option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8<option>9<option>10<option>11<option>12<option>13<option>14<option >15<option>16<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24<option >25<option >26<option  selected>27<option>28<option>29<option>30<option>31<option>32</select></td>
+
+<td>&nbsp; </td>
+</tr>
+
+
+
+<tr class="alt2">
+<td><input type="checkbox" name="datamode"><a href="op_olist.html#DataMode " >DataMode</a></td>
+
+<td class="col"><i>Col.#</i><select name="datamod_col"><option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16<option>17<option>18<option>19<option>20<option>21<option>22<option >23<option>24<option>25<option >26<option >27<option  selected>28<option>29<option>30<option>31<option>32</select></td>
+
+<td>&nbsp;</td>
+</tr>
+
+<tr class="alt1">
+<td><input type="checkbox" name="readmode"><a href="op_olist.html#ReadMode" >ReadMode</a></td>
+
+<td class="col"><i>Col.#</i><select name="readmode_col"><option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24<option >25<option>26<option >27<option >28<option  selected>29<option>30<option>31<option>32</select></td>
+
+<td ALIGN=CENTER>&nbsp; </td>
+</tr>
+
+<tr class="alt2">
+<td><input type="checkbox" name="approved_exp_time"><a href="op_olist.html#Appr_Time_(ks)" >Approved_Exp_Time</a></td>
+
+<td class="col"><i>Col.#</i><select name="approved_exp_time_col"><option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24<option>25<option>26<option >27<option >28<option >29<option  selected>30<option>31<option>32</select></td>
+
+<td>&nbsp;</td>
+</tr>
+
+<tr  class="alt1">
+<td><input type="checkbox" name="data_rights"><a href="op_olist.html#Data_Rights " >Data Rights</a></td>
+<td class="col"><i>Col.#</i><select name="data_rights_col"><option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24<option>25<option>26<option>27<option >28<option >29<option >30<option  selected>31<option>32</select></td>
+
+<td>&nbsp;</td>
+</tr>
+
+<tr class="alt2">
+<td><input type="checkbox" name="issues"><a href="op_olist.html#issues ">Issues</a></td>
+
+
+
+<td class="col"><i>Col.#</i><select name="issues_col"><option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24<option>25<option>26<option>27<option>28<option>29<option>30<option >31<option selected>32</select></td>
+
+<td>
+<table class="noborder"  >
+<tr>
+<td><input type="checkbox" name="issue_all" checked><i> All ObsIds</i></td>
+<td><input type="checkbox" name="issue_none"><i> None</i></td>
+<td><input type="checkbox" name="issue_open"><i> Open</i></td>
+<td><input type="checkbox" name="issue_resolved"><i> Resolved</i></td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+
+<p><b>Order by:</b>
+<br><b>You can order (sort) output table by
+categories below</b>
+
+<table  class="hdr">
+<tr align="center">
+<td><select class="select" name="order_one"><option>None<option selected>ObsID<option>Sequence<option>Obs Date<option>RA<option>DEC<option>Instrument<option>Grating</select></td>
+<td><select class="select" name="order_two"><option selected>None<option>ObsID<option>Sequence<option>Obs Date<option>RA<option>DEC<option>Instrument<option>Grating</select></td>
+<td><select class="select" name="order_three"><option selected>None<option>ObsID<option>Sequence<option> Obs Date<option>RA<option>DEC<option>Instrument<option>Grating</select></td>
+</tr>
+</table>
+<p>
+<b> Output format</b>
+<table class="hdr">
+<tr><td align=center><input type="radio" name="tab_del" value="HTML" checked>HTML</td>
+<td align=center><input type="radio" name="tab_del" value="Tab-delimited">Tab-delimited</td>
+<td align=center><input type="radio" name="tab_del" value="ASCII">ASCII</td>
+<td align=center><input type="radio" name="tab_del" value="RDB">RDB</td></tr>
+</table>
+<p>
+<div class="btnDiv">
+<input type="submit" value="Submit">&nbsp;&nbsp;&nbsp;&nbsp;
+<input type="reset" value="Reset">
+</div>
+</center>
+<p></form>
+</div>
+
+</body>
+</html>

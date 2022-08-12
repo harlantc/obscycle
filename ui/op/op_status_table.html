@@ -1,0 +1,257 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<!--#include virtual="op_header.html"-->
+<div id="tophdr" class="tophdr">
+<div id="imghdr" class="imghdr">
+<img src="/soft/include/header_left.gif" alt=" " border="0" >
+</div>
+<div id="titlehdr" class="titlehdr">
+Standard Status Tables&nbsp;&nbsp;&nbsp;
+</div>
+<div id="helphdr" class="helphdr">
+<a href="op_ghelp.html">Help page</a>
+</div>
+</div>
+
+<form method=post action="/cgi-bin/op/op_status_table.cgi" >
+<center>
+<table class="plain" >
+<tr class="header2">
+<th align="center">Data&nbsp;Field</th>
+<th align="center">Selection Criteria</th>
+</tr>
+<tr class="alt1" >
+<td height="50"  ><a href="op_olist.html#ObsId ">ObsId</a></td>
+<td>
+<table class="noborder">
+<tr class="noborder">
+<td class="noborder">From:&nbsp;<input type="text" name="obsid_from" size=6 maxlength=6></td>
+<td class="noborder">&nbsp;&nbsp;To:&nbsp;<input type="text" name="obsid_to" size=6 maxlength=6></td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td height="50" ><a href="op_olist.html#SeqNum ">SeqNum </a></td>
+<td>
+<table class="noborder">
+<tr class="alt2">
+<td>From:&nbsp;<input type="text" name="seq_from" size=6 maxlength=10></td>
+<td>&nbsp;&nbsp;To:&nbsp;<input type="text" name="seq_to" size=6 maxlength=10></td>
+</tr>
+</table>
+</td>
+</tr>
+
+<tr class="alt1" valign="middle" >
+<td height="40" ><a href="op_olist.html#Obs_Start ">Obs Date</a></td>
+<td height="40" valign="middle" align="center">
+<table class="noborder">
+<tr>
+<td><i>Include NULLs</i> <input type="checkbox" checked name="date_obs_null"></td>
+<td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+<td>From</td><td><select name="date_obs_from_m"><option>Mon<option>Jan<option>Feb<option>Mar<option>Apr<option>May<option>Jun<option>Jul<option>Aug<option>Sep<option>Oct<option>Nov<option>Dec</select></td>
+<td><select  name="date_obs_from_d">
+<option>DD<option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8
+<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16
+<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24
+<option>25<option>26<option>27<option>28<option>29<option>30<option>31
+</select></td>
+<td><select name="date_obs_from_y"><option>Year<option>1999<option>2000<option>2001<option>2002<option>2003<option>2004<option>2005<option>2006<option>2007<option>2008<option>2009<option>2010<option>2011<option>2012<option>2013<option>2014<option>2015<option>2016<option>2017<option>2018<option>2019<option>2020</select></td>
+
+<td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+
+<td>&nbsp;To</td><td><select name="date_obs_to_m"><option>Mon<option>Jan<option>Feb<option>Mar<option>Apr<option>May<option>Jun<option>Jul<option>Aug<option>Sep<option>Oct<option>Nov<option>Dec</select></td>
+<td><select  name="date_obs_to_d">
+<option>DD<option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8
+<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16
+<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24
+<option>25<option>26<option>27<option>28<option>29<option>30<option>31
+</select></td>
+
+<td><select name="date_obs_to_y"><option>Year<option>1999<option>2000<option>2001<option>2002<option>2003<option>2004<option>2005<option>2006<option>2007<option>2008<option>2009<option>2010<option>2011<option>2012<option>2013<option>2014<option>2015<option>2016<option>2017<option>2018<option>2019<option>2020</select></td>
+</tr>
+</table>
+
+
+</td>
+</tr>
+
+<tr class="alt2">
+<td height="50" ><a href="op_olist.html#RA ">RA</a></td>
+
+<td>
+<table class="noborder" >
+<tr>
+<td>From:&nbsp;<input type="text" name="ra_from" size=8 maxlength=15></td>
+<td>&nbsp;&nbsp;To:&nbsp;<input type="text" name="ra_to" size=8 maxlength=15></td>
+</tr>
+</table>
+</td>
+</tr>
+
+<tr class="alt1" >
+<td height="50" ><a href="op_olist.html#Dec ">Dec</a></td>
+
+<td>
+<table class="noborder" >
+<tr >
+<td>From:&nbsp;<input type="text" name="dec_from" size=8 maxlength=15></td>
+
+<td>&nbsp;&nbsp;To:&nbsp;<input type="text" name="dec_to" size=8 maxlength=15></td>
+</tr>
+</table>
+</td>
+</tr>
+
+<tr  class="alt2">
+<td><a href="op_olist.html#Instrument ">Instrument</a></td>
+
+<td  valign="middle" height="50" >
+<input type="checkbox" name="instrument_acisi">ACIS-I&nbsp;&nbsp;&nbsp;&nbsp;
+<input type="checkbox" name="instrument_aciss">ACIS-S&nbsp;&nbsp;&nbsp;&nbsp;
+<input type="checkbox" name="instrument_hrci">HRC-I&nbsp;&nbsp;&nbsp;&nbsp;
+<input type="checkbox" name="instrument_hrcs">HRC-S&nbsp;&nbsp;&nbsp;&nbsp;
+</td>
+</tr>
+
+<tr class="alt1"  >
+<td valign="middle" height="50" ><a href="op_olist.html#Grating ">Grating</a></td>
+
+<td>
+<table class="noborder">
+<tr>
+<td><input type="checkbox" name="grating_none"><i>None</i></td>
+
+<td><input type="checkbox" name="grating_hetg"><i>HETG</i></td>
+
+<td><input type="checkbox" name="grating_letg"><i>LETG</i></td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="alt2"  >
+<td valign="middle" height="50" ><a href="op_olist.html#Type ">Type</a></td>
+
+<td>
+<table class="noborder" >
+<tr>
+<td><input type="checkbox" name="type_go"><i>GO</i>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+<td><input type="checkbox" name="type_gto"><i>GTO</i>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+<td><input type="checkbox" name="type_too"><i>TOO</i>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+<td><input type="checkbox" name="type_ddt"><i>DDT</i>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+<td><input type="checkbox" name="type_cct"><i>CCT</i>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+<td><input type="checkbox" name="type_cal"><i>CAL&nbsp;&nbsp;&nbsp;&nbsp;</i></td>
+<td><input type="checkbox" name="type_er"><i>ER</i>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+</tr>
+</table>
+</td>
+</tr>
+
+<tr  class="alt1" valign="middle" >
+<td height="40" ><a href="op_olist.html#DD_Date "> DD Date</a></td>
+
+<td height="40" valign="middle" align="center">
+
+<table class="noborder">
+<tr>
+<td><i><b>Only</b> NULLs</i> <input type="checkbox" name="notify_date_null"></td>
+<td>&nbsp;&nbsp;--<i>or</i>--&nbsp;&nbsp;&nbsp;&nbsp;</td>
+<td>From</td><td><select name="notify_date_from_m"><option>Mon<option>Jan<option>Feb<option>Mar<option>Apr<option>May<option>Jun<option>Jul<option>Aug<option>Sep<option>Oct<option>Nov<option>Dec</select></td>
+<td><select  name="notify_date_from_d">
+<option>DD<option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8
+<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16
+<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24
+<option>25<option>26<option>27<option>28<option>29<option>30<option>31
+</select></td>
+<td><select name="notify_date_from_y"><option>Year<option>1999<option>2000<option>2001<option>2002<option>2003<option>2004<option>2005<option>2006<option>2007<option>2008<option>2009<option>2010<option>2011<option>2012<option>2013<option>2014<option>2015<option>2016<option>2017<option>2018<option>2019<option>2020</select></td>
+
+<td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+
+<td>&nbsp;To</td><td><select name="notify_date_to_m"><option>Mon<option>Jan<option>Feb<option>Mar<option>Apr<option>May<option>Jun<option>Jul<option>Aug<option>Sep<option>Oct<option>Nov<option>Dec</select></td>
+<td><select  name="notify_date_to_d">
+<option>DD<option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8
+<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16
+<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24
+<option>25<option>26<option>27<option>28<option>29<option>30<option>31
+</select></td>
+
+<td><select name="notify_date_to_y"><option>Year<option>1999<option>2000<option>2001<option>2002<option>2003<option>2004<option>2005<option>2006<option>2007<option>2008<option>2009<option>2010<option>2011<option>2012<option>2013<option>2014<option>2015<option>2016<option>2017<option>2018<option>2019<option>2020</select></td>
+</tr>
+</table>
+
+</td>
+</tr>
+
+
+
+<tr class="alt2" >
+<td height="50" ><a href="op_olist.html#issues ">Issues </a></td>
+
+<td>
+<table class="noborder">
+<tr>
+<td><input type="checkbox" name="issue_all" checked><i>All ObsIds&nbsp;&nbsp;&nbsp;&nbsp;</i></td>
+<td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+<td><input type="checkbox" name="issue_none"><i>None</i>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+<td><input type="checkbox" name="issue_open"><i>Open</i>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+<td><input type="checkbox" name="issue_resolved"><i>Resolved</i>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+</center>
+<center>
+
+<p><b>Order by:</b>
+<br><b>You can order (sort) output table by categories below</b>
+
+<table class="hdr" >
+<tr align="center">
+<td><select class="select" name="order_one"><option>None<option selected>ObsID<option>Sequence<option>Obs
+Date<option>RA<option>DEC<option>Instrument<option>Grating</select></td>
+
+<td><select class="select" name="order_two"><option selected>None<option>ObsID<option>Sequence<option>Obs
+Date<option>RA<option>DEC<option>Instrument<option>Grating</select></td>
+
+<td><select class="select" name="order_three"><option selected>None<option>ObsID<option>Sequence<option>Obs
+Date<option>RA<option>DEC<option>Instrument<option>Grating</select></td>
+</tr>
+</table>
+</center>
+
+<p>
+
+<center> 
+<b><a href="op_olist.html">Predefined Output List</a></b>
+<table class="hdr" >
+<tr>
+<td><input type="radio" name="out" value="short" checked>&nbsp;Short Rep.</td>
+<td><input type="radio" name="out" value="long">&nbsp;&nbsp;Long Rep.</td>
+<td><input type="radio" name="out" value="eds">&nbsp;&nbsp;Dates Rep.</td>
+<td><input type="radio" name="out" value="fred">&nbsp;&nbsp;Summary Rep.</td>
+</tr>
+</table></center>
+<p>
+<center>
+<br><b> Output format</b>
+<table class="hdr" >
+<tr><td align=center><input type="radio" name="tab_del" value="HTML" checked>HTML</td>
+<td align=center><input type="radio" name="tab_del" value="Tab-delimited">Tab-delimited</td>
+<td align=center><input type="radio" name="tab_del" value="ASCII">ASCII</td>
+<td align=center><input type="radio" name="tab_del" value="RDB">RDB</td></tr>
+</table>
+
+<p>
+<div class="btnDiv">
+<input type="submit" value="Submit">&nbsp;&nbsp;&nbsp;&nbsp;
+<input type="reset" value="Reset">
+</div>
+</center>
+</form>
+
+</div>
+
+</body>
+</html>

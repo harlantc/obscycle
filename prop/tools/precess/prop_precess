@@ -1,0 +1,18 @@
+#!/bin/sh
+#_SH_INSERT_SAO_COPYRIGHT_HERE_(1997-2008,2012)_
+#_SH_INSERT_GPL_LICENSE_HERE_
+
+if [ "$ASCDS_PROP_PREC_DATA" = "" ]
+then
+    # 11/8/2012:  echo "ASCDS_PROP_PREC_DATA is not set;"
+    ASCDS_PROP_PREC_DATA="$ASCDS_INSTALL/config/jcm_data"
+    # 11/8/2012:  echo "  default assignment to $ASCDS_INSTALL/config/jcm_data has been made."
+fi
+
+JCMPATH=$ASCDS_PROP_PREC_DATA
+export JCMPATH
+
+# 11/8/2012:  echo "ASCDS_PROP_PREC_DATA (for constellations) ="
+# 11/8/2012:  echo "  $ASCDS_PROP_PREC_DATA"
+
+prop_precess_exe $*

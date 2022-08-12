@@ -1,0 +1,15 @@
+ Name         Short explanation
+RSQ60         Raymond-Smith, logT=6.0 (kT=0.086 keV), abundance 0.25 Solar
+RSQ62         Raymond-Smith, logT=6.2 (kT=0.137 keV), abundance 0.25 Solar
+RSQ64         Raymond-Smith, logT=6.4 (kT=0.216 keV), abundance 0.25 Solar
+RSQ66         Raymond-Smith, logT=6.6 (kT=0.343 keV), abundance 0.25 Solar
+RSQ68         Raymond-Smith, logT=6.8 (kT=0.544 keV), abundance 0.25 Solar
+RSQ70         Raymond-Smith, logT=7.0 (kT=0.862 keV), abundance 0.25 Solar
+RSQ72         Raymond-Smith, logT=7.2 (kT=1.366 keV), abundance 0.25 Solar
+RSQ74         Raymond-Smith, logT=7.4 (kT=2.165 keV), abundance 0.25 Solar
+RSQ76         Raymond-Smith, logT=7.6 (kT=3.431 keV), abundance 0.25 Solar
+RSQ79         Raymond-Smith, logT=7.9 (kT=6.845 keV), abundance 0.25 Solar
+RSQ82         Raymond-Smith, logT=8.2 (kT=13.66 keV), abundance 0.25 Solar
+RSQ85         Raymond-Smith, logT=8.5 (kT=27.25 keV), abundance 0.25 Solar
+
+RSnn_mmm      8000 line Raymond-Smith, logT=m.mm, abundance n.n Solar

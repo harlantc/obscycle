@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE cxchelptopics SYSTEM "/data/udoc2/xml/CXCHelp.dtd"    []>
+   <cxchelptopics>
+   <ENTRY key="RPS" context="proposaltools" refkeywords="proposal submission"
+seealsogroups="colden dates pimms precess">
+   <SYNOPSIS>
+ Remote Proposal Submission (RPS) is for the electronic submission of
+Chandra proposals.  This includes observation requests for the NRA
+cycle, requests to observe a TOO already approved during an NRA,  new
+out-of_cycle TOOs, Director's Discretionary Time, and Chandra cost proposals.
+   </SYNOPSIS>
+   
+<DESC>
+<PARA>
+RPS is available in two forms;  there is a WWW version (requiring a
+browser that supports frames), and there is an email server.  The WWW
+version is accessed through the Proposers section of the CXC web
+page (http://cxc.harvard.edu/proposer). Instructions for using the
+email server can be received by sending an email message to
+rps@head.cfa.harvard.edu with the following lines in the message:
+</PARA>  
+<VERBATIM>
+  &lt;BEGIN&gt;
+  &lt;OPTION=HELP&gt;
+  &lt;END&gt;
+</VERBATIM>
+
+<PARA title="WWW Version of RPS"> </PARA>
+<PARA>
+Please note that RPS is stateless, so any work must be saved by the
+user. Nothing is done with input until one of the action buttons is
+pushed. Be certain to save your form entries often. You can save the 
+html file to your local disk using the RPS Save button and then
+reload it either using the browser 'File->Open' capability or the
+'Reload' button on the RPS form for older browsers.
+</PARA>
+<PARA>
+The WWW version consists of the Cover Page, General Form, and Target
+Form.  The blue triangles (left side of first RPS page) toggle between a
+collapsed page (the initial appearance) and an expanded page. If you
+have several targets, RPS will work faster if you keep only one target
+at a time expanded. Depending on the speed of your internet connection,
+you may want to consider using the e-mail version if you have several 
+targets.
+</PARA>
+<PARA> There are also several action buttons at the top of the page, these
+are:</PARA>
+<PARA>	Add Target - Target adding and Cloning Form </PARA>
+ <PARA>     Delete Target - remove a target form - must have set
+'delete target' flag at top of the form of the target to be deleted
+(note the target numbers will appear to be wrong after a target is
+deleted: the processor WILL correct this when the LaTeX form is
+generated) </PARA> 
+<PARA>        Feedback - opens a sub-window for sending comments,
+complaints, etc. to Chandra X-Ray Center.</PARA>  
+<PARA>        LaTeX - obtain the LaTeX version; save after receipt
+(blank forms may be obtained by using the LaTeX button BEFORE entering
+any information into the form)</PARA>  
+<PARA>        PDF - obtain the PDF version; save after receipt </PARA>
+<PARA>        Re-load - Reload previously saved HTML form (only available for 
+older browsers)</PARA>
+<PARA>        Save - save the values entered in the form boxes as HTML </PARA>
+<PARA>        Submit - submit the electronic version to the proposal
+database - this should be used as the next-to-LAST step. The submit
+button  will not appear on the form until after the proposal has been 'verified' successfully.</PARA> 
+<PARA>        Upload Science Justification- submit the science justification 
+(PDF file). The user should *not* upload the justification until the forms
+have been  submitted. A proposal number is returned with the
+acknowledgment of receipt of the forms. That proposal number is used
+to put the justification and the forms into one PDF file for printing at CXC. </PARA>
+<PARA>        Verify - send the electronic version for verification 
+</PARA>
+<PARA>
+After all proposal data are entered into the three form sections, the
+data need to be verified for completeness and accuracy.  Use the
+VERIFY button on the RPS form.  Save the verified proposal to a local
+disk, using the SAVE button. Use the LaTeX button to generate a LaTeX
+file.  
+</PARA>
+<PARA>
+Once the form is saved and a PDF science justification has been
+created, use the SUBMIT button to submit the proposal to the CXC.
+This should be done only once per proposal.  Then UPLOAD SCIENCE JUSTIFICATION 
+PDF version by providing the full path name to the file when requested by RPS.
+</PARA>
+<PARA>There are links to help for each parameter in the form.  Generic help
+is also available at the top of the page.  Note there are different
+versions of RPS for Cost proposals, DDT and TOOs, these are also available
+through the Proposer section of the CXC web pages.</PARA>
+
+
+
+
+</DESC>
+
+
+<VERSION>
+Chandra RPS(Cycle 9) 
+</VERSION>
+<LASTMODIFIED>
+October 2006
+</LASTMODIFIED>
+</ENTRY>
+</cxchelptopics>
+   

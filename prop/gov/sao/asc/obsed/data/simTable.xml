@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE table SYSTEM "table.dtd">
+
+<table name="sim" key="obsid">
+  <column name="obsid">
+    <type>INTEGER</type>
+    <tooltip>Observation Identifier</tooltip>
+  </column>
+  <column name="trans_offset">
+    <type>DOUBLE</type>
+    <tooltip>SIM Translation Offset (mm)</tooltip>
+    <number>
+      <maximum>126.621</maximum>
+      <minimum>-190.5</minimum>
+    </number>
+  </column>
+  <column name="focus_offset">
+    <type>DOUBLE</type>
+    <tooltip>SIM Focus Offset (mm)</tooltip>
+  </column>
+</table>

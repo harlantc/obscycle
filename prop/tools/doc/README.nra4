@@ -1,0 +1,207 @@
+   ******************************************************************
+   Copyright (c) 2001   Smithsonian  Astrophysical  Observatory
+   The contents of this file are protected under the copyright notice
+   contained in the file  COPYRIGHT_SAO located in the root directory
+   of this distribution.
+   ******************************************************************
+
+-----------------------------------------------------------------------
+Chandra Portable Proposal Planning Command Line Interface (CLI) Toolkit 
+and Obsvis Distribution -- README.nra4 file
+-----------------------------------------------------------------------
+
+Introduction
+------------
+
+This README.nra4 file provides the installation instructions for the 
+Chandra Proposal Planning CLI Toolkit / ObsVis Distributions available 
+from the Chandra Web site and ftp site.  Please follow the BINARY steps 
+to install pre-built executables or the SOURCE steps to build and install 
+the executables.  
+
+The CALDB installation is a prerequisite to running the PIMMS Toolkit 
+application.  With use of either the BINARY or SOURCE distribution, please 
+see the file README_caldb<version>.txt available from the CIAO download page 
+(http://asc.harvard.edu/ciao/download_ciao_reg.html#caldb) for the CALDB 
+installation instructions.  
+
+
+Steps
+-----
+
+Create a directory for installation (or use an existing ciao installation
+directory):
+
+	> mkdir <install_root_dir>   
+	> cd <install_root_dir>
+
+
+Download the appropriate the tar files from the Web page or by anonymous ftp:
+
+   BINARY
+       nra4_bin_sun.tar.gz          Solaris binaries \
+       nra4_bin_linux.tar.gz        Linux binaries    | one of these
+       nra4_bin_alpha.tar.gz	    Alpha binaries   /
+
+   SOURCE
+       nra4_src.tar.gz              Source code and non-calibration data
+       nra4_ots_<system>.tar.gz     OTS, where system = sun, linux, or alpha
+
+
+Unpack the distribution:
+
+   BINARY
+        > gunzip nra4_bin_<system>.tar.gz
+	> tar xvf nra4_bin_<system>.tar
+
+   SOURCE
+        > gunzip nra4_src.tar.gz
+        > gunzip nra4_ots_<system>.tar.gz
+        > tar xvf nra4_src.tar
+        > tar xvf nra4_ots_<system>.tar
+
+
+Configure, build, and install the executables and data files:
+
+   SOURCE ONLY
+
+   To build ObsVis and the Toolkit (including the tools required for the
+   CALDB interface to obtain the PIMMS Effective Area data), please 
+   follow the steps which have been taken from the last published CIAO README 
+   [CIAO "README" file available from the CIAO Download page 
+   (http://asc.harvard.edu/ciao/download_ciao_reg.html)]
+   and slightly modified as appropriate.
+
+        - - - from the CIAO README, section III, plus modification - - - - -
+	
+        3) Run the GNU configure script as follows (except linux):
+
+	   > ./configure --with-comp --with-fits --with-iraf --with-iraflibs
+
+	   If you are building on linux we do not currently
+	   support qpoe files. This should be available in a future
+	   release. You need to issue the following command:
+
+	   > ./configure --with-comp --with-fits
+
+	   Note: This is valid on all platforms if you wish to compile
+		 without the iraf kernel.
+
+	3b) Other switches with configure.
+	    With this release of ciao our configure script has been
+	    upgraded to accept several option to assist your installation.
+	    The default described is the action the switch will take
+	    if =xxx is omitted.
+
+	    --with-opt=Ox  - set optimization to level x. Default O3
+	    --with-debug   - compile with -g (debug) switch
+	    --with-top=/<path> - set the location of $ASCDS_INSTALL
+			     (instead of using your current working
+			      directory. This switch is useful for
+			      installing to a read-only files system
+			      where the installer is NOT in the directory
+			      the users will see.)
+	    --with-tcltk=<path> - set the location to look for the Tcl/TK
+			      libraries and includes (lib and include
+			      directories). Default is /usr
+	    --with-tclver=x   Set the version of TclTk to use. Default
+			      is 8.3
+	    --with-lesstif=<dir> - set the location to look for Lesstif
+			      or Motif libraries and includes (lib and
+			      include) direcories. Default is 
+			      /usr/X11R6/LessTif (This is not needed 
+			      if the files are already in your search 
+			      paths as the standard Solaris installations)
+	    --x-libraries=<path> - Set the location of the X libraries.
+			      This is only needed if the automatic detection
+			      fails.
+	    --x-includes=<path> - Set the location of the X include files.
+			      This is only needed if the automatic detection
+			      fails.
+
+
+        4) {This step is a temporary fix not listed in the CIAO README.}
+          
+           > cp cxcconfig.h src/include
+           > cp cxcconfig.h include
+
+	5) > cd src
+
+	6) > make -k install >& ciao_log
+
+	   Note: The -k switch (to ignore errors) is needed to ignore
+	   problems building extraneous files.  A future release will
+	   correct this oversight.
+
+        7) > cd ..
+
+        - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
+Configure the scripts:
+
+   BINARY and SOURCE
+
+	> ./configure
+
+   Setup the per-login configuration by executing the appropriate one of the 
+   following.  The per-login configuration script will ensure, for each 
+   session in which it is run, that the installed executables and scripts 
+   are found and that any needed environment variables are set.  This step 
+   must be executed prior to each new session in order to properly setup 
+   the Chandra Release.
+
+   * c-shell, tc-shell users
+
+	> source <install_root_dir>/bin/ciao.csh
+
+   * korn shell users
+
+	> . <install_root_dir>/bin/ciao.ksh
+
+   * bash shell users
+
+	> . <install_root_dir>/bin/ciao.bash
+
+   * borne shell users
+
+	> . <install_root_dir>/bin/ciao.sh
+
+
+After the per-login configuration, the desired applications can be executed:
+
+  BINARY and SOURCE
+
+  To run ObsVis, please see the ObsVis Help File named "README.obsvis"
+  located in the top level <install_root_dir>.
+
+  The perl script prop_install_pimms_ea.pl must be executed once per CALDB
+  download in order to install the PIMMS Effective Area data required by 
+  PIMMS.  (Unfortunately if your system's perl distribution is not located
+  in /usr/bin/perl, you will need to edit the four prop*.pl scripts in the
+  bin directory to indicate your system's perl location.)
+
+  To run the script to install the PIMMS Effective Area data
+ 
+        > prop_install_pimms_ea.pl
+
+    The default installation area is <install_root_dir>/config/pimms/data 
+    for simplicity (PIMMS looks in one directory for all of the mission data).
+
+  To run a Toolkit application
+
+	> prop_<application_name>
+
+  The Toolkit Distribution contains six applications:  PIMMS, pileup, 
+  frametime, precess, colden, and dates, plus a CALDB interface.  The 
+  wrapper scripts are named prop_pimms, prop_pileup, prop_frametime, 
+  prop_precess, prop_colden, prop_dates, and prop_install_pimms_ea.pl.
+
+  The Chandra Proposer's Observatory Guide provides sample execution runs
+  for reference.
+
+
+For further help, please contact the CXC Help Desk, available from 
+http://asc.harvard.edu (see Help Desk link in page footer).
+
+-----------------------------------------------------------------------

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE table SYSTEM "table.dtd">
+
+<table name="too" key="tooid">
+  <column name="tooid">
+    <type>CHOICE</type>
+    <tooltip>Unique identifier for TOO table</tooltip>
+  </column>
+  <column name="type">
+    <type>CHOICE</type>
+    <tooltip>TOO response type </tooltip>
+  </column>
+  <column name="start">
+    <type>DOUBLE</type>
+    <tooltip>Exact CXC response start time (days)</tooltip>
+    <number>
+      <maximum>360.0</maximum>
+      <minimum>0.0</minimum>
+    </number>
+  </column>
+  <column name="stop">
+    <type>DOUBLE</type>
+    <tooltip>Exact CXC response stop time (days)</tooltip>
+    <number>
+      <maximum>360.0</maximum>
+      <minimum>0.0</minimum>
+    </number>
+  </column>
+  <column name="alt_group_name">
+    <type>STRING</type>
+    <tooltip>Alternate target group name </tooltip>
+  </column>
+  <column name="alt_approved_cnt">
+    <type>INTEGER</type>
+    <tooltip>TOO Alternate target group approved trigger count</tooltip>
+  </column>
+  <column name="trig">
+    <type>STRING</type>
+    <tooltip>TOO Trigger Criteria</tooltip>
+  </column>
+  <column name="remarks">
+    <type>STRING</type>
+    <tooltip>TOO follow-up instructions</tooltip>
+  </column>
+  <column name="followup">
+    <type>INTEGER</type>
+    <tooltip>TOO number of followup observations</tooltip>
+  </column>
+</table>

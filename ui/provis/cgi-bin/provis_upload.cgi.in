@@ -1,0 +1,120 @@
+#!@PERLDB@
+
+
+#-wT
+
+# _INSERT_SAO_COPYRIGHT_HERE_(2008,2009)_
+# _INSERT_GPL_LICENSE_HERE_
+
+
+#use strict;
+use CGI;
+use CGI::Carp qw ( fatalsToBrowser );
+use File::Basename;
+
+$CGI::POST_MAX = 1024 * 5000;
+
+our %Global;
+do "./provis_config.cgi";
+
+END
+{
+    Cleanup();
+}
+
+sub Cleanup 
+{
+    if ( -e "$main::upload_dir/${main::filename}.tmp" )
+    {
+#	unlink "$main::upload_dir/${main::filename}.${main::clientcount}";
+	unlink "$main::upload_dir/${main::filename}.tmp";
+	
+    }
+}
+
+$SIG{INT} = sub { Cleanup(); };
+$SIG{QUIT} = sub { Cleanup(); };
+$SIG{TERM} = sub { Cleanup(); };
+$SIG{ABRT} = sub { Cleanup(); };
+
+
+my $safe_filename_characters = "a-zA-Z0-9_.-";
+my $upload_dir = "$Global{'uploaddir'}";
+my $http_dir= "$Global{'web_server'}/$Global{'htdocsdir'}";
+my $query = new CGI;
+my $filename = $query->param("sessionid");
+my $clientcount = $query->param("clientcount");
+my $status=1;
+
+
+if ( !$filename )
+{
+ print $query->header ( );
+ $status = 0;
+}
+else
+{
+    my ( $name, $path, $extension ) = fileparse ( $filename, '\..*' );
+    $filename = $name . $extension;
+    $filename =~ tr/ /_/;
+    $filename =~ s/[^$safe_filename_characters]//g;
+    
+    if ( $filename =~ /^([$safe_filename_characters]+)$/ )
+    {
+	$filename = $1;
+
+    
+	my $upload_filehandle = $query->upload("calfile");
+	
+	if ( open ( UPLOADFILE, ">$upload_dir/${filename}.tmp" ) )
+	{
+	    binmode UPLOADFILE;
+	    
+	    while ( <$upload_filehandle> )
+	    {
+		print UPLOADFILE;
+	    }
+	    
+	    close UPLOADFILE;
+	    if ( -s "$upload_dir/${filename}.tmp" )
+	    {
+		rename("$upload_dir/${filename}.tmp","$upload_dir/${filename}.cal"); 
+		$status=1;
+	    }
+	    else
+	    {
+		unlink("$upload_dir/${filename}.tmp");
+		$status=0;
+	    }
+	 }
+	else
+	 {
+	     $status=0;
+	 }   
+    }
+    else
+    {
+	$status=0;
+	
+    }
+    
+}
+if ( $status == 1 )
+{
+    open (DELETELOCKFILE, ">$upload_dir/${filename}.cal.${clientcount}" );
+    close(DELETELOCKFILE);
+};
+
+print $query->header ( );
+print <<END_BLOCK
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN">
+<html>
+<head>
+<meta HTTP-EQUIV="CONTENT-TYPE" CONTENT="TEXT/HTML; CHARSET=ISO-8859-1">
+<title>Provis Upload</title> 
+</head>
+<body>$status</body>
+</html>
+END_BLOCK
+
+

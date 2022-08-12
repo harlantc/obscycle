@@ -1,0 +1,65 @@
+#!@PERL@ 
+use Cwd qw( abs_path );
+use File::Basename qw( dirname );
+use lib dirname(abs_path($0));
+
+require 'prop_ea_ao.pl';
+
+1;
+
+# prop_viewer_create_title.cgi
+# Generic script
+# MAIN:
+sub prop_viewer_create_title
+{
+  my($inputParamList) = @_;
+ 
+  #Determine if there were any input parameters
+  #$inputParamList = $ENV{'QUERY_STRING'};
+  @inputParamArray = split(/,/,$inputParamList);
+  $type = $inputParamArray[0];
+
+
+  $unknownType = 0;
+  if($type eq "ea") {
+    $titleType = qq(<a target="_top" href="http://cxc.harvard.edu/caldb/prop_plan/pimms/pimms.html">PIMMS Effective Area Data</a>: );
+    $titleData = $inputParamArray[1];
+    $ao1 = $inputParamArray[2];
+    $ao2 = $inputParamArray[3];
+
+    $extraText = qq(Please note that if only one curve appears on the plot, curves for different cycles may overlap. );
+
+  } elsif($type eq "psf") {
+    $titleType = "Chandra PSF Data";
+    #$titleData = $inputParamArray[1];
+    $titleData = ""; # until other data is available
+    $extraText = "The point spread function (PSF) is characterized by the radius which 
+encircles a specified fraction of the total counts (the encircled 
+counts fraction or ECF).  The ECF data shown here are for
+HRC-I.  The maximum deviation on other detectors from 
+these HRC-I ECF values is expected to be about 20%.";
+
+
+  } else {
+    $unknownType = 1;
+  }
+
+  if($unknownType != 1) {
+
+    #Please resize your frames to see all the data.
+    print STDOUT "Content-type: text/html", "\n\n";
+    print STDOUT <<End_of_Page;
+<table border="0" width="100%" cellpadding="0" cellspacing="0" >
+<tr>
+<td align="left" valign="top">
+<a href="/" target="_top"><img src="/soft/include/header_left.gif" border="0" alt="CXC Home Page" ></a>
+</td>
+<td>&nbsp;&nbsp;<b><font size="+2"> $titleType $titleData </b></font>
+</td>
+</tr>
+</table>
+<font size="-1">$extraText</font>
+End_of_Page
+  }
+}
+

@@ -1,0 +1,266 @@
+#!@PERLDB@
+#*H************************************************************************
+#* Copyright (c) 2013,2019 Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: pi_coi.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script retrieve PI/COI info per panel
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H************************************************************************
+
+
+BEGIN 
+{
+   $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use vars qw ($dbh  %param
+        );
+
+use DBI;
+use Getopt::Long;
+
+sub catch_warn {
+  my ($estr);
+  my($signame);
+
+  while ( $signame = shift) {
+     print "$signame\n";
+  }
+}
+# -------------------------- MAIN ----------------------------------
+{
+  my($dsn,$stmp,$idx,$person,$delim);
+
+  $SIG{__WARN__} = \&catch_warn;
+
+
+  &parse_input;
+
+  open OFILE,"> $param{o}" or die "Unable to open $param{o} for writing.\n";
+  open MFILE,"> $param{o}.email" or die "Unable to open $param{o}.email for writing.\n";
+
+
+  #database connection
+  $stmp = "server=$param{S};database=proposal";
+  $dsn = "DBI:Sybase:$stmp";
+  $dbh = DBI->connect($dsn, $param{U}, $param{q}, {
+        AutoCommit => 1,
+        PrintError => 1,
+       RaiseError => 0});
+  if ( !defined $dbh) {
+    exit 1;
+  }
+  if ($param{l}) {
+    $person = qq((last  + "," + convert(char(1),first) + "  " + institution));
+    $delim="\n";
+  } else  {
+    $person = qq((last  + "," + convert(char(1),first)));
+    $delim="  ";
+  }
+
+  %COIS;
+  if ($param{p} !~ /BPP/i) {
+    $str = qq(select distinct proposal_number,$person 
+	from proposal , axafusers..person_short ps,coin,panel_proposal,panel
+        where proposal.proposal_id = coin.proposal_id
+        and coin.pers_id = ps.pers_id
+	and proposal.proposal_id = panel_proposal.proposal_id
+	and panel_proposal.panel_id = panel.panel_id
+        and ao_str = "$param{a}"
+        and panel_name = "$param{p}"
+	order by coin_number);
+  } else {
+    $str = qq(select distinct proposal_number,$person
+	from proposal , axafusers..person_short ps,coin,panel_proposal
+        where proposal.proposal_id = coin.proposal_id
+	and proposal.proposal_id = panel_proposal.proposal_id
+        and coin.pers_id = ps.pers_id
+        and ao_str = "$param{a}"
+	and (type like "%LP%" or type like "%XVP%")
+	order by coin_number);
+  }
+  if ($param{v}) { print STDERR "$str\n"; }
+  $sth = $dbh->prepare($str);
+  $sth->execute() or die ($sth->errstr());
+  while (@row = $sth->fetchrow_array) {
+ 
+	$COIS{$row[0]} .= $row[1] . $delim;
+  }
+
+  if ($param{p} !~ /BPP/i) {
+    $str = qq( select proposal_number,title,$person,abstract
+        from proposal , axafusers..person_short,panel_proposal,panel
+        where piid = pers_id
+	and proposal.proposal_id = panel_proposal.proposal_id
+	and panel_proposal.panel_id = panel.panel_id
+	and ao_str = "$param{a}"
+        and panel_name = "$param{p}"
+        order by proposal_number);
+  } else {
+    $str = qq( select proposal_number,title,$person, abstract 
+	from proposal , axafusers..person_short,panel_proposal
+        where piid = pers_id
+	and proposal.proposal_id = panel_proposal.proposal_id
+	and ao_str = "$param{a}"
+	and (type like "%LP%" or type like "%XVP%")
+        order by proposal_number);
+  }
+
+  if ($param{v}) { print STDERR "$str\n"; }
+  $sth = $dbh->prepare($str);
+  $pno = 0;
+  $sth->execute() or die ($sth->errstr());
+  while (@row = $sth->fetchrow_array) {
+    if ($pno !~ /$row[0]/ ) {
+	printf OFILE "\nProposal: $row[0]\n";
+	printf OFILE "Title: $row[1]\n";
+	printf OFILE "PI: $row[2]\n";
+        printf OFILE "CoIs: %s\n",$COIS{$row[0]};
+	print OFILE "Abstract: $row[3]\n" if ($param{l});
+        $pno = $row[0];
+    }
+  }
+  $sth->finish;
+  close OFILE;
+  chmod (0660,"$param{o}");
+  
+  my($tostr) = "";
+  if ($param{p} !~ /BPP/i) {
+    $str = qq( select email,member_type from
+        axafusers..person_short ps,panel_member,panel,ao
+        where panel_member.pers_id= ps.pers_id
+	and panel_member.panel_id = panel.panel_id
+        and ao_str = "$param{a}"
+	and panel.ao = ao.ao_id
+        and panel_name = "$param{p}"
+        order by member_type,email);
+  } else {
+    $str = qq( select email,member_type from
+        axafusers..person_short ps,panel_member,panel,ao
+        where panel_member.pers_id= ps.pers_id
+	and panel_member.panel_id = panel.panel_id
+        and ao_str = "$param{a}"
+	and panel.ao = ao.ao_id
+        and member_type like "%Pundit%"
+        order by member_type,email);
+  } 
+  if ($param{v}) { print STDERR "$str\n"; }
+  $sth = $dbh->prepare($str);
+  $sth->execute() or die ($sth->errstr());
+  
+  print MFILE qq(/home/ascds/DS.release/ots/bin/mailx -r cxoreview\@head.cfa.harvard.edu -s "Chandra Co-Is for Panel $param{p}"  -b );
+  $idx=0;
+  while (@row = $sth->fetchrow_array) {
+     if ($row[1] eq "Chair" || $tostr eq "") {
+         $tostr= $row[0];
+  if ($param{v}) { print STDERR "tostr = $tostr\n"; }
+     } else {
+       if ($idx > 0) { print MFILE ","; }
+       print MFILE "$row[0]";
+       $idx++;
+     }
+  }
+  print MFILE " $tostr < $param{o}\n";
+  close MFILE;
+  chmod (0660,"$param{o}.email");
+  
+}
+
+
+# ----------------------------------------------------------
+# parse input parameters
+# ----------------------------------------------------------
+sub parse_input
+{
+  my ($pwd);
+  my $err = 0;
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+             a=> "$ENV{ASCDS_PROP_AO}",
+             p=> undef,
+             o=> undef,
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "a=s",
+          "o=s",
+          "p=s",
+          "q=s",
+          "l",
+          "v",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter `$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+
+  if(!$param{q}) {
+    use Term::ReadKey;
+     {
+       ReadMode 'noecho';
+       print "Enter password for $param{U} on $param{S}: ";
+       $pwd = ReadLine( 0 );
+       chomp $pwd;
+       ReadMode 'restore';
+       print "\n";
+     }
+  }
+  else {
+    open PFILE,"< $param{q}";
+    while ( <PFILE> ){
+      chomp;
+      $pwd = $_;
+    }
+  }
+  $param{q} = $pwd;
+
+}
+
+sub usage
+{
+    print STDERR "\nUSAGE: pi_coi.pl -USlpoa\n";
+    print STDERR "       -U database user name\n";
+    print STDERR "       -S database server, default DB_PROP_SQLSRV\n";
+    print STDERR "       -p panel \n";
+    print STDERR "       -a AO to use, default ASCDS_PROP_AO\n";
+    print STDERR "       -l long format, print abstracts and institution info\n";
+    print STDERR "       -o output file \n";
+}
+
+
+
+

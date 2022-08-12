@@ -1,0 +1,5 @@
+#!/bin/sh
+#_SH_INSERT_SAO_COPYRIGHT_HERE_(1997,2007)_
+#_SH_INSERT_GPL_LICENSE_HERE_
+
+prop_pileup_exe $*

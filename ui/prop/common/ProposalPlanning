@@ -1,0 +1,159 @@
+!!
+!!  General resources used by all the Proposal Planning Applications
+!!  (prop_rps_error_gui,prop_panel_gui,prop_manager_gui)
+!!
+!!
+
+
+!! General Text widget and label resources 
+ProposalPlanning*.TextField*.background   : LightSteelBlue3
+ProposalPlanning*.HeaderLabel.fontList    : -adobe-courier-bold-r-normal-*-14-*-*
+
+!! General application resources
+ProposalPlanning*.foreground            : black
+ProposalPlanning*.background            : LightSteelBlue2
+ProposalPlanning*.*workArea*background  : LightSteelBlue2
+ProposalPlanning*.topShadowColor        : SlateGray1
+ProposalPlanning*.bottomShadowColor     : LightSteelBlue4
+ProposalPlanning*.highlightColor        : LightSteelBlue1
+ProposalPlanning*.borderColor           : SlateGray4
+ProposalPlanning*.selectColor           : Yellow
+ProposalPlanning*.fontList              : -adobe-courier-bold-r-normal-*-12-*-*
+!!
+!! Status area and quickhelp display windows
+ProposalPlanning*.StatusArea*background : LightSteelBlue3
+ProposalPlanning*.StatusArea*rows       : 2
+ProposalPlanning*.QuickHelp*background  : LightSteelBlue3
+ProposalPlanning*.QuickHelp*rows        : 2
+!!!
+!!! True if user wants a new browser window(Mosaic,Netscape,etc) for
+!!! each help request.
+ProposalPlanning*.browserWindow     : False
+!!!
+!!! Automatic Help from the help menu bar (quickhelp)
+ProposalPlanning*.Automatic.set         : True
+!!!
+!!
+!!
+
+ProposalPlanning*.TextOptions.entryBorder  : 1
+ProposalPlanning*.TextOptions.borderWidth  : 0
+ProposalPlanning*.TextOptions.orientation  : XmVERTICAL
+
+ProposalPlanning*.PrintText.set      : True
+ProposalPlanning*.PrintCommand.value  : lpr
+!
+!! Options for Find command window
+ProposalPlanning*.CaseSensitive.set  : True
+ProposalPlanning*.CaseSensitive.borderWidth  : 0
+ProposalPlanning*.CaseSensitive.selectColor  : Yellow
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! View CoI  (used by both proposal and panel managers
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ProposalPlanning*.*PropCoIForm.width     : 650
+ProposalPlanning*.*CoIBtn.leftPosition    : 20
+ProposalPlanning*.*InstBtn.leftPosition   : 55
+ProposalPlanning*.*PropCoIList*.fontList : -misc-fixed-bold-r-normal-*-13-*-*
+ProposalPlanning*.*PropCoIList*.visibleItemCount   : 10
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! Panel Manager
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+ProposalPlanning*.*PanelProposalForm.width : 600
+ProposalPlanning*.*PanelProposalList*.listSpacing : 2
+ProposalPlanning*.*PanelProposalList*.borderWidth : 2
+ProposalPlanning*.*PanelProposalList*.fontList     : -misc-fixed-bold-r-normal-*-13-*-*
+ProposalPlanning*.*PanelProposalList*.visibleItemCount   : 15
+ProposalPlanning*.*PanelPanelForm*.background : LightSteelBlue3
+ProposalPlanning*.PanelForm.width : 1000
+ProposalPlanning*.*PanelUserList*.fontList     : -misc-fixed-bold-r-normal-*-13-*-*
+ProposalPlanning*.*PanelUserList*.visibleItemCount   : 5
+ProposalPlanning*.*PanelList*.fontList     : -misc-fixed-bold-r-normal-*-13-*-*
+ProposalPlanning*.*PanelList*.visibleItemCount   : 8
+ProposalPlanning*.*PanelPropList*.fontList : -misc-fixed-bold-r-normal-*-13-*-*
+ProposalPlanning*.*PanelPropList*.visibleItemCount   : 15
+ProposalPlanning*.*PanelMemberForm.width      : 1000
+ProposalPlanning*.*PanelMemberList*.fontList : -misc-fixed-bold-r-normal-*-13-*-*
+ProposalPlanning*.*PanelMemberList*.visibleItemCount : 5
+ProposalPlanning*.PanelMatrix.*selectedBackground  : LightGray
+ProposalPlanning*.PanelMatrix.*selectedForeground  : Black
+ProposalPlanning*.PanelMatrix.oddRowBackground     : LemonChiffon
+ProposalPlanning*.PanelMatrix.evenRowBackground    : LightSteelBlue1
+ProposalPlanning*.PanelMatrix.leftOffset           : 25
+ProposalPlanning*.PanelMatrix.labelFont : -adobe-courier-bold-r-normal-*-12-*-*
+ProposalPlanning*.PanelMatrix.fontList : -adobe-courier-bold-r-normal-*-12-*-*
+
+ProposalPlanning*.PanelCreateForm.width            : 500
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! Proposal Manager
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+ProposalPlanning*.RetrievePanel.set 	     : True
+ProposalPlanning*.EmailRC.packing            : XmPACK_COLUMN
+ProposalPlanning*.EmailRC.numColumns         : 3
+ProposalPlanning*.EmailForm.width            : 300
+ProposalPlanning*.PrintRC.packing            : XmPACK_COLUMN
+ProposalPlanning*.PrintRC.numColumns         : 2
+ProposalPlanning*.PrintAll.set   	     : True
+
+!! Sort command resources
+ProposalPlanning*.SortList*.background      : LightSteelBlue3
+ProposalPlanning*.SortRC.packing            : XmPACK_COLUMN
+ProposalPlanning*.SortRC.numColumns         :  3
+ProposalPlanning*.SortList.visibleItemCount :  6
+
+ProposalPlanning*.*ReviewText*.rows       : 05
+ProposalPlanning*.*ReviewText*.columns    : 80
+ProposalPlanning*.*ReviewText*.background : LightSteelBlue3
+
+ProposalPlanning*.*PropMgrForm.width   : 800
+ProposalPlanning*.*PropMgrForm.height  : 450
+ProposalPlanning*.*ListLabel*.fontList    : -misc-fixed-bold-r-normal-*-13-*-*
+ProposalPlanning*.*PropMgrList*.fontList  : -misc-fixed-bold-r-normal-*-13-*-*
+ProposalPlanning*.*PropMgrList*.visibleItemCount   : 20
+ProposalPlanning*.*PropMgrList*.listSpacing   : 5
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! Proposal RPS GUI
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+ProposalPlanning*.RPSDiffText.rows       : 20
+ProposalPlanning*.RPSDiffText.columns    : 80
+ProposalPlanning*.RPSErrorText.rows       : 3
+ProposalPlanning*.RPSErrorText.columns    : 80
+ProposalPlanning*.RPSFileText.rows        : 15
+ProposalPlanning*.RPSFileText.columns     : 80
+ProposalPlanning*.RPSErrForm*.background  : LightSteelBlue3
+ProposalPlanning*.RPSErrPropForm*.background  : LightSteelBlue3
+ProposalPlanning*.RPSPropList.visibleItemCount   : 15
+ProposalPlanning*.RPSPropListSW.width     : 80
+ProposalPlanning*.RPSPropList.fontList   : -adobe-courier-bold-r-normal-*-12-*-*
+ProposalPlanning*.RPSPropListLabel.fontList   : -adobe-courier-bold-r-normal-*-12-*-*
+!!
+!!! Options for the Print command
+ProposalPlanning*.PrintList.set       : True
+ProposalPlanning*.PrintFile.set       : True
+ProposalPlanning*.PrintError.set      : True
+
+ProposalPlanning*.LoadRC.packing             : XmPACK_COLUMN
+ProposalPlanning*.LoadRC.numColumns          : 3
+ProposalPlanning*ArchiveRetrieve*fileTypeMask     : XmFILE_DIRECTORY
+
+ProposalPlanning*.renderTable: DEF,RED
+ProposalPlanning*.DEF.fontType: FONT_IS_FONT
+ProposalPlanning*.DEF.fontName: -misc-fixed-bold-r-normal-*-13-*-*
+ProposalPlanning*.DEF.renditionForeground: XmUNSPECIFIED_PIXEL
+ProposalPlanning*.DEF.renditionBackground: XmUNSPECIFIED_PIXEL
+ProposalPlanning*.RED.fontType: XmAS_IS
+ProposalPlanning*.RED.fontName: XmAS_IS
+ProposalPlanning*.RED.renditionForeground: red
+ProposalPlanning*.RED.renditionBackground: XmUNSPECIFIED_PIXEL
+
+
+

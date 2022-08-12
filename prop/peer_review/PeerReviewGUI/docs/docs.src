@@ -1,0 +1,6 @@
+pod2latex -full -modify -o docs/PR_docs bin/PR lib/*.pm lib/Tk/*.pm
+cd docs
+latex PR_docs
+latex PR_docs
+dvips -o PR_docs.ps PR_docs
+ps2pdf PR_docs.ps PR_docs.pdf

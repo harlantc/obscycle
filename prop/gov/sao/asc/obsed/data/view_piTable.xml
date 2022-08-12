@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE table SYSTEM "table.dtd">
+
+<table name="view_pi" key="ocat_propid">
+  <column name="ocat_propid">
+    <type>INTEGER</type>
+    <tooltip>Target Table Proposal Identifier</tooltip>
+  </column>
+  <column name="first">
+    <type>STRING</type>
+    <tooltip>Principal Investgator --- first name</tooltip>
+  </column>
+  <column name="last">
+    <type>STRING</type>
+    <tooltip>Principal Investigator --- last name</tooltip>
+  </column>
+</table>

@@ -1,0 +1,21 @@
+-------------------------------------
+dofinal_lists for prop_status="Y"
+-------------------------------------
+alt_target_list.sql
+archive_list.sql
+bpp_list.sql
+joint_list.sql
+monitor.sql
+multicycle_list.sql
+target_list.sql
+theory_list.sql
+raster.sql
+
+
+---------------------------------------------------------------
+misc
+---------------------------------------------------------------
+find_locked.sql     -- find which panels are finished
+panel_progress.sql  -- Panel,(Graded-Total) "Ungraded", Graded, Total
+basic_status_all_panels.sql  - status,total_app_time,fg* all proposals, all panels
+

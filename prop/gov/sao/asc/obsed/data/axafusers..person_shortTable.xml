@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE table SYSTEM "table.dtd">
+
+<table name="axafusers..person_short" key="pers_id">
+  <column name="pers_id">
+    <type>INTEGER</type>
+    <tooltip>Person Identifier</tooltip>
+  </column>
+  <column name="last">
+    <type>STRING</type>
+    <tooltip>last name</tooltip>
+  </column>
+</table>

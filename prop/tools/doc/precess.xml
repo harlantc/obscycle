@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE cxchelptopics SYSTEM "CXCHelp.dtd">
+<cxchelptopics>
+<ENTRY context="proposaltools" key="precess" refkeywords="prop_precess  coordinates conversion" seealsogroups="prop-tools">
+<SYNOPSIS>
+
+PRECESS is an interactive astronomical coordinate conversion program. It
+provides precession of equatorial coordinates and conversion between
+equatorial, ecliptic, galactic, and supergalactic coordinates.
+
+</SYNOPSIS>
+<ADDRESS>
+<URL>
+precess.html
+</URL>
+
+</ADDRESS>
+<ADDRESS>
+<URL>
+http://cxc.harvard.edu/ciao/ahelp/precess.html
+</URL>
+
+</ADDRESS>
+<DESC>
+<PARA>
+
+PRECESS can be run over the web using a browser or run
+locally using the command-line interface (CLI). The CLI version will
+accept a text file with a list of coordinates as input. 
+
+</PARA>
+<PARA>
+
+PRECESS is part of the Proposal toolkit. The toolkit is distributed with
+CIAO.  
+
+</PARA>
+<PARA>
+
+For details about available coordinate and time systems, please see
+the <HREF link="http://cxc.harvard.edu/ciao/ahelp/prop-time.html">prop-time</HREF> and <HREF link="http://cxc.harvard.edu/ciao/ahelp/prop-coords.html">prop-coords</HREF> ahelp documents.
+
+</PARA>
+
+<PARA title="Available Coordinate Systems">
+The available coordinate systems are: Equatorial or Ecliptic with
+Besselian Epoch (default is B1950, or specify as 'BXXXX'), Equatorial
+ with Julian Epoch (default is J2000, or specify as 'JXXXX'), or Galactic. The CLI also version supports conversions using supergalactic
+coordinates. PRECESS can be used to identify the Constellation for a given input
+position. 
+
+</PARA>
+<PARA title="Running PRECESS Online">
+PRECESS can be accessed via the URL 
+
+</PARA>
+<PARA>
+
+<HREF link="http://cxc.harvard.edu/toolkit/precess.jsp">
+http://cxc.harvard.edu/toolkit/precess.jsp
+</HREF>
+
+
+</PARA>
+<PARA>
+
+General help information is available by clicking the 'HELP' button. 
+
+</PARA>
+<PARA title="Running PRECESS from the Command Line">
+The syntax for processing a file of coordinates is:
+
+</PARA>
+<PARA>
+
+prop_precess commands:infile:outfile
+
+</PARA>
+<PARA>
+
+See the EXAMPLES section for more information.
+
+</PARA>
+<PARA>
+
+To run PRECESS in the interactive CLI  mode, type 'prop_precess' at the ciao
+prompt. This enters an interactive command mode for setting program
+parameters. The command level prompt is Precess[Setup]&gt;:. Within the
+command level, type '?' or 'help' to see a list of the available
+commands and coordinate systems, and type 'list' or 'l' to display the current program settings.
+
+</PARA>
+
+<PARA title="The eval option">
+Running PRECESS with the "eval" option returns you to the CIAO command
+line when done, instead of remaining within the precess environment:
+</PARA>
+
+<VERBATIM>
+ciao&gt; prop_precess from j/deg to j/hms p0 eval 12.138 -05.218
+ASCDS_PROP_PREC_DATA is not set;
+  default assignment to config/jcm_data has been made.
+ASCDS_PROP_PREC_DATA (for constellations) = config/jcm_data
+00 48 33.12 -05 13 04.80
+ciao&gt;
+</VERBATIM>
+
+<PARA title="Input Commands">
+The most usual command sequence is 'from', 'to', and 'convert',
+which can be abbreviated as 'f', 't', and 'c', respectively. 'from'
+and 'to' define the Input and Output coordinate systems. The default
+conversion is from B1950 to J2000. Commands are not case-sensitive.
+
+</PARA>
+<PARA>
+
+The 'convert' command enters the processing level. Within the processing level,
+enter the Input coordinates in the appropriate format, either both
+coordinates on the same line separated by spaces or a comma, or the
+x-coordinate on one line and the y-coordinate on the next. The default
+format for RA and DEC is hh mm ss.ss and dd mm ss.ss. The default
+format for the other coordinate systems is decimal degrees.
+
+</PARA>
+<PARA title="Other Commands">
+You can change the format of the Input coordinate system with the
+commands 'f [system]/DEG' for decimal degrees and 'f [system]/HMS' for hh mm
+ss.ss (such as "f B1950/DEG"). You can change the format of the Output coordinate system with
+the commands 't [system]/DEG' and `t [system]/HMS'. 
+
+</PARA>
+<PARA>
+
+The 'p' command sets the output display mode: use 'p0' for terse, 'p1'
+for normal, or 'p2' for verbose display. The default output display
+mode is p1. 
+
+</PARA>
+<PARA>
+
+To leave the processing level and return to the command level, type 'q'
+or 'quit'. Type 'q' or 'quit' at the command level to exit the program.
+
+</PARA>
+
+</DESC>
+<QEXAMPLELIST>
+<QEXAMPLE>
+<DESC>
+<PARA>
+
+Precess equatorial coordinates from 1950 to
+1986.
+</PARA>
+<VERBATIM>
+
+unix prompt&gt; prop_precess 
+
+-------------------- Precess -------------------- 
+You are now in setup mode. Type "c" to enter conversion mode,
+"?" to list  setup mode commands, or "q" to quit the program. The
+default conversion is from B1950 to J2000.
+Precess[Setup]&gt;: f B1950 t B1986
+Precess[Setup]&gt;: c
+
+Precess[Conversion mode] 
+Enter "q" to return to setup mode
+
+RA (B1950): 16 26 36.7 37 27 54.3
+
+------------------------------------------------
+RA,Dec B1950.0    16 26 36.70     +37 27 54.30
+RA,Dec B1986.0    16 27 53.51     +37 23 10.23
+------------------------------------------------
+</VERBATIM>
+
+</DESC>
+
+</QEXAMPLE>
+<QEXAMPLE>
+<DESC>
+<PARA>
+
+Convert galactic coordinates to J2000 equatorial
+coordinates. Use the syntax 'f G t J' to set up the conversion.
+
+</PARA>
+<VERBATIM>
+
+Precess[Setup]&gt;: f G t J; c 
+
+Precess[Conversion mode] 
+Enter coords in degrees (q to quit)
+Example: 293.14 -20.14 
+Enter "q" to return to setup mode
+
+L: 97.74 -60.18 
+
+--------------------------------------------
+Galactic l,b       97.740000    -60.180000 
+RA,Dec J2000.0    00 02 33.43  +00 16 44.19 
+--------------------------------------------
+</VERBATIM>
+
+</DESC>
+
+</QEXAMPLE>
+<QEXAMPLE>
+<DESC>
+<PARA>
+
+Convert from B1987 decimal degrees to J2000 decimal
+degrees. Set the printing mode for terse program display.
+
+</PARA>
+<VERBATIM>
+
+Precess[Setup]&gt;: f B1987/DEG 
+Precess[Setup]&gt;: t J2000/DEG 
+Precess[Setup]&gt;: list   
+
+From: RA,Dec B1987.0   Format:  Degrees
+To  : RA,Dec J2000.0   Format:  Degrees
+
+Precess[Setup]&gt;: p0
+Precess[Setup]&gt;: c
+
+RA  (B1987): 182.663 14.175 
+
+182.828930    14.102684
+</VERBATIM>
+
+</DESC>
+
+</QEXAMPLE>
+<QEXAMPLE>
+<DESC>
+<PARA>
+
+Convert a file of coordinates, s.cat, using the syntax
+'prop_precess commands:infile:outfile'.
+
+</PARA>
+<PARA>
+
+The file s.cat contains the following.
+
+</PARA>
+<VERBATIM>
+
+00 01 12.3 -00 02 23.4
+02 59 59.9 23 12 22.1 
+02 23 0 11 23 12 
+23 48 48.23 -2 11 14.123 
+</VERBATIM>
+<PARA>
+
+Convert from B1950 to galactic coordinates, and store the
+results in the file pr_s.cat.
+
+</PARA>
+<VERBATIM>
+
+unix prompt&gt; prop_precess f B1950 t G: s.cat: pr_s.cat
+Opened input file s.cat
+Opened output file pr_s.cat
+unix prompt&gt; 
+</VERBATIM>
+<PARA>
+
+The output file, pr_s.cat, contains the following.
+
+</PARA>
+<VERBATIM>
+
+RA,Dec B1950.0                  Galactic, l,b
+00 01 12.30  -00 02 23.40        98.274959   -60.330944
+02 59 59.90  +23 12 22.10       158.171584   -30.327495
+02 23 00.00  +11 23 12.00       156.570708   -45.015506
+23 48 48.23  -02 11 14.12        90.686763   -60.96294
+</VERBATIM>
+
+</DESC>
+
+</QEXAMPLE>
+</QEXAMPLELIST>
+
+<VERSION>CIAO 4.5</VERSION>
+<LASTMODIFIED>December 2012</LASTMODIFIED>
+
+</ENTRY>
+
+</cxchelptopics>

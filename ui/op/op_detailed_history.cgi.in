@@ -1,0 +1,307 @@
+#!@PERLDB@ 
+#----------------------------------
+# Copyright (c) 1995, Smithsonian Astrophysical Observatory
+# You may not do anything you like with this file. 
+#
+# FILE NAME:  op_detailed_history.cgi
+# DEVELOPMENT:
+#
+# NOTES:       
+#             
+#
+# INPUT:       user input
+#
+# REVISION HISTORY:
+#
+# Date: 
+#---------------------------------------------------------
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use CGI ':standard';
+use File::Basename;
+use strict;
+use DBI;
+use DBD::Sybase;
+
+
+unless (eval {require "op_config.pl"}) {
+    print "Unable to find op_config.pl\n"; exit(1);
+}
+unless (eval {require "op_subroutines.pl"}) {
+    print "Unable to find op_subroutines.pl\n"; exit(1);
+}
+unless (eval {require "op_status_routines.pl"}) {
+    print "Unable to find op_status_routines.pl\n"; exit(1);
+}
+
+use vars qw($dsn $dbh $db $srv $pwd  $uid $dbg $log_file
+	$stmp $report_fmt  @hdr $note $sql_date_fmt
+	$tmp_host $tmp_date $tmp_file $dlm $tmp_err
+	@detailed_hdrs
+	$obsid @detailed_arr $hh $host
+        $s2_obi_id $s1_5_id $s1_id $s0_5_id $a1_id $o0_5_id
+ );
+
+
+{
+  $SIG{__WARN__} = \&catch_warn;
+
+  #If QUERY_STRING, it may have come from someone clicking on a 'obsid' link
+  #otherwise, it may be called directly from some other script.
+
+  $stmp = $ENV{'QUERY_STRING'};
+  &debug("QUERY STRING: $stmp\n") if $dbg;
+  if ($stmp && $stmp !~ /tab_del/) {
+    ($obsid,$s2_obi_id,$s1_5_id,$s1_id,$s0_5_id,$a1_id,$o0_5_id) = 
+	split(/\^/,$stmp);
+    logit("op_detailed_history: QUERY=$stmp\n");
+  }
+  else {
+    ($obsid,$s2_obi_id,$s1_5_id,$s1_id,$s0_5_id,$a1_id,$o0_5_id) = 
+	split(/\^/,$ARGV[0]);
+    logit("op_detailed_history: args= $ARGV[0]\n");
+  }
+  $obsid = int($obsid);
+  $s2_obi_id = int($s2_obi_id);
+  $s1_5_id = int($s1_5_id);
+  $s1_id = int($s1_id);
+  $s0_5_id = int($s0_5_id);
+  $a1_id = int($a1_id);
+  $o0_5_id = int($o0_5_id);
+
+  if ($obsid <= 0) {
+     &error("Please refine your search query. ");
+     display_file($tmp_err,1);
+     exit 0;
+  }
+
+  my $sstmp = "server=$srv;database=$db";
+  $dsn = "DBI:Sybase:$sstmp";
+  $dbh = DBI->connect($dsn, $uid, $pwd, {
+        PrintError => 1,
+        RaiseError => 0});
+  if ( !defined $dbh) {
+     display_file($tmp_err,1);
+     exit 1;
+  }
+
+  #this program can be entered several different ways
+
+  # this routine sets up the correct report type and opens the output file!
+  $report_fmt = "HTML";
+  &open_output_file;
+  &print_html_header;
+
+  # add the table header
+  $dlm = ',';
+  &build_detailed_hdr;
+  
+  # go retrieve the info for all the tables
+  &retrieve_detailed_info("obidet0.5","obidet_0_5",$o0_5_id,0);
+  &retrieve_detailed_info("sci0.5","science_0_5",$s0_5_id,0);
+  &retrieve_detailed_info("aspect1","aspect_1",$a1_id,0);
+  &retrieve_detailed_info("sci1","science_1",$s1_id,1);
+  &retrieve_detailed_info("sci1.5","science_1_5",$s1_5_id,1);
+  &retrieve_detailed_info("sci2","science_2_obi",$s2_obi_id,1);
+
+  foreach $hh  (@detailed_arr) {
+    &display_detailed_entry($hh);
+  }
+
+  print OFILE "</table>";
+  &print_html_footer;
+
+  close OFILE;
+  chmod(0777,"$tmp_file");
+
+  display_file($tmp_file,1);
+  unlink($tmp_file);
+
+
+  $dbh->disconnect;
+
+}
+
+  
+
+  
+
+#--------------------------------------------------------------
+# build the l2 information section
+#--------------------------------------------------------------
+sub build_detailed_hdr 
+{
+
+  my($h );
+  @detailed_hdrs = ( 
+	"Pipe","ObsId","Obi","Exp Cycle","Version","Quality","Ingested",
+ 	"AP Date","AP Status");
+
+  print OFILE "<hr><br>\n";
+  print OFILE "<table align=\"center\" border=\"1\" >\n<tr class=\"header\">\n";
+  foreach $h (@detailed_hdrs) {
+    print OFILE "<th align=\"center\">$h</th>\n"
+  }
+  if ($host =~ /icxc/i || $host =~ /8021/) {
+    print OFILE "<td align=\"center\">Cache Path</td>\n";
+  }
+  print OFILE "</tr>";
+  @hdr = @detailed_hdrs;
+}
+
+#-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
+sub display_detailed_entry 
+{
+  my ($myentry) = @_;
+  my ($ii,$tstr,@myarr);
+  my ($tend);
+
+  @myarr = split($dlm,$myentry);
+  $tend = $#myarr + 1;
+  if ($host !~ /icxc/i && $host !~ /8021/) {
+    $tend--;
+  }
+
+  print OFILE "<tr>";
+  for ($ii=0;$ii<$tend;$ii++) {
+    if ($detailed_hdrs[$ii] =~ /quality/i) {
+      $tstr = &get_quality($myarr[$ii]);
+    }
+    elsif ($detailed_hdrs[$ii] =~ /ingested/i && $myarr[1] > 0 ) {
+      $tstr = &get_ingested($myarr[$ii]);
+    }
+    else {
+      $tstr = $myarr[$ii];
+    }
+    if ($tstr eq '\0' || length($tstr) < 1) {
+     $tstr = "&nbsp;";
+    }
+    $tstr =~ s/ /&nbsp;/;
+
+    
+    print OFILE ("<td align=\"center\">$tstr</td>\n");
+  }
+  print OFILE "</tr>";
+}
+
+
+#----------------------------------------------------------------------------
+#----------------------------------------------------------------------------
+sub print_html_header
+{
+  my($hstr);
+  
+  $hstr = cxc_header("Detailed Processing History for ObsId $obsid",
+	             "/soft/op/op_dhelp.html");
+    print OFILE <<header;
+$hstr
+<center>
+$note
+</center>
+header
+}
+
+
+
+#----------------------------------------------------------------------------
+#----------------------------------------------------------------------------
+sub retrieve_detailed_info
+{
+  my($dname,$table_name,$id,$aexp) = @_;
+  my($sth,$sql_stmt,@row,$ii,$max_ap,$str);
+  my($logtable,$logid);
+  my($dobsid,$obi,$alt,$rev,$qual,$ing,$apdate,$apstat,$cache);
+
+
+  if ($id) {
+    if ($aexp) {
+      $sql_stmt = qq(select $table_name\.obsid,$table_name\.obi,
+	  $table_name\.alt_exp_mode,);
+    } else {
+      $sql_stmt = qq(select obsid,obi,null,);
+    }
+    
+    $logtable = "$table_name\_log";
+    $logid = "$table_name\_id";
+    if ($logtable =~ /science_2_obi/) {
+      $logtable =~ s/\_obi//;
+      $logid =~ s/\_obi//;
+    }
+
+    $sql_stmt .= qq(revision,quality,ingested,
+	  convert(varchar(10),ap_date,$sql_date_fmt),ap_status,
+	  cache_path from 
+	  $table_name,$logtable where 
+          $table_name.$table_name\_id = $id and
+          $table_name.$logid *= $logtable.$logid);
+    if ($table_name =~ /\_obi/) {
+      $sql_stmt =~ s/from/from science_2, /;
+      $sql_stmt .= qq( and science_2.science_2_id = science_2_obi.science_2_id);
+    }
+    &debug("Detailed : $sql_stmt\n") if $dbg;
+    $sth = $dbh->prepare($sql_stmt);
+    if ($sth->execute) {
+      while (@row = $sth->fetchrow_array) {
+        ($dobsid,$obi,$alt,$rev,$qual,$ing,$apdate,$apstat,$cache) = @row;
+        if (!$cache) { $cache = " "; }
+        $stmp = join($dlm,$dobsid,$obi,$alt,$rev,$qual,$ing,$apdate,$apstat,$cache);
+        $str = $dname . $dlm . $stmp . $dlm;
+        push(@detailed_arr,$str);
+      }
+      $ii = $sth->rows;
+      &debug("Detailed retrieved $ii rows \n") if $dbg;
+    }
+  }
+  else {
+    $stmp = (" $dlm" x 9);
+    $str = $dname . $dlm . $stmp . $dlm;
+    push(@detailed_arr,$str);
+  }
+}
+
+#--------------------------------------------------------------
+#--------------------------------------------------------------
+sub get_ingested {
+
+   my($iflg) = @_;
+
+   if ($iflg =~ /Y/i) {
+     $iflg = "ingested";
+   }
+   else {
+     $iflg = "waiting";
+   }
+  
+   return $iflg;
+}
+
+
+#--------------------------------------------------------------
+#--------------------------------------------------------------
+sub get_quality {
+
+   my($iflg) = @_;
+
+   if ($iflg =~ /d/i) {
+     $iflg = "Default";
+   }
+   elsif ($iflg =~ /s/i) {
+     $iflg = "Superseded";
+   }
+   elsif ($iflg =~ /r/i) {
+     $iflg = "Rejected";
+   }
+   elsif ($iflg =~ /p/i) {
+     $iflg = "Pending";
+   }
+   elsif ($iflg =~ /q/i) {
+     $iflg = "Questionable";
+   }
+  
+   return $iflg;
+}
+

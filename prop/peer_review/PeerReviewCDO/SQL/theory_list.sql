@@ -1,0 +1,1 @@
+select prop_id as "Proposal", rpad(last_name, 27) as "P.I.", institution as "Institution" from proposal where type = 'THEORY' and prop_status = 'Y' order by last_name;

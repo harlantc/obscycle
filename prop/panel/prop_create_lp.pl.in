@@ -1,0 +1,163 @@
+#!@PERLDB@
+#*H****************************************************************************
+#* Copyright (c) 2017, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_create_lp.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script creates the LP panel. Default name is LP.
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use vars qw ($dbh %param %cats @catcodes 
+	);
+
+use strict;
+use Getopt::Long;
+use DBI;
+use DBD::Sybase;
+
+# -------------------------- MAIN ----------------------------------
+{
+  my($str,$tmp,$cat,$ii,$stmp,$dsn);
+  my($sqlstmt,$dbh,$sth,$sth1,$dd,$retval);
+  my($panel_id,$pers_id,@row,@addProps);
+  my(@arr,$type);
+
+  &parse_input;
+
+  #database connection
+  $stmp = "server=$param{S};database=proposal";
+  $dsn = "DBI:Sybase:$stmp";
+  $dbh = DBI->connect($dsn, $param{U}, $param{q}, {
+        PrintError => 1,
+        RaiseError => 1});
+  if ( !defined $dbh) {
+    exit 1;
+  }
+
+  # create the panel
+  $sqlstmt = qq(declare \@new_id int \n);
+ $sqlstmt .= qq(exec panel_ingest "$param{p}","$param{a}",null,null,\@new_id output);
+  $sqlstmt .= qq(\nselect \@new_id);
+  #print STDERR "$sqlstmt\n";
+  $retval=0;
+  $panel_id=0;
+  $sth = $dbh->prepare($sqlstmt);
+  $sth->execute();
+  do {
+     while ($dd = $sth->fetch()) {
+        if ($sth->{syb_result_type} == CS_ROW_RESULT) {
+            $panel_id = $dd->[0];
+        }
+        if ($sth->{syb_result_type} == CS_STATUS_RESULT) {
+          $retval = $dd->[0];
+        }
+      }
+  } while ($sth->{syb_more_results});
+
+  if ($panel_id <= 0) {
+     print STDERR "\nERROR: Failed to create $param{p} for AO $param{a}:  $retval\n";
+      exit;
+  }
+  else {
+    print STDERR "Created $param{p}  panel_id= $panel_id\n";  
+ }
+
+
+}
+
+
+# ----------------------------------------------------------
+# parse input parameters
+# ----------------------------------------------------------
+sub parse_input
+{
+
+  my($pwd);
+  my $err = 0;
+
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+             p=> "LP",
+             a=> "$ENV{ASCDS_PROP_AO}"
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "a=s",
+          "q=s",
+          "p=s",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter `$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+  if(!$param{q}) {
+    use Term::ReadKey;
+     {
+       ReadMode 'noecho';
+       print "Enter password for $param{U} on $param{S}: ";
+       $pwd = ReadLine( 0 );
+       chomp $pwd;
+       ReadMode 'restore';
+       print "\n";
+     }
+  }
+  else {
+    open PFILE,"< $param{q}";
+    while ( <PFILE> ){
+      chomp;
+      $pwd = $_;
+    }
+  }
+  $param{q} = $pwd;
+  
+}
+
+sub usage
+{
+    print STDERR "\nUSAGE: prop_create_lp.pl -U [ -Sap]\n";
+    print STDERR "       -U database user name\n";
+    print STDERR "       -a AO, default ASCDS_PROP_AO \n";
+    print STDERR "       -p panel , default is LP\n";
+    print STDERR "       -S database server, default is ASCDS_PROP_SQLSRV\n";
+}
+
+

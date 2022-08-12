@@ -1,0 +1,227 @@
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 1995, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_view_tgtkeyword.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script displays tgt/keyword for proposals
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+
+use vars qw( $dbh %param @pnomain %pnokeys  @reqfiles $reqfile
+	@tgtmain %tgtkeys @tsort @pnos  
+	);
+
+use strict;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+
+@reqfiles = (
+        "prop_routines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+
+# ---------------- MAIN ----------------------------------------------
+{
+  my($dsn,$stmp,@tmparr,$keywords,$ii,$jj);
+
+  &parse_input;
+
+  
+  #database connection
+  $dbh = dbProposalConnection($param{U}, $param{S}, $param{q});
+
+  #open output file
+  open(OFILE,"> $param{o}") || 
+	die "ERROR: Unable to open $param{o} for writing.\n";
+
+  #get keywords
+  if (!$param{p}) {
+    $stmp = qq(select distinct proposal_number,last,type,upper(science_keywords)
+	from proposal,axafusers..person_short ps, panel_proposal where
+        proposal.piid = ps.pers_id and
+	proposal.ao_str = "$param{a}" and
+        proposal.proposal_id = panel_proposal.proposal_id 
+	order by proposal_number);
+  } elsif ($param{p} =~ /none/) {
+    $stmp = qq(select distinct proposal_number,last,type,upper(science_keywords)
+	from proposal,axafusers..person_short ps where
+        proposal.piid = ps.pers_id and
+	proposal.ao_str = "$param{a}" and
+	proposal.status not in ("INCOMPLETE","WITHDRAWN")
+	order by proposal_number);
+  } else {
+    $stmp = qq(select distinct proposal_number,last,type,upper(science_keywords)
+	from proposal,axafusers..person_short ps,
+	panel,panel_proposal where
+        proposal.piid = ps.pers_id and
+	proposal.ao_str = "$param{a}" and
+        proposal.proposal_id = panel_proposal.proposal_id and
+        panel.panel_id = panel_proposal.panel_id and
+        panel.panel_name like "$param{p}"
+        order by proposal_number);
+  }
+  &do_query($stmp,"Target Keywords");
+
+  if (!$param{k} ) {
+    printf OFILE ("\n%-8.8s  %-25.25s %-11.11s  %s\n",
+      "Proposal", "PI", "Type","Science Keywords");
+    printf OFILE ("-----------------------------------------------------------------------\n");
+    foreach $stmp (@pnomain) {
+      @tmparr = split(';',$stmp);
+      $keywords = $pnokeys{$tmparr[0]};
+      chop($keywords);
+      printf OFILE ("%-8.8s  %-25.25s %-11.11s  %s\n",
+	  @tmparr,$keywords);
+    }
+  }
+  else {
+    @tsort = sort(@tgtmain);
+    printf OFILE "\n\n%-25.25s    %s\n","Science Keywords","Proposals";
+    printf OFILE "---------------------------------------------------------------\n";
+    foreach $stmp (@tsort) {
+      @pnos = split(';',$tgtkeys{$stmp});
+      for ($ii=0;  $ii <= $#pnos;) {
+        printf OFILE ("%-25.25s    ",$stmp);
+        $stmp = " ";
+        for ($jj=0; $jj<5 && $ii <= $#pnos;$jj++) {
+          printf OFILE ("%s ",$pnos[$ii++]);
+        }
+        printf OFILE "\n";
+      }
+    }
+  }
+  close OFILE;
+}
+
+# ----------------------------------------------------------
+# perform query
+# ----------------------------------------------------------
+sub do_query
+{
+  my($sql,$type) = @_;
+  my($sth,@row,$ii,$str,@stmp,$tt,$tstr);
+
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  while (@row = $sth->fetchrow_array) {
+    $str = sprintf ("%-8.8s;%-25.25s;%-11.11s\n",@row);
+    push (@pnomain,$str);
+    $str = $pnokeys{$row[0]};
+    @stmp = split(/;/,$row[3]); 
+    foreach $tt (@stmp) {
+      $tt =~ s/^ //;
+      if ($str !~ /$tt/) {
+        $str .= $tt . ";";
+      }
+      $tstr = $tgtkeys{$tt};
+      if (length($tstr) <= 0) {
+         push(@tgtmain,$tt);
+      }
+      if ($tstr !~ $row[0]) {
+        $tstr .= $row[0] . ";";
+        $tgtkeys{$tt} = $tstr;
+      }
+   }
+   $pnokeys{$row[0]} = $str;
+  }
+}
+
+
+# ----------------------------------------------------------
+# parse input parameters
+# ----------------------------------------------------------
+sub parse_input 
+{
+  my($pwd);
+  my $err = 0;
+
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+             o=> undef,
+             a=> "$ENV{ASCDS_PROP_AO}"
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "o=s",
+          "a=s",
+          "q=s",
+          "p=s",
+          "k",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter `$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+  $param{q} = $pwd;
+  
+}
+
+
+
+
+sub usage 
+{
+    print STDERR "\nUSAGE: prop_view_tgtkeyword.pl -U -o [ -Sakp]\n";
+    print STDERR "       -U database user name\n";
+    print STDERR "       -o output filename \n";
+    print STDERR "       -S database server, default is DB_PROP_SQLSRV\n";
+    print STDERR "       -a AO , default is ASCDS_PROP_AO\n";
+    print STDERR "       -k order by keywords and display proposal numbers\n";
+    print STDERR "          DEFAULT = order by proposal number and display keywords\n";
+    print STDERR "       -p panel name (01,02,etc)  or 'none' (all proposals).\n";
+    print STDERR "          If parameter omitted, only proposals assigned to panels will be retrieved.\n";
+     
+}
+

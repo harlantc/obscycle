@@ -1,0 +1,177 @@
+body.normal {
+        width: 98%;
+        background-color: #efefef;
+        line-height: 1;
+}
+
+
+.btnDiv {
+   padding: 10px;
+   background-color: #1f2569;
+   display: inline;
+
+}
+.tophdr {
+  padding-bottom:5px;
+  float:left;
+  clear:both;
+  overflow:visible;
+  width:100%;
+}
+.imghdr {
+  width:30%;
+  float:left;
+  position:relative;
+}
+.titlehdr {
+  float:left;
+  margin-top:15px;
+  font-weight:bold;
+  font-size:1.9em;
+}
+
+.hdrfont {
+  font-size:x-large;
+}
+
+.hdrlink {
+  font-size:large;
+}
+.searchBtn {
+   background-color:#1f2569;
+   color:#ffffff;
+   border-width:3px;
+   border-color:#cccccc;
+   text-align:left;
+   padding-top:5px;
+   padding-bottom:5px;
+}
+
+
+.submitBtn {
+   background-color:#ffffff;
+   color:#000000;
+   border-width:3;
+   border-color:#cccccc;
+   text-align:left;
+}
+
+.formDiv {
+    overflow:hidden; 
+    position:relative; 
+    margin-left:20%; 
+    float:left;
+    text-align:center;
+}
+
+.fieldset {
+	border:1px solid black;
+}
+.fieldset2 {
+	border:1px solid black; 
+	margin:40px;
+}
+
+.legend {
+	font-size:large;
+	font-weight:bold;
+   	color: #000000; 
+}
+
+
+input {
+   background-color:white;
+}
+select {
+   background-color:white;
+}
+
+.tableopt {
+   background-color:white;
+   border: 0px solid white;
+   border-spacing: 5px 5px;
+}
+.tableopt td {
+   border: 0px solid white;
+}
+
+
+tr.hdr   {color:white; background-color:#1f2569;}
+tr.evenB   {color:black; background-color:#e8f2ff;}
+tr.even   {color:black; background-color:#e4e9f1;}
+tr.odd   {color:black; background-color:#ffffff;}
+tr.hover   {color:black; background-color:#cccccc;}
+th.title   {font-size:x-large;}
+th.hdrl   {font-weight:bold; text-align:left;}
+
+font.err{color:red; }
+
+.search{ 
+	font-size:x-large;
+	font-weight:bold;
+}
+
+
+.button {
+   background-color:#e4e9f1;
+   color:#000000;
+   border: 3px solid #cccccc;
+   font-weight:normal;
+   font-size:large;
+   margin:auto;
+   width:auto;
+   overflow:visible;
+}
+
+
+table.tablesorter {
+  background-color: #efefef;
+  font-size: medium;
+}
+table.tablesorter tr.even:hover td,
+table.tablesorter tr.odd:hover td {
+    background-color: #cccccc;
+}
+
+
+.tablesorter tbody tr:nth-child(odd) {
+   background-color: #e8f2ff;
+}
+.tablesorter tbody tr:nth-child(even) {
+   background-color: #ffffff;
+}
+.tablesorter .tablesorter-header {
+        background-image: url(/soft/include/jquery/white-unsorted.gif);
+        background-repeat: no-repeat;
+        background-position: center right;
+        padding: 2px 20px 2px 2px;
+ }
+.tablesorter .sorter-false {
+        background-image: url();
+        background-repeat: no-repeat;
+        background-position: center right;
+}
+
+
+.pshdr {
+  clear:both;
+  float:left;
+  width:98%;
+  font-size: 1.5em;
+  font-weight:bold;
+  margin-top:15px;
+  padding-top:5px;
+  padding-bottom:5px;
+}
+.pshdr2 {
+  clear:both;
+  float:left;
+  width:98%;
+  font-size: 1.1em;
+  font-weight:bold;
+  padding-top:5px;
+  padding-bottom:5px;
+}
+
+
+

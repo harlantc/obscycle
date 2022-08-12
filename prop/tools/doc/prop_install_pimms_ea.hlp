@@ -1,0 +1,124 @@
+===============================================================================
+
+	            HELP FILE for prop_install_pimms_ea.pl
+
+===============================================================================
+
+
+General
+-------
+
+The prop_install_pimms_ea.pl script is a new addition to the Data System
+with the Chandra NRA4 software release.  It provides an interface to the 
+Chandra Calibration Database (CALDB) for retrieval of Chandra Effective 
+Area data used by the PIMMS application.  In NRA1-NRA3, the EA data was 
+not available in the CALDB but rather was provided in the release
+(config/pimms/data directory).
+
+
+PARAMETERS
+----------
+
+The script will default to retrieving the EA files for the current and
+previous Announcement of Opportunity cycles based upon the Data System
+environment variable ASCDS_PROP_AO.
+
+The user may override this at the command line with the following parameter:
+- a [AO cycle]           OPTIONAL  - current AO cycle
+
+Both the current and the previous AO are retrieved because the Proposal
+Applications (CLI PIMMS, WWW PIMMS, Effective Area File Viewer) support
+comparisons between the current Chandra data and the data from the 
+previous cycle.
+
+
+INPUT/OUTPUT
+-------------
+
+1) Input Files: 
+
+   none
+
+2) Output Files:
+
+   The Chandra Effective Area data will be written to individual files
+   suitable for use by PIMMS.  The format specifies the "mission" and
+   "instrument configuration."
+
+   As an example, these files will be created when the default AO cycle is 4:
+
+   chandra-ao4_acis-i_.area               chandra-ao4_hrc-s_.area
+   chandra-ao4_acis-s_.area               chandra-ao4_letg-acis-i_order0.area
+   chandra-ao4_hetg-acis-i_order0.area    chandra-ao4_letg-acis-s_letg1.area
+   chandra-ao4_hetg-acis-s_heg1.area      chandra-ao4_letg-acis-s_order0.area
+   chandra-ao4_hetg-acis-s_heg1meg1.area  chandra-ao4_letg-hrc-i_order0.area
+   chandra-ao4_hetg-acis-s_meg1.area      chandra-ao4_letg-hrc-s_letg1.area
+   chandra-ao4_hetg-acis-s_order0.area    chandra-ao4_letg-hrc-s_letghi.area
+   chandra-ao4_hrc-i_.area                chandra-ao4_letg-hrc-s_order0.area
+
+   chandra-ao3_acis-i_.area               chandra-ao3_hrc-s_.area
+   chandra-ao3_acis-s_.area               chandra-ao3_letg-acis-i_order0.area
+   chandra-ao3_hetg-acis-i_order0.area    chandra-ao3_letg-acis-s_letg1.area
+   chandra-ao3_hetg-acis-s_heg1.area      chandra-ao3_letg-acis-s_order0.area
+   chandra-ao3_hetg-acis-s_heg1meg1.area  chandra-ao3_letg-hrc-i_order0.area
+   chandra-ao3_hetg-acis-s_meg1.area      chandra-ao3_letg-hrc-s_letg1.area
+   chandra-ao3_hetg-acis-s_order0.area    chandra-ao3_letg-hrc-s_letghi.area
+   chandra-ao3_hrc-i_.area                chandra-ao3_letg-hrc-s_order0.area
+
+4) Output Files for Archive: 
+
+   N/A
+
+
+SETUP AND USAGE
+---------------
+
+The perl script prop_install_pimms_ea.pl must be executed once per CALDB
+download in order to install the PIMMS Effective Area data required by 
+PIMMS.  The internal SAO release set up will point internal SAO users to
+a common "system installation".  This system installation is required 
+to maintain Web application performance (WWW PIMMS, Effective Area File
+Viewer) and is provided as a convenience to internal SAO users of CLI PIMMS.  
+Any internal SAO user may download the CALDB and run the 
+prop_install_pimms_ea.pl script to install the Chandra EA files to a 
+location of choice if desired.
+
+To run the script to install the PIMMS Effective Area data
+
+        > setenv ASCDS_PROP_PMS_DATA <install_directory> 
+        > prop_install_pimms_ea.pl
+
+where <install_directory> may be any writable directory.  The script also
+creates links in this <install_directory> to files in the release for
+the other mission data (non-Chandra data).
+
+
+DETAILED DESCRIPTION
+--------------------
+
+The four scripts that comprise the interface are:
+
+  prop_install_pimms_ea.pl  - installs data and creates links if necessary;
+                              calls prop_get_pimms_ea.pl
+
+  prop_get_pimms_ea.pl      - prepares files;
+                              calls prop_get_caldb_ea.pl & 
+                              calls prop_strip_ea.pl
+
+  prop_get_caldb_ea.pl      - reads and parses the CALDB file
+
+  prop_strip_ea.pl          - strips extraneous items from file
+
+
+RESTRICTIONS
+------------
+
+none
+
+
+REFERENCES
+----------
+
+See the file README.nra at the top-level of the release 
+(/home/ascds/DS.release/README.nra4) for instructions on running this
+file as part of the Portable System.

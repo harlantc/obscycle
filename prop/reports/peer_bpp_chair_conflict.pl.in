@@ -1,0 +1,326 @@
+#!@PERLDB@
+#*H****************************************************************************
+#* Copyright (c) 2016, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: peer_bpp_chair_conflict.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#     Determines if 1 or both chairs have conflicts on LPs assigned to their panel
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+BEGIN
+{
+   $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use vars qw ($dbh %param @reqfiles $reqfile @theprops
+  %personalConflicts @pnos %pno_panel  %thepanels
+	);
+
+#use strict;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+
+@reqfiles = (
+        "prop_routines.pl",
+        "modify_institute.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+
+
+# -------------------------- MAIN ----------------------------------
+{
+  my($dsn,$stmp,$idx,$ii);
+  &parse_input;
+
+  my($oname) = $param{o} . "/BPP_chair_conflicts.txt";
+
+
+  #database connection
+  $dbh = dbProposalConnection($param{U}, $param{S}, $param{q});
+
+
+   
+  
+  open(OFILE,"> $oname")  ||
+      die "Unable to open $oname for writing!\n";
+  print STDERR "Output file: $oname\n";
+  printf OFILE "\nCycle $param{a} Chair Conflicts for LP proposals assigned to their panel:  %s\n\n",get_date();
+    &do_proposals();
+
+    &do_conflicts();
+    &do_personal();
+
+    $errstr = "";
+    foreach $pno (@pnos) {
+      my($pc) = $personalConflicts{$pno};
+      my(@arr) = %$pc;
+      for ($ii=0;$ii<=$#arr;$ii++) {
+        printf OFILE "%-8.8s\t%-10.10s\t%-20.20s\t%s\n",$pno,$thepanels{$pno},$arr[$ii],$arr[$ii+1];
+        $ii++;
+      }
+  
+      #now try to see if all panels
+      $pc = $pno_panel{$pno};
+      @arr = %$pc;
+      my($xx) = ($#arr+1)/2;
+      my($tstr)= "";
+      for ($ii=0;$ii<=$#arr;$ii++) {
+        if ($arr[$ii+1] == 1) {
+          $xx -= 1;
+          $tstr .= $arr[$ii] ." ";
+        }
+        $ii++;
+      }
+      if ($xx <=0) {
+        $errstr .= "All panel chairs assigned proposal $pno have conflicts on panels  $tstr\n";
+      }
+    }
+    #while ( ($pc, $person) = each %$pc ) {
+    #    print "$pc=$person ";
+    #}
+    #print "\n";
+
+
+    print OFILE "\n\n$errstr\n";
+    close OFILE;
+    chmod 0660,$oname;
+    chgroup($oname);
+
+
+}
+
+
+
+# ----------------------------------------------------------
+# ----------------------------------------------------------
+sub do_conflicts
+{
+  my($sql,$didit,@prop);
+  my($sth,@row,$ii,$str);
+
+  $sql = qq(select distinct ps.pers_id,last,first,lower(institution),
+	(last + ',' + first),email,panel_name
+        from ao,panel,panel_member pm,axafusers..person_short ps
+        where ao.ao_id = panel.ao
+        and ao_str like "$param{a}" 
+	and panel.panel_id = pm.panel_id 
+	and pm.pers_id = ps.pers_id
+	and (member_type="Chair")
+        order by lower(last));
+  #print STDERR "$sql\n";
+
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+
+  while (@row = $sth->fetchrow_array) {
+     $row[3] = modify_institute($row[3]);
+     while ($row[1] =~ s/ //) {;}
+     while ($row[2] =~ s/ //) {;}
+     #print STDERR "processing $row[4]\n";
+     $didit="";
+     for ($ii=0;$ii<=$#theprops;$ii++) {
+       @prop = split(/\^/,$theprops[$ii]);
+      if ($row[6] =~ /$prop[6]/) {
+       #same panel... check last
+       if ($row[1] =~ /$prop[1]/i && 
+           lc(substr($row[2],0,1)) =~ lc(substr($prop[2],0,1))) {
+         if ($personalConflicts{$prop[0]}{"$row[6]_$row[1]"} !~  /$prop[4]/) {
+           #print STDERR "1-adding $prop[0] $prop[4] for $row[6]\n";
+           $personalConflicts{$prop[0]}{"$row[6]_$row[1]"} .= " $prop[4]";
+           $pno_panel{$prop[0]}{$row[6]} = 1;
+         }
+       }
+       #email
+       elsif ($row[5] =~ /$prop[5]/i ) {
+         if ($personalConflicts{$prop[0]}{"$row[6]_$row[1]"} !~  /$prop[4]/) {
+           #print STDERR "2-adding $prop[0] $prop[4] for $row[6]\n";
+           $personalConflicts{$prop[0]}{"$row[6]_$row[1]"} .= " $prop[4]";
+           $pno_panel{$prop[0]}{$row[6]} = 1;
+         }
+       }
+
+       #inst
+       if ($row[3] =~ /$prop[3]/ ) {
+         if ($personalConflicts{$prop[0]}{"$row[6]_$row[1]"} !~  /$prop[4]/) {
+           #print STDERR "3-adding $prop[0] $prop[4] for $row[6]\n";
+           $personalConflicts{$prop[0]}{"$row[6]_$row[1]"} .= " $prop[4]";
+           $pno_panel{$prop[0]}{$row[6]} = 1;
+         }
+       }
+      }
+    }
+
+  }
+}
+# ----------------------------------------------------------
+sub do_proposals
+{
+  my($sql);
+  my($sth,@row,$ii,$str);
+  my($oldpno);  
+
+  $oldpno="";
+  $sql = qq(select proposal_number,last,first,lower(institution), "PI" xx,email,
+	panel_name
+ 	from proposal p, panel_proposal pp,axafusers..person_short ps,panel
+	where p.proposal_id = pp.proposal_id
+	and pp.panel_id = panel.panel_id
+	and (p.type like "%LP%" or p.type like "%XVP%")
+	and panel_name not like "%P"
+	and piid = ps.pers_id
+        and ao_str like "$param{a}"
+        UNION 
+        select proposal_number,last,first,lower(institution), "CoI" xx,email,
+	panel_name
+ 	from proposal p, panel_proposal pp,axafusers..person_short ps,
+	coin,panel
+	where p.proposal_id = pp.proposal_id
+	and p.proposal_id = coin.proposal_id
+	and (p.type like "%LP%" or p.type like "%XVP%")
+	and pp.panel_id = panel.panel_id
+	and coin.pers_id = ps.pers_id
+	and panel_name not like "%P"
+        and ao_str like "$param{a}"
+	order by proposal_number
+        );
+#print STDERR "$sql\n\n";
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  @theprops = ();
+  while (@row = $sth->fetchrow_array) {
+     $row[3] = modify_institute($row[3]);
+     while ($row[1] =~ s/ //) {;}
+     while ($row[2] =~ s/ //) {;}
+     $str = join('^',@row);
+     push(@theprops,$str);
+     if ($thepanels{$row[0]} !~ /$row[6]/) {
+       if ($thepanels{$row[0]} ) {
+         $thepanels{$row[0]} .= ","
+       }
+       $thepanels{$row[0]} .= $row[6];
+     }
+     $pno_panel{$row[0]}{$row[6]} = 0;
+     if ($row[0] ne $oldpno) {
+       push(@pnos,$row[0]);
+       $oldpno = $row[0];
+     }
+  }
+  
+
+}
+
+sub do_personal
+{
+  my($sql,$didit,@prop);
+  my($sth,@row,$ii,$str);
+
+  $sql = qq(select distinct ps.pers_id,last,first,rc.type,
+	(last + ',' + first),proposal_number,panel_name
+        from axafusers..person_short ps,
+	panel,panel_proposal pp,proposal,panel_member pm,
+	reviewer_conflicts rc
+        where ps.pers_id = rc.pers_id and rc.inactive != 'Y'
+	and ps.pers_id = pm.pers_id
+	and panel.panel_id = pp.panel_id
+	and panel.panel_id = pm.panel_id
+	and (member_type="Chair")
+	and pp.proposal_id= proposal.proposal_id
+	and pp.proposal_id= rc.proposal_id
+        and proposal.ao_str like "$param{a}" 
+        order by lower(last));
+  #print STDERR "$sql\n";
+
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+
+  while (@row = $sth->fetchrow_array) {
+
+     $personalConflicts{$row[5]}{"$row[6]_$row[1]"} .= " $row[3]";
+     $pno_panel{$prop[0]}{$row[6]} = 1;
+  }
+}
+  
+
+
+# ----------------------------------------------------------
+# parse input parameters
+# ----------------------------------------------------------
+sub parse_input
+{
+  my ($pwd);
+  my $err = 0;
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+             o=> undef,
+             a=> "$ENV{ASCDS_PROP_AO}",
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "o=s",
+          "a=s",
+          "q=s",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter '$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+  $param{q} = $pwd;
+
+  
+}
+
+sub usage
+{
+    print STDERR "\nUSAGE: peer_bpp_chair_conflict.pl -Uop [Sa]\n";
+    print STDERR "       -U database user name\n";
+    print STDERR "       -S database server, default is DB_PROP_SQLSRV\n";
+    print STDERR "       -a AO , default is ASCDS_PROP_AO\n";
+    print STDERR "       -o output directory \n";
+}
+

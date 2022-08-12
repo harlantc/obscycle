@@ -1,0 +1,2411 @@
+
+
+
+
+200 dict begin
+
+  
+ 
+systemdict /ISOLatin1Encoding known not { 
+  /ISOLatin1Encoding [ 
+    /space /space /space /space /space /space /space /space 
+    /space /space /space /space /space /space /space /space 
+    /space /space /space /space /space /space /space /space 
+    /space /space /space /space /space /space /space /space 
+    /space /exclam /quotedbl /numbersign /dollar /percent /ampersand 
+    /quoteright 
+    /parenleft /parenright /asterisk /plus /comma /minus /period /slash 
+    /zero /one /two /three /four /five /six /seven 
+    /eight /nine /colon /semicolon /less /equal /greater /question 
+    /at /A /B /C /D /E /F /G 
+    /H /I /J /K /L /M /N /O 
+    /P /Q /R /S /T /U /V /W 
+    /X /Y /Z /bracketleft /backslash /bracketright /asciicircum /underscore 
+    /quoteleft /a /b /c /d /e /f /g 
+    /h /i /j /k /l /m /n /o 
+    /p /q /r /s /t /u /v /w 
+    /x /y /z /braceleft /bar /braceright /asciitilde /space 
+    /space /space /space /space /space /space /space /space 
+    /space /space /space /space /space /space /space /space 
+    /dotlessi /grave /acute /circumflex /tilde /macron /breve /dotaccent 
+    /dieresis /space /ring /cedilla /space /hungarumlaut /ogonek /caron 
+    /space /exclamdown /cent /sterling /currency /yen /brokenbar /section 
+    /dieresis /copyright /ordfeminine /guillemotleft /logicalnot /hyphen 
+    /registered /macron 
+    /degree /plusminus /twosuperior /threesuperior /acute /mu /paragraph 
+    /periodcentered 
+    /cedillar /onesuperior /ordmasculine /guillemotright /onequarter 
+    /onehalf /threequarters /questiondown 
+    /Agrave /Aacute /Acircumflex /Atilde /Adieresis /Aring /AE /Ccedilla 
+    /Egrave /Eacute /Ecircumflex /Edieresis /Igrave /Iacute /Icircumflex 
+    /Idieresis 
+    /Eth /Ntilde /Ograve /Oacute /Ocircumflex /Otilde /Odieresis /multiply 
+    /Oslash /Ugrave /Uacute /Ucircumflex /Udieresis /Yacute /Thorn 
+    /germandbls 
+    /agrave /aacute /acircumflex /atilde /adieresis /aring /ae /ccedilla 
+    /egrave /eacute /ecircumflex /edieresis /igrave /iacute /icircumflex 
+    /idieresis 
+    /eth /ntilde /ograve /oacute /ocircumflex /otilde /odieresis /divide 
+    /oslash /ugrave /uacute /ucircumflex /udieresis /yacute /thorn 
+    /ydieresis 
+  ] def 
+} if 
+
+
+/ISOEncode { 
+  dup length dict
+  begin 
+    {1 index /FID ne {def} {pop pop} ifelse} forall 
+    /Encoding ISOLatin1Encoding def 
+    currentdict 
+  end 
+
+
+  /Temporary exch definefont 
+} bind def 
+
+/Stroke {
+  gsave
+    stroke
+  grestore
+} def
+
+/Fill {
+  gsave
+    fill
+  grestore
+} def
+
+/SetFont { 	
+  findfont exch scalefont ISOEncode setfont
+} def
+
+/Box {
+  newpath
+  exch 4 2 roll moveto
+  dup 0 rlineto
+  exch 0 exch rlineto
+  neg 0 rlineto
+  closepath
+} def
+
+/SetFgColor {
+  CL 0 eq { 
+    pop pop pop 0 0 0 
+  } if
+  setrgbcolor
+  CL 1 eq { 
+    currentgray setgray 
+  } if
+} def
+
+/SetBgColor {
+  CL 0 eq { 
+    pop pop pop 1 1 1 
+  } if
+  setrgbcolor
+  CL 1 eq { 
+    currentgray setgray 
+  } if
+} def
+
+
+
+/EvenPixels {
+  dup 0 matrix currentmatrix dtransform
+  dup mul exch dup mul add sqrt
+
+  dup round dup 1 lt {pop 1} if
+  exch div mul
+} bind def
+
+
+
+/StippleFill {
+
+    /tmpstip 1 index def
+
+    1 EvenPixels dup scale
+
+
+    pathbbox
+    4 2 roll
+    5 index div dup 0 lt {1 sub} if cvi 5 index mul 4 1 roll
+    6 index div dup 0 lt {1 sub} if cvi 6 index mul 3 2 roll
+
+
+    6 index exch {
+	2 index 5 index 3 index {
+
+	    gsave
+	    1 index exch translate
+	    5 index 5 index true matrix tmpstip imagemask
+	    grestore
+	} for
+	pop
+    } for
+    pop pop pop pop pop
+} bind def
+
+
+  newpath 4 2 roll moveto lineto stroke
+} def
+
+/EndText {
+  grestore
+} def
+
+/BeginText {
+  gsave
+    translate neg rotate
+    -0.5 mul exch -0.5 mul exch translate
+} def
+
+/DrawAdjText {
+  exch dup dup 4 2 roll
+
+
+  stringwidth pop sub exch
+  length div
+  0 3 -1 roll
+
+
+  gsave
+    1 -1 scale
+    ashow
+  grestore
+} def
+
+/DrawBitmap {
+  gsave
+    
+    
+    2 copy -.5 mul exch -.5 mul exch translate
+    newpath
+    0 0 moveto 0 1 lineto 1 1 lineto 1 0 lineto
+    closepath
+    
+    
+    4 -1 roll { 
+      gsave 
+	4 -1 roll exec fill 
+      grestore 
+    } if
+    
+    
+    2 copy true 3 -1 roll 0 0 5 -1 roll 0 0 6 array astore 5 -1 roll
+    imagemask
+  grestore
+} def
+
+
+/Sc {
+  gsave
+    3 -2 roll translate 45 rotate
+    0 0 3 -1 roll Sp
+  grestore
+} def
+
+/Sp {
+  gsave
+    3 -2 roll translate
+    2 idiv
+    dup 2 copy
+    newpath neg 0 moveto 0 lineto
+    DrawSymbolProc
+    newpath neg 0 exch moveto 0 exch lineto
+    DrawSymbolProc
+  grestore
+} def
+
+/Cr {
+  gsave
+    3 -2 roll translate 45 rotate
+    0 0 3 -1 roll Pl
+  grestore
+} def
+
+/Pl {
+  gsave
+    3 -2 roll translate
+    dup 2 idiv
+    exch 6 idiv
+
+
+    newpath
+    2 copy exch neg exch neg moveto dup neg dup lineto
+    2 copy neg exch neg lineto 2 copy exch neg lineto
+    dup dup neg lineto 2 copy neg lineto 2 copy lineto
+    dup dup lineto 2 copy exch lineto 2 copy neg exch lineto
+    dup dup neg exch lineto exch neg exch lineto
+    closepath
+    DrawSymbolProc
+  grestore
+} def
+
+/Ci {
+  gsave
+    3 copy pop
+    moveto newpath
+    2 div 0 360 arc
+    closepath DrawSymbolProc
+  grestore
+} def
+
+/Sq {
+  gsave
+    dup dup 2 div dup
+    6 -1 roll exch sub exch
+    5 -1 roll exch sub 4 -2 roll Box
+    DrawSymbolProc
+  grestore
+} def
+
+/Li {
+  gsave
+    3 1 roll exch 3 -1 roll 2 div 3 copy
+    newpath
+    sub exch moveto add exch lineto
+    stroke
+  grestore
+} def
+
+/Di {
+  gsave
+    3 1 roll translate 45 rotate 0 0 3 -1 roll Sq
+  grestore
+} def
+    
+/Tr {
+  gsave
+    3 -2 roll translate
+    closepath
+    DrawSymbolProc
+  grestore
+} def
+
+/Ar {
+  gsave
+    3 -2 roll translate
+    closepath
+    DrawSymbolProc
+  grestore
+} def
+
+/Bm {
+  gsave
+    3 1 roll translate pop DrawSymbolProc
+  grestore
+} def
+
+
+
+
+
+
+
+0.799459 -0.800012 scale
+0 -527 translate
+
+
+/CL 2 def
+
+0 0 translate
+
+
+
+12 /Helvetica-Bold SetFont
+153 53 595 392 Box
+
+ 1.0 1.0 1.0 SetBgColor
+Fill
+gsave clip
+
+
+
+0 setlinejoin
+0 setlinecap
+1 0 1 SetFgColor
+1 setlinewidth
+[  5 5] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+ newpath 612.86 64.0182 moveto
+ 617.169 84.3903 lineto
+DashesProc stroke
+ newpath  617.169 84.3903 moveto
+ 621.493 96.6917 lineto
+ 625.801 104.301 lineto
+ 630.126 109.314 lineto
+ 634.434 115.69 lineto
+ 638.758 120.823 lineto
+ 643.066 124.663 lineto
+ 647.374 128.022 lineto
+ 651.699 129.315 lineto
+ 656.007 131.441 lineto
+ 660.315 133.636 lineto
+ 664.64 134.428 lineto
+ 668.948 136.042 lineto
+ 673.272 136.654 lineto
+ 677.58 137.646 lineto
+ 681.905 137.687 lineto
+ 686.213 138.138 lineto
+ 690.537 137.837 lineto
+ 694.845 138.218 lineto
+ 699.154 137.466 lineto
+ 703.478 137.807 lineto
+ 707.786 137.677 lineto
+ 712.111 137.977 lineto
+ 716.419 138.268 lineto
+ 720.743 138.539 lineto
+ 725.051 138.809 lineto
+ 729.376 139.07 lineto
+ 733.684 139.321 lineto
+ 738.008 139.561 lineto
+ 742.317 139.802 lineto
+DashesProc stroke
+
+
+0 setlinejoin
+0 setlinecap
+1 0 1 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+ newpath 612.86 84.0695 moveto
+ 617.169 104.442 lineto
+DashesProc stroke
+ newpath  617.169 104.442 moveto
+ 621.493 116.743 lineto
+ 625.801 124.352 lineto
+ 630.126 129.365 lineto
+ 634.434 132.884 lineto
+ 638.758 135.491 lineto
+ 643.066 137.486 lineto
+ 647.374 139.07 lineto
+ 651.699 140.363 lineto
+ 656.007 141.446 lineto
+ 660.315 142.359 lineto
+ 664.64 143.151 lineto
+ 668.948 143.842 lineto
+ 673.272 144.454 lineto
+ 677.58 144.995 lineto
+ 681.905 145.487 lineto
+ 686.213 145.938 lineto
+ 690.537 146.359 lineto
+ 694.845 146.74 lineto
+ 699.154 147.091 lineto
+ 703.478 147.432 lineto
+ 707.786 147.742 lineto
+ 712.111 148.043 lineto
+ 716.419 148.334 lineto
+ 720.743 148.605 lineto
+ 725.051 148.875 lineto
+ 729.376 149.136 lineto
+ 733.684 149.387 lineto
+ 738.008 149.627 lineto
+ 742.317 149.868 lineto
+DashesProc stroke
+
+
+0 setlinejoin
+0 setlinecap
+1 0 1 SetFgColor
+1 setlinewidth
+[  5 5] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+ newpath 612.86 104.121 moveto
+ 617.169 124.493 lineto
+DashesProc stroke
+ newpath  617.169 124.493 moveto
+ 621.493 136.794 lineto
+ 625.801 144.404 lineto
+ 630.126 149.417 lineto
+ 634.434 150.078 lineto
+ 638.758 150.158 lineto
+ 643.066 150.309 lineto
+ 647.374 150.118 lineto
+ 651.699 151.412 lineto
+ 656.007 151.452 lineto
+ 660.315 151.081 lineto
+ 664.64 151.873 lineto
+ 668.948 151.642 lineto
+ 673.272 152.254 lineto
+ 677.58 152.344 lineto
+ 681.905 153.286 lineto
+ 686.213 153.738 lineto
+ 690.537 154.881 lineto
+ 694.845 155.262 lineto
+ 699.154 156.715 lineto
+ 703.478 157.056 lineto
+ 707.786 157.808 lineto
+ 712.111 158.109 lineto
+ 716.419 158.4 lineto
+ 720.743 158.67 lineto
+ 725.051 158.941 lineto
+ 729.376 159.202 lineto
+ 733.684 159.452 lineto
+ 738.008 159.693 lineto
+ 742.317 159.933 lineto
+DashesProc stroke
+
+
+0 setlinejoin
+0 setlinecap
+1 0 1 SetFgColor
+1 setlinewidth
+[  5 5] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+ newpath 379.813 325.988 moveto
+ 384.138 322.469 lineto
+DashesProc stroke
+ newpath  384.138 322.469 moveto
+ 388.446 320.063 lineto
+ 392.77 320.013 lineto
+ 397.079 320.354 lineto
+ 401.403 317.767 lineto
+ 405.711 316.354 lineto
+ 410.036 316.644 lineto
+ 414.344 315.772 lineto
+ 418.652 316.033 lineto
+ 422.976 315.521 lineto
+ 427.284 315.762 lineto
+ 431.609 316.775 lineto
+ 435.917 317.005 lineto
+ 440.241 318.379 lineto
+ 444.55 318.599 lineto
+ 448.874 320.534 lineto
+ 453.182 320.755 lineto
+ 457.507 320.975 lineto
+ 461.815 321.196 lineto
+ 466.123 321.416 lineto
+ 470.447 321.647 lineto
+ 474.755 321.868 lineto
+ 479.08 322.098 lineto
+ 483.388 322.329 lineto
+ 487.712 322.569 lineto
+ 492.021 322.82 lineto
+ 496.345 323.071 lineto
+ 500.653 323.341 lineto
+ 504.978 323.612 lineto
+ 509.286 323.903 lineto
+ 513.61 324.645 lineto
+ 517.918 324.976 lineto
+ 522.243 326.419 lineto
+ 526.551 326.79 lineto
+ 530.875 327.903 lineto
+ 535.184 328.344 lineto
+ 539.508 329.267 lineto
+ 543.816 329.337 lineto
+ 548.141 329.928 lineto
+ 552.449 329.658 lineto
+ 556.757 330.409 lineto
+ 561.081 329.998 lineto
+ 565.389 329.968 lineto
+ 569.714 331.181 lineto
+ 574.022 330.881 lineto
+ 578.346 330.891 lineto
+ 582.655 330.73 lineto
+ 586.979 333.898 lineto
+ 591.287 335.472 lineto
+ 595.595 342.039 lineto
+ 599.92 352.456 lineto
+ 604.228 369.76 lineto
+ 608.552 396.288 lineto
+DashesProc stroke
+
+
+0 setlinejoin
+0 setlinecap
+1 0 1 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+ newpath 379.813 325.988 moveto
+ 384.138 326.419 lineto
+DashesProc stroke
+ newpath  384.138 326.419 moveto
+ 388.446 326.81 lineto
+ 392.77 327.171 lineto
+ 397.079 327.512 lineto
+ 401.403 327.833 lineto
+ 405.711 328.134 lineto
+ 410.036 328.424 lineto
+ 414.344 328.695 lineto
+ 418.652 328.956 lineto
+ 422.976 329.216 lineto
+ 427.284 329.457 lineto
+ 431.609 329.698 lineto
+ 435.917 329.928 lineto
+ 440.241 330.159 lineto
+ 444.55 330.379 lineto
+ 448.874 330.6 lineto
+ 453.182 330.821 lineto
+ 457.507 331.041 lineto
+ 461.815 331.262 lineto
+ 466.123 331.482 lineto
+ 470.447 331.713 lineto
+ 474.755 331.933 lineto
+ 479.08 332.164 lineto
+ 483.388 332.395 lineto
+ 487.712 332.635 lineto
+ 492.021 332.886 lineto
+ 496.345 333.136 lineto
+ 500.653 333.407 lineto
+ 504.978 333.678 lineto
+ 509.286 333.969 lineto
+ 513.61 334.269 lineto
+ 517.918 334.6 lineto
+ 522.243 334.941 lineto
+ 526.551 335.312 lineto
+ 530.875 335.703 lineto
+ 535.184 336.144 lineto
+ 539.508 336.615 lineto
+ 543.816 337.137 lineto
+ 548.141 337.728 lineto
+ 552.449 338.38 lineto
+ 556.757 339.132 lineto
+ 561.081 340.004 lineto
+ 565.389 341.017 lineto
+ 569.714 342.23 lineto
+ 574.022 343.703 lineto
+ 578.346 345.558 lineto
+ 582.655 347.924 lineto
+ 586.979 351.092 lineto
+ 591.287 355.524 lineto
+ 595.595 362.091 lineto
+ 599.92 372.507 lineto
+ 604.228 389.811 lineto
+ 608.552 416.339 lineto
+DashesProc stroke
+
+
+0 setlinejoin
+0 setlinecap
+1 0 1 SetFgColor
+1 setlinewidth
+[  5 5] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+ newpath 379.813 325.988 moveto
+ 384.138 330.369 lineto
+DashesProc stroke
+ newpath  384.138 330.369 moveto
+ 388.446 333.558 lineto
+ 392.77 334.33 lineto
+ 397.079 334.67 lineto
+ 401.403 337.899 lineto
+ 405.711 339.914 lineto
+ 410.036 340.205 lineto
+ 414.344 341.618 lineto
+ 418.652 341.879 lineto
+ 422.976 342.911 lineto
+ 427.284 343.152 lineto
+ 431.609 342.621 lineto
+ 435.917 342.851 lineto
+ 440.241 341.939 lineto
+ 444.55 342.16 lineto
+ 448.874 340.666 lineto
+ 453.182 340.886 lineto
+ 457.507 341.107 lineto
+ 461.815 341.327 lineto
+ 466.123 341.548 lineto
+ 470.447 341.779 lineto
+ 474.755 341.999 lineto
+ 479.08 342.23 lineto
+ 483.388 342.46 lineto
+ 487.712 342.701 lineto
+ 492.021 342.952 lineto
+ 496.345 343.202 lineto
+ 500.653 343.473 lineto
+ 504.978 343.744 lineto
+ 509.286 344.034 lineto
+ 513.61 343.894 lineto
+ 517.918 344.225 lineto
+ 522.243 343.463 lineto
+ 526.551 343.834 lineto
+ 530.875 343.503 lineto
+ 535.184 343.944 lineto
+ 539.508 343.964 lineto
+ 543.816 344.937 lineto
+ 548.141 345.528 lineto
+ 552.449 347.102 lineto
+ 556.757 347.854 lineto
+ 561.081 350.01 lineto
+ 565.389 352.065 lineto
+ 569.714 353.278 lineto
+ 574.022 356.526 lineto
+ 578.346 360.226 lineto
+ 582.655 365.118 lineto
+ 586.979 368.286 lineto
+ 591.287 375.575 lineto
+ 595.595 382.142 lineto
+ 599.92 392.558 lineto
+ 604.228 409.863 lineto
+ 608.552 436.391 lineto
+DashesProc stroke
+
+
+0 setlinejoin
+0 setlinecap
+1 0 1 SetFgColor
+1 setlinewidth
+[  5 5] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+ newpath 153 140.174 moveto
+ 155.415 140.303 lineto
+DashesProc stroke
+ newpath  155.415 140.303 moveto
+ 159.74 140.544 lineto
+ 164.048 140.774 lineto
+ 168.372 139.301 lineto
+ 172.68 139.531 lineto
+ 177.005 138.629 lineto
+ 181.313 138.88 lineto
+ 185.637 138.358 lineto
+ 189.945 138.619 lineto
+ 194.27 139.662 lineto
+ 198.578 139.932 lineto
+ 202.903 141.366 lineto
+ 207.211 141.667 lineto
+ 211.519 143.702 lineto
+ 215.843 146.95 lineto
+ 220.151 147.311 lineto
+ 224.476 148.574 lineto
+ 228.784 153.226 lineto
+ 233.108 155.743 lineto
+DashesProc stroke
+
+
+0 setlinejoin
+0 setlinecap
+1 0 1 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+ newpath 153 150.24 moveto
+ 155.415 150.369 lineto
+DashesProc stroke
+ newpath  155.415 150.369 moveto
+ 159.74 150.61 lineto
+ 164.048 150.84 lineto
+ 168.372 151.081 lineto
+ 172.68 151.311 lineto
+ 177.005 151.552 lineto
+ 181.313 151.803 lineto
+ 185.637 152.053 lineto
+ 189.945 152.314 lineto
+ 194.27 152.585 lineto
+ 198.578 152.855 lineto
+ 202.903 153.146 lineto
+ 207.211 153.447 lineto
+ 211.519 153.768 lineto
+ 215.843 154.109 lineto
+ 220.151 154.47 lineto
+ 224.476 154.861 lineto
+ 228.784 155.282 lineto
+ 233.108 155.743 lineto
+DashesProc stroke
+
+
+0 setlinejoin
+0 setlinecap
+1 0 1 SetFgColor
+1 setlinewidth
+[  5 5] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+ newpath 153 160.305 moveto
+ 155.415 160.435 lineto
+DashesProc stroke
+ newpath  155.415 160.435 moveto
+ 159.74 160.675 lineto
+ 164.048 160.906 lineto
+ 168.372 162.861 lineto
+ 172.68 163.092 lineto
+ 177.005 164.475 lineto
+ 181.313 164.726 lineto
+ 185.637 165.748 lineto
+ 189.945 166.009 lineto
+ 194.27 165.508 lineto
+ 198.578 165.778 lineto
+ 202.903 164.926 lineto
+ 207.211 165.227 lineto
+ 211.519 163.833 lineto
+ 215.843 161.267 lineto
+ 220.151 161.628 lineto
+ 224.476 161.147 lineto
+ 228.784 157.337 lineto
+ 233.108 155.743 lineto
+DashesProc stroke
+
+
+0 setlinejoin
+0 setlinecap
+1 0 0 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+ newpath 379.813 353.97 moveto
+ 384.138 348.897 lineto
+DashesProc stroke
+ newpath  384.138 348.897 moveto
+ 388.446 343.844 lineto
+ 392.77 338.771 lineto
+ 397.079 333.718 lineto
+ 401.403 328.665 lineto
+ 405.711 323.612 lineto
+ 410.036 318.559 lineto
+ 414.344 313.506 lineto
+ 418.652 308.473 lineto
+ 422.976 303.42 lineto
+ 427.284 298.388 lineto
+ 431.609 293.355 lineto
+ 435.917 288.302 lineto
+ 440.241 283.269 lineto
+ 444.55 278.236 lineto
+ 448.874 273.183 lineto
+ 453.182 268.15 lineto
+ 457.507 263.117 lineto
+ 461.815 258.085 lineto
+ 466.123 253.052 lineto
+ 470.447 247.999 lineto
+ 474.755 242.966 lineto
+ 479.08 237.933 lineto
+ 483.388 232.88 lineto
+ 487.712 227.847 lineto
+ 492.021 222.794 lineto
+ 496.345 217.741 lineto
+ 500.653 212.688 lineto
+ 504.978 207.635 lineto
+ 509.286 202.583 lineto
+ 513.61 197.53 lineto
+ 517.918 192.477 lineto
+ 522.243 187.424 lineto
+ 526.551 182.351 lineto
+ 530.875 177.278 lineto
+ 535.184 172.205 lineto
+ 539.508 167.132 lineto
+ 543.816 162.059 lineto
+ 548.141 157.006 lineto
+ 552.449 151.933 lineto
+ 556.757 146.86 lineto
+ 561.081 141.787 lineto
+ 565.389 136.734 lineto
+ 569.714 131.681 lineto
+ 574.022 126.648 lineto
+ 578.346 121.615 lineto
+ 582.655 116.663 lineto
+ 586.979 111.75 lineto
+ 591.287 106.958 lineto
+ 595.595 102.366 lineto
+ 599.92 98.1555 lineto
+ 604.228 94.7668 lineto
+ 608.552 93.1026 lineto
+ 612.86 93.9848 lineto
+ 617.169 96.9324 lineto
+ 621.493 100.983 lineto
+ 625.801 105.534 lineto
+ 630.126 110.347 lineto
+ 634.434 115.299 lineto
+ 638.758 120.352 lineto
+ 643.066 125.445 lineto
+ 647.374 130.619 lineto
+ 651.699 135.792 lineto
+ 656.007 141.005 lineto
+ 660.315 146.259 lineto
+ 664.64 151.512 lineto
+ 668.948 156.785 lineto
+ 673.272 162.079 lineto
+ 677.58 167.373 lineto
+ 681.905 172.666 lineto
+ 686.213 178 lineto
+ 690.537 183.313 lineto
+ 694.845 188.647 lineto
+ 699.154 194.001 lineto
+ 703.478 199.334 lineto
+ 707.786 204.688 lineto
+ 712.111 210.062 lineto
+ 716.419 215.415 lineto
+ 720.743 220.789 lineto
+ 725.051 226.163 lineto
+ 729.376 231.537 lineto
+ 733.684 236.91 lineto
+ 738.008 242.284 lineto
+ 742.317 247.678 lineto
+DashesProc stroke
+
+
+0 setlinejoin
+0 setlinecap
+1 0 0 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+ newpath 153 256.043 moveto
+ 155.415 259.067 lineto
+DashesProc stroke
+ newpath  155.415 259.067 moveto
+ 159.74 264.441 lineto
+ 164.048 269.835 lineto
+ 168.372 275.208 lineto
+ 172.68 280.602 lineto
+ 177.005 285.976 lineto
+ 181.313 291.37 lineto
+ 185.637 296.743 lineto
+ 189.945 302.117 lineto
+ 194.27 307.491 lineto
+ 198.578 312.845 lineto
+ 202.903 318.218 lineto
+ 207.211 323.552 lineto
+ 211.519 328.906 lineto
+ 215.843 334.259 lineto
+ 220.151 339.593 lineto
+ 224.476 344.927 lineto
+ 228.784 350.24 lineto
+ 233.108 355.554 lineto
+DashesProc stroke
+
+
+0 setlinejoin
+0 setlinecap
+0 0.0745098 1 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+ newpath 153 149.032 moveto
+ 155.415 146.84 lineto
+DashesProc stroke
+ newpath  155.415 146.84 moveto
+ 159.74 150.75 lineto
+ 164.048 150.75 lineto
+ 168.372 146.84 lineto
+ 172.68 150.75 lineto
+ 177.005 146.84 lineto
+ 181.313 146.84 lineto
+ 185.637 146.84 lineto
+ 189.945 146.84 lineto
+ 194.27 146.84 lineto
+ 198.578 146.84 lineto
+ 202.903 146.84 lineto
+ 207.211 146.84 lineto
+ 211.519 146.84 lineto
+ 215.843 146.84 lineto
+ 220.151 146.84 lineto
+ 224.476 146.84 lineto
+ 228.784 146.84 lineto
+ 233.108 444 lineto
+ 379.813 444 lineto
+ 384.138 326.7 lineto
+ 388.446 146.84 lineto
+ 392.77 146.84 lineto
+ 397.079 146.84 lineto
+ 401.403 146.84 lineto
+ 405.711 146.84 lineto
+ 410.036 146.84 lineto
+ 414.344 146.84 lineto
+ 418.652 146.84 lineto
+ 422.976 146.84 lineto
+ 427.284 146.84 lineto
+ 431.609 146.84 lineto
+ 435.917 146.84 lineto
+ 440.241 146.84 lineto
+ 444.55 146.84 lineto
+ 448.874 146.84 lineto
+ 453.182 146.84 lineto
+ 457.507 146.84 lineto
+ 461.815 146.84 lineto
+ 466.123 146.84 lineto
+ 470.447 146.84 lineto
+ 474.755 142.93 lineto
+ 479.08 142.93 lineto
+ 483.388 146.84 lineto
+ 487.712 142.93 lineto
+ 492.021 142.93 lineto
+ 496.345 142.93 lineto
+ 500.653 142.93 lineto
+ 504.978 142.93 lineto
+ 509.286 142.93 lineto
+ 513.61 142.93 lineto
+ 517.918 142.93 lineto
+ 522.243 142.93 lineto
+ 526.551 142.93 lineto
+ 530.875 142.93 lineto
+ 535.184 142.93 lineto
+ 539.508 142.93 lineto
+ 543.816 142.93 lineto
+ 548.141 142.93 lineto
+ 552.449 142.93 lineto
+ 556.757 142.93 lineto
+ 561.081 142.93 lineto
+ 565.389 142.93 lineto
+ 569.714 142.93 lineto
+ 574.022 142.93 lineto
+ 578.346 142.93 lineto
+ 582.655 142.93 lineto
+ 586.979 142.93 lineto
+ 591.287 142.93 lineto
+ 595.595 142.93 lineto
+ 599.92 142.93 lineto
+ 604.228 142.93 lineto
+ 608.552 142.93 lineto
+ 612.86 142.93 lineto
+ 617.169 142.93 lineto
+ 621.493 142.93 lineto
+ 625.801 142.93 lineto
+ 630.126 142.93 lineto
+ 634.434 142.93 lineto
+ 638.758 142.93 lineto
+ 643.066 142.93 lineto
+ 647.374 142.93 lineto
+ 651.699 142.93 lineto
+ 656.007 142.93 lineto
+ 660.315 142.93 lineto
+ 664.64 142.93 lineto
+ 668.948 142.93 lineto
+ 673.272 142.93 lineto
+ 677.58 142.93 lineto
+ 681.905 142.93 lineto
+ 686.213 142.93 lineto
+ 690.537 142.93 lineto
+ 694.845 142.93 lineto
+ 699.154 142.93 lineto
+ 703.478 142.93 lineto
+ 707.786 142.93 lineto
+ 712.111 142.93 lineto
+ 716.419 142.93 lineto
+ 720.743 142.93 lineto
+ 725.051 142.93 lineto
+ 729.376 142.93 lineto
+ 733.684 142.93 lineto
+ 738.008 142.93 lineto
+ 742.317 142.93 lineto
+DashesProc stroke
+
+newpath 228.784 351.363 moveto
+228.784 331.713 lineto
+213.787 331.713 lineto
+213.787 351.363 lineto
+213.787 351.363 lineto
+228.784 351.363 lineto
+closepath
+0 0.0745098 1 SetFgColor
+gsave
+  clip
+  6 6
+	<040810204080>
+  StippleFill
+grestore
+0 setlinejoin
+0 setlinecap
+0 0.0745098 1 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+213.787 351.363 moveto
+ 228.784 351.363 lineto
+DashesProc stroke
+228.784 351.363 moveto
+ 228.784 331.713 lineto
+DashesProc stroke
+228.784 331.713 moveto
+ 213.787 331.713 lineto
+DashesProc stroke
+213.787 331.713 moveto
+ 213.787 351.363 lineto
+DashesProc stroke
+213.787 351.363 moveto
+ 213.787 351.363 lineto
+DashesProc stroke
+
+0 setlinejoin
+0 setlinecap
+0 0.0745098 1 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+213.787 93.1026 moveto
+ 213.787 444 lineto
+DashesProc stroke
+
+0 setlinejoin
+0 setlinecap
+0 0.0745098 1 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+228.784 93.1026 moveto
+ 228.784 444 lineto
+DashesProc stroke
+
+46 26 0 221.286 311.662 BeginText
+10 /Helvetica SetFont
+0 0.0745098 1 SetFgColor
+(PSMC) 38 4 18 DrawAdjText
+EndText
+
+newpath 398.792 351.363 moveto
+398.792 331.713 lineto
+384.138 331.713 lineto
+384.138 351.363 lineto
+384.138 351.363 lineto
+398.792 351.363 lineto
+closepath
+0 0.0745098 1 SetFgColor
+gsave
+  clip
+  6 6
+	<040810204080>
+  StippleFill
+grestore
+0 setlinejoin
+0 setlinecap
+0 0.0745098 1 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+384.138 351.363 moveto
+ 398.792 351.363 lineto
+DashesProc stroke
+398.792 351.363 moveto
+ 398.792 331.713 lineto
+DashesProc stroke
+398.792 331.713 moveto
+ 384.138 331.713 lineto
+DashesProc stroke
+384.138 331.713 moveto
+ 384.138 351.363 lineto
+DashesProc stroke
+384.138 351.363 moveto
+ 384.138 351.363 lineto
+DashesProc stroke
+
+0 setlinejoin
+0 setlinecap
+0 0.0745098 1 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+384.138 93.1026 moveto
+ 384.138 444 lineto
+DashesProc stroke
+
+0 setlinejoin
+0 setlinecap
+0 0.0745098 1 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+398.792 93.1026 moveto
+ 398.792 444 lineto
+DashesProc stroke
+
+46 26 0 391.465 311.662 BeginText
+10 /Helvetica SetFont
+0 0.0745098 1 SetFgColor
+(PSMC) 38 4 18 DrawAdjText
+EndText
+
+newpath 213.787 331.713 moveto
+213.787 323.692 lineto
+207.309 323.692 lineto
+207.309 331.713 lineto
+207.309 331.713 lineto
+213.787 331.713 lineto
+closepath
+0.0352941 1 0.054902 SetFgColor
+gsave
+  clip
+  6 6
+	<040810204080>
+  StippleFill
+grestore
+0 setlinejoin
+0 setlinecap
+0.0352941 1 0.054902 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+207.309 331.713 moveto
+ 213.787 331.713 lineto
+DashesProc stroke
+213.787 331.713 moveto
+ 213.787 323.692 lineto
+DashesProc stroke
+213.787 323.692 moveto
+ 207.309 323.692 lineto
+DashesProc stroke
+207.309 323.692 moveto
+ 207.309 331.713 lineto
+DashesProc stroke
+207.309 331.713 moveto
+ 207.309 331.713 lineto
+DashesProc stroke
+
+0 setlinejoin
+0 setlinecap
+0.0352941 1 0.054902 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+207.309 93.1026 moveto
+ 207.309 444 lineto
+DashesProc stroke
+
+0 setlinejoin
+0 setlinecap
+0.0352941 1 0.054902 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+213.787 93.1026 moveto
+ 213.787 444 lineto
+DashesProc stroke
+
+39 26 0 210.548 303.641 BeginText
+10 /Helvetica SetFont
+0.0352941 1 0.054902 SetFgColor
+(Good) 31 4 18 DrawAdjText
+EndText
+
+newpath 405.646 331.713 moveto
+405.646 323.692 lineto
+398.792 323.692 lineto
+398.792 331.713 lineto
+398.792 331.713 lineto
+405.646 331.713 lineto
+closepath
+0.0352941 1 0.054902 SetFgColor
+gsave
+  clip
+  6 6
+	<040810204080>
+  StippleFill
+grestore
+0 setlinejoin
+0 setlinecap
+0.0352941 1 0.054902 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+398.792 331.713 moveto
+ 405.646 331.713 lineto
+DashesProc stroke
+405.646 331.713 moveto
+ 405.646 323.692 lineto
+DashesProc stroke
+405.646 323.692 moveto
+ 398.792 323.692 lineto
+DashesProc stroke
+398.792 323.692 moveto
+ 398.792 331.713 lineto
+DashesProc stroke
+398.792 331.713 moveto
+ 398.792 331.713 lineto
+DashesProc stroke
+
+0 setlinejoin
+0 setlinecap
+0.0352941 1 0.054902 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+398.792 93.1026 moveto
+ 398.792 444 lineto
+DashesProc stroke
+
+0 setlinejoin
+0 setlinecap
+0.0352941 1 0.054902 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+405.646 93.1026 moveto
+ 405.646 444 lineto
+DashesProc stroke
+
+39 26 0 402.219 303.641 BeginText
+10 /Helvetica SetFont
+0.0352941 1 0.054902 SetFgColor
+(Good) 31 4 18 DrawAdjText
+EndText
+
+newpath 153 323.692 moveto
+207.309 323.692 lineto
+207.309 173.308 lineto
+153 173.308 lineto
+153 323.692 lineto
+closepath
+1 0 0 SetFgColor
+gsave
+  clip
+  6 6
+	<040810204080>
+  StippleFill
+grestore
+0 setlinejoin
+0 setlinecap
+1 0 0 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+153 323.692 moveto
+ 207.309 323.692 lineto
+DashesProc stroke
+207.309 323.692 moveto
+ 207.309 173.308 lineto
+DashesProc stroke
+207.309 173.308 moveto
+ 153 173.308 lineto
+DashesProc stroke
+
+
+0 setlinejoin
+0 setlinecap
+1 0 0 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+207.309 93.1026 moveto
+ 207.309 444 lineto
+DashesProc stroke
+
+48 26 0 179.208 153.256 BeginText
+10 /Helvetica SetFont
+1 0 0 SetFgColor
+(EPHIN) 40 4 18 DrawAdjText
+EndText
+
+newpath 534.253 323.692 moveto
+534.253 173.308 lineto
+405.646 173.308 lineto
+405.646 323.692 lineto
+405.646 323.692 lineto
+534.253 323.692 lineto
+closepath
+1 0 0 SetFgColor
+gsave
+  clip
+  6 6
+	<040810204080>
+  StippleFill
+grestore
+0 setlinejoin
+0 setlinecap
+1 0 0 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+405.646 323.692 moveto
+ 534.253 323.692 lineto
+DashesProc stroke
+534.253 323.692 moveto
+ 534.253 173.308 lineto
+DashesProc stroke
+534.253 173.308 moveto
+ 405.646 173.308 lineto
+DashesProc stroke
+405.646 173.308 moveto
+ 405.646 323.692 lineto
+DashesProc stroke
+405.646 323.692 moveto
+ 405.646 323.692 lineto
+DashesProc stroke
+
+0 setlinejoin
+0 setlinecap
+1 0 0 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+405.646 93.1026 moveto
+ 405.646 444 lineto
+DashesProc stroke
+
+0 setlinejoin
+0 setlinecap
+1 0 0 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+534.253 93.1026 moveto
+ 534.253 444 lineto
+DashesProc stroke
+
+48 26 0 469.95 153.256 BeginText
+10 /Helvetica SetFont
+1 0 0 SetFgColor
+(EPHIN) 40 4 18 DrawAdjText
+EndText
+
+newpath 742.317 323.692 moveto
+742.317 173.308 lineto
+682.411 173.308 lineto
+682.411 323.692 lineto
+682.411 323.692 lineto
+742.317 323.692 lineto
+closepath
+1 0 0 SetFgColor
+gsave
+  clip
+  6 6
+	<040810204080>
+  StippleFill
+grestore
+0 setlinejoin
+0 setlinecap
+1 0 0 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+682.411 323.692 moveto
+ 742.317 323.692 lineto
+DashesProc stroke
+742.317 323.692 moveto
+ 742.317 173.308 lineto
+DashesProc stroke
+742.317 173.308 moveto
+ 682.411 173.308 lineto
+DashesProc stroke
+682.411 173.308 moveto
+ 682.411 323.692 lineto
+DashesProc stroke
+682.411 323.692 moveto
+ 682.411 323.692 lineto
+DashesProc stroke
+
+0 setlinejoin
+0 setlinecap
+1 0 0 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+682.411 93.1026 moveto
+ 682.411 444 lineto
+DashesProc stroke
+
+0 setlinejoin
+0 setlinecap
+1 0 0 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+742.317 93.1026 moveto
+ 742.317 444 lineto
+DashesProc stroke
+
+48 26 0 712.364 153.256 BeginText
+10 /Helvetica SetFont
+1 0 0 SetFgColor
+(EPHIN) 40 4 18 DrawAdjText
+EndText
+
+newpath 570.122 173.308 moveto
+570.122 131.2 lineto
+534.253 131.2 lineto
+534.253 173.308 lineto
+534.253 173.308 lineto
+570.122 173.308 lineto
+closepath
+0.0352941 1 0.054902 SetFgColor
+gsave
+  clip
+  6 6
+	<040810204080>
+  StippleFill
+grestore
+0 setlinejoin
+0 setlinecap
+0.0352941 1 0.054902 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+534.253 173.308 moveto
+ 570.122 173.308 lineto
+DashesProc stroke
+570.122 173.308 moveto
+ 570.122 131.2 lineto
+DashesProc stroke
+570.122 131.2 moveto
+ 534.253 131.2 lineto
+DashesProc stroke
+534.253 131.2 moveto
+ 534.253 173.308 lineto
+DashesProc stroke
+534.253 173.308 moveto
+ 534.253 173.308 lineto
+DashesProc stroke
+
+0 setlinejoin
+0 setlinecap
+0.0352941 1 0.054902 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+534.253 93.1026 moveto
+ 534.253 444 lineto
+DashesProc stroke
+
+0 setlinejoin
+0 setlinecap
+0.0352941 1 0.054902 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+570.122 93.1026 moveto
+ 570.122 444 lineto
+DashesProc stroke
+
+39 26 0 552.188 111.149 BeginText
+10 /Helvetica SetFont
+0.0352941 1 0.054902 SetFgColor
+(Good) 31 4 18 DrawAdjText
+EndText
+
+newpath 682.411 173.308 moveto
+682.411 131.2 lineto
+647.864 131.2 lineto
+647.864 173.308 lineto
+647.864 173.308 lineto
+682.411 173.308 lineto
+closepath
+0.0352941 1 0.054902 SetFgColor
+gsave
+  clip
+  6 6
+	<040810204080>
+  StippleFill
+grestore
+0 setlinejoin
+0 setlinecap
+0.0352941 1 0.054902 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+647.864 173.308 moveto
+ 682.411 173.308 lineto
+DashesProc stroke
+682.411 173.308 moveto
+ 682.411 131.2 lineto
+DashesProc stroke
+682.411 131.2 moveto
+ 647.864 131.2 lineto
+DashesProc stroke
+647.864 131.2 moveto
+ 647.864 173.308 lineto
+DashesProc stroke
+647.864 173.308 moveto
+ 647.864 173.308 lineto
+DashesProc stroke
+
+0 setlinejoin
+0 setlinecap
+0.0352941 1 0.054902 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+647.864 93.1026 moveto
+ 647.864 444 lineto
+DashesProc stroke
+
+0 setlinejoin
+0 setlinecap
+0.0352941 1 0.054902 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+682.411 93.1026 moveto
+ 682.411 444 lineto
+DashesProc stroke
+
+39 26 0 665.137 111.149 BeginText
+10 /Helvetica SetFont
+0.0352941 1 0.054902 SetFgColor
+(Good) 31 4 18 DrawAdjText
+EndText
+
+newpath 594.877 131.2 moveto
+594.877 103.128 lineto
+570.122 103.128 lineto
+570.122 131.2 lineto
+570.122 131.2 lineto
+594.877 131.2 lineto
+closepath
+0 0.0745098 1 SetFgColor
+gsave
+  clip
+  6 6
+	<040810204080>
+  StippleFill
+grestore
+0 setlinejoin
+0 setlinecap
+0 0.0745098 1 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+570.122 131.2 moveto
+ 594.877 131.2 lineto
+DashesProc stroke
+594.877 131.2 moveto
+ 594.877 103.128 lineto
+DashesProc stroke
+594.877 103.128 moveto
+ 570.122 103.128 lineto
+DashesProc stroke
+570.122 103.128 moveto
+ 570.122 131.2 lineto
+DashesProc stroke
+570.122 131.2 moveto
+ 570.122 131.2 lineto
+DashesProc stroke
+
+0 setlinejoin
+0 setlinecap
+0 0.0745098 1 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+570.122 93.1026 moveto
+ 570.122 444 lineto
+DashesProc stroke
+
+0 setlinejoin
+0 setlinecap
+0 0.0745098 1 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+594.877 93.1026 moveto
+ 594.877 444 lineto
+DashesProc stroke
+
+46 26 0 582.5 83.0769 BeginText
+10 /Helvetica SetFont
+0 0.0745098 1 SetFgColor
+(PLINE) 38 4 18 DrawAdjText
+EndText
+
+newpath 647.864 131.2 moveto
+647.864 103.128 lineto
+623.533 103.128 lineto
+623.533 131.2 lineto
+623.533 131.2 lineto
+647.864 131.2 lineto
+closepath
+0 0.0745098 1 SetFgColor
+gsave
+  clip
+  6 6
+	<040810204080>
+  StippleFill
+grestore
+0 setlinejoin
+0 setlinecap
+0 0.0745098 1 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+623.533 131.2 moveto
+ 647.864 131.2 lineto
+DashesProc stroke
+647.864 131.2 moveto
+ 647.864 103.128 lineto
+DashesProc stroke
+647.864 103.128 moveto
+ 623.533 103.128 lineto
+DashesProc stroke
+623.533 103.128 moveto
+ 623.533 131.2 lineto
+DashesProc stroke
+623.533 131.2 moveto
+ 623.533 131.2 lineto
+DashesProc stroke
+
+0 setlinejoin
+0 setlinecap
+0 0.0745098 1 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+623.533 93.1026 moveto
+ 623.533 444 lineto
+DashesProc stroke
+
+0 setlinejoin
+0 setlinecap
+0 0.0745098 1 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+647.864 93.1026 moveto
+ 647.864 444 lineto
+DashesProc stroke
+
+46 26 0 635.698 83.0769 BeginText
+10 /Helvetica SetFont
+0 0.0745098 1 SetFgColor
+(PLINE) 38 4 18 DrawAdjText
+EndText
+
+newpath 623.533 103.128 moveto
+623.533 83.0769 lineto
+594.877 83.0769 lineto
+594.877 103.128 lineto
+594.877 103.128 lineto
+623.533 103.128 lineto
+closepath
+1 0 0 SetFgColor
+gsave
+  clip
+  6 6
+	<040810204080>
+  StippleFill
+grestore
+0 setlinejoin
+0 setlinecap
+1 0 0 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+594.877 103.128 moveto
+ 623.533 103.128 lineto
+DashesProc stroke
+623.533 103.128 moveto
+ 623.533 83.0769 lineto
+DashesProc stroke
+623.533 83.0769 moveto
+ 594.877 83.0769 lineto
+DashesProc stroke
+594.877 83.0769 moveto
+ 594.877 103.128 lineto
+DashesProc stroke
+594.877 103.128 moveto
+ 594.877 103.128 lineto
+DashesProc stroke
+
+0 setlinejoin
+0 setlinecap
+1 0 0 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+594.877 93.1026 moveto
+ 594.877 444 lineto
+DashesProc stroke
+
+0 setlinejoin
+0 setlinecap
+1 0 0 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+623.533 93.1026 moveto
+ 623.533 444 lineto
+DashesProc stroke
+
+65 26 0 609.205 63.0256 BeginText
+10 /Helvetica SetFont
+1 0 0 SetFgColor
+(Forbidden) 57 4 18 DrawAdjText
+EndText
+
+grestore
+
+ 1.0 1.0 1.0 SetBgColor
+0 0 810 53 Box fill
+
+0 53 153 391 Box fill
+
+747 53 63 391 Box fill
+
+0 444 810 83 Box fill
+
+378 32 0 450 24 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+( ) 9 184 14 DrawAdjText
+(Last Pitch Restriction Update: 2008-Sep-19) 378 0 30 DrawAdjText
+EndText
+186 18 0 450 507 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(Date \(days since JD 2400000.5\)) 186 0 14 DrawAdjText
+EndText
+83 36 0 157.896 474 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(55200) 35 24 14 DrawAdjText
+(2010-Jan-04) 79 2 32 DrawAdjText
+EndText
+82 36 0 321.082 474 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(55300) 35 23 14 DrawAdjText
+(2010-Apr-14) 78 2 32 DrawAdjText
+EndText
+79 36 0 484.269 474 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(55400) 35 22 14 DrawAdjText
+(2010-Jul-23) 75 2 32 DrawAdjText
+EndText
+83 36 0 647.456 474 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(55500) 35 24 14 DrawAdjText
+(2010-Oct-31) 79 2 32 DrawAdjText
+EndText
+0 setlinejoin
+0 setlinecap
+0 0 0 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+153 446 moveto
+ 747 446 lineto
+DashesProc stroke
+174.214 446 moveto
+ 174.214 451 lineto
+DashesProc stroke
+190.533 446 moveto
+ 190.533 451 lineto
+DashesProc stroke
+206.852 446 moveto
+ 206.852 451 lineto
+DashesProc stroke
+223.17 446 moveto
+ 223.17 451 lineto
+DashesProc stroke
+239.489 446 moveto
+ 239.489 451 lineto
+DashesProc stroke
+255.808 446 moveto
+ 255.808 451 lineto
+DashesProc stroke
+272.126 446 moveto
+ 272.126 451 lineto
+DashesProc stroke
+288.445 446 moveto
+ 288.445 451 lineto
+DashesProc stroke
+304.764 446 moveto
+ 304.764 451 lineto
+DashesProc stroke
+157.896 446 moveto
+ 157.896 454 lineto
+DashesProc stroke
+337.401 446 moveto
+ 337.401 451 lineto
+DashesProc stroke
+353.72 446 moveto
+ 353.72 451 lineto
+DashesProc stroke
+370.038 446 moveto
+ 370.038 451 lineto
+DashesProc stroke
+386.357 446 moveto
+ 386.357 451 lineto
+DashesProc stroke
+402.676 446 moveto
+ 402.676 451 lineto
+DashesProc stroke
+418.995 446 moveto
+ 418.995 451 lineto
+DashesProc stroke
+435.313 446 moveto
+ 435.313 451 lineto
+DashesProc stroke
+451.632 446 moveto
+ 451.632 451 lineto
+DashesProc stroke
+467.951 446 moveto
+ 467.951 451 lineto
+DashesProc stroke
+321.082 446 moveto
+ 321.082 454 lineto
+DashesProc stroke
+500.588 446 moveto
+ 500.588 451 lineto
+DashesProc stroke
+516.907 446 moveto
+ 516.907 451 lineto
+DashesProc stroke
+533.225 446 moveto
+ 533.225 451 lineto
+DashesProc stroke
+549.544 446 moveto
+ 549.544 451 lineto
+DashesProc stroke
+565.863 446 moveto
+ 565.863 451 lineto
+DashesProc stroke
+582.181 446 moveto
+ 582.181 451 lineto
+DashesProc stroke
+598.5 446 moveto
+ 598.5 451 lineto
+DashesProc stroke
+614.819 446 moveto
+ 614.819 451 lineto
+DashesProc stroke
+631.137 446 moveto
+ 631.137 451 lineto
+DashesProc stroke
+484.269 446 moveto
+ 484.269 454 lineto
+DashesProc stroke
+663.775 446 moveto
+ 663.775 451 lineto
+DashesProc stroke
+680.093 446 moveto
+ 680.093 451 lineto
+DashesProc stroke
+696.412 446 moveto
+ 696.412 451 lineto
+DashesProc stroke
+712.731 446 moveto
+ 712.731 451 lineto
+DashesProc stroke
+729.049 446 moveto
+ 729.049 451 lineto
+DashesProc stroke
+745.368 446 moveto
+ 745.368 451 lineto
+DashesProc stroke
+647.456 446 moveto
+ 647.456 454 lineto
+DashesProc stroke
+110 36 90 94 248 BeginText
+10 /Helvetica SetFont
+1 0 1 SetFgColor
+(Nominal Roll Angle) 110 0 32 DrawAdjText
+EndText
+11 18 0 135.5 444 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(0) 7 2 14 DrawAdjText
+EndText
+18 18 0 132 383.846 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(60) 14 2 14 DrawAdjText
+EndText
+25 18 0 128.5 323.692 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(120) 21 2 14 DrawAdjText
+EndText
+25 18 0 128.5 263.538 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(180) 21 2 14 DrawAdjText
+EndText
+25 18 0 128.5 203.385 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(240) 21 2 14 DrawAdjText
+EndText
+25 18 0 128.5 143.231 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(300) 21 2 14 DrawAdjText
+EndText
+25 18 0 128.5 83.0769 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(360) 21 2 14 DrawAdjText
+EndText
+0 setlinejoin
+0 setlinecap
+0 0 0 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+151 444 moveto
+ 151 53 lineto
+DashesProc stroke
+151 433.974 moveto
+ 146 433.974 lineto
+DashesProc stroke
+151 423.949 moveto
+ 146 423.949 lineto
+DashesProc stroke
+151 413.923 moveto
+ 146 413.923 lineto
+DashesProc stroke
+151 403.897 moveto
+ 146 403.897 lineto
+DashesProc stroke
+151 393.872 moveto
+ 146 393.872 lineto
+DashesProc stroke
+151 444 moveto
+ 143 444 lineto
+DashesProc stroke
+151 373.821 moveto
+ 146 373.821 lineto
+DashesProc stroke
+151 363.795 moveto
+ 146 363.795 lineto
+DashesProc stroke
+151 353.769 moveto
+ 146 353.769 lineto
+DashesProc stroke
+151 343.744 moveto
+ 146 343.744 lineto
+DashesProc stroke
+151 333.718 moveto
+ 146 333.718 lineto
+DashesProc stroke
+151 383.846 moveto
+ 143 383.846 lineto
+DashesProc stroke
+151 313.667 moveto
+ 146 313.667 lineto
+DashesProc stroke
+151 303.641 moveto
+ 146 303.641 lineto
+DashesProc stroke
+151 293.615 moveto
+ 146 293.615 lineto
+DashesProc stroke
+151 283.59 moveto
+ 146 283.59 lineto
+DashesProc stroke
+151 273.564 moveto
+ 146 273.564 lineto
+DashesProc stroke
+151 323.692 moveto
+ 143 323.692 lineto
+DashesProc stroke
+151 253.513 moveto
+ 146 253.513 lineto
+DashesProc stroke
+151 243.487 moveto
+ 146 243.487 lineto
+DashesProc stroke
+151 233.462 moveto
+ 146 233.462 lineto
+DashesProc stroke
+151 223.436 moveto
+ 146 223.436 lineto
+DashesProc stroke
+151 213.41 moveto
+ 146 213.41 lineto
+DashesProc stroke
+151 263.538 moveto
+ 143 263.538 lineto
+DashesProc stroke
+151 193.359 moveto
+ 146 193.359 lineto
+DashesProc stroke
+151 183.333 moveto
+ 146 183.333 lineto
+DashesProc stroke
+151 173.308 moveto
+ 146 173.308 lineto
+DashesProc stroke
+151 163.282 moveto
+ 146 163.282 lineto
+DashesProc stroke
+151 153.256 moveto
+ 146 153.256 lineto
+DashesProc stroke
+151 203.385 moveto
+ 143 203.385 lineto
+DashesProc stroke
+151 133.205 moveto
+ 146 133.205 lineto
+DashesProc stroke
+151 123.179 moveto
+ 146 123.179 lineto
+DashesProc stroke
+151 113.154 moveto
+ 146 113.154 lineto
+DashesProc stroke
+151 103.128 moveto
+ 146 103.128 lineto
+DashesProc stroke
+151 93.1026 moveto
+ 146 93.1026 lineto
+DashesProc stroke
+151 143.231 moveto
+ 143 143.231 lineto
+DashesProc stroke
+151 73.0513 moveto
+ 146 73.0513 lineto
+DashesProc stroke
+151 63.0256 moveto
+ 146 63.0256 lineto
+DashesProc stroke
+151 53 moveto
+ 146 53 lineto
+DashesProc stroke
+151 83.0769 moveto
+ 143 83.0769 lineto
+DashesProc stroke
+67 18 90 26 248 BeginText
+10 /Helvetica SetFont
+1 0 0 SetFgColor
+(Pitch Angle) 67 0 14 DrawAdjText
+EndText
+11 18 0 58.5 444 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(0) 7 2 14 DrawAdjText
+EndText
+18 18 0 55 323.692 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(60) 14 2 14 DrawAdjText
+EndText
+25 18 0 51.5 203.385 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(120) 21 2 14 DrawAdjText
+EndText
+25 18 0 51.5 83.0769 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(180) 21 2 14 DrawAdjText
+EndText
+0 setlinejoin
+0 setlinecap
+0 0 0 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+74 444 moveto
+ 74 53 lineto
+DashesProc stroke
+74 423.949 moveto
+ 69 423.949 lineto
+DashesProc stroke
+74 403.897 moveto
+ 69 403.897 lineto
+DashesProc stroke
+74 383.846 moveto
+ 69 383.846 lineto
+DashesProc stroke
+74 363.795 moveto
+ 69 363.795 lineto
+DashesProc stroke
+74 343.744 moveto
+ 69 343.744 lineto
+DashesProc stroke
+74 444 moveto
+ 66 444 lineto
+DashesProc stroke
+74 303.641 moveto
+ 69 303.641 lineto
+DashesProc stroke
+74 283.59 moveto
+ 69 283.59 lineto
+DashesProc stroke
+74 263.538 moveto
+ 69 263.538 lineto
+DashesProc stroke
+74 243.487 moveto
+ 69 243.487 lineto
+DashesProc stroke
+74 223.436 moveto
+ 69 223.436 lineto
+DashesProc stroke
+74 323.692 moveto
+ 66 323.692 lineto
+DashesProc stroke
+74 183.333 moveto
+ 69 183.333 lineto
+DashesProc stroke
+74 163.282 moveto
+ 69 163.282 lineto
+DashesProc stroke
+74 143.231 moveto
+ 69 143.231 lineto
+DashesProc stroke
+74 123.179 moveto
+ 69 123.179 lineto
+DashesProc stroke
+74 103.128 moveto
+ 69 103.128 lineto
+DashesProc stroke
+74 203.385 moveto
+ 66 203.385 lineto
+DashesProc stroke
+74 63.0256 moveto
+ 69 63.0256 lineto
+DashesProc stroke
+74 83.0769 moveto
+ 66 83.0769 lineto
+DashesProc stroke
+133 36 270 805 248 BeginText
+10 /Helvetica SetFont
+0 0.0745098 1 SetFgColor
+(Average Visibility/Orbit) 133 0 32 DrawAdjText
+EndText
+11 18 0 764.5 444 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(0) 7 2 14 DrawAdjText
+EndText
+22 18 0 770 404.9 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(0.1) 18 2 14 DrawAdjText
+EndText
+22 18 0 770 365.8 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(0.2) 18 2 14 DrawAdjText
+EndText
+22 18 0 770 326.7 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(0.3) 18 2 14 DrawAdjText
+EndText
+22 18 0 770 287.6 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(0.4) 18 2 14 DrawAdjText
+EndText
+22 18 0 770 248.5 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(0.5) 18 2 14 DrawAdjText
+EndText
+22 18 0 770 209.4 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(0.6) 18 2 14 DrawAdjText
+EndText
+22 18 0 770 170.3 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(0.7) 18 2 14 DrawAdjText
+EndText
+22 18 0 770 131.2 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(0.8) 18 2 14 DrawAdjText
+EndText
+22 18 0 770 92.1 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(0.9) 18 2 14 DrawAdjText
+EndText
+11 18 0 764.5 53 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(1) 7 2 14 DrawAdjText
+EndText
+0 setlinejoin
+0 setlinecap
+0 0 0 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+749 444 moveto
+ 749 53 lineto
+DashesProc stroke
+749 436.18 moveto
+ 754 436.18 lineto
+DashesProc stroke
+749 428.36 moveto
+ 754 428.36 lineto
+DashesProc stroke
+749 420.54 moveto
+ 754 420.54 lineto
+DashesProc stroke
+749 412.72 moveto
+ 754 412.72 lineto
+DashesProc stroke
+749 444 moveto
+ 757 444 lineto
+DashesProc stroke
+749 397.08 moveto
+ 754 397.08 lineto
+DashesProc stroke
+749 389.26 moveto
+ 754 389.26 lineto
+DashesProc stroke
+749 381.44 moveto
+ 754 381.44 lineto
+DashesProc stroke
+749 373.62 moveto
+ 754 373.62 lineto
+DashesProc stroke
+749 404.9 moveto
+ 757 404.9 lineto
+DashesProc stroke
+749 357.98 moveto
+ 754 357.98 lineto
+DashesProc stroke
+749 350.16 moveto
+ 754 350.16 lineto
+DashesProc stroke
+749 342.34 moveto
+ 754 342.34 lineto
+DashesProc stroke
+749 334.52 moveto
+ 754 334.52 lineto
+DashesProc stroke
+749 365.8 moveto
+ 757 365.8 lineto
+DashesProc stroke
+749 318.88 moveto
+ 754 318.88 lineto
+DashesProc stroke
+749 311.06 moveto
+ 754 311.06 lineto
+DashesProc stroke
+749 303.24 moveto
+ 754 303.24 lineto
+DashesProc stroke
+749 295.42 moveto
+ 754 295.42 lineto
+DashesProc stroke
+749 326.7 moveto
+ 757 326.7 lineto
+DashesProc stroke
+749 279.78 moveto
+ 754 279.78 lineto
+DashesProc stroke
+749 271.96 moveto
+ 754 271.96 lineto
+DashesProc stroke
+749 264.14 moveto
+ 754 264.14 lineto
+DashesProc stroke
+749 256.32 moveto
+ 754 256.32 lineto
+DashesProc stroke
+749 287.6 moveto
+ 757 287.6 lineto
+DashesProc stroke
+749 240.68 moveto
+ 754 240.68 lineto
+DashesProc stroke
+749 232.86 moveto
+ 754 232.86 lineto
+DashesProc stroke
+749 225.04 moveto
+ 754 225.04 lineto
+DashesProc stroke
+749 217.22 moveto
+ 754 217.22 lineto
+DashesProc stroke
+749 248.5 moveto
+ 757 248.5 lineto
+DashesProc stroke
+749 201.58 moveto
+ 754 201.58 lineto
+DashesProc stroke
+749 193.76 moveto
+ 754 193.76 lineto
+DashesProc stroke
+749 185.94 moveto
+ 754 185.94 lineto
+DashesProc stroke
+749 178.12 moveto
+ 754 178.12 lineto
+DashesProc stroke
+749 209.4 moveto
+ 757 209.4 lineto
+DashesProc stroke
+749 162.48 moveto
+ 754 162.48 lineto
+DashesProc stroke
+749 154.66 moveto
+ 754 154.66 lineto
+DashesProc stroke
+749 146.84 moveto
+ 754 146.84 lineto
+DashesProc stroke
+749 139.02 moveto
+ 754 139.02 lineto
+DashesProc stroke
+749 170.3 moveto
+ 757 170.3 lineto
+DashesProc stroke
+749 123.38 moveto
+ 754 123.38 lineto
+DashesProc stroke
+749 115.56 moveto
+ 754 115.56 lineto
+DashesProc stroke
+749 107.74 moveto
+ 754 107.74 lineto
+DashesProc stroke
+749 99.92 moveto
+ 754 99.92 lineto
+DashesProc stroke
+749 131.2 moveto
+ 757 131.2 lineto
+DashesProc stroke
+749 84.28 moveto
+ 754 84.28 lineto
+DashesProc stroke
+749 76.46 moveto
+ 754 76.46 lineto
+DashesProc stroke
+749 68.64 moveto
+ 754 68.64 lineto
+DashesProc stroke
+749 60.82 moveto
+ 754 60.82 lineto
+DashesProc stroke
+749 92.1 moveto
+ 757 92.1 lineto
+DashesProc stroke
+749 53 moveto
+ 757 53 lineto
+DashesProc stroke
+showpage
+grestore
+end
+

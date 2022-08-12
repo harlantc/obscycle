@@ -1,0 +1,4 @@
+#SRCDIR = /vobs/ASC_BUILD/src/obs/prop/tools/jcm_misc
+SRCDOR = $(MK_TOP)/obscycle/prop/tools/jcm_misc
+LIBDIR = $(SRCDIR)/lib
+AINCDIR= $(SRCDIR)/inc32

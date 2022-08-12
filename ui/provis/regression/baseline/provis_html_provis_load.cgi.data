@@ -1,0 +1,36 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN">
+<HTML>
+<head>
+<meta HTTP-EQUIV="CONTENT-TYPE" CONTENT="TEXT/HTML; CHARSET=ISO-8859-1">
+<title>Provis</title> 
+<script type="text/javascript" language="javascript" >
+
+var enableCalFileFunctionality=0;
+var cgibindir="/cgi-bin/provis";
+
+function Include(inFile)
+{
+  document.write('<script type="text/javascript" src="'+ inFile + '"></sc'+'ript>'); 
+}
+
+Include("http://localhost:53111//soft/provis//globals.js");
+</script>
+</head>
+
+
+<frameset id="indexframeset" rows="110,50,*,0" framespacing="0" frameborder="1" border="4" >
+<frame id="title" name="title" src="http://localhost:53111//soft/provis//titleframe.html" scrolling="NO" >
+<frame id="buttonsframe" name="buttonsframe" src="http://localhost:53111//soft/provis//buttonsframe.html" scrolling="auto" marginheight="0" marginwidth="0" >
+<frameset id="inputframeset" cols="235,*">
+  <frameset id="inputframesetcol" rows="51%,49%">
+     <frame id="inputframe"  name="inputframe" src="http://localhost:53111//soft/provis//inputframe.html" scrolling="auto" marginheight="10" marginwidth="0">
+     <frame id="optionsframe" name="optionsframe" src="http://localhost:53111//soft/provis//optionsframe.html" scrolling="auto" marginheight="0" marginwidth="0">
+  </frameset>
+<frameset id="plotframeset" rows="*,0" >
+  <frame id="plotframe" name="plotframe" src="http://localhost:53111//soft/provis//welcome.html"  scrolling="auto" marginheight="0" marginwidth="0" >
+  <frame id="dataframe" name="dataframe" src="http://localhost:53111//soft/provis//dataframe.html"  scrolling="auto" marginheight="0" marginwidth="0" >
+</frameset>
+</frameset>
+<frame id="hiddenframe" name="hiddenframe" src="" scrolling="auto" scrolling="no"  marginheight="0" marginwidth="0" noresize="true" >
+</frameset>
+</html>

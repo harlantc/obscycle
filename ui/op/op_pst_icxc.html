@@ -1,0 +1,62 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+<!--#include virtual="/soft/op/op_topheader.html"-->
+<div id="cxcheader">
+  <div class="propheaderleft">
+       <a href="/index.html"> <img id="spacecraft" src="/soft/include/cxcheaderlogo.png"  alt="Chandra X-Ray Observatory (CXC)"></a>
+  </div>
+  <div class="propheadercenter"> Chandra Observations Processing Status
+  </div>
+</div>
+
+<center><p> 
+<b>Only data that has been <font color="red">received</font>  from Chandra are included. For information on planned observations, use <a href="http://cda.harvard.edu/chaser/">Chaser</a>.</b>
+</p></center>
+<p>&nbsp;
+<br>
+<table class="main" cellpadding="5"  >
+<tr><td><b>Single Observation</b></td><td>
+<center>
+Select observation by ObsId or Sequence Number<br>
+<form method=post action="/cgi-bin/op/op_status_table.cgi" >
+<table class="hdr" >
+<tr>
+<td>
+<select name="field"><option>ObsId<option>SeqNum</select></td>
+<td><input type="text" name="id"  size=6 maxlength=15></td>
+<td> <table border="0">
+<tr><td><input type="radio" name="out" value="short" checked>Short&nbsp;Report</td>
+<td><input type="radio" name="out" value="fred">Summary&nbsp;Report<br></td></tr>
+<tr><td><input type="radio" name="out" value="long">Long&nbsp;Report</td>
+<td><input type="radio" name="out" value="eds">Dates&nbsp;Report</td></tr></table>
+</td>
+<td><input type="submit" value="Go"></td>
+</tr>
+</table>
+</form>
+</center>
+</td>
+</tr>
+<tr><td><a href="op_status_table.html"><b>Standard Status Tables</b></a></td>
+<td> The user has a choice of four standard sets of fields (Short, Long, 
+Summary, Dates).  Output format choices are regular HTML, tab-delimited, ASCII 
+and RDB. For an explanation of the status fields see the<a href="op_olist.html"> Chandra Observations Processing Status Fields</a> page. </td>
+</tr>
+<tr>
+<td>
+<a href="op_custom_table.html"><b>Customized Status Tables</b></a></td>
+<td>
+These tables offer the same selection, ordering, and output format options as the Standard Status Tables, but allows the user to select the fields to be included. 
+</td></tr>
+<tr> <td><b><a href="op_issue.html">Issue Tables</a></b></td><td>
+The user has a choice of two standard sets of fields (Short and Long). 
+Output format is a regular HTML table. For an explanation of the issue fields see the<a href="op_ilist.html">
+ Chandra Observations Processing Issue Fields</a> page. 
+</td></tr>
+<!--#include virtual="op_pst_statuslist.inc"-->
+</table>
+<p>&nbsp;
+<!--#include virtual="op_footer.html"-->
+</body>
+</html>

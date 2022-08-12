@@ -1,0 +1,62 @@
+                Chandra Portable Proposal Planning Command Line
+		Interface (CLI) Toolkit and Obsvis Distribution
+                            Version 9 README.cycle9
+                               November, 2006
+ 
+
+   ******************************************************************
+   Copyright (c) 2001, 2006   Smithsonian  Astrophysical  Observatory
+   The contents of this file are protected under the copyright notice
+   contained in the file  COPYRIGHT_SAO located in the root directory
+   of this distribution.
+   ******************************************************************
+
+
+====================================================================
+I) Introduction
+====================================================================
+
+As of Cycle 6 we will only be providing the Chandra Proposal Planning 
+CLI Toolkit / ObsVis as part of CIAO. Please see the ciao README
+file for installation instructions. 
+
+====================================================================
+II) Using the Proposal Toolkit with Obsvis
+====================================================================
+
+  To run ObsVis, please see the ObsVis Help File named "README.obsvis"
+  located in the top level <install_root_dir>.
+
+  You can also get ObsVis help at the command line by typing:
+
+	> ahelp obsvis
+
+
+  To run a Toolkit application, type:
+
+	> prop_<application_name>
+
+  The Toolkit Distribution contains six applications:  PIMMS, pileup, 
+  frametime, precess, colden, and dates, plus a CALDB interface.  The 
+  wrapper scripts are named prop_pimms, prop_pileup, prop_frametime, 
+  prop_precess, prop_colden, prop_dates, and prop_install_pimms_ea.pl.
+
+  At the command line, you can get application-specific help by typing any 
+  of the following:
+
+	> ahelp pimms
+	> ahelp colden
+	> ahelp precess
+	> ahelp dates
+
+  You can get more general overviews with:
+
+	> ahelp prop-tools
+	> ahelp prop-coords
+	> ahelp prop-time
+
+
+For further help, please contact the CXC Help Desk, available from 
+http://cxc.harvard.edu (see Help Desk link in page footer).
+
+-----------------------------------------------------------------------

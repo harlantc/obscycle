@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE table SYSTEM "table.dtd">
+
+<table name="target" key="obsid">
+  <column name="seq_nbr">
+    <type>STRING</type>
+    <tooltip>Sequence Number</tooltip>
+  </column>
+  <column name="obsid">
+    <type>CHOICE</type>
+    <tooltip>Observation Identifier</tooltip>
+    <foreignKeyTable>sim</foreignKeyTable>
+    <foreignKeyTable>axafobstat..fast_proc</foreignKeyTable>
+  </column>
+  <column name="type">
+    <type>CHOICE</type>
+    <tooltip>Observation Type</tooltip>
+    <choices>
+      <item>GO</item>
+      <item>TOO</item>
+      <item>DDT</item>
+      <item>CCT</item>
+      <item>GTO</item>
+      <item>CAL</item>
+      <item>CAL_ER</item>
+    </choices>
+    <constraint>offset</constraint>
+    <constraint>position</constraint>
+  </column>
+  <column name="targid">
+    <type>INTEGER</type>
+    <tooltip>Target Identifier in proposal database</tooltip>
+    <foreignKeyTable>anc_target</foreignKeyTable>
+  </column>
+  <column name="targname">
+    <type>STRING</type>
+    <tooltip>Target Name</tooltip>
+  </column>
+  <column name="description">
+    <type>STRING</type>
+    <tooltip>Target Description (keywords)</tooltip>
+  </column>
+  <column name="obj_flag">
+    <type>CHOICE</type>
+    <tooltip>Solar System Object Type</tooltip>
+    <choices>
+      <item>NO</item>
+      <item>MT</item>
+      <item>SS</item>
+    </choices>
+  </column>
+  <column name="object">
+    <type>CHOICE</type>
+    <tooltip>Solar System Object Name</tooltip>
+    <choices>
+      <item>NONE</item>
+      <item>ASTEROID</item>
+      <item>COMET</item>
+      <item>EARTH</item>
+      <item>JUPITER</item>
+      <item>MARS</item>
+      <item>MOON</item>
+      <item>NEPTUNE</item>
+      <item>PLUTO</item>
+      <item>SATURN</item>
+      <item>URANUS</item>
+      <item>VENUS</item>
+    </choices>
+    <constraint>photo</constraint>
+    <constraint>position</constraint>
+  </column>
+  <column name="si_mode">
+    <type>STRING</type>
+    <tooltip>Science Instrument Mode Mnemonic</tooltip>
+  </column>
+  <column name="aca_mode">
+    <type>CHOICE</type>
+    <tooltip>Operational mode mnemonic for ACA observations</tooltip>
+  </column>
+  <column name="photometry_flag">
+    <type>BOOLEAN</type>
+    <tooltip>Photometry Flag(Y/N)</tooltip>
+    <constraint>photo</constraint>
+    <constraint>vmag</constraint>
+  </column>
+  <column name="vmagnitude">
+    <type>DOUBLE</type>
+    <tooltip>Visual Magnitude</tooltip>
+    <number>
+      <maximum>20.0</maximum>
+      <minimum>-15.0</minimum>
+      <format>0.00</format>
+    </number>
+    <constraint>vmag</constraint>
+  </column>
+  <column name="ra">
+    <type>DOUBLE</type>
+    <tooltip>Right Ascension (decimal degrees {0 to 360.0}; J2000)</tooltip>
+    <number>
+      <maximum>360.0</maximum>
+      <minimum>0.0</minimum>
+      <format>0.000000</format>
+    </number>
+    <constraint>position</constraint>
+  </column>
+  <column name="dec">
+    <type>DOUBLE</type>
+    <tooltip>Declination (decimal degrees {-90.0 to 90.0}; J2000)</tooltip>
+    <number>
+      <maximum>90.0</maximum>
+      <minimum>-90.0</minimum>
+      <format>0.000000</format>
+    </number>
+    <constraint>position</constraint>
+  </column>
+  <column name="est_cnt_rate">
+    <type>DOUBLE</type>
+    <tooltip>Estimated Count Rate (counts/sec)</tooltip>
+    <number>
+      <maximum>10000.0</maximum>
+      <minimum>0.0</minimum>
+      <format>0.0000</format>
+    </number>
+  </column>
+  <column name="forder_cnt_rate">
+    <type>DOUBLE</type>
+    <tooltip>First Order Count Rate (counts/sec)</tooltip>
+    <number>
+      <maximum>10000.0</maximum>
+      <minimum>0.0</minimum>
+      <format>0.0000</format>
+    </number>
+    <constraint>grating</constraint>
+  </column>
+  <column name="y_det_offset">
+    <type>DOUBLE</type>
+    <tooltip>Y Detector Offset (arcmin)</tooltip>
+    <number>
+      <maximum>120.0</maximum>
+      <minimum>-120.0</minimum>
+      <format>0.0000</format>
+    </number>
+    <constraint>offset</constraint>
+  </column>
+  <column name="z_det_offset">
+    <type>DOUBLE</type>
+    <tooltip>Z Detector Offset (arcmin)</tooltip>
+    <number>
+      <maximum>120.0</maximum>
+      <minimum>-120.0</minimum>
+      <format>0.0000</format>
+    </number>
+    <constraint>offset</constraint>
+  </column>
+  <column name="raster_scan">
+    <type>BOOLEAN</type>
+    <tooltip>Raster Scan Flag(Y/N)</tooltip>
+  </column>
+  <column name="grid_name">
+    <type>STRING</type>
+    <tooltip>Grid Name</tooltip>
+  </column>
+  <column name="dither_flag">
+    <type>BOOLEAN</type>
+    <tooltip>Dither Flag (Y/N)</tooltip>
+  </column>
+  <column name="approved_exposure_time">
+    <type>DOUBLE</type>
+    <tooltip>Approved Exposure Time (ksec)</tooltip>
+  </column>
+  <column name="monitor_flag">
+    <type>CHOICE</type>
+    <tooltip>Monitor Flag(Y/P/N)</tooltip>
+    <constraint>monitor</constraint>
+  </column>
+  <column name="pre_min_lead">
+    <type>DOUBLE</type>
+    <tooltip>Monitor Obs: Minimum time between requests (days)</tooltip>
+    <number>
+      <minimum>0.00</minimum>
+      <format>0.0000</format>
+    </number>
+  </column>
+  <column name="pre_max_lead">
+    <type>DOUBLE</type>
+    <tooltip>Monitor Obs: Maximum time between requests (days)</tooltip>
+    <number>
+      <minimum>0.01</minimum>
+      <format>0.0000</format>
+    </number>
+  </column>
+  <column name="pre_id">
+    <type>INTEGER</type>
+    <tooltip>Monitor Obs: Obs Id of preceding observation</tooltip>
+    <constraint>monitor</constraint>
+  </column>
+  <column name="seg_max_num">
+    <type>INTEGER</type>
+    <tooltip>Maximum Number of Segments</tooltip>
+    <constraint>segment</constraint>
+  </column>
+  <column name="phase_constraint_flag">
+    <type>CHOICE</type>
+    <tooltip>Phase Constraint Flag(Y/P/N)</tooltip>
+  </column>
+  <column name="multitelescope">
+    <type>CHOICE</type>
+    <tooltip>Coordinated Observation Flag(Y/P/N)</tooltip>
+  </column>
+  <column name="observatories">
+    <type>STRING</type>
+    <tooltip>Coordinated Observation Observatories</tooltip>
+  </column>
+  <column name="multitelescope_interval">
+    <type>DOUBLE</type>
+    <tooltip>Maximum Time Interval Encompassing Coordinated Observations(days)
+    </tooltip>
+  </column>
+  <column name="group_id">
+    <type>STRING</type>
+    <tooltip>Group Identifier(target linked by preceding id)</tooltip>
+  </column>
+
+  <column name="split_interval">
+    <type>DOUBLE</type>
+    <tooltip>Maximum time interval between observations when split (days)</tooltip>
+    <number>
+      <maximum>365.0</maximum>
+      <minimum>0.000001</minimum>
+      <format>0.000000</format>
+    </number>
+  </column>
+
+  <column name="obs_ao_str">
+    <type>STRING</type>
+    <tooltip>AO identifier for observation (may be different than proposal cycle)</tooltip>
+  </column>
+  <column name="charge_ao_str">
+    <type>STRING</type>
+    <tooltip>AO identifier that observing time is charged to (may be different than proposal cycle and observing cycle)</tooltip>
+  </column>
+  <column name="constr_in_remarks">
+    <type>CHOICE</type>
+    <tooltip>Constraints in Remarks field?(Y/P/N)</tooltip>
+  </column>
+  <column name="uninterrupt">
+    <type>CHOICE</type>
+    <tooltip>Uninterrupted Flag(Y/P/N)</tooltip>
+  </column>
+  <column name="pointing_constraint">
+    <type>BOOLEAN</type>
+    <tooltip>Does offset/pointing need to be modified once roll angle is determined(Y/N)</tooltip>
+  </column>
+  <column name="proposal_id">
+    <type>CHOICE</type>
+    <tooltip>Proposal Identifier</tooltip>
+    <constraint>propinfo</constraint>
+  </column>
+  <column name="tooid">
+    <type>INTEGER</type>
+    <tooltip>TOO Identifier</tooltip>
+    <foreignKeyTable>too</foreignKeyTable>
+  </column>
+  <column name="acisid">
+    <type>INTEGER</type>
+    <tooltip>ACIS Identifier</tooltip>
+    <foreignKeyTable>acisparam</foreignKeyTable>
+  </column>
+  <column name="hrcid">
+    <type>INTEGER</type>
+    <tooltip>HRC Identifier</tooltip>
+    <foreignKeyTable>hrcparam</foreignKeyTable>
+  </column>
+  <column name="grating" >
+    <type>CHOICE</type>
+    <tooltip>Grating selection</tooltip>
+    <constraint>grating</constraint>
+  </column>
+  <column name="instrument">
+    <type>CHOICE</type>
+    <tooltip>Instrument Name(detector)</tooltip>
+    <constraint>offset</constraint>
+  </column>
+  <column name="remarks">
+    <type>STRING</type>
+    <tooltip>Remarks from Proposer/Observer</tooltip>
+  </column>
+  <column name="mp_remarks">
+    <type>STRING</type>
+    <tooltip>Mission Planning Comments</tooltip>
+  </column>
+  <column name="rem_exp_time">
+    <type>DOUBLE</type>
+    <tooltip>Remaining Exposure Time (ksec)</tooltip>
+    <number>
+      <format>0.0000</format>
+    </number>
+  </column>
+  <column name="soe_st_sched_date">
+    <type>DATE</type>
+    <tooltip>Start Date/Time in short term schedule obtained from OFLS Scheduled OR/ER Data</tooltip>
+  </column>
+  <column name="lts_lt_plan">
+    <type>DATE</type>
+    <tooltip>Start Date (with time set to midnight) in long term science plan</tooltip>
+  </column>
+  <column name="mpcat_star_fidlight_file">
+    <type>STRING</type>
+    <tooltip>Name of star/fidlight file</tooltip>
+  </column>
+  <column name="status">
+    <type>STRING</type>
+    <tooltip>Status of Observation</tooltip>
+  </column>
+  <column name="data_rights">
+    <type>CHOICE</type>
+    <tooltip>Length of proprietary period for data</tooltip>
+    <choices>
+	<item>S</item>
+	<item>N</item>
+	<item>D</item>
+	<item>1</item>
+	<item>2</item>
+	<item>3</item>
+	<item>4</item>
+	<item>6</item>
+	<item>9</item>
+    </choices>
+  </column>
+  <column name="ocat_propid">
+    <type>INTEGER</type>
+    <tooltip>ObsCat Proposal Identifier(ocat_propid)</tooltip>
+    <foreignKeyTable>prop_info</foreignKeyTable>
+    <foreignKeyTable>view_pi</foreignKeyTable>
+    <foreignKeyTable>view_coi</foreignKeyTable>
+    <constraint>propinfo</constraint>
+  </column>
+  <column name="total_fld_cnt_rate">
+    <type>DOUBLE</type>
+    <tooltip>Total count rate for the field (counts/sec)</tooltip>
+  </column>
+  <column name="extended_src">
+    <type>BOOLEAN</type>
+    <tooltip>If true, indicates extended source</tooltip>
+  </column>
+  <column name="roll_flag">
+    <type>CHOICE</type>
+    <tooltip>Flag indicating most restrictive roll constraint(Y/P/N)</tooltip>
+  </column>
+  <column name="window_flag">
+    <type>CHOICE</type>
+    <tooltip>Flag indicating most restrictive window constraint(Y/P/N)</tooltip>
+  </column>
+  <column name="spwindow_flag">
+    <type>CHOICE</type>
+    <tooltip>Flag indicating ACIS spatial windows exist (Y/N)</tooltip>
+  </column>
+</table>

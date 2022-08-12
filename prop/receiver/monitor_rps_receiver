@@ -1,0 +1,89 @@
+#!/bin/tcsh -f
+
+# ******************************************************************
+#
+#  Name: monitor_rps_receiver
+#
+#  Description:
+#     Makes sure that RPS receiver (prop_rps_receiver)is running.
+#     Accepts optional parameter for email address to use in case 
+#     of problems.
+#
+# ******************************************************************
+#
+###set verbose
+
+set script = `basename $0`
+ 
+  set EMAIL = $1
+  if ( "$EMAIL"  == "" )  then
+    set EMAIL = "dhall@head.cfa.harvard.edu"
+  endif
+
+  set DT=`date +'%Y%m%d_%T'`
+
+  #
+  # Get list of all processes
+  #
+
+  set TMP1 = /tmp/_mnrpsreceiver_$USER.$$
+  /bin/ps -ae -o "uid,pid,comm" > $TMP1
+  set stat = $status
+  set sz = `cat $TMP1 | wc -l`
+
+  #
+  # Check for rps_receiver process
+  # 
+
+  #eval echo "User is $uid"
+  set pid = `cat $TMP1 | gawk -v UID=$uid '$1==UID && $3~"prop_rps_recei" {print $2}'`
+
+  if ( $sz <= 0  ||  $stat != 0 ) then
+
+    # something wrong with getting processes (ps)
+    eval echo "${script}  `date` : error in /bin/ps command on $HOST" | mailx -s "$HOST : ${script}" $EMAIL
+  
+  else if ( "$pid" == "" ) then
+
+    #
+    # ps OK, so prop_rps_receiver not running; start it up
+    #
+    setenv MANPATH /home/ascds/DS.release//otsbin/man/
+    source ~/.ascrc -r release 
+    set path = ($ASCDS_OTS_NMH $path)
+
+    # save old state:
+    cd 
+    if ( $USER == $ASCDS_PROP_RPS_USER ) then
+      set log = $ASCDS_PROP_RPS_LOG/prop_rps_receiver.log
+      set cmd = "prop_start_rps_receiver.pl "
+    else if ( $USER == $ASCDS_RPS_TOO_USER ) then
+      set log = $ASCDS_PROP_RPS_LOG/prop_rps_too_receiver.log
+      set cmd = "prop_start_rps_too_receiver.pl "
+    else
+      eval echo "${script}: `date` invalid user for prop_rps_receiver on $HOST " | mailx -s "$HOST : ${script} " $ASCDS_PROP_RPS_EMAIL
+      exit
+    endif
+    if ( -f $log ) then
+	mv $log $log.$DT
+	echo "moved $log to $log.$DT" >> $log
+    endif
+
+    echo "" | tee -a $log
+    echo "${script}: `date`" | tee -a $log
+    echo "${script}: Starting RPS receiver (prop_rps_receiver) on $HOST" | tee -a $log
+    echo "${script}:    " $cmd | tee -a $log
+    eval $cmd >>& $log &
+
+  else
+
+    ###echo "prop_rps_receiver is running"
+
+  endif
+
+  #
+  # clean up and sleep
+  #
+
+  /bin/rm -f $TMP1
+endif

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE formView SYSTEM "formView.dtd">
+
+<formView>
+
+  <title>Dither Form</title>
+
+  <info>
+  <supportsNew>clone null</supportsNew>
+  </info>
+
+  <key>
+    <tableName>dither</tableName>
+    <columnName>obsid</columnName>
+  </key>
+
+  <navigation>
+    <display>
+      <name>Observation ID</name>
+      <tableName>dither</tableName>
+      <columnName>obsid</columnName>
+    </display>
+  </navigation>
+
+  <GUI>
+    <label tag="11">
+      <labelText>Dither</labelText>
+      <row>
+        <number>0</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+    </label>
+
+   <textfield tag="21">
+      <labelText>Y Amplitude</labelText>
+      <size>8</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>dither</tableName>
+	<columnName>y_amp</columnName>
+      </database>
+    </textfield>
+
+   <textfield tag="22">
+      <labelText>Y Frequency</labelText>
+      <size>8</size>
+      <database>
+        <tableName>dither</tableName>
+	<columnName>y_freq</columnName>
+      </database>
+    </textfield>
+
+   <textfield tag="23">
+      <labelText>Y Phase</labelText>
+      <size>8</size>
+      <database>
+        <tableName>dither</tableName>
+	<columnName>y_phase</columnName>
+      </database>
+    </textfield>
+
+   <textfield tag="31">
+      <labelText>Z Amplitude</labelText>
+      <size>8</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>dither</tableName>
+	<columnName>z_amp</columnName>
+      </database>
+    </textfield>
+
+   <textfield tag="32">
+      <labelText>Z Frequency</labelText>
+      <size>8</size>
+      <database>
+        <tableName>dither</tableName>
+	<columnName>z_freq</columnName>
+      </database>
+    </textfield>
+
+   <textfield tag="33">
+      <labelText>Z Phase</labelText>
+      <size>8</size>
+      <database>
+        <tableName>dither</tableName>
+	<columnName>z_phase</columnName>
+      </database>
+    </textfield>
+
+ </GUI>
+
+</formView>

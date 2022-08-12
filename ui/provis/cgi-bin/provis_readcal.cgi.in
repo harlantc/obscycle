@@ -1,0 +1,66 @@
+#!@PERLDB@
+#
+#*H****************************************************************************
+# _INSERT_SAO_COPYRIGHT_HERE_
+# _INSERT_GPL_LICENSE_HERE_
+#
+#* FILE NAME: provis_readcal.cgi
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script reads the astro.cal file defined in provis_config
+#     and stores the value in the dataframe for use when determining
+#     the roll tolerance for a calculated pitch value in the plotframe.js
+#
+#*H****************************************************************************
+use strict;
+use CGI;
+our %Global;
+
+use Cwd qw( abs_path );
+use File::Basename qw( dirname );
+use lib dirname(abs_path($0));
+
+require("provis_config.cgi");
+
+{
+  my($tstr,$rok,$tmp,$r1,$r2,$ifile,@junk);
+  
+  my $query = new CGI;
+  my $exposureTime=$query->param("mt");
+
+  print "Content-type: text/plain\n\n";
+  $ifile = $Global{'LIBASTROCAL_FILE'}; 
+  if (open (IFILE,"< $ifile")  ) {
+    $rok=0;
+    while ($tstr = <IFILE>) {
+      chomp($tstr);
+      if ($tstr =~ /\#/ ) {
+         next;
+      }
+      if ($tstr =~ /table offnominal_roll_$exposureTime/) {
+        $rok=1;
+        $tstr =~ s/table offnominal_roll_$exposureTime/ /;
+      }
+      if ($rok == 1 && $tstr =~ /const/) {
+         last;
+      }
+      
+      ($tmp,$r1,$r2,@junk) = split(/\s+/,$tstr);
+      if (length($r1) > 2) {
+        print "$r1\n$r2\n";
+      } elsif ($rok == 1) {
+         last;
+      }
+    }
+    close IFILE;
+  } else {
+    print "ERROR: Unable to read astro.cal file";
+  }
+
+}
+
+
+

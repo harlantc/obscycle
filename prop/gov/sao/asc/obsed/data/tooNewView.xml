@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE formView SYSTEM "formView.dtd">
+
+<formView>
+
+  <title>New TOO</title>
+
+  <info>
+    <supportsNew></supportsNew>
+  </info>
+
+  <key>
+    <tableName>too</tableName>
+    <columnName>tooid</columnName>
+  </key>
+
+  <navigation>
+    <display>
+      <name>TOO Identifier</name>
+      <tableName>too</tableName>
+      <columnName>tooid</columnName>
+    </display>
+  </navigation>
+
+  <GUI>
+    <label tag="11">
+      <labelText>TOO New Record:</labelText>
+      <row>
+        <number>0</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+    </label>
+
+    <combobox tag="20" >
+      <labelText>Type</labelText>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>too</tableName>
+	<columnName>type</columnName>
+      </database>
+    </combobox>
+
+    <textfield tag="21">
+      <labelText>Response Start</labelText>
+      <size>6</size>
+      <database>
+        <tableName>too</tableName>
+	<columnName>start</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="22">
+      <labelText>Response Stop</labelText>
+      <size>6</size>
+      <database>
+        <tableName>too</tableName>
+	<columnName>stop</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="23">
+      <labelText>Nbr. Followups</labelText>
+      <size>6</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>too</tableName>
+	<columnName>followup</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="33">
+      <labelText>Alternate Group</labelText>
+      <size>30</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+        <width>2</width>
+      </column>
+      <database>
+        <tableName>too</tableName>
+        <columnName>alt_group_name</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="34">
+      <labelText>Approved Triggers</labelText>
+      <size>6</size>
+      <column>
+        <number>4</number>
+      </column>
+      <database>
+        <tableName>too</tableName>
+        <columnName>alt_approved_cnt</columnName>
+      </database>
+    </textfield>
+
+    <textarea tag="31">
+      <anchor>CENTER</anchor>
+      <labelText>Trigger Criteria</labelText>
+      <size>66</size>
+      <row>
+        <number>+</number>
+        <height>4</height>
+      </row>
+      <column>
+        <number>0</number>
+        <width>></width>
+      </column>
+      <database>
+        <tableName>too</tableName>
+        <columnName>trig</columnName>
+      </database>
+    </textarea>
+
+    <textarea tag="41">
+      <anchor>CENTER</anchor>
+      <labelText>Followup Instructions</labelText>
+      <size>66</size>
+      <row>
+        <number>+</number>
+        <height>8</height>
+      </row>
+      <column>
+        <number>0</number>
+        <width>></width>
+      </column>
+      <database>
+        <tableName>too</tableName>
+        <columnName>remarks</columnName>
+      </database>
+     </textarea>
+
+ </GUI>
+
+</formView>

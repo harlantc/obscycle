@@ -1,0 +1,101 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title>plotframe</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8;">
+  <meta http-equiv="pragma" content="no-cache">
+  <meta http-equiv="expires" content="-1">
+  <link rel="stylesheet" href="/soft/provis/provis.css" type="text/css" >
+  <script type="text/javascript" language="javascript" src="plotframe.js"></script>
+</head>
+
+
+<body class="plotbody" onresize="OnResize(event);" onload="OnLoad(event);" onunload="OnUnLoad(event);" >
+
+
+<table id="plottable" class="plottable"> 
+
+  <tbody>
+    <tr>
+
+      <td style="text-align: center; height: 25px;" id="plottabler0" colspan="1"></td>
+    </tr>
+    <tr>
+      <td style="text-align: center; height: 25px; white-space: nowrap;" id="plottabler1" colspan="1">
+      
+      
+      <table style="text-align: left; width: 100%; height: 100%;" id="currentcoordstable" border="0" cellpadding="0" cellspacing="0">
+  <tbody>
+    <tr>
+      <td style="text-align: right; height: 48%; font-weight: bold; white-space: nowrap; width: 119px;"><small>Pitch</small>: &nbsp;</td>
+      <td style="height: 50%; text-align: left; white-space: nowrap; width: 173px;"><small><span style="font-weight: bold;">000.00</span></small>
+            </td>
+      <td style="height: 50%; text-align: right; vertical-align: middle; font-weight: bold; white-space: nowrap; width: 72px;"><small>Roll: &nbsp;</small></td>
+
+      <td style="height: 50%; white-space: nowrap; width: 231px;"><small><span style="font-weight: bold;">000.00</span></small><br>
+
+            </td>
+      <td style="height: 100%; text-align: right; white-space: nowrap; width: 108px;"><small style="font-weight: bold;">Visibility: &nbsp;</small></td>
+
+            <td style="height: 100%; text-align: left; white-space: nowrap; width: 134px;"><small><span style="font-weight: bold;">0.00</span></small></td>
+
+    </tr>
+        </tbody>
+      </table>
+      </td>
+
+    </tr>
+
+    <tr>
+
+      <td style="text-align: center; height: 25px; white-space: nowrap;" id="plottabler2" colspan="1">
+      
+      
+      <table style="text-align: left; width: 100%;" id="datedisplaytable" border="0" cellpadding="0" cellspacing="0">
+
+              <tbody>
+
+                <tr>
+
+                  <td style="text-align: right; height: 100%; font-weight: bold; white-space: nowrap; width: 238px;"><small>MJD: &nbsp;</small></td>
+
+                  <td style="height: 100%; white-space: nowrap; width: 168px;"><small><span style="font-weight: bold;">00000.00</span></small> </td>
+
+                  <td style="text-align: right; height: 100%; font-weight: bold; white-space: nowrap; width: 172px;"><small>Calendar Date: &nbsp;</small></td>
+
+                  <td style="height: 100%; white-space: nowrap; width: 263px;"><small><span style="font-weight: bold;">0000/00/00</span></small> </td>
+
+                </tr>
+        </tbody>
+      </table>
+      </td>
+    </tr>
+    <tr>
+      <td style="text-align: center; vertical-align: middle; white-space: nowrap; background-color: #cccccc;">
+	<img onmousedown="" onload="" onmouseover="" src="images/blank.png" alt="PRoVis Plot" id="plot" title="Left bttn: center,Shft-left bttn: zoom in,Ctrl-left bttn: zoom out,Shft-Ctrl-left bttn: reset" style="cursor: crosshair; width: 0px; height: 0px;" align="middle">
+	<img id="verticalbar" src="images/blank.png" style="position: absolute;" title="Left bttn: center,Shft-left bttn: zoom in,Ctrl-left bttn: zoom out,Shft-Ctrl-left bttn: reset">
+	<img id="horizontalbar" src="images/blank.png" style="position: absolute;" title="Left bttn: center,Shft-left bttn: zoom in,Ctrl-left bttn: zoom out,Shft-Ctrl-left bttn: reset" title="Left bttn: center,Shft-left bttn: zoom in,Ctrl-left bttn: zoom out,Shft-Ctrl-left bttn: reset">
+	<img id="pitchmarker" src="images/blank.png" style="position: absolute;" title="Left bttn: center,Shft-left bttn: zoom in,Ctrl-left bttn: zoom out,Shft-Ctrl-left bttn: reset">
+	<img id="rollmarker" src="images/blank.png" style="position: absolute;" title="Left bttn: center,Shft-left bttn: zoom in,Ctrl-left bttn: zoom out,Shft-Ctrl-left bttn: reset">
+	<img id="rollhighmarker" src="images/blank.png" style="position: absolute;" title="Left bttn: center,Shft-left bttn: zoom in,Ctrl-left bttn: zoom out,Shft-Ctrl-left bttn: reset">
+	<img id="rolllowmarker" src="images/blank.png" style="position: absolute;" title="Left bttn: center,Shft-left bttn: zoom in,Ctrl-left bttn: zoom out,Shft-Ctrl-left bttn: reset">
+	<img id="visibilitymarker" src="images/blank.png" style="position: absolute;" title="Left bttn: center,Shft-left bttn: zoom in,Ctrl-left bttn: zoom out,Shft-Ctrl-left bttn: reset">
+      </td>
+
+
+    </tr>
+    <tr>
+
+
+      <td style="text-align: center; vertical-align: middle; height: 20px; white-space: nowrap;" id="plottabler4"><img style="width: 23px; height: 17px;" onmouseup="document.getElementById('movelimitsxdown').src=GetAxisActionButtonImage('movelimitsxdown','up');" id="movelimitsxdown" onmousedown="document.getElementById('movelimitsxdown').src=GetAxisActionButtonImage('movelimitsxdown','down');" onmouseout="document.getElementById('movelimitsxdown').src=GetAxisActionButtonImage('movelimitsxdown','up');" onclick="MoveDownLimitsTime();" alt="Move Time Limits" title="Move Time Limits" src="images/leftarrow.bmp"><img style="width: 23px; height: 17px;" onmouseup="document.getElementById('zoominlimitsx').src=GetAxisActionButtonImage('zoominlimitsx','up');" id="zoominlimitsx" onmousedown="document.getElementById('zoominlimitsx').src=GetAxisActionButtonImage('zoominlimitsx','down');" onmouseout="document.getElementById('zoominlimitsx').src=GetAxisActionButtonImage('zoominlimitsx','up');" onclick="ZoomInLimitsTime();" alt="Zoom In Time Limits" title="Zoom In Time Limits" src="images/zoomin1.bmp"><img style="width: 23px; height: 17px;" onmouseup="document.getElementById('zoomresetlimitsx').src=GetAxisActionButtonImage('zoomresetlimitsx','up');" id="zoomresetlimitsx" onmousedown="document.getElementById('zoomresetlimitsx').src=GetAxisActionButtonImage('zoomresetlimitsx','down');" onmouseout="document.getElementById('zoomresetlimitsx').src=GetAxisActionButtonImage('zoomresetlimitsx','up');"onclick="ResetLimitsTime();" alt="Reset Time Limits" title="Reset Time Limits" src="images/zoomreset.bmp"><img style="width: 23px; height: 17px;" onmouseup="document.getElementById('zoomoutlimitsx').src=GetAxisActionButtonImage('zoomoutlimitsx','up');" id="zoomoutlimitsx" onmousedown="document.getElementById('zoomoutlimitsx').src=GetAxisActionButtonImage('zoomoutlimitsx','down');" onmouseout="document.getElementById('zoomoutlimitsx').src=GetAxisActionButtonImage('zoomoutlimitsx','up');"onclick="ZoomOutLimitsTime();" alt="Zoom Out Time Limits" title="Zoom Out Time Limits" src="images/zoomout.bmp"><img style="width: 23px; height: 17px;" onmouseup="document.getElementById('movelimitsxup').src=GetAxisActionButtonImage('movelimitsxup','up');" id="movelimitsxup" onmousedown="document.getElementById('movelimitsxup').src=GetAxisActionButtonImage('movelimitsxup','down');" onmouseout="document.getElementById('movelimitsxup').src=GetAxisActionButtonImage('movelimitsxup','up');"onclick="MoveUpLimitsTime();" alt="Move Time Limits" title="Move Time Limits" src="images/rightarrow.bmp"></td>
+
+
+    </tr>
+  
+  </tbody>
+</table>
+
+
+
+</body>
+</html>

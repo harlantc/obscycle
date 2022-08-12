@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<tree id="myfilt">
+  <item nocheckbox="1"  text="Filter" id="myfilt2" open="0">
+  <item text="Own=Y" id="own"></item>
+  <item text="Editable Proposals" id="edit"></item>
+  <item nocheckbox="1"  text="Cycle" id="cycle" open="1">
+     <item text="Current Cycle" id="cycle_current"></item>
+     <item text="All Previous Cycles" id="cycle_previousyears"></item>
+  </item>
+  <item nocheckbox="1" text="Status" id="lb_1" open="1">
+     <item text="In Progress" id="status_incomplete"></item>
+     <item text="Submitted " id="status_proposed"></item>
+     <item text="Approved" id="status_approved"></item>
+     <item text="Not Approved" id="status_rejected"></item>
+     <item text="Withdrawn" id="status_withdrawn"></item>
+     <item text="Hold" id="status_hold"></item>
+  </item>
+  </item>
+  
+</tree>

@@ -1,0 +1,54 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<!--#include virtual="op_header.html"-->
+<div id="tophdr" class="tophdr">
+<div id="imghdr" class="imghdr">
+<img src="/soft/include/header_left.gif" alt=" " border="0" >
+</div>
+<div id="titlehdr" class="titlehdr">
+Chandra Processing History Help Page
+</div>
+</div>
+
+<p>
+The data for each processing level corresponds to the version,quality and
+ingested values for that process.
+<table class="plain">
+<tr class="header"><td>Order</td><td>Field</td><td>Description</td></tr>
+<tr><td align="center">1</td><td>Version</td><td>Version of processing of observation</td> </tr>
+<tr><td align="center">2</td><td>Quality</td><td>Quality of processing.<br>
+<b>D</b>=Default, <b>P</b>=Pending, <b>Q</b>=Questionable,  
+<b>R</b>=Rejected, <b>S</b>=Superseded  </td></tr>
+<tr><td align="center">3</td><td>Ingested</td><td><b>i</b>=products ingested into archive<br> 
+<b>w</b>=products waiting to be ingested</td></tr>
+</table>
+<p>
+<hr>
+<p>
+All threads completed and uncompleted are displayed for the current observation.
+Custom Processing is not displayed in the processing history table.
+Each thread is unique by observation Id, observation interval and exposure cycle.
+All default,pending, and questionable entries are highlighted. 
+<table class="plain">
+<tr class="header"><td>Field Name</td><td>Description</td></tr
+>
+<tr > <td><a NAME="ObsId"></a>ObsId</td>
+<td>Observation Id number (assigned by CXCDS)</td> </tr>
+<tr><td>Obi</td><td>Observation interval number</td></tr>
+<tr><td>Exp Cycle</td><td>Exposure cycle (ACIS alternating exposure mode):
+<br><b>P</b>=Primary, <b>S</b>=Secondary</td>
+</tr>
+<tr><td>Obidet0.5</td><td>version,quality,ingested values for Obidet 0.5 process</td></tr>
+<tr><td>SciL0.5</td><td>version,quality,ingested values for science level 0.5;
+only ACIS alternating exposures and all HRC</td></tr>
+<tr><td>Aspect1</td><td>version,quality,ingested values for aspect level 1</td></tr>
+<tr><td>SciL1</td><td>version,quality,ingested values for science level 1</td></tr>
+<tr><td>SciL1.5</td><td>version,quality,ingested values for science level 1.5;
+grating observations only</td></tr>
+<tr><td>SciL2</td><td>version,quality,ingested values for science level 2 </td></tr>
+
+</table>
+</div>
+</body>
+</html>
+

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE table SYSTEM "table.dtd">
+
+<table name="mp" key="obsid">
+  <column name="obsid">
+    <type>INTEGER</type>
+    <tooltip>Observation Identifier</tooltip>
+  </column>
+  <column name="counter">
+    <type>INTEGER</type>
+    <tooltip>Counter</tooltip>
+  </column>
+  <column name="seq_nbr">
+    <type>STRING</type>
+    <tooltip>Sequence Number</tooltip>
+  </column>
+  <column name="mp_priority">
+    <type>INTEGER</type>
+    <tooltip>Mission Planning Priority</tooltip>
+  </column>
+  <column name="mp_roll">
+    <type>DOUBLE</type>
+    <tooltip>Mission Planning Roll Angle</tooltip>
+  </column>
+  <column name="mp_roll_tolerance">
+    <type>DOUBLE</type>
+    <tooltip>Mission Planning Roll Tolerance</tooltip>
+  </column>
+  <column name="star_fidlight_file">
+    <type>STRING</type>
+    <tooltip>Star Fidlight File</tooltip>
+  </column>
+  <column name="lt_plan">
+    <type>DATE</type>
+    <tooltip>Start Date (with time set to midnight) in long term science plan</tooltip>
+  </column>
+  <column name="duration">
+    <type>DOUBLE</type>
+    <tooltip>Mission Planning Duration</tooltip>
+  </column>
+</table>

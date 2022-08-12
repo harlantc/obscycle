@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE table SYSTEM "table.dtd">
+
+<table name="axafobstat..fast_proc" key="obsid">
+  <column name="obsid">
+    <type>INTEGER</type>
+    <tooltip>Observation Identifier</tooltip>
+  </column>
+  <column name="status">
+    <type>STRING</type>
+    <tooltip>Fast Processing Status</tooltip>
+  </column>
+  <column name="comment">
+    <type>STRING</type>
+    <tooltip>Fast Processing Comments </tooltip>
+  </column>
+  <column name="last_updated">
+    <type>DATE</type>
+    <tooltip>Fast Processing Last Modified Date</tooltip>
+  </column>
+</table>
+

@@ -1,0 +1,401 @@
+#!@PERL@
+#*H****************************************************************************
+#* Copyright (c) 1995, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_coordcheck.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script reads the input file for targNum\ttargetName\tRA\tDec 
+#     Input coordinates are sexagesimal.
+#     Performs wget calls to Simbad and NED and display coordinate
+#     information and distance from user coordinates.
+#
+#
+#* NOTES:
+#
+#  Using wget  -t 1 -T 2 -o <name> -O <name> -i <name> or just the URL for NED
+#
+#  But could also use cURL:
+#  curl -m 2 --retry 0 \
+#   -d "extend=no & out_csys=Equatorial & out_equinox=J2000.0 & of=ascii_bar & list_limit=5 & img_stamp=NO & objname=M 31" \
+#   http://nedwww.ipac.caltech.edu/cgi-bin/nph-objsearch
+#
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+
+use Getopt::Long;
+use POSIX;
+use strict;
+
+use vars qw ( %param @theTgts @theSimbad @theNed);
+
+{
+  my($simbadOutputFile,$wgetOutput,$wgetSimbad,$nedOutputFile);
+  my($str,$tnum,$tname,$tra,$tdec);
+  my($nedURL,$simbadURL,$ii);
+
+
+  parse_input();
+
+  # setup the filenames
+  $wgetSimbad  = $param{i} . ".wgetsimbad";
+  $simbadOutputFile = $param{i} . ".simbad";
+  $nedOutputFile = $param{i} . ".ned";
+  $wgetOutput = $param{i} . ".wget";
+  #print STDERR "$wgetSimbad\nsimbadOutputFile\n$wgetOutput\n";
+
+  # read in the input file of targets, save them in an array for later
+  # and write out the input file to the wget with the target names
+  open (IFILE,"< $param{i}") or 
+	die "Unable to open $param{i} for reading.";
+  open (OFILE,">$wgetSimbad") or
+	die "Unable to open $wgetSimbad for writing.";
+  
+  while ($str = <IFILE>) {
+    chomp($str);
+    push(@theTgts,$str);
+    ($tnum,$tname,$tra,$tdec)= split(/	/,$str);
+    if ($tname ) {
+      $tname = global_replace($tname);
+    } else {
+      $tname = "Unable to determine coordinates.";
+    }
+
+    #this seems more reliable than simbad.harvard.edu.  Also got different results from the local one ???
+    $simbadURL = qq(http://simbad.u-strasbg.fr/simbad/sim-script?script=output\%20console=off\%0aformat\%20object\%20\%22\%25IDLIST(1)\%20|\%20\%25COO(:;2;A\%20D;FK5)\%22\%0aquery\%20id\%20$tname);
+    print OFILE "$simbadURL\n";
+  }
+  close IFILE;
+  close OFILE;
+       
+  processSimbad($wgetSimbad,$simbadOutputFile,$wgetOutput);
+
+  processNed($nedOutputFile,$wgetOutput);
+
+  printf STDOUT "%4.4s  %-30.30s   %-23.23s  %s\n",
+	"Tgt#","Target Name","Proposal RA/Dec","SIMBAD/NED Results (dist=arcmin)";
+  printf STDOUT "-----------------------------------------------------------------------------------------------------------------\n";
+  for ($ii=0;$ii<=$#theTgts;$ii++) {
+    ($tnum,$tname,$tra,$tdec)= split(/	/,$theTgts[$ii]);
+    $theNed[$ii] .= "\n";
+    printf STDOUT ("%4d  %-30.30s  %-11.11s/%-12.12s  %s\n",
+	   $tnum,$tname,$tra,$tdec,$theSimbad[$ii]);
+    printf STDOUT ("%4.4s  %-30.30s  %-11.11s %-12.12s  %s\n",
+	   "","","" ,"",$theNed[$ii]);
+  }
+}
+
+
+# ----------------------------------------------------
+#
+# Process the simbad calls.  Simbad works well using the
+# file input to wget because we can find the exact
+# entry
+# ----------------------------------------------------
+sub  processSimbad {
+  my($wgetSimbad,$simbadOutputFile,$wgetOutput) = @_;
+  my($wgetCommand,$wgetRetVal);
+  my($ra,$dec,$tmp1);
+  my($coords,$ddist,$msg);
+  my($ii,$str,$tnum,$tname,$tra,$tdec);
+
+  # Try wget only once
+  $wgetCommand = "wget -t 1 -T 2 -i $wgetSimbad -O $simbadOutputFile -o $wgetOutput";
+  print STDERR "\n$wgetCommand\n";
+  $wgetRetVal = system($wgetCommand); 
+
+  $ii = -1;
+  open(RFILE, "< $simbadOutputFile");
+  while ($str = <RFILE> ) {
+     chomp($str);
+     if ($str =~ /^query id /) {
+        # find matching entry in theTgts list. This output
+        # will skip an entry if a wget connection timed out
+        ($msg,$msg,$tmp1) = split(/ /,$str,3);
+        for ($ii++;$ii <= $#theTgts; $ii++) {
+           ($tnum,$tname,$tra,$tdec)= split(/	/,$theTgts[$ii]);
+           if (!$tname ) {
+                $tname = "Unable to determine coordinates.";
+           }
+           $tname =~ s/ $//g;
+           if ($tmp1 eq $tname) {
+               last;
+           }
+        }
+     }
+     elsif ($str =~ /\:error/ ) {
+        # process an error return from simbad.
+        #skip blank line 
+        $str = <RFILE>;
+        $msg = "Unable to determine coordinates (Simbad)";
+        while ($str = <RFILE> ) {
+          #skipping the error messages
+          if ($str =~ /Identifier not found/i) {
+            $msg = "Identifier not found (Simbad)";
+          }
+          elsif ($str =~ /Identifier has an incorrect format for catalogs/i) {
+            $msg = "Identifier has an incorrect format for catalogs (Simbad)";
+          }
+          if ($str !~ /\:/) { last; }
+        }
+        $theSimbad[$ii] = $msg;
+     }
+     elsif ($str =~ /NAME/) {
+        $theSimbad[$ii] = "Multiple coordinates found (Simbad)";
+        while ($str = <RFILE> ) {
+          if ($str !~ /NAME/) {
+            last;
+          }
+        }
+     }
+     elsif ($str =~ /\|/ && $str !~ /^format/) {
+        #print STDERR "duh $ii: $theSimbad[$ii]-----$str\n";
+        if (!$theSimbad[$ii] ) {
+          ($tmp1,$coords) = split(/\|/,$str);
+          ($ra,$dec) = split(' ',$coords,2);
+          if (!$tra || !$tdec) {
+            $tmp1 =sprintf( "%-11.11s/%-12.12s (Simbad)",
+		 $ra,$dec);
+          } else  {
+            $ddist = calc_distance($tra,$tdec,$ra,$dec);
+            $tmp1 =sprintf( "%-11.11s/%-12.12s dist=%8.4f (Simbad)",
+		 $ra,$dec,$ddist);
+          }
+          $theSimbad[$ii] = $tmp1;
+       }
+       else {
+          $theSimbad[$ii] = "Multiple coordinates found (Simbad)\n";
+       }
+     }
+  }
+        
+
+  #Close the wget results file
+  close(RFILE);
+  unlink($wgetSimbad);
+  unlink($wgetOutput);
+  unlink($simbadOutputFile);
+}
+
+# ------------------------------------------------------------------
+# process wget calls to NED.
+# NED hangs(or takes way too long) for certain target names (like HDF-1)
+# so you have to use the timeout feature for the connection.
+# Parsing the output doesn't work very well because NED doesn't always
+# display the exact input target name. So we have to do the calls
+# one at a time so that we can match the output to the proper input entry
+# ------------------------------------------------------------------
+sub  processNed {
+  my($nedOutputFile,$wgetOutput) = @_;
+  my($wgetCommand,$wgetRetVal);
+  my($ra,$dec,$tmp1,$nedURL,$str);
+  my(@tarr,$ddist,$msg);
+  my($ii,$str,$tnum,$tname,$tra,$tdec);
+
+
+  $nedURL=qq(http://nedwww.ipac.caltech.edu/cgi-bin/nph-objsearch?extend=no&out_csys=Equatorial&out_equinox=J2000.0&of=ascii_bar&list_limit=5&img_stamp=NO&objname=);
+  # Try wget 
+  $wgetCommand = "wget -t 1 -T 2 -O $nedOutputFile -o $wgetOutput";
+
+  #Ned output is impossible to match up with target names cause it doesn't print the
+  #actual input parameter, so if it times out everything is out-of-sync so we 
+  # have to use individual wget so we know what output goes with what input.
+  for ($ii=0; $ii<= $#theTgts;$ii++) {
+    ($tnum,$tname,$tra,$tdec) = split(/	/,$theTgts[$ii]);
+    if ($tname ) {
+      $tname = global_replace($tname);
+      $wgetRetVal = system("$wgetCommand \"$nedURL$tname\""); 
+      
+      open(RFILE, "< $nedOutputFile");
+      while ($str = <RFILE> ) {
+        if ($str =~ /RA\(deg/) {
+          $str = <RFILE>;
+          @tarr = split(/\|/,$str);
+          ($ra,$dec) = convert_coord($tarr[2],$tarr[3]);
+          if (!$tra || !$tdec) {
+            $tmp1 = sprintf("%-11.11s/%-12.12s (NED)\n",$ra,$dec);
+          }
+          else {
+            $ddist = calc_distance($tra,$tdec,$ra,$dec);
+            $tmp1 = sprintf("%-11.11s/%-12.12s dist=%8.4f (NED)\n",$ra,$dec,$ddist);
+          }
+          $theNed[$ii] = $tmp1;
+          last;
+        }
+        elsif ($str =~ /\<PARAM name="Error/) {
+          if ($str =~ /no object/i) {
+            $tmp1 = "Identifier not found. (NED)";
+          } else {
+            $tmp1 = "Unable to determine coordinates (NED)";
+          }
+          $theNed[$ii] = $tmp1;
+          last;
+        }
+      }
+      close RFILE;
+      unlink $nedOutputFile;
+      unlink($wgetOutput);
+    }
+  }
+        
+
+}
+
+# -----------------------------------------------------------
+sub convert_coord()
+{
+  my($ra,$dec) = @_;
+  my($xx,$rah,$ram,$ras,$dad,$dam,$das);
+  my($rastr,$decstr,$sign);
+
+  $xx = $ra / 15.0;
+  $rah = int $xx;
+  $xx = ($xx - $rah + .000001) * 60.0;
+  $ram = int $xx;
+  $ras = ($xx - $ram + .000001) * 60.0;
+
+  $xx = abs($dec);
+  $dad = int $xx;
+  $xx = ($xx - $dad + .000001) * 60.;
+  $dam = int $xx;
+  $das = ($xx - $dam + .000001) * 60.;
+  if ($dec < 0) {
+    $sign = '-';
+  }
+  else  {
+    $sign = ' ';
+  }
+
+  $rastr = sprintf ("%02d:%02d:%04.1f",$rah,$ram,$ras);
+  $decstr = sprintf ("%1s%02d:%02d:%04.1f",$sign,$dad,$dam,$das);
+
+  return ($rastr,$decstr);
+
+}
+
+
+# -----------------------------------------------------------
+sub calc_distance {
+  my($ira1,$idec1,$ira2,$idec2) = @_;
+  my($ra1,$dec1,$ra2,$dec2);
+  my($r1,$d1,$r2,$d2);
+  my (@rr1,@rr2,@dd1,@dd2,$PI,$ddist);
+  
+  $ira1 =~ s/ /:/g;
+  $idec1 =~ s/ /:/g;
+
+  $PI =  3.1415926535897932384626433832795028841971693993751;
+
+  @rr1 = split(/:/,$ira1);
+  @rr2 = split(/:/,$ira2);
+  @dd1 = split(/:/,$idec1);
+  @dd2 = split(/:/,$idec2);
+
+  $ra1 = ($rr1[0] + ($rr1[1] / 60.0) + ($rr1[2] / 3600.0)) * 15.0;
+  $ra2 = ($rr2[0] + ($rr2[1] / 60.0) + ($rr2[2] / 3600.0)) * 15.0;
+  $dec1 = (abs($dd1[0]) + ($dd1[1] / 60.0) + ($dd1[2] / 3600.0));
+  $dec2 = (abs($dd2[0]) + ($dd2[1] / 60.0) + ($dd2[2] / 3600.0));
+  if ($dd1[0] =~ /\-/) {
+    $dec1 = $dec1 * -1.;
+  }
+  if ($dd2[0] =~ /\-/) {
+    $dec2 = $dec2 * -1.;
+  }
+
+
+#print STDERR "$ra1  $ira1     $dec1  $idec1\n";
+#print STDERR "$ra2  $ira2     $dec2  $idec2\n";
+  $r1 = $ra1 * ($PI/180.0);
+  $r2 = $ra2 * ($PI/180.0);
+  $d1 = $dec1 * ($PI/180.0);
+  $d2 = $dec2 * ($PI/180.0);
+
+  $ddist = POSIX::acos (sin($d2) * sin($d1) +
+              cos($d2)*cos($d1) * cos($r2-$r1));
+
+  $ddist = $ddist * (180./$PI);
+  $ddist = $ddist * 60.;
+
+  return $ddist;
+}
+
+# -----------------------------------------------------------
+sub parse_input
+{
+  my ($pwd);
+  my $err = 0;
+  %param = (
+             i=> undef,
+        );
+
+  GetOptions( \%param,
+          "i=s",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter `$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+
+}
+
+sub usage
+{
+    print STDERR "\nUSAGE: prop_coordcheck.pl -i \n";
+    print STDERR "       -i input filename \n";
+    print STDERR "  Format is tab delimited file, 1 entry per line, coordinates in decimal:\n"; 
+    print STDERR "  targnum\\ttargname\\tra\\tdec\\n\n";
+}
+
+sub global_replace
+{
+  my($targname) = @_;
+
+  $targname =~ s/\%/%25/g;
+
+  $targname =~ s/ /%20/g;
+  $targname =~ s/\!/%21/g;
+  $targname =~ s/\*/%2A/g;
+  $targname =~ s/\'/%27/g;
+  $targname =~ s/\(/%28/g;
+  $targname =~ s/\)/%29/g;
+  $targname =~ s/\;/%3B/g;
+  $targname =~ s/\:/%3A/g;
+  $targname =~ s/\@/%40/g;
+  $targname =~ s/\&/%26/g;
+  $targname =~ s/\=/%3D/g;
+
+  $targname =~ s/\+/%2B/g;
+  $targname =~ s/\$/%24/g;
+  $targname =~ s/\,/%2C/g;
+  $targname =~ s/\//%2F/g;
+  $targname =~ s/\?/%3F/g;
+  $targname =~ s/\#/%23/g;
+
+  $targname =~ s/\[/%5B/g;
+  $targname =~ s/\]/%5D/g;
+
+  return $targname;
+}

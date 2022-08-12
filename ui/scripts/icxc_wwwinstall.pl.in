@@ -1,0 +1,166 @@
+#!@PERL@ 
+#*H****************************************************************************
+#* Copyright (c) 1995, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: icxc_wwwinstall.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script will be used by the systems group to install the 3 JSP 
+# web applications to the appropriate Tomcat sub-directory.  
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+use strict;
+use Getopt::Long;
+use File::Path;
+
+use vars qw( %param  @srcdir @outdir
+	);
+
+
+
+{
+  my ($userResponse,$ifname, $ofname);
+
+  &parse_input;
+
+  @srcdir = ("cgi-bin/$param{a}","$param{a}","web_bin/$param{a}");
+  @outdir = ("cgi-bin/$param{a}_$param{r}","htdocs/soft/$param{a}_$param{r}","web_bin/$param{a}_$param{r}");
+
+  print STDERR "\nInstalling FROM : $param{i}\n";
+  print STDERR "Installing TO   : $param{o} \n";
+  for (my($ii)=0;$ii<=$#outdir;$ii++) {
+      print STDERR "  $outdir[$ii]\n";
+  }
+  print STDERR "\nAre these directories correct (y/n)? ";
+  $userResponse = <STDIN>;
+  chomp($userResponse); #Remove newline
+  if($userResponse eq "y" || $userResponse eq "Y") {
+    for (my($ii) = 0; $ii<= $#srcdir; $ii++) {
+       $ifname = $param{i} . "/" . $srcdir[$ii];
+       $ofname = $param{o} . "/" . $outdir[$ii];
+       -d $ifname or die "$ifname doesn't exist";
+       if (! -d $ofname) {
+          print STDERR "mkdir($ofname)\n";
+          mkpath($ofname,0755);
+          `chgrp ascds_fix $ofname`;
+          chmod(02755,$ofname);
+       } else {
+         my($bkup) = $ofname;
+         my($str) = `date +%Y%m%d%H%M%S`;
+         chomp($str);
+         $bkup .= "_" . $str;
+         print STDERR "Backing up files to $bkup\n";
+         mkdir($bkup, 0750);
+         `chgrp ascds_fix $bkup`;
+         chmod(02750,$bkup);
+         `cp -p $ofname/* $bkup/`;
+      }
+
+      print STDERR "Copying from $ifname to $ofname\n";
+      `cp $ifname/* $ofname/`;
+
+       if ($ifname =~ /htdocs/ && $ifname =~ /\/op/  && $ifname !~ /cgi-bin/ && $ifname !~ /web_bin/) {
+          print STDERR "special case for op\n";
+         `chmod 640 $ofname/op_pst_statuslist.inc`;
+         `chmod 640 $ofname/op_pst.html`;
+          `cp $ofname/op_pst_statuslist_icxc.inc $ofname/op_pst_statuslist.inc`;
+          `cp $ofname/op_pst_icxc.html $ofname/op_pst.html`;
+       }
+       if ($ifname =~ /cgi-bin/ && $ifname =~ /\/op/ ) {
+          print STDERR "special case for op\n";
+         `chmod 755 $ofname/op_status_table.cgi`;
+          `cp $ofname/op_status_table_icxc.cgi $ofname/op_status_table.cgi`;
+       }
+      `chgrp ascds_fix $ofname/*`;
+      `chmod 0755 $ofname/*`;
+   }
+ } else {
+    print STDERR "Application(s) were NOT installed\n";
+  }
+}
+
+
+
+# ----------------------------------------------------------
+sub parse_input
+{
+  my ($ii);
+  my $err = 0;
+  %param = (
+           o => undef,
+           i => undef,
+           a => undef,
+           r => undef,
+        );
+
+  GetOptions( \%param,
+          "o=s",
+          "i=s",
+          "a=s",
+          "r=s",
+          "h"
+        ) or exit (1);
+
+  if (!$param{i} ) {
+    if ($ENV{'ASCDS_INSTALL'} ) {
+      $param{i} = $ENV{'ASCDS_INSTALL'};
+      $param{i} .= "/www/htdocs/soft/";
+    }
+  }
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter `$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+  if (!-e $param{i} ) {
+     print STDERR "Input Directory $param{i} does not exist.\n";
+     $err++;
+  }
+
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+}
+
+sub usage
+{
+  my ($ii);
+
+  print STDERR "\nThis script will install the application directory defined by the ";
+  print STDERR "-o and -a parameters.\n It locates the html/cgi-bin/web_bin files\n";
+  print STDERR "in the directory defined by the -i and -a  parameters.\n";
+  print STDERR "\nUSAGE: icxc_wwwinstall.pl -aior \n";
+  print STDERR "       -a application subdirectory (eg: qa2, vv )\n";
+  print STDERR "       -i input install directory\n";
+  print STDERR "          Default is ASCDS_INSTALL/www/htdocs/soft/ \n";
+  print STDERR "       -o output directory path\n";
+  print STDERR "          example: /proj/web-icxc-test/\n";
+  print STDERR "       -r release label (example: DS8.5.1)\n";
+  print STDERR "\nExample:      \n";
+  print STDERR "icxc_wwwinstall.pl -a op -i /proj/cm/Integ/install.linux64.DS10/www/htdocs/soft/ -o /proj/web-icxc-test/ -r DS10\n";
+
+}
+
+

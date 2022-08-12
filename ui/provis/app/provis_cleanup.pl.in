@@ -1,0 +1,57 @@
+#!@PERLDB@
+
+# _INSERT_SAO_COPYRIGHT_HERE_(2008,2009)_
+# _INSERT_GPL_LICENSE_HERE_
+
+use FindBin 1.51 qw( $RealBin );
+use lib $RealBin;
+
+push @INC, "$RealBin/../data";
+require("provis_config.cgi");
+our %Global;
+
+$USERID=getlogin() || (getpwuid($<))[0];
+
+
+
+if ( $USERID eq "" )
+{
+    die "ERROR: Can not retrieve user id\n";
+};
+
+if (-e $Global{'uploaddir'} )  {
+
+  foreach $filename (`/usr/bin/find $Global{'uploaddir'} -type f`) 
+  {
+    $filename =~ s/[\n]//g ;
+    @fileinfo = stat($filename);
+
+    $adiff= $^T-@fileinfo[8];
+
+    if ( $adiff > $Global{'fileexptime_s'} )
+    {
+	unlink $filename;
+    };
+  }
+}
+
+if (!-e "/tmp/.X11-provis" ) {
+   mkdir("/tmp/.X11-provis",02770);
+   `chgrp prop /tmp/.X11-provis`;
+   `chmod 02770 /tmp/.X11-provis`;
+}
+
+if ( $ARGV[0] eq '-x' )
+{
+    if ( `/bin/ps -u $USERID | grep $Global{'XVFB_PROC'}` eq "" )
+    {
+	
+	if ( $Global{'XVFB_LIB'} ne "" )
+	{
+	    $ENV{'LD_LIBRARY_PATH'} =  "$Global{'XVFB_LIB'}:$ENV{'LD_LIBRARY_PATH'}";
+	};
+	
+	system("$Global{'XVFB'} :$Global{'DISPLAY_NUMBER'} $Global{'XVFB_OPTIONS'} &");
+	
+    };    
+};

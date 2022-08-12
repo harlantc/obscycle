@@ -1,0 +1,3215 @@
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+
+%%  Latex generated from POD in document /vobs/ASC_OBS_PROP/src/obs/prop/peer_review/PeerReviewGUI/bin/PR
+%%  Using the perl module Pod::LaTeX
+%%  Converted on Wed Apr 24 14:00:00 2013
+
+
+\usepackage{makeidx}
+\makeindex
+
+
+\begin{document}
+
+\tableofcontents
+
+\clearpage
+\section{PR\label{PR}\index{PR}}
+
+
+GUI for recording proposal changes and discussions during Peer Review.
+
+\subsection*{USAGE\label{PR_USAGE}\index{PR!USAGE}}
+
+
+PR [options]
+
+\subsection*{DESCRIPTION\label{PR_DESCRIPTION}\index{PR!DESCRIPTION}}
+
+
+This is a GUI used during Peer Review to aid the facilitator in recording
+the discussions and descisions made by their panel.
+
+\subsection*{OPTIONS\label{PR_OPTIONS}\index{PR!OPTIONS}}
+
+
+\textbf{PR} uses long option names.  You can type as few characters as
+are necessary to match the option name.
+
+\begin{description}
+
+\item[{\textbf{-U} $<$user name$>$}] \mbox{}
+
+peer review user name (required)
+
+
+\item[{\textbf{-panel}}] \mbox{}
+
+panel number you wish to load (required)
+
+
+\item[{\textbf{-font}}] \mbox{}
+
+font family you wish to load.
+Default is 'arial'.  Other suggested choices:
+
+\end{description}
+\begin{verbatim}
+  century schoolbook l
+  comic sans ms
+  courier
+  courier new
+  nimbus sans l
+  times
+  times new roman
+  verdana
+\end{verbatim}
+\begin{description}
+
+\item[{\textbf{-gv}}] \mbox{}
+
+acroread viewer to use (default is acroread)
+
+
+\item[{\textbf{-printer}}] \mbox{}
+
+printer destination (defaults to Peer Review name)
+
+
+\item[{\textbf{-if}}] \mbox{}
+
+Y to ignore finalize (defaults to N)
+
+
+\item[{\textbf{-test}}] \mbox{}
+
+a number indicating the degree of verbosity to use
+
+
+\item[{\textbf{-help}}] \mbox{}
+
+displays documentation for \textbf{PR}
+
+
+\item[{\textbf{-version}}] \mbox{}
+
+displays the version
+
+
+\item[{\textbf{-verbose}}] \mbox{}
+
+displays required options
+
+\end{description}
+\subsection*{DESCRIPTION\label{PR_DESCRIPTION}\index{PR!DESCRIPTION}}
+
+
+This is the Chandra Peer Review GUI.  To run, you must specify a user name 
+and panel number.
+
+
+
+PR -U pedroia -panel 5
+
+\subsection*{CONFIGURATION\label{PR_CONFIGURATION}\index{PR!CONFIGURATION}}
+
+
+The environmental variable PERL5LIB needs to be pointing to the location of the
+Peer Review GUI library
+
+\subsection*{AUTHOR\label{PR_AUTHOR}\index{PR!AUTHOR}}
+
+
+Sherry L. Winkelman  (prior to 2012)
+
+\subsection*{VERSION\label{PR_VERSION}\index{PR!VERSION}}
+
+
+Cycle 15
+
+\clearpage
+\section{AltGrp\label{AltGrp}\index{AltGrp}}
+
+
+This object contains data associated with an alternate target group.
+
+\subsection*{VERSION\label{AltGrp_VERSION}\index{AltGrp!VERSION}}
+
+
+\$Revision: 1.3 \$
+
+\subsection*{SYNOPSIS\label{AltGrp_SYNOPSIS}\index{AltGrp!SYNOPSIS}}
+\begin{verbatim}
+    use AltGrp;
+    my $altgrp = 
+       new AltGrp($dbh, $prop_id, $alt_id, $AltGrpProps, $panel_id $verbosity);
+\end{verbatim}
+\subsection*{DESCRIPTION\label{AltGrp_DESCRIPTION}\index{AltGrp!DESCRIPTION}}
+
+
+Provides a single place to access elements of an alternate target group
+
+\subsection*{PUBLIC METHODS\label{AltGrp_PUBLIC_METHODS}\index{AltGrp!PUBLIC METHODS}}
+\subsubsection*{new(\$dbh, \$prop\_id, \$alt\_id, \$AltGrpProps, \$panel\_id, \$verbosity)\label{AltGrp_new_dbh_prop_id_alt_id_AltGrpProps_panel_id_verbosity_}\index{AltGrp!new(\$dbh, \$prop\ id, \$alt\ id, \$AltGrpProps, \$panel\ id, \$verbosity)}}
+
+
+Creates a new Alternate Target Group object
+
+\begin{description}
+
+\item[{\$dbh - database handle}] \mbox{}
+\item[{\$prop\_id - proposal id}] \mbox{}
+\item[{\$alt\_id - alternate target group id}] \mbox{}
+\item[{\$AltGrpProps - reference to array of alternate}] \textbf{target group properties}
+\item[{\$panel\_id - panel id}] \mbox{}\end{description}
+\subsubsection*{set(\$field, \$value)\label{AltGrp_set_field_value_}\index{AltGrp!set(\$field, \$value)}}
+
+
+Overloads the set accessor from Class::Accessor to update \%changed to
+reflect that there are unsaved changes in the object.
+
+\subsubsection*{dump\label{AltGrp_dump}\index{AltGrp!dump}}
+
+
+Prints a data dump of the alternate target group object
+
+\subsubsection*{save\_member(\$field, \$value)\label{AltGrp_save_member_field_value_}\index{AltGrp!save\ member(\$field, \$value)}}
+
+
+Saves the new value of a field to the alternate target group object
+
+\subsubsection*{save2database\label{AltGrp_save2database}\index{AltGrp!save2database}}
+
+
+Saves the alternate target group object to the database.
+
+\subsection*{PRIVATE METHODS\label{AltGrp_PRIVATE_METHODS}\index{AltGrp!PRIVATE METHODS}}
+\subsubsection*{\_init\label{AltGrp__init}\index{AltGrp!\ init}}
+
+
+Initializes new Alternate Target Group object.
+
+\subsection*{DEPENDENCIES\label{AltGrp_DEPENDENCIES}\index{AltGrp!DEPENDENCIES}}
+
+
+This module has no dependencies
+
+\subsection*{BUGS AND LIMITATIONS\label{AltGrp_BUGS_AND_LIMITATIONS}\index{AltGrp!BUGS AND LIMITATIONS}}
+
+
+There are no known bugs in this module.
+Please report problems to Sherry Winkelman swinkelman@cfa.harvard.edu
+Patches are welcome.
+
+\subsection*{AUTHOR\label{AltGrp_AUTHOR}\index{AltGrp!AUTHOR}}
+
+
+Sherry Winkelman swinkelman@cfa.harvard.edu
+
+\subsection*{LICENCE AND COPYRIGHT\label{AltGrp_LICENCE_AND_COPYRIGHT}\index{AltGrp!LICENCE AND COPYRIGHT}}
+
+
+Copyright (c) 2006, Sherry Winkelman $<$swinkelman@cfa.harvard.edu$>$. All rights 
+reserved.
+
+\clearpage
+\section{BuildSort\label{BuildSort}\index{BuildSort}}
+
+
+This is a widget for creating sorts
+
+\subsection*{VERSION\label{BuildSort_VERSION}\index{BuildSort!VERSION}}
+
+
+\$Revision: 1.10 \$
+
+\subsection*{SYNOPSIS\label{BuildSort_SYNOPSIS}\index{BuildSort!SYNOPSIS}}
+\begin{verbatim}
+   use BuildSort;
+   my $buildsort = $mw->Toplevel();
+   $buildsort->BuildSort(-dbh => $dbh1,
+                          -panel_id => $panel_id,
+                          -previewcmd => [\&previewSort => ($self)],
+                          -sortmenucmd => [\&addSortMenu => ($self) ],
+                          -closecmd => [ \&closeBuildSort => ($self) ],
+                         )->pack(-expand => 1,
+                                 -fill => 'both');
+\end{verbatim}
+\subsection*{DESCRIPTION\label{BuildSort_DESCRIPTION}\index{BuildSort!DESCRIPTION}}
+
+
+Provides a convenient interface for creating sorts with or without grouping
+
+\subsection*{PUBLIC METHODS\label{BuildSort_PUBLIC_METHODS}\index{BuildSort!PUBLIC METHODS}}
+\subsubsection*{Populate(\$w, \$args)\label{BuildSort_Populate_w_args_}\index{BuildSort!Populate(\$w, \$args)}}
+
+
+Populates the widget
+
+\begin{description}
+
+\item[{\$w - toplevel widget}] \mbox{}
+\item[{\$args - reference to hash of arguments}] \mbox{}\begin{verbatim}
+   -dbh - database handle
+\end{verbatim}
+\begin{verbatim}
+   -panel_id - panel id
+\end{verbatim}
+\begin{verbatim}
+   -verbose - level of verbosity
+\end{verbatim}
+\begin{verbatim}
+   -closecmd - call back for closing widget
+\end{verbatim}
+\begin{verbatim}
+   -previewcmd - call back for previewing the new sort
+\end{verbatim}
+\begin{verbatim}
+   -sortmenucmd - call back for adding new sort to sort menu
+\end{verbatim}
+\end{description}
+\subsection*{PRIVATE METHODS\label{BuildSort_PRIVATE_METHODS}\index{BuildSort!PRIVATE METHODS}}
+\subsubsection*{getCols\label{BuildSort_getCols}\index{BuildSort!getCols}}
+
+
+Retrieves from database columns available for sorting by
+
+\subsubsection*{setSort\label{BuildSort_setSort}\index{BuildSort!setSort}}
+
+
+Composes sort name and sortby list based on columns selected
+
+\subsubsection*{save\label{BuildSort_save}\index{BuildSort!save}}
+
+
+Saves new sort to database
+
+\subsubsection*{close\label{BuildSort_close}\index{BuildSort!close}}
+
+
+Call back to destroy page
+
+\subsubsection*{preview\label{BuildSort_preview}\index{BuildSort!preview}}
+
+
+Preview the sort before saving
+
+\subsection*{DEPENDENCIES\label{BuildSort_DEPENDENCIES}\index{BuildSort!DEPENDENCIES}}
+
+
+This module uses Tk::Pane, Tk::Dialog, and Tk::Table (available from CPAN)
+
+\subsection*{BUGS AND LIMITATIONS\label{BuildSort_BUGS_AND_LIMITATIONS}\index{BuildSort!BUGS AND LIMITATIONS}}
+
+
+There are no known bugs in this module.
+Please report problems to Sherry Winkelman swinkelman@cfa.harvard.edu
+Patches are welcome.
+
+\subsection*{AUTHOR\label{BuildSort_AUTHOR}\index{BuildSort!AUTHOR}}
+
+
+Sherry Winkelman swinkelman@cfa.harvard.edu
+
+\subsection*{LICENCE AND COPYRIGHT\label{BuildSort_LICENCE_AND_COPYRIGHT}\index{BuildSort!LICENCE AND COPYRIGHT}}
+
+
+Copyright (c) 2005, Sherry Winkelman $<$swinkelman@cfa.harvard.edu$>$. All rights 
+reserved.
+
+\clearpage
+\section{BuildTable\label{BuildTable}\index{BuildTable}}
+
+
+This is an OO-interface for displaying data in several formats
+within a Tk::Table widget
+
+\subsection*{VERSION\label{BuildTable_VERSION}\index{BuildTable!VERSION}}
+
+
+\$Revision: 1.31 \$
+
+\subsection*{SYNOPSIS\label{BuildTable_SYNOPSIS}\index{BuildTable!SYNOPSIS}}
+\begin{verbatim}
+    use BuildTable;
+    my $table = new BuildTable($verbosity,$View, \@headers,'nw',$num_rows,3);
+\end{verbatim}
+\subsection*{DESCRIPTION\label{BuildTable_DESCRIPTION}\index{BuildTable!DESCRIPTION}}
+
+
+Provides a convenient interface for displaying proposals in a Tk::Table widget.
+
+\subsection*{PUBLIC METHODS\label{BuildTable_PUBLIC_METHODS}\index{BuildTable!PUBLIC METHODS}}
+\subsubsection*{new(\$verbosity, \$mw, $\backslash$@headers, \$scrollbar, \$rows, \$cols)\label{BuildTable_new_verbosity_mw_backslash_headers_scrollbar_rows_cols_}\index{BuildTable!new(\$verbosity, \$mw, $\backslash$@headers, \$scrollbar, \$rows, \$cols)}}
+
+
+Creates a new BuildTable object.
+
+\begin{description}
+
+\item[{\$verbosity - level of verbosity}] \mbox{}
+\item[{\$mw - main window that table goes into}] \mbox{}
+\item[{$\backslash$@headers - headers of columns}] \textbf{in table}
+\item[{\$scrollbar - location of scrollbar}] \mbox{}
+\item[{\$rows - number of rows in table}] \mbox{}
+\item[{\$cols - number of columns in table}] \mbox{}\end{description}
+\subsubsection*{pack\label{BuildTable_pack}\index{BuildTable!pack}}
+
+
+packs the table
+
+\subsubsection*{update\label{BuildTable_update}\index{BuildTable!update}}
+
+
+updates the table
+
+\subsubsection*{mk\_pack\_frame(\$row, \$col)\label{BuildTable_mk_pack_frame_row_col_}\index{BuildTable!mk\ pack\ frame(\$row, \$col)}}
+
+
+Returns a frame with pack geometry and puts the frame in position \$row, \$col
+of table
+
+\subsubsection*{print\_headers(\$row, \$panel, \$mkView, \$w, \$BPP)\label{BuildTable_print_headers_row_panel_mkView_w_BPP_}\index{BuildTable!print\ headers(\$row, \$panel, \$mkView, \$w, \$BPP)}}
+
+
+Puts the headers of a table into the header row; if one optional parameter is
+used, they must all be used
+
+\begin{description}
+
+\item[{\$row - row that headers go into (required)}] \mbox{}
+\item[{\$panel - panel object}] \mbox{}
+\item[{\$mkView - reference to subroutine to refresh}] \textbf{view}
+\item[{\$w - frame that View goes into}] \mbox{}
+\item[{\$BPP - flag indicating which BPP group}] \textbf{the sort applies to}\end{description}
+\subsubsection*{prop\_buttons(\$row, \$col, \$prop\_id, \$quit, \$monitor, \$panel)\label{BuildTable_prop_buttons_row_col_prop_id_quit_monitor_panel_}\index{BuildTable!prop\ buttons(\$row, \$col, \$prop\ id, \$quit, \$monitor, \$panel)}}
+
+
+Ties a notebook page to a proposal button and puts the button into the table
+
+\begin{description}
+
+\item[{\$row - row that button goes into}] \mbox{}
+\item[{\$col - column that button goes into}] \mbox{}
+\item[{\$prop\_id - proposal id}] \mbox{}
+\item[{\$quit - quit file menu widget}] \mbox{}
+\item[{\$monitor - monitor widget}] \mbox{}
+\item[{\$panel - panel object}] \mbox{}\end{description}
+\subsubsection*{prop\_info\_new(\$row, \$col, \$fields, \$prop, \$label\_width)\label{BuildTable_prop_info_new_row_col_fields_prop_label_width_}\index{BuildTable!prop\ info\ new(\$row, \$col, \$fields, \$prop, \$label\ width)}}
+
+
+Populates a cell using the proposal information layout
+
+\begin{description}
+
+\item[{\$row - row of table cell}] \mbox{}
+\item[{\$col - column of table cell}] \mbox{}
+\item[{\$fields - hash reference of fields to put}] \textbf{into cell}
+\item[{\$prop - proposal object}] \mbox{}
+\item[{\$label\_width - width of value column (this}] \textbf{is no longer necessary)}\end{description}
+\subsubsection*{text(\$row, \$col, \$title, \$width, \$height)\label{BuildTable_text_row_col_title_width_height_}\index{BuildTable!text(\$row, \$col, \$title, \$width, \$height)}}
+
+
+Place a ROText widget into a table cell
+
+\begin{description}
+
+\item[{\$row - row of table cell}] \mbox{}
+\item[{\$col - column of table cell}] \mbox{}
+\item[{\$title - title of ROText widget}] \mbox{}
+\item[{\$width - width of ROText widget}] \mbox{}
+\item[{\$height - height of ROText widget}] \mbox{}\end{description}
+\subsubsection*{column\_table(\$frame, \$rows, \$prop, \$table\_id, \$fields, \$table\_name)\label{BuildTable_column_table_frame_rows_prop_table_id_fields_table_name_}\index{BuildTable!column\ table(\$frame, \$rows, \$prop, \$table\ id, \$fields, \$table\ name)}}
+
+
+Puts a data into a gridded layout and returns the frame
+
+\begin{description}
+
+\item[{\$frame - frame to put data into}] \mbox{}
+\item[{\$rows - number of rows}] \mbox{}
+\item[{\$prop - proposal object}] \mbox{}
+\item[{\$table\_id - table id in database}] \mbox{}
+\item[{\$fields - hash of fields}] \mbox{}
+\item[{\$table\_name - name of table}] \mbox{}\end{description}
+\subsubsection*{target\_table(\$row, \$col, \$prop, \$size, \$section\_id, \$view\_id)\label{BuildTable_target_table_row_col_prop_size_section_id_view_id_}\index{BuildTable!target\ table(\$row, \$col, \$prop, \$size, \$section\ id, \$view\ id)}}
+
+
+Puts a target table into a table cell
+
+\begin{description}
+
+\item[{\$row - row of table cell}] \mbox{}
+\item[{\$col - column of table cell}] \mbox{}
+\item[{\$prop - proposal object}] \mbox{}
+\item[{\$size - number of rows before making target}] \textbf{table scrollable}
+\item[{\$section\_id - section id in database}] \mbox{}
+\item[{\$view\_id - view id in database}] \mbox{}\end{description}
+\subsubsection*{spreadsheet(\$row, \$col, \$fields, \$prop)\label{BuildTable_spreadsheet_row_col_fields_prop_}\index{BuildTable!spreadsheet(\$row, \$col, \$fields, \$prop)}}
+
+
+Display a set of fields in spreadsheet format; returns next column to 
+populate
+
+\begin{description}
+
+\item[{\$row - row of table cell}] \mbox{}
+\item[{\$col - column of table cell}] \mbox{}
+\item[{\$fields - hash of fields}] \mbox{}
+\item[{\$prop - proposal object}] \mbox{}\end{description}
+\subsubsection*{print\_field(\$row, \$col, \$field, \$justify, \$relief)\label{BuildTable_print_field_row_col_field_justify_relief_}\index{BuildTable!print\ field(\$row, \$col, \$field, \$justify, \$relief)}}
+
+
+Places data into a table cell
+
+\begin{description}
+
+\item[{\$row - row of table cell}] \mbox{}
+\item[{\$col - column of table cell}] \mbox{}
+\item[{\$field - data}] \mbox{}
+\item[{\$justify - value for anchor parameter}] \mbox{}
+\item[{\$relief - value for relief parameter (optional)}] \mbox{}\end{description}
+\subsubsection*{print\_object(\$row, \$col, \$obj)\label{BuildTable_print_object_row_col_obj_}\index{BuildTable!print\ object(\$row, \$col, \$obj)}}
+
+
+Puts a widget into a table cell
+
+\begin{description}
+
+\item[{\$row - row of table cell}] \mbox{}
+\item[{\$col - column of table cell}] \mbox{}
+\item[{\$obj - widget}] \mbox{}\end{description}
+\subsubsection*{fill\_l\_table(\$row, [\$col, \$data])\label{BuildTable_fill_l_table_row_col_data_}\index{BuildTable!fill\ l\ table(\$row, [\$col, \$data])}}
+
+
+Puts the data into a cell with the data being left justified
+
+\subsection*{PRIVATE METHODS\label{BuildTable_PRIVATE_METHODS}\index{BuildTable!PRIVATE METHODS}}
+\subsubsection*{\_init\label{BuildTable__init}\index{BuildTable!\ init}}
+
+
+Initializes a new BuildTable object.
+
+\subsection*{DEPENDENCIES\label{BuildTable_DEPENDENCIES}\index{BuildTable!DEPENDENCIES}}
+
+
+This module uses TK::LabEntry and Tk::Notebook (available from CPAN)
+
+\subsection*{BUGS AND LIMITATIONS\label{BuildTable_BUGS_AND_LIMITATIONS}\index{BuildTable!BUGS AND LIMITATIONS}}
+
+
+There are no known bugs in this module.
+Please report problems to Sherry Winkelman swinkelman@cfa.harvard.edu
+Patches are welcome.
+
+\subsection*{AUTHOR\label{BuildTable_AUTHOR}\index{BuildTable!AUTHOR}}
+
+
+Sherry Winkelman swinkelman@cfa.harvard.edu
+
+\subsection*{LICENCE AND COPYRIGHT\label{BuildTable_LICENCE_AND_COPYRIGHT}\index{BuildTable!LICENCE AND COPYRIGHT}}
+
+
+Copyright (c) 2005, Sherry Winkelman $<$swinkelman@cfa.harvard.edu$>$. All rights 
+reserved.
+
+\clearpage
+\section{BuildView\label{BuildView}\index{BuildView}}
+
+
+This is a widget for creating views
+
+\subsection*{VERSION\label{BuildView_VERSION}\index{BuildView!VERSION}}
+
+
+\$Revision: 1.27 \$
+
+\subsection*{SYNOPSIS\label{BuildView_SYNOPSIS}\index{BuildView!SYNOPSIS}}
+\begin{verbatim}
+   use BuildView;
+   my $build_view = $mw->Toplevel();
+   $build_view->BuildView( -dbh => $dbh1,
+                           -panel_id => $panel_id,
+                           -verbose => $verbosity,
+                           -previewcmd => [\&previewView => ($self)],
+                           -lcdviewmenucmd => [\&addLCDViewMenu => ($self) ],
+                           -facviewmenucmd => [\&addFacViewMenu => ($self) ],
+                           -closecmd => [ \&closeBuildView => ($self) ],
+                          )->pack(-expand => 1,
+                                  -fill => 'both');
+\end{verbatim}
+\subsection*{DESCRIPTION\label{BuildView_DESCRIPTION}\index{BuildView!DESCRIPTION}}
+
+
+Provides a convenient interface for creating views
+
+\subsection*{PUBLIC METHODS\label{BuildView_PUBLIC_METHODS}\index{BuildView!PUBLIC METHODS}}
+\subsubsection*{Populate(\$w, \$args)\label{BuildView_Populate_w_args_}\index{BuildView!Populate(\$w, \$args)}}
+
+
+Populates the widget
+
+\begin{description}
+
+\item[{\$w - toplevel widget}] \mbox{}
+\item[{\$args - reference to hash of arguments}] \mbox{}\begin{verbatim}
+   -dbh - database handle
+\end{verbatim}
+\begin{verbatim}
+   -panel_id - panel id
+\end{verbatim}
+\begin{verbatim}
+   -verbose - level of verbosity
+\end{verbatim}
+\begin{verbatim}
+   -closecmd - call back for closing widget
+\end{verbatim}
+\begin{verbatim}
+   -previewcmd - call back for previewing the new view
+\end{verbatim}
+\begin{verbatim}
+   -viewmenucmd - call back for adding new view to view menu
+\end{verbatim}
+\end{description}
+\subsection*{PRIVATE METHODS\label{BuildView_PRIVATE_METHODS}\index{BuildView!PRIVATE METHODS}}
+\subsubsection*{\_init\label{BuildView__init}\index{BuildView!\ init}}
+
+
+Initialize after a clear.
+
+\subsubsection*{fill\_lb\label{BuildView_fill_lb}\index{BuildView!fill\ lb}}
+
+
+Put the selected sections into the section order list box
+
+\subsubsection*{popLoad\label{BuildView_popLoad}\index{BuildView!popLoad}}
+
+
+Populates the "Load Existing View" dialog.
+
+\subsubsection*{loadView\label{BuildView_loadView}\index{BuildView!loadView}}
+
+
+Loads the selected view into the widget.
+
+\subsubsection*{fillTable\label{BuildView_fillTable}\index{BuildView!fillTable}}
+
+
+Display the sections of a view in a table
+
+\subsubsection*{chooseCols\label{BuildView_chooseCols}\index{BuildView!chooseCols}}
+
+
+Populates the col\_ids available for the section\_type/object definition
+
+\subsubsection*{editSections\label{BuildView_editSections}\index{BuildView!editSections}}
+
+
+Choose final order and selection of sections
+
+\subsubsection*{save\label{BuildView_save}\index{BuildView!save}}
+
+
+Widget for saving new view
+
+\subsubsection*{close\label{BuildView_close}\index{BuildView!close}}
+
+
+Call back to destroy page
+
+\subsubsection*{preview\label{BuildView_preview}\index{BuildView!preview}}
+
+
+Preview the view before saving
+
+\subsubsection*{insert\_sections\label{BuildView_insert_sections}\index{BuildView!insert\ sections}}
+
+
+Inserts sections into database
+
+\subsection*{DEPENDENCIES\label{BuildView_DEPENDENCIES}\index{BuildView!DEPENDENCIES}}
+
+
+This module uses Tk::Pane, Tk::Dialog, and Tk::Table (available from CPAN)
+
+\subsection*{BUGS AND LIMITATIONS\label{BuildView_BUGS_AND_LIMITATIONS}\index{BuildView!BUGS AND LIMITATIONS}}
+
+
+There are no known bugs in this module.
+Please report problems to Sherry Winkelman swinkelman@cfa.harvard.edu
+Patches are welcome.
+
+\subsection*{AUTHOR\label{BuildView_AUTHOR}\index{BuildView!AUTHOR}}
+
+
+Sherry Winkelman swinkelman@cfa.harvard.edu
+
+\subsection*{LICENCE AND COPYRIGHT\label{BuildView_LICENCE_AND_COPYRIGHT}\index{BuildView!LICENCE AND COPYRIGHT}}
+
+
+Copyright (c) 2005, Sherry Winkelman $<$swinkelman@cfa.harvard.edu$>$. All rights 
+reserved.
+
+\clearpage
+\section{BVNotebook\label{BVNotebook}\index{BVNotebook}}
+
+
+This is a notebook widget which contains pages for building views.
+
+\subsection*{VERSION\label{BVNotebook_VERSION}\index{BVNotebook!VERSION}}
+
+
+\$Revision: 1.5 \$
+
+\subsection*{SYNOPSIS\label{BVNotebook_SYNOPSIS}\index{BVNotebook!SYNOPSIS}}
+\begin{verbatim}
+   use BVNotebook;
+   BVNotebook->new( $mw, $sections, $table, $dbh, $panel_id, $verbosity );
+\end{verbatim}
+\subsection*{DESCRIPTION\label{BVNotebook_DESCRIPTION}\index{BVNotebook!DESCRIPTION}}
+
+
+BVNotebook - Provides a convenient interface for updating information for
+building views.
+
+\subsection*{PUBLIC METHODS\label{BVNotebook_PUBLIC_METHODS}\index{BVNotebook!PUBLIC METHODS}}
+\subsubsection*{new(\$mw, \$sections, \$table, \$dbh, \$panel\_id \$verbosity)\label{BVNotebook_new_mw_sections_table_dbh_panel_id_verbosity_}\index{BVNotebook!new(\$mw, \$sections, \$table, \$dbh, \$panel\ id \$verbosity)}}
+
+
+Creates a new BVNotebook object as a singleton class.
+
+\begin{description}
+
+\item[{\$mw - top level widget parent of notebook}] \mbox{}
+\item[{\$quit - quit filemenu widget}] \mbox{}\end{description}
+\subsubsection*{instance()\label{BVNotebook_instance_}\index{BVNotebook!instance()}}
+
+
+Returns the BVNotebook object.
+
+\subsubsection*{nb()\label{BVNotebook_nb_}\index{BVNotebook!nb()}}
+
+
+Returns the notebook widget.
+
+\subsubsection*{top()\label{BVNotebook_top_}\index{BVNotebook!top()}}
+
+
+Returns the top level which contains the notebook widget.
+
+\subsubsection*{clean\_nb()\label{BVNotebook_clean_nb_}\index{BVNotebook!clean\ nb()}}
+
+
+Deletes all the pages from the notebook.
+
+\subsubsection*{build\_section(\$id, \$type)\label{BVNotebook_build_section_id_type_}\index{BVNotebook!build\ section(\$id, \$type)}}
+
+
+Creates a page in the notebook for a building a proposal
+
+\begin{description}
+
+\item[{\$id - id for page}] \mbox{}
+\item[{\$type - type of section to build}] \mbox{}\end{description}
+\subsubsection*{delPage(\$page)\label{BVNotebook_delPage_page_}\index{BVNotebook!delPage(\$page)}}
+
+
+Call back which deletes a page from the notebook.
+
+\begin{description}
+
+\item[{\$page - page to delete}] \mbox{}\end{description}
+\subsection*{PRIVATE METHODS\label{BVNotebook_PRIVATE_METHODS}\index{BVNotebook!PRIVATE METHODS}}
+\subsubsection*{\_create\label{BVNotebook__create}\index{BVNotebook!\ create}}
+
+
+Creates a new BVNotebook object as a singleton class
+
+\subsection*{DEPENDENCIES\label{BVNotebook_DEPENDENCIES}\index{BVNotebook!DEPENDENCIES}}
+
+
+This module uses TK::LabEntry and Tk::Notebook (available from CPAN)
+
+\subsection*{BUGS AND LIMITATIONS\label{BVNotebook_BUGS_AND_LIMITATIONS}\index{BVNotebook!BUGS AND LIMITATIONS}}
+
+
+There are no known bugs in this module.
+Please report problems to Sherry Winkelman swinkelman@cfa.harvard.edu
+Patches are welcome.
+
+\subsection*{AUTHOR\label{BVNotebook_AUTHOR}\index{BVNotebook!AUTHOR}}
+
+
+Sherry Winkelman swinkelman@cfa.harvard.edu
+
+\subsection*{LICENCE AND COPYRIGHT\label{BVNotebook_LICENCE_AND_COPYRIGHT}\index{BVNotebook!LICENCE AND COPYRIGHT}}
+
+
+Copyright (c) 2006, Sherry Winkelman $<$swinkelman@cfa.harvard.edu$>$. All rights 
+reserved.
+
+\clearpage
+\section{BVPage\label{BVPage}\index{BVPage}}
+
+
+This widget populates a build view page.
+
+\subsection*{VERSION\label{BVPage_VERSION}\index{BVPage!VERSION}}
+
+
+\$Revision: 1.6 \$
+
+\subsection*{SYNOPSIS\label{BVPage_SYNOPSIS}\index{BVPage!SYNOPSIS}}
+\begin{verbatim}
+   require BVPage;
+   my $self = BVNotebook->new( $mw, $quit );
+   my $page = $self->nb->add($id, -label => "$id");
+\end{verbatim}
+\begin{verbatim}
+   $page->BVPage( -type => $type,
+                  -id => $id,
+                  -closecmd => [ delPage  => ( $self, $id ) ],
+                )->pack(-expand => 1,  -fill => 'both');
+\end{verbatim}
+\subsection*{DESCRIPTION\label{BVPage_DESCRIPTION}\index{BVPage!DESCRIPTION}}
+
+
+BVPage - Provides a convenient interface for building sections of a view.
+
+\subsection*{PUBLIC METHODS\label{BVPage_PUBLIC_METHODS}\index{BVPage!PUBLIC METHODS}}
+\subsubsection*{Populate(\$w, \$args)\label{BVPage_Populate_w_args_}\index{BVPage!Populate(\$w, \$args)}}
+
+
+Populates the notebook page
+
+\begin{description}
+
+\item[{\$w - the notebook page}] \mbox{}
+\item[{\$args - reference to hash of arguments}] \mbox{}
+
+Need to fill this in
+
+\end{description}
+\subsection*{PRIVATE METHODS\label{BVPage_PRIVATE_METHODS}\index{BVPage!PRIVATE METHODS}}
+\subsubsection*{fill\_rl\_grid\label{BVPage_fill_rl_grid}\index{BVPage!fill\ rl\ grid}}
+
+
+Populates a grid with the first column right justified and the second column
+left justified
+
+\subsubsection*{myEntry\label{BVPage_myEntry}\index{BVPage!myEntry}}
+
+
+Entry widget retains focus until the data passes validation
+
+\subsubsection*{validate\label{BVPage_validate}\index{BVPage!validate}}
+
+
+Checks the validity of data in a myEntry widget
+
+\subsubsection*{mkFrame\label{BVPage_mkFrame}\index{BVPage!mkFrame}}
+
+
+Returns a frame
+
+\subsubsection*{close\label{BVPage_close}\index{BVPage!close}}
+
+
+Call back to destroy page
+
+\subsubsection*{validate\_last\label{BVPage_validate_last}\index{BVPage!validate\ last}}
+
+
+Returns true if validation succeeded
+
+\subsection*{DEPENDENCIES\label{BVPage_DEPENDENCIES}\index{BVPage!DEPENDENCIES}}
+
+
+This module uses TK::Dialog, Tk::Pane, Tk::LabEntry,
+and Regexp::Common (available from CPAN)
+
+\subsection*{BUGS AND LIMITATIONS\label{BVPage_BUGS_AND_LIMITATIONS}\index{BVPage!BUGS AND LIMITATIONS}}
+
+
+There are no known bugs in this module.
+Please report problems to Sherry Winkelman swinkelman@cfa.harvard.edu
+Patches are welcome.
+
+\subsection*{AUTHOR\label{BVPage_AUTHOR}\index{BVPage!AUTHOR}}
+
+
+Sherry Winkelman swinkelman@cfa.harvard.edu
+
+\subsection*{LICENCE AND COPYRIGHT\label{BVPage_LICENCE_AND_COPYRIGHT}\index{BVPage!LICENCE AND COPYRIGHT}}
+
+
+Copyright (c) 2006, Sherry Winkelman $<$swinkelman@cfa.harvard.edu$>$. All rights 
+reserved.
+
+\clearpage
+\section{EditNotebook\label{EditNotebook}\index{EditNotebook}}
+
+
+This is a notebook widget which contains pages for editing 
+proposals
+
+\subsection*{VERSION\label{EditNotebook_VERSION}\index{EditNotebook!VERSION}}
+
+
+\$Revision: 1.7 \$
+
+\subsection*{SYNOPSIS\label{EditNotebook_SYNOPSIS}\index{EditNotebook!SYNOPSIS}}
+\begin{verbatim}
+   use EditNotebook;
+   EditNotebook->new( $mw, $quit );
+\end{verbatim}
+\subsection*{DESCRIPTION\label{EditNotebook_DESCRIPTION}\index{EditNotebook!DESCRIPTION}}
+
+
+EditNotebook - Provides a convenient interface for updating information for
+proposals.
+
+\subsection*{PUBLIC METHODS\label{EditNotebook_PUBLIC_METHODS}\index{EditNotebook!PUBLIC METHODS}}
+\subsubsection*{new(\$mw, \$quit, \$verbosity)\label{EditNotebook_new_mw_quit_verbosity_}\index{EditNotebook!new(\$mw, \$quit, \$verbosity)}}
+
+
+Creates a new EditNotebook object as a singleton class.
+
+\begin{description}
+
+\item[{\$mw - GUI main window}] \mbox{}
+\item[{\$quit - quit filemenu widget}] \mbox{}
+\item[{\$verbosity - level of verbosity}] \mbox{}\end{description}
+\subsubsection*{instance()\label{EditNotebook_instance_}\index{EditNotebook!instance()}}
+
+
+Returns the EditNotebook object.
+
+\subsubsection*{nb()\label{EditNotebook_nb_}\index{EditNotebook!nb()}}
+
+
+Returns the notebook widget.
+
+\subsubsection*{top()\label{EditNotebook_top_}\index{EditNotebook!top()}}
+
+
+Returns the top level which contains the notebook widget.
+
+\subsubsection*{edit\_prop(\$prop\_id, \$panel\_id)\label{EditNotebook_edit_prop_prop_id_panel_id_}\index{EditNotebook!edit\ prop(\$prop\ id, \$panel\ id)}}
+
+
+Creates a page in the notebook for a proposal
+
+\begin{description}
+
+\item[{\$prop\_id - proposal id for page}] \mbox{}
+\item[{\$panel - panel object}] \mbox{}\end{description}
+\subsubsection*{savePage(\$prop\_id, \$panel)\label{EditNotebook_savePage_prop_id_panel_}\index{EditNotebook!savePage(\$prop\ id, \$panel)}}
+
+
+Call back which saves changes made on page to database
+
+\begin{description}
+
+\item[{\$prop\_id - proposal id for page}] \mbox{}
+\item[{\$panel - panel object}] \mbox{}\end{description}
+\subsubsection*{updLabel(\$prop\_id, \$panel)\label{EditNotebook_updLabel_prop_id_panel_}\index{EditNotebook!updLabel(\$prop\ id, \$panel)}}
+
+
+Call back which adds an asterisk to the page label if there are unsaved
+changes for the proposal.
+
+\begin{description}
+
+\item[{\$prop\_id - proposal id for page}] \mbox{}
+\item[{\$panel - panel object}] \mbox{}\end{description}
+\subsubsection*{delPage(\$page)\label{EditNotebook_delPage_page_}\index{EditNotebook!delPage(\$page)}}
+
+
+Call back which deletes a page from the notebook.
+
+\begin{description}
+
+\item[{\$page - page to delete}] \mbox{}\end{description}
+\subsection*{PRIVATE METHODS\label{EditNotebook_PRIVATE_METHODS}\index{EditNotebook!PRIVATE METHODS}}
+\subsubsection*{\_create\label{EditNotebook__create}\index{EditNotebook!\ create}}
+
+
+Creates a new EditNotebook object as a singleton class
+
+\subsection*{DEPENDENCIES\label{EditNotebook_DEPENDENCIES}\index{EditNotebook!DEPENDENCIES}}
+
+
+This module uses TK::LabEntry and Tk::Notebook (available from CPAN)
+
+\subsection*{BUGS AND LIMITATIONS\label{EditNotebook_BUGS_AND_LIMITATIONS}\index{EditNotebook!BUGS AND LIMITATIONS}}
+
+
+There are no known bugs in this module.
+Please report problems to Sherry Winkelman swinkelman@cfa.harvard.edu
+Patches are welcome.
+
+\subsection*{AUTHOR\label{EditNotebook_AUTHOR}\index{EditNotebook!AUTHOR}}
+
+
+Sherry Winkelman swinkelman@cfa.harvard.edu
+
+\subsection*{LICENCE AND COPYRIGHT\label{EditNotebook_LICENCE_AND_COPYRIGHT}\index{EditNotebook!LICENCE AND COPYRIGHT}}
+
+
+Copyright (c) 2005, Sherry Winkelman $<$swinkelman@cfa.harvard.edu$>$. All rights 
+reserved.
+
+\clearpage
+\section{EditPage\label{EditPage}\index{EditPage}}
+
+
+This widget populates a proposal page with the data from a proposal
+and provides edit acces to the data.
+
+\subsection*{VERSION\label{EditPage_VERSION}\index{EditPage!VERSION}}
+
+
+\$Revision: 1.83 \$
+
+\subsection*{SYNOPSIS\label{EditPage_SYNOPSIS}\index{EditPage!SYNOPSIS}}
+\begin{verbatim}
+   require EditPage;
+   my $self = EditNotebook->new( $mw, $quit );
+   my $page = $self->nb->add($prop_id, -label => "$prop_id\n$pi");
+\end{verbatim}
+\begin{verbatim}
+   $page->EditPage( -panel      => $panel,
+                    -prop_id    => $prop_id,
+                    -verbose    => $verbosity,
+                    -savecmd    => [savePage  => ( $self, $prop_id, $panel )],
+                    -closecmd   => [ delPage  => ( $self, $prop_id ) ],
+                    -changecmd  => [ updLabel => ( $self, $prop_id ) ],
+                   )->pack(-expand => 1,  -fill => 'both');
+\end{verbatim}
+\subsection*{DESCRIPTION\label{EditPage_DESCRIPTION}\index{EditPage!DESCRIPTION}}
+
+
+EditPage - Provides a convenient interface for updating information for
+proposals.
+
+\subsection*{PUBLIC METHODS\label{EditPage_PUBLIC_METHODS}\index{EditPage!PUBLIC METHODS}}
+\subsubsection*{Populate(\$w, \$args)\label{EditPage_Populate_w_args_}\index{EditPage!Populate(\$w, \$args)}}
+
+
+Populates the notebook page with proposal data and widgets for editing the data
+
+\begin{description}
+
+\item[{\$w - the notebook page}] \mbox{}
+\item[{\$args - reference to hash of arguments}] \mbox{}\begin{verbatim}
+   -panel: a panel object
+   -prop_id: proposal id
+   -verbosity: level of verbosity
+\end{verbatim}
+\end{description}
+\subsection*{PRIVATE METHODS\label{EditPage_PRIVATE_METHODS}\index{EditPage!PRIVATE METHODS}}
+\subsubsection*{prop\_info\label{EditPage_prop_info}\index{EditPage!prop\ info}}
+
+
+Populates the general proposal information section of the page.
+
+\subsubsection*{targets\label{EditPage_targets}\index{EditPage!targets}}
+
+
+Populates the target information section of the page.
+
+\subsubsection*{abstract\label{EditPage_abstract}\index{EditPage!abstract}}
+
+
+Populates the abstract section of the page.
+
+\subsubsection*{comments\label{EditPage_comments}\index{EditPage!comments}}
+
+
+Populates the comments section of the page.
+
+\subsubsection*{grades\label{EditPage_grades}\index{EditPage!grades}}
+
+
+Populates the grades section of the page.
+
+\subsubsection*{editComments\label{EditPage_editComments}\index{EditPage!editComments}}
+
+
+Provides edit capabilities to comments section.
+
+\subsubsection*{fill\_rl\_grid\label{EditPage_fill_rl_grid}\index{EditPage!fill\ rl\ grid}}
+
+
+Populates a grid with the first column right justified and the second column
+left justified
+
+\subsubsection*{init\_field\label{EditPage_init_field}\index{EditPage!init\ field}}
+
+
+Populated field hash to describe a field
+
+\subsubsection*{myEntry\label{EditPage_myEntry}\index{EditPage!myEntry}}
+
+
+Entry widget retains focus until the data passes validation
+
+\subsubsection*{validate\label{EditPage_validate}\index{EditPage!validate}}
+
+
+Checks the validity of data in a myEntry widget
+
+\subsubsection*{mkFrame\label{EditPage_mkFrame}\index{EditPage!mkFrame}}
+
+
+Returns a frame
+
+\subsubsection*{mkCheckButton\label{EditPage_mkCheckButton}\index{EditPage!mkCheckButton}}
+
+
+Returns a check button
+
+\subsubsection*{mkTargButton\label{EditPage_mkTargButton}\index{EditPage!mkTargButton}}
+
+
+Returns a check button for turning targets on and off
+
+\subsubsection*{mkTooButton\label{EditPage_mkTooButton}\index{EditPage!mkTooButton}}
+
+
+Returns a check button for turning too targets on and off
+
+\subsubsection*{track\_changes\label{EditPage_track_changes}\index{EditPage!track\ changes}}
+
+
+Tracks if changes have been made to the proposal object
+
+\subsubsection*{reset\label{EditPage_reset}\index{EditPage!reset}}
+
+
+Resets the values in the widget to the original proposal object values
+
+\subsubsection*{save\label{EditPage_save}\index{EditPage!save}}
+
+
+Saves all changes to the proposal object and the database
+
+\subsubsection*{changed\_data\label{EditPage_changed_data}\index{EditPage!changed\ data}}
+
+
+Returns true if any data have been changed
+
+\subsubsection*{close\label{EditPage_close}\index{EditPage!close}}
+
+
+Call back to destroy page
+
+\subsubsection*{validate\_last\label{EditPage_validate_last}\index{EditPage!validate\ last}}
+
+
+Returns true if validation succeeded
+
+\subsection*{DEPENDENCIES\label{EditPage_DEPENDENCIES}\index{EditPage!DEPENDENCIES}}
+
+
+This module uses TK::Dialog, Tk::Pane, Tk::LabEntry,
+and Regexp::Common (available from CPAN)
+
+\subsection*{BUGS AND LIMITATIONS\label{EditPage_BUGS_AND_LIMITATIONS}\index{EditPage!BUGS AND LIMITATIONS}}
+
+
+There are no known bugs in this module.
+Please report problems to Sherry Winkelman swinkelman@cfa.harvard.edu
+Patches are welcome.
+
+\subsection*{AUTHOR\label{EditPage_AUTHOR}\index{EditPage!AUTHOR}}
+
+
+Sherry Winkelman swinkelman@cfa.harvard.edu
+
+\subsection*{LICENCE AND COPYRIGHT\label{EditPage_LICENCE_AND_COPYRIGHT}\index{EditPage!LICENCE AND COPYRIGHT}}
+
+
+Copyright (c) 2005, Sherry Winkelman $<$swinkelman@cfa.harvard.edu$>$. All rights 
+reserved.
+
+\clearpage
+\section{MkGroup\label{MkGroup}\index{MkGroup}}
+
+
+This is a widget for assigning proposals to groups
+
+\subsection*{VERSION\label{MkGroup_VERSION}\index{MkGroup!VERSION}}
+
+
+\$Revision: 1.16 \$
+
+\subsection*{SYNOPSIS\label{MkGroup_SYNOPSIS}\index{MkGroup!SYNOPSIS}}
+\begin{verbatim}
+   use MkGroup;
+   my $add_group = $mw->Toplevel();
+   $add_group->MkGroup(-panel => $panel,
+                       -verbose => $verbosity,
+                       -closecmd => [ \&closeGroup => ($panel) ],
+                       -changecmd => [ \&updGroup => ($panel) ],
+                       )->pack(-expand => 1,
+                               -fill => 'both');
+\end{verbatim}
+\subsection*{DESCRIPTION\label{MkGroup_DESCRIPTION}\index{MkGroup!DESCRIPTION}}
+
+
+Provides a convenient interface for putting proposals into groups for 
+discussion
+
+\subsection*{PUBLIC METHODS\label{MkGroup_PUBLIC_METHODS}\index{MkGroup!PUBLIC METHODS}}
+\subsubsection*{Populate(\$w, \$args)\label{MkGroup_Populate_w_args_}\index{MkGroup!Populate(\$w, \$args)}}
+
+
+Populates the widget with panel information and widgets for assigning
+proposals to groups
+
+\begin{description}
+
+\item[{\$w - toplevel widget}] \mbox{}
+\item[{\$args - reference to hash of arguments}] \mbox{}\begin{verbatim}
+   -panel: a panel object
+\end{verbatim}
+\begin{verbatim}
+   -verbose: level of verbosity
+\end{verbatim}
+\end{description}
+\subsection*{PRIVATE METHODS\label{MkGroup_PRIVATE_METHODS}\index{MkGroup!PRIVATE METHODS}}
+\subsubsection*{mkView\label{MkGroup_mkView}\index{MkGroup!mkView}}
+
+
+Creates a table with proposal information and group selection widgets
+
+\subsubsection*{pop\_findframe\label{MkGroup_pop_findframe}\index{MkGroup!pop\ findframe}}
+
+
+Populates the frame which allows 'Find'
+
+\subsubsection*{get\_str\_posn\label{MkGroup_get_str_posn}\index{MkGroup!get\ str\ posn}}
+
+
+Finds the row and column of a search string and moves scrollbars there
+during the validation of a search string.
+
+\subsubsection*{create\_grp\label{MkGroup_create_grp}\index{MkGroup!create\ grp}}
+
+
+Callback to add a group to the group list
+
+\subsubsection*{edit\_grp\_list\label{MkGroup_edit_grp_list}\index{MkGroup!edit\ grp\ list}}
+
+
+Callback to edit the group list
+
+\subsubsection*{edit\_grp\label{MkGroup_edit_grp}\index{MkGroup!edit\ grp}}
+
+
+Callback to edit a group
+
+\subsubsection*{props\_in\_group\label{MkGroup_props_in_group}\index{MkGroup!props\ in\ group}}
+
+
+Returns true if there are proposals in the group
+
+\subsubsection*{track\_changes\label{MkGroup_track_changes}\index{MkGroup!track\ changes}}
+
+
+Tracks if changes have been made to the proposal object
+
+\subsubsection*{reset\label{MkGroup_reset}\index{MkGroup!reset}}
+
+
+Resets the values in the widget to the original proposal object values
+
+\subsubsection*{save\label{MkGroup_save}\index{MkGroup!save}}
+
+
+Saves all changes to the proposal object and the database
+
+\subsubsection*{changed\_data\label{MkGroup_changed_data}\index{MkGroup!changed\ data}}
+
+
+Returns true if any data have been changed
+
+\subsubsection*{close\label{MkGroup_close}\index{MkGroup!close}}
+
+
+Call back to destroy page
+
+\subsection*{DEPENDENCIES\label{MkGroup_DEPENDENCIES}\index{MkGroup!DEPENDENCIES}}
+
+
+This module uses TK::Dialog, Tk::Pane (available from CPAN)
+
+\subsection*{BUGS AND LIMITATIONS\label{MkGroup_BUGS_AND_LIMITATIONS}\index{MkGroup!BUGS AND LIMITATIONS}}
+
+
+There are no known bugs in this module.
+Please report problems to Sherry Winkelman swinkelman@cfa.harvard.edu
+Patches are welcome.
+
+\subsection*{AUTHOR\label{MkGroup_AUTHOR}\index{MkGroup!AUTHOR}}
+
+
+Sherry Winkelman swinkelman@cfa.harvard.edu
+
+\subsection*{LICENCE AND COPYRIGHT\label{MkGroup_LICENCE_AND_COPYRIGHT}\index{MkGroup!LICENCE AND COPYRIGHT}}
+
+
+Copyright (c) 2005, Sherry Winkelman $<$swinkelman@cfa.harvard.edu$>$. All rights 
+reserved.
+
+\clearpage
+\section{Monitor\label{Monitor}\index{Monitor}}
+
+
+This module populates the monitor window
+
+\subsection*{VERSION\label{Monitor_VERSION}\index{Monitor!VERSION}}
+
+
+\$Revision: 1.22 \$
+
+\subsection*{SYNOPSIS\label{Monitor_SYNOPSIS}\index{Monitor!SYNOPSIS}}
+\begin{verbatim}
+    use Panel;
+    use Tk;
+\end{verbatim}
+\begin{verbatim}
+    my $panel = new Panel($dbh1, $panel_Id, $if, $verbosity);
+    my $monitor = $mw->Toplevel();
+    fill_monitor($monitor, $panel, $verbosity);
+\end{verbatim}
+\subsection*{DESCRIPTION\label{Monitor_DESCRIPTION}\index{Monitor!DESCRIPTION}}
+
+
+Provide up-to-date panel statistics.
+
+\subsection*{PUBLIC METHODS\label{Monitor_PUBLIC_METHODS}\index{Monitor!PUBLIC METHODS}}
+\subsubsection*{fill\_monitor(\$monitor, \$panel, \$verbosity)\label{Monitor_fill_monitor_monitor_panel_verbosity_}\index{Monitor!fill\ monitor(\$monitor, \$panel, \$verbosity)}}
+
+
+Populate the monitor top level with panel statistics
+
+\begin{description}
+
+\item[{\$monitor - top level widget}] \mbox{}
+\item[{\$panel - Panel object}] \mbox{}
+\item[{\$verbosity - level of verbosity}] \mbox{}\end{description}
+\subsubsection*{set\_color(\$panel)\label{Monitor_set_color_panel_}\index{Monitor!set\ color(\$panel)}}
+
+
+Sets the colors of fields based on their value relative to allotted values for
+the panel.
+
+\begin{description}
+
+\item[{\$panel - Panel object}] \mbox{}\end{description}
+\subsection*{PRIVATE METHODS\label{Monitor_PRIVATE_METHODS}\index{Monitor!PRIVATE METHODS}}
+\subsubsection*{fixed\_totals\label{Monitor_fixed_totals}\index{Monitor!fixed\ totals}}
+
+
+Displays the fixed totals for a panel.
+
+\subsubsection*{tc\_too\_summary\label{Monitor_tc_too_summary}\index{Monitor!tc\ too\ summary}}
+
+
+Displays a summary of tc/too allocations for a panel
+
+\subsubsection*{joint\_summary\label{Monitor_joint_summary}\index{Monitor!joint\ summary}}
+
+
+Displays a summary of joint allocations for a panel
+
+\subsubsection*{time\_summary\label{Monitor_time_summary}\index{Monitor!time\ summary}}
+
+
+Displays a summary of time allocations for a panel
+
+\subsubsection*{lp\_time\_summary\label{Monitor_lp_time_summary}\index{Monitor!lp\ time\ summary}}
+
+
+Displays a summary of large project time allocations for BPP
+
+\subsubsection*{vlp\_time\_summary\label{Monitor_vlp_time_summary}\index{Monitor!vlp\ time\ summary}}
+
+
+Displays a summary of very large project time allocations for BPP
+
+\subsubsection*{xvp\_time\_summary\label{Monitor_xvp_time_summary}\index{Monitor!xvp\ time\ summary}}
+
+
+Displays a summary of X-ray Visionary Projects time allocations for BPP
+
+\subsubsection*{money\_summary\label{Monitor_money_summary}\index{Monitor!money\ summary}}
+
+
+Displays summary for archive and theory allocations for a panel
+
+\subsubsection*{grades\_summary\label{Monitor_grades_summary}\index{Monitor!grades\ summary}}
+
+
+Displays summary of grading progress for a panel
+
+\subsubsection*{status\_summary\label{Monitor_status_summary}\index{Monitor!status\ summary}}
+
+
+Displays summary of status for a panel
+
+\subsubsection*{set\_foreground\label{Monitor_set_foreground}\index{Monitor!set\ foreground}}
+
+
+Configures the foreground color of a widget
+
+\subsection*{DEPENDENCIES\label{Monitor_DEPENDENCIES}\index{Monitor!DEPENDENCIES}}
+
+
+This module has no dependencies
+
+\subsection*{BUGS AND LIMITATIONS\label{Monitor_BUGS_AND_LIMITATIONS}\index{Monitor!BUGS AND LIMITATIONS}}
+
+
+There are no known bugs in this module.
+Please report problems to Sherry Winkelman swinkelman@cfa.harvard.edu
+Patches are welcome.
+
+\subsection*{AUTHOR\label{Monitor_AUTHOR}\index{Monitor!AUTHOR}}
+
+
+Sherry Winkelman swinkelman@cfa.harvard.edu
+
+\subsection*{LICENCE AND COPYRIGHT\label{Monitor_LICENCE_AND_COPYRIGHT}\index{Monitor!LICENCE AND COPYRIGHT}}
+
+
+Copyright (c) 2005, Sherry Winkelman $<$swinkelman@cfa.harvard.edu$>$. All rights 
+reserved.
+
+\clearpage
+\section{Panel\label{Panel}\index{Panel}}
+
+
+This object contains a list of proposal objects and fields used for
+bookkeeping.
+
+\subsection*{VERSION\label{Panel_VERSION}\index{Panel!VERSION}}
+
+
+\$Revision: 1.63 \$
+
+\subsection*{SYNOPSIS\label{Panel_SYNOPSIS}\index{Panel!SYNOPSIS}}
+\begin{verbatim}
+   use Panel;
+   my $panel = new Panel($dbh, $panel_id, $if_flag, $verbosity);
+\end{verbatim}
+\subsection*{DESCRIPTION\label{Panel_DESCRIPTION}\index{Panel!DESCRIPTION}}
+
+
+Panel - Provides a single place to get bookkeeping information for a panel.
+
+\subsection*{PUBLIC METHODS\label{Panel_PUBLIC_METHODS}\index{Panel!PUBLIC METHODS}}
+\subsubsection*{new(\$dbh, \$panel\_id, \$if\_flag, \$verbosity)\label{Panel_new_dbh_panel_id_if_flag_verbosity_}\index{Panel!new(\$dbh, \$panel\ id, \$if\ flag, \$verbosity)}}
+
+
+Creates a new Panel object.
+
+\begin{description}
+
+\item[{\$dbh - database handle}] \mbox{}
+\item[{\$panel\_id - panel number}] \mbox{}
+\item[{\$if\_flag - flag indicating if finalize}] \textbf{results should be applied}
+\item[{\$verbosity - level of verbosity}] \mbox{}\end{description}
+\subsubsection*{lock\label{Panel_lock}\index{Panel!lock}}
+
+
+Returns the lock status if no value given and sets the lock status if a value
+is given
+
+\subsubsection*{move\_rank(\$prop\_id, \$new\_rank)\label{Panel_move_rank_prop_id_new_rank_}\index{Panel!move\ rank(\$prop\ id, \$new\ rank)}}
+
+
+Moves the rank up or down in the proposal list, changing all ranks in between 
+the old and new rank.
+
+\subsubsection*{set\_groups\label{Panel_set_groups}\index{Panel!set\ groups}}
+
+
+Populates the groups hash with distinct groups in group\_id column
+
+\subsubsection*{set\_triage(\$hide\_triage)\label{Panel_set_triage_hide_triage_}\index{Panel!set\ triage(\$hide\ triage)}}
+
+
+Sets the 'hide triage' flag and recalculates the running totals
+
+\begin{description}
+
+\item[{\$hide\_triage - 'hide triage' flag value}] \mbox{}\end{description}
+\subsubsection*{set\_arc\_the(\$hide\_arc\_the)\label{Panel_set_arc_the_hide_arc_the_}\index{Panel!set\ arc\ the(\$hide\ arc\ the)}}
+
+
+Sets the 'hide archive/theory' flag and recalculates the running totals
+
+\begin{description}
+
+\item[{\$hide\_arc\_the - 'hide archive/theory'}] \textbf{flag value}\end{description}
+\subsubsection*{set\_lp\_vlp(\$hide\_lp\_vlp)\label{Panel_set_lp_vlp_hide_lp_vlp_}\index{Panel!set\ lp\ vlp(\$hide\ lp\ vlp)}}
+
+
+Sets the 'hide LP/VLP' flag and recalculates the running totals
+
+\begin{description}
+
+\item[{\$hide\_lp\_vlp - 'hide LP/VLP' flag value}] \mbox{}\end{description}
+\subsubsection*{lower\_triage(\$amt)\label{Panel_lower_triage_amt_}\index{Panel!lower\ triage(\$amt)}}
+
+
+Lower the average grade of all triaged proposals by a stated amount and 
+return the new highest triage grade
+
+\subsubsection*{set\_lcd\_sort(\$groupby, \$sortby, \$sortname)\label{Panel_set_lcd_sort_groupby_sortby_sortname_}\index{Panel!set\ lcd\ sort(\$groupby, \$sortby, \$sortname)}}
+
+
+Set the lcd\_groupby, lcd\_sortby and lcd\_sortname fields
+
+\begin{description}
+
+\item[{\$groupby - group by string}] \mbox{}
+\item[{\$sortby - sort by string}] \mbox{}
+\item[{\$sortname - name of sort applied}] \mbox{}\end{description}
+\subsubsection*{set\_fac\_sort(\$groupby, \$sortby, \$sortname)\label{Panel_set_fac_sort_groupby_sortby_sortname_}\index{Panel!set\ fac\ sort(\$groupby, \$sortby, \$sortname)}}
+
+
+Set the fac\_groupby, fac\_sortby and fac\_sortname fields
+
+\begin{description}
+
+\item[{\$groupby - group by string}] \mbox{}
+\item[{\$sortby - sort by string}] \mbox{}
+\item[{\$sortname - name of sort applied}] \mbox{}\end{description}
+\subsubsection*{set\_grades\label{Panel_set_grades}\index{Panel!set\ grades}}
+
+
+Calculates the normalized grade for each proposal and then resets the new 
+high, low and passing average grades for the panel.
+
+\subsubsection*{set\_lp\_grades\label{Panel_set_lp_grades}\index{Panel!set\ lp\ grades}}
+
+
+Calculates the new high, low and passing average grades for the LP in the panel.
+
+\subsubsection*{set\_xvp\_grades\label{Panel_set_xvp_grades}\index{Panel!set\ xvp\ grades}}
+
+
+Calculates the new high, low and passing average grades for the XVP in the panel.
+
+\subsubsection*{get\_group\_list(\$groupby, \$sortby, \$hide\_triage, \$hide\_arc\_the, \$hide\_lp\_vlp)\label{Panel_get_group_list_groupby_sortby_hide_triage_hide_arc_the_hide_lp_vlp_}\index{Panel!get\ group\ list(\$groupby, \$sortby, \$hide\ triage, \$hide\ arc\ the, \$hide\ lp\ vlp)}}
+
+
+arrange proposals into groups according to group and sort specified
+
+\begin{description}
+
+\item[{\$groupby - group by string}] \mbox{}
+\item[{\$sortby - sort by string}] \mbox{}
+\item[{\$hide\_triage - flag indicating whether}] \textbf{to include triaged proposals}
+\item[{\$hide\_arc\_the - flag indicating whether}] \textbf{to include archive/theory proposals}
+\item[{\$hide\_lp\_vlp - flag indicating whether}] \textbf{to include LP/VLP proposals}\end{description}
+\subsubsection*{update\_stats\label{Panel_update_stats}\index{Panel!update\ stats}}
+
+
+Updates all the bookkeeping parameters
+
+\subsubsection*{set\_running\_totals\label{Panel_set_running_totals}\index{Panel!set\ running\ totals}}
+
+
+Sets the values in the cummulative total columns
+
+\subsection*{PRIVATE METHODS\label{Panel_PRIVATE_METHODS}\index{Panel!PRIVATE METHODS}}
+\subsubsection*{\_init\label{Panel__init}\index{Panel!\ init}}
+
+
+Initializes a new panel object.
+
+\subsubsection*{set\_prop\_counts\label{Panel_set_prop_counts}\index{Panel!set\ prop\ counts}}
+
+
+Sets the various proposal counts for status tracking
+
+\subsubsection*{set\_prop\_y\label{Panel_set_prop_y}\index{Panel!set\ prop\ y}}
+
+
+Sets the number of approved proposals
+
+\subsubsection*{set\_prop\_n\label{Panel_set_prop_n}\index{Panel!set\ prop\ n}}
+
+
+Sets the number of denied proposals
+
+\subsubsection*{set\_prop\_g\label{Panel_set_prop_g}\index{Panel!set\ prop\ g}}
+
+
+Sets the number of gray area proposals
+
+\subsubsection*{set\_prop\_p\label{Panel_set_prop_p}\index{Panel!set\ prop\ p}}
+
+
+Sets the number of proposals which go to the large panel discussion
+
+\subsubsection*{set\_targ\_counts\label{Panel_set_targ_counts}\index{Panel!set\ targ\ counts}}
+
+
+Sets all the target counts for status tracking
+
+\subsubsection*{set\_targ\_y\label{Panel_set_targ_y}\index{Panel!set\ targ\ y}}
+
+
+Sets the number of approved targets in the panel
+
+\subsubsection*{set\_targ\_n\label{Panel_set_targ_n}\index{Panel!set\ targ\ n}}
+
+
+Sets the number of denied targets in the panel
+
+\subsubsection*{set\_targ\_g\label{Panel_set_targ_g}\index{Panel!set\ targ\ g}}
+
+
+Sets the number of gray area targets in the panel
+
+\subsubsection*{set\_targ\_p\label{Panel_set_targ_p}\index{Panel!set\ targ\ p}}
+
+
+Sets the number of targets which go to the large panel discussion
+
+\subsubsection*{set\_joint\_req\label{Panel_set_joint_req}\index{Panel!set\ joint\ req}}
+
+
+Sets the number of requested joint proposals for each the joint observatory
+program
+
+\subsubsection*{set\_joint\_allot\label{Panel_set_joint_allot}\index{Panel!set\ joint\ allot}}
+
+
+Sets the number of allotted joint proposals for each the joint observatory
+program
+
+\subsubsection*{set\_joint\_cur\label{Panel_set_joint_cur}\index{Panel!set\ joint\ cur}}
+
+
+Sets the number of approved joint proposals for each the joint observatory
+program
+
+\subsubsection*{set\_joint\_bal\label{Panel_set_joint_bal}\index{Panel!set\ joint\ bal}}
+
+
+Sets the number of available joint proposals for each the joint observatory
+program
+
+\subsubsection*{set\_tc\_req\label{Panel_set_tc_req}\index{Panel!set\ tc\ req}}
+
+
+Sets the number of easy, average, and difficult time constraint counts and 
+very fast, fast, slow and very slow TOOs requested
+
+\subsubsection*{set\_tc\_allot\label{Panel_set_tc_allot}\index{Panel!set\ tc\ allot}}
+
+
+Sets the number of easy, average, and difficult time constraint counts and 
+very fast, fast, slow and very slow TOOs allotted
+
+\subsubsection*{set\_tc\_cur\label{Panel_set_tc_cur}\index{Panel!set\ tc\ cur}}
+
+
+Sets the number of easy, average, and difficult time constraint counts and 
+very fast, fast, slow and very slow TOO's that have been
+approved
+
+\subsubsection*{set\_tc\_bal\label{Panel_set_tc_bal}\index{Panel!set\ tc\ bal}}
+
+
+Sets the number of easy, average, and difficult time constraint counts and 
+very fast, fast, slow and very slow TOO's available
+
+\subsubsection*{set\_time\_req\label{Panel_set_time_req}\index{Panel!set\ time\ req}}
+
+
+Sets the total time requested in the panel
+
+\subsubsection*{set\_time\_cur\label{Panel_set_time_cur}\index{Panel!set\ time\ cur}}
+
+
+Sets the total time approved
+
+\subsubsection*{set\_time\_slew\_prob\_req\label{Panel_set_time_slew_prob_req}\index{Panel!set\ time\ slew\ prob\ req}}
+
+
+Sets the total time plus slew with probability requested in the panel
+
+\subsubsection*{set\_time\_slew\_prob\_allot\label{Panel_set_time_slew_prob_allot}\index{Panel!set\ time\ slew\ prob\ allot}}
+
+
+Sets the total time plus slew with probability allotted to the panel
+
+\subsubsection*{set\_time\_slew\_prob\_cur\label{Panel_set_time_slew_prob_cur}\index{Panel!set\ time\ slew\ prob\ cur}}
+
+
+Sets the total time plus slew with probability approved
+
+\subsubsection*{set\_time\_slew\_prob\_bal\label{Panel_set_time_slew_prob_bal}\index{Panel!set\ time\ slew\ prob\ bal}}
+
+
+Sets the total time plus slew with probability remaining
+
+\subsubsection*{set\_lp\_time\_req\label{Panel_set_lp_time_req}\index{Panel!set\ lp\ time\ req}}
+
+
+Sets the total time requested for LPs
+
+\subsubsection*{set\_lp\_time\_cur\label{Panel_set_lp_time_cur}\index{Panel!set\ lp\ time\ cur}}
+
+
+Sets the total time approved for LPs
+
+\subsubsection*{set\_lp\_time\_slew\_req\label{Panel_set_lp_time_slew_req}\index{Panel!set\ lp\ time\ slew\ req}}
+
+
+Sets the total time plus slew requested for LPs
+
+\subsubsection*{set\_lp\_time\_slew\_cur\label{Panel_set_lp_time_slew_cur}\index{Panel!set\ lp\ time\ slew\ cur}}
+
+
+Sets the total time plus slew approved for LPs
+
+\subsubsection*{set\_lp\_time\_slew\_prob\_req\label{Panel_set_lp_time_slew_prob_req}\index{Panel!set\ lp\ time\ slew\ prob\ req}}
+
+
+Sets the total time plus slew with probability requested for LPs
+
+\subsubsection*{set\_lp\_time\_slew\_prob\_allot\label{Panel_set_lp_time_slew_prob_allot}\index{Panel!set\ lp\ time\ slew\ prob\ allot}}
+
+
+Sets the total time plus slew with probability allotted for LPs
+
+\subsubsection*{set\_lp\_time\_slew\_prob\_cur\label{Panel_set_lp_time_slew_prob_cur}\index{Panel!set\ lp\ time\ slew\ prob\ cur}}
+
+
+Sets the total time plus slew with probability approved for LPs
+
+\subsubsection*{set\_lp\_time\_slew\_prob\_bal\label{Panel_set_lp_time_slew_prob_bal}\index{Panel!set\ lp\ time\ slew\ prob\ bal}}
+
+
+Sets the total time plus slew with probability remaining for LPs
+
+\subsubsection*{set\_vlp\_time\_req\label{Panel_set_vlp_time_req}\index{Panel!set\ vlp\ time\ req}}
+
+
+Sets the total time requested for VLPs
+
+\subsubsection*{set\_vlp\_time\_cur\label{Panel_set_vlp_time_cur}\index{Panel!set\ vlp\ time\ cur}}
+
+
+Sets the total time approved for VLPs
+
+\subsubsection*{set\_vlp\_time\_slew\_req\label{Panel_set_vlp_time_slew_req}\index{Panel!set\ vlp\ time\ slew\ req}}
+
+
+Sets the total time plus slew requested for VLPs
+
+\subsubsection*{set\_vlp\_time\_slew\_cur\label{Panel_set_vlp_time_slew_cur}\index{Panel!set\ vlp\ time\ slew\ cur}}
+
+
+Sets the total time plus slew approved for VLPs
+
+\subsubsection*{set\_vlp\_time\_slew\_prob\_req\label{Panel_set_vlp_time_slew_prob_req}\index{Panel!set\ vlp\ time\ slew\ prob\ req}}
+
+
+Sets the total time plus slew with probability requested for VLPs
+
+\subsubsection*{set\_vlp\_time\_slew\_prob\_allot\label{Panel_set_vlp_time_slew_prob_allot}\index{Panel!set\ vlp\ time\ slew\ prob\ allot}}
+
+
+Sets the total time plus slew with probability allotted for VLPs
+
+\subsubsection*{set\_vlp\_time\_slew\_prob\_cur\label{Panel_set_vlp_time_slew_prob_cur}\index{Panel!set\ vlp\ time\ slew\ prob\ cur}}
+
+
+Sets the total time plus slew with probability approved for VLPs
+
+\subsubsection*{set\_vlp\_time\_slew\_prob\_bal\label{Panel_set_vlp_time_slew_prob_bal}\index{Panel!set\ vlp\ time\ slew\ prob\ bal}}
+
+
+Sets the total time plus slew with probability remaining for VLPs
+
+\subsubsection*{set\_xvp\_time\_req\label{Panel_set_xvp_time_req}\index{Panel!set\ xvp\ time\ req}}
+
+
+Sets the total time requested for XVPs
+
+\subsubsection*{set\_xvp\_time\_cur\label{Panel_set_xvp_time_cur}\index{Panel!set\ xvp\ time\ cur}}
+
+
+Sets the total time approved for XVPs
+
+\subsubsection*{set\_xvp\_time\_slew\_req\label{Panel_set_xvp_time_slew_req}\index{Panel!set\ xvp\ time\ slew\ req}}
+
+
+Sets the total time plus slew requested for XVPs
+
+\subsubsection*{set\_xvp\_time\_slew\_cur\label{Panel_set_xvp_time_slew_cur}\index{Panel!set\ xvp\ time\ slew\ cur}}
+
+
+Sets the total time plus slew approved for XVPs
+
+\subsubsection*{set\_xvp\_time\_slew\_prob\_req\label{Panel_set_xvp_time_slew_prob_req}\index{Panel!set\ xvp\ time\ slew\ prob\ req}}
+
+
+Sets the total time plus slew with probability requested for XVPs
+
+\subsubsection*{set\_xvp\_time\_slew\_prob\_allot\label{Panel_set_xvp_time_slew_prob_allot}\index{Panel!set\ xvp\ time\ slew\ prob\ allot}}
+
+
+Sets the total time plus slew with probability allotted for XVPs
+
+\subsubsection*{set\_xvp\_time\_slew\_prob\_cur\label{Panel_set_xvp_time_slew_prob_cur}\index{Panel!set\ xvp\ time\ slew\ prob\ cur}}
+
+
+Sets the total time plus slew with probability approved for XVPs
+
+\subsubsection*{set\_xvp\_time\_slew\_prob\_bal\label{Panel_set_xvp_time_slew_prob_bal}\index{Panel!set\ xvp\ time\ slew\ prob\ bal}}
+
+
+Sets the total time plus slew with probability remaining for XVPs
+
+\subsubsection*{set\_arc\_req\label{Panel_set_arc_req}\index{Panel!set\ arc\ req}}
+
+
+Sets the total dollar amount requested for archive proposals
+
+\subsubsection*{set\_the\_req\label{Panel_set_the_req}\index{Panel!set\ the\ req}}
+
+
+Sets the total dollar amount requested for theory proposals
+
+\subsubsection*{set\_arc\_cur\label{Panel_set_arc_cur}\index{Panel!set\ arc\ cur}}
+
+
+Sets the total dollar amount approved for archive proposals
+
+\subsubsection*{set\_the\_cur\label{Panel_set_the_cur}\index{Panel!set\ the\ cur}}
+
+
+Sets the total dollar amount approved for theory proposals
+
+\subsubsection*{set\_arc\_the\_allot\label{Panel_set_arc_the_allot}\index{Panel!set\ arc\ the\ allot}}
+
+
+Sets the total dollar amount approved for archive and theory proposals
+
+\subsubsection*{set\_arc\_the\_bal\label{Panel_set_arc_the_bal}\index{Panel!set\ arc\ the\ bal}}
+
+
+Sets the total dollar amount remaining for archive and theory proposals
+
+\subsubsection*{set\_running\_money(\$view, \$type)\label{Panel_set_running_money_view_type_}\index{Panel!set\ running\ money(\$view, \$type)}}
+
+
+Sets the running dollar amount approved for each archive or theory
+proposal based on the sort applied
+
+\begin{description}
+
+\item[{\$view}] \mbox{}
+
+lcd or fac
+
+
+\item[{\$type}] \mbox{}
+
+(arc)hive or (the)ory
+
+\end{description}
+\subsubsection*{set\_running\_total(\$view, \$tot\_app\_col, \$running\_col)\label{Panel_set_running_total_view_tot_app_col_running_col_}\index{Panel!set\ running\ total(\$view, \$tot\ app\ col, \$running\ col)}}
+
+
+Sets the running total of the desired column using the values from the column
+
+\begin{description}
+
+\item[{\$view}] \mbox{}
+
+lcd or fac
+
+
+\item[{\$tot\_app\_col}] \mbox{}
+
+Column to sum over
+
+
+\item[{\$running\_col}] \mbox{}
+
+Column to store running totals in
+
+\end{description}
+\subsection*{DEPENDENCIES\label{Panel_DEPENDENCIES}\index{Panel!DEPENDENCIES}}
+
+
+None.
+
+\subsection*{BUGS AND LIMITATIONS\label{Panel_BUGS_AND_LIMITATIONS}\index{Panel!BUGS AND LIMITATIONS}}
+
+
+Please report problems to Sherry Winkelman swinkelman@cfa.harvard.edu
+Patches are welcome.
+
+\subsubsection*{Request Time w/Slew + prob\label{Panel_Request_Time_w_Slew_prob}\index{Panel!Request Time w/Slew + prob}}
+
+
+Before any targets have been turned-off, the requested and current cells 
+should be equal.  They are not because the requested time is over counting 
+TOO follow-ups in the total.
+
+\subsubsection*{TOO counting problems\label{Panel_TOO_counting_problems}\index{Panel!TOO counting problems}}
+\subsection*{AUTHOR\label{Panel_AUTHOR}\index{Panel!AUTHOR}}
+
+
+Sherry Winkelman swinkelman@cfa.harvard.edu
+
+\subsection*{LICENCE AND COPYRIGHT\label{Panel_LICENCE_AND_COPYRIGHT}\index{Panel!LICENCE AND COPYRIGHT}}
+
+
+Copyright (c) 2005, Sherry Winkelman $<$swinkelman@cfa.harvard.edu$>$. All rights 
+reserved.
+
+\clearpage
+\section{PrintPanel\label{PrintPanel}\index{PrintPanel}}
+
+
+This is a widget for printing a view
+
+\subsection*{VERSION\label{PrintPanel_VERSION}\index{PrintPanel!VERSION}}
+
+
+\$Revision: 1.6 \$
+
+\subsection*{SYNOPSIS\label{PrintPanel_SYNOPSIS}\index{PrintPanel!SYNOPSIS}}
+\begin{verbatim}
+   use PrintPanel;
+   my $print = $mw->Toplevel();
+   $print->PrintPanel(-view_id => $view_id,
+                      -groupby => $panel->groupby,
+                      -sortby => $panel->sortby,
+                      -hide_triage => $hide_triage,
+                      -panel => $panel,
+                      -verbose => $verbosity,
+                      -closecmd => [ \&closePrintPanel => ($panel) ],
+                     )->pack(-expand => 1,
+                             -fill => 'both');
+\end{verbatim}
+\subsection*{DESCRIPTION\label{PrintPanel_DESCRIPTION}\index{PrintPanel!DESCRIPTION}}
+
+
+Provides a convenient interface for printing views
+
+\subsection*{PUBLIC METHODS\label{PrintPanel_PUBLIC_METHODS}\index{PrintPanel!PUBLIC METHODS}}
+\subsubsection*{Populate(\$w, \$args)\label{PrintPanel_Populate_w_args_}\index{PrintPanel!Populate(\$w, \$args)}}
+
+
+Populates the widget with panel information and entry widgets for assigning
+proposals to groups
+
+\begin{description}
+
+\item[{\$w - toplevel widget}] \mbox{}
+\item[{\$args - reference to hash of arguments}] \mbox{}\begin{verbatim}
+   -panel - panel objec
+\end{verbatim}
+\begin{verbatim}
+   -view_id - view id
+\end{verbatim}
+\begin{verbatim}
+   -sortby - sort string
+\end{verbatim}
+\begin{verbatim}
+   -groupby - group string
+\end{verbatim}
+\begin{verbatim}
+   -hide_triage - flag for hiding triaged proposals
+\end{verbatim}
+\begin{verbatim}
+   -verbose - level of verbosity
+\end{verbatim}
+\begin{verbatim}
+   -closecmd - call back for closing widget
+\end{verbatim}
+\begin{verbatim}
+   -changecmd - call back for handling changed data
+\end{verbatim}
+\end{description}
+\subsection*{PRIVATE METHODS\label{PrintPanel_PRIVATE_METHODS}\index{PrintPanel!PRIVATE METHODS}}
+\subsubsection*{close\label{PrintPanel_close}\index{PrintPanel!close}}
+
+
+Call back to destroy page
+
+\subsubsection*{printfile\label{PrintPanel_printfile}\index{PrintPanel!printfile}}
+
+
+Prints the view to a file or to a printer
+
+\subsubsection*{printpreview\label{PrintPanel_printpreview}\index{PrintPanel!printpreview}}
+
+
+Previews the view
+
+\subsubsection*{fileDialog\label{PrintPanel_fileDialog}\index{PrintPanel!fileDialog}}
+
+
+Widget for browsing and naming a file
+
+\subsection*{DEPENDENCIES\label{PrintPanel_DEPENDENCIES}\index{PrintPanel!DEPENDENCIES}}
+
+
+This module uses Tk::BrowseEntry (available from CPAN)
+
+\subsection*{BUGS AND LIMITATIONS\label{PrintPanel_BUGS_AND_LIMITATIONS}\index{PrintPanel!BUGS AND LIMITATIONS}}
+
+
+There are no known bugs in this module.
+Please report problems to Sherry Winkelman swinkelman@cfa.harvard.edu
+Patches are welcome.
+
+\subsection*{AUTHOR\label{PrintPanel_AUTHOR}\index{PrintPanel!AUTHOR}}
+
+
+Sherry Winkelman swinkelman@cfa.harvard.edu
+
+\subsection*{LICENCE AND COPYRIGHT\label{PrintPanel_LICENCE_AND_COPYRIGHT}\index{PrintPanel!LICENCE AND COPYRIGHT}}
+
+
+Copyright (c) 2005, Sherry Winkelman $<$swinkelman@cfa.harvard.edu$>$. All rights 
+reserved.
+
+\clearpage
+\section{Print\label{Print}\index{Print}}
+
+
+This module creates LaTex files of views and turns them into 
+postscript
+
+\subsection*{VERSION\label{Print_VERSION}\index{Print!VERSION}}
+
+
+\$Revision: 1.29 \$
+
+\subsection*{DESCRIPTION\label{Print_DESCRIPTION}\index{Print!DESCRIPTION}}
+
+
+Create LaTex file of a view of a panel and generate the postscript
+
+\subsection*{PUBLIC METHODS\label{Print_PUBLIC_METHODS}\index{Print!PUBLIC METHODS}}
+\subsubsection*{printPreview\label{Print_printPreview}\index{Print!printPreview}}
+
+
+Create LaTex of a panel view and pop-up a viewer to look at the output.
+
+\begin{description}
+
+\item[{panel object}] \mbox{}
+\item[{view id}] \mbox{}
+\item[{'group by' string}] \mbox{}
+\item[{'sort by' string}] \mbox{}
+\item[{'hide triage' flag}] \mbox{}
+\item[{'hide archive/theory' flag}] \mbox{}
+\item[{'hide LP/VLP' flag}] \mbox{}
+\item[{font size}] \mbox{}
+\item[{print orientation}] \mbox{}
+\item[{font point family}] \mbox{}\end{description}
+\subsubsection*{printFile\label{Print_printFile}\index{Print!printFile}}
+
+
+Create LaTex of a panel view andsent the postscript to the printer or save
+to a file
+
+\begin{description}
+
+\item[{verbosity}] \mbox{}
+\item[{panel object}] \mbox{}
+\item[{view id}] \mbox{}
+\item[{'group by' string}] \mbox{}
+\item[{'sort by' string}] \mbox{}
+\item[{'hide triage' flag}] \mbox{}
+\item[{'hide archive/theory' flag}] \mbox{}
+\item[{'hide LP/VLP flag}] \mbox{}
+\item[{font size}] \mbox{}
+\item[{print orientation}] \mbox{}
+\item[{font point family}] \mbox{}
+\item[{filename}] \mbox{}\end{description}
+\subsubsection*{createFile\label{Print_createFile}\index{Print!createFile}}
+
+
+Create LatTex file of panel view
+
+\begin{description}
+
+\item[{panel object}] \mbox{}
+\item[{view id}] \mbox{}
+\item[{'group by' string}] \mbox{}
+\item[{'sort by' string}] \mbox{}
+\item[{'hide triage' flag}] \mbox{}
+\item[{'hide archive/theory' flag}] \mbox{}
+\item[{'hide LP/VLP' flag}] \mbox{}
+\item[{font size}] \mbox{}
+\item[{print orientation}] \mbox{}
+\item[{font point family}] \mbox{}
+\item[{filename}] \mbox{}\end{description}
+\subsection*{PRIVATE METHODS\label{Print_PRIVATE_METHODS}\index{Print!PRIVATE METHODS}}
+\subsubsection*{autofitFile\label{Print_autofitFile}\index{Print!autofitFile}}
+
+
+Create file with largest font possible
+
+\subsubsection*{printStyle\label{Print_printStyle}\index{Print!printStyle}}
+
+
+Writes the style section of the LaTex document to a filehandle
+
+\subsubsection*{printEnd\label{Print_printEnd}\index{Print!printEnd}}
+
+
+Writes the end statements of the LaTex document to a filehandle
+
+\subsubsection*{printHeaders\label{Print_printHeaders}\index{Print!printHeaders}}
+
+
+Writes the header and footer sections of the LaTex document to a filehandle
+
+\subsubsection*{beginTable\label{Print_beginTable}\index{Print!beginTable}}
+
+
+Writes the statements to begin a table to a filehandle
+
+\subsubsection*{endTable\label{Print_endTable}\index{Print!endTable}}
+
+
+Writes the statements to end a table to a filehandle
+
+\subsubsection*{getColHdrs\label{Print_getColHdrs}\index{Print!getColHdrs}}
+
+
+Retrieves the columns headers for tables from the database
+
+\subsubsection*{sanitize\label{Print_sanitize}\index{Print!sanitize}}
+
+
+Escapes special characters in a string
+
+\subsubsection*{printColHdrs\label{Print_printColHdrs}\index{Print!printColHdrs}}
+
+
+Writes the column headers of a table to a filehandle
+
+\subsubsection*{printRow\label{Print_printRow}\index{Print!printRow}}
+
+
+Writes a row of a table to a filehandle
+
+\subsubsection*{latexFile\label{Print_latexFile}\index{Print!latexFile}}
+
+
+LaTex's the file
+
+\subsubsection*{psFile\label{Print_psFile}\index{Print!psFile}}
+
+
+dvips's the file
+
+\subsubsection*{f\_grep\label{Print_f_grep}\index{Print!f\ grep}}
+
+
+grep a regex from a LaTex log file
+
+\subsubsection*{substitute\label{Print_substitute}\index{Print!substitute}}
+
+
+Substitute a set of strings into string holders in a template
+
+\subsection*{DEPENDENCIES\label{Print_DEPENDENCIES}\index{Print!DEPENDENCIES}}
+
+
+This module has no dependencies.
+
+\subsection*{BUGS AND LIMITATIONS\label{Print_BUGS_AND_LIMITATIONS}\index{Print!BUGS AND LIMITATIONS}}
+
+
+There are no known bugs in this module.
+Please report problems to Sherry Winkelman swinkelman@cfa.harvard.edu
+Patches are welcome.
+
+\subsection*{AUTHOR\label{Print_AUTHOR}\index{Print!AUTHOR}}
+
+
+Sherry Winkelman swinkelman@cfa.harvard.edu
+
+\subsection*{LICENCE AND COPYRIGHT\label{Print_LICENCE_AND_COPYRIGHT}\index{Print!LICENCE AND COPYRIGHT}}
+
+
+Copyright (c) 2005, Sherry Winkelman $<$swinkelman@cfa.harvard.edu$>$. All rights 
+reserved.
+
+\clearpage
+\section{PrintPreview\label{PrintPreview}\index{PrintPreview}}
+
+
+This is a widget for previewing a view with a postscript
+viewer
+
+\subsection*{VERSION\label{PrintPreview_VERSION}\index{PrintPreview!VERSION}}
+
+
+\$Revision: 1.4 \$
+
+\subsection*{SYNOPSIS\label{PrintPreview_SYNOPSIS}\index{PrintPreview!SYNOPSIS}}
+\begin{verbatim}
+   use PrintPreview;
+   my $preview = $mw->Toplevel();
+   $preview->PrintPreview(-view_id => $view_id,
+                          -groupby => $panel->groupby,
+                          -sortby => $panel->sortby,
+                          -hide_triage => $hide_triage,
+                          -hide_arc_the => $hide_arc_the,
+                          -hide_lp_vlp => $hide_lp_vlp,
+                          -panel => $panel,
+                          -closecmd => [ \&closePrintPreview => ($panel) ],
+                         )->pack(-expand => 1,
+                                 -fill => 'both');
+\end{verbatim}
+\subsection*{DESCRIPTION\label{PrintPreview_DESCRIPTION}\index{PrintPreview!DESCRIPTION}}
+
+
+Provides a convenient interface for previewing views in a postscript viewer
+
+\subsection*{PUBLIC METHODS\label{PrintPreview_PUBLIC_METHODS}\index{PrintPreview!PUBLIC METHODS}}
+\subsubsection*{Populate(\$w, \$args)\label{PrintPreview_Populate_w_args_}\index{PrintPreview!Populate(\$w, \$args)}}
+
+
+Populates the widget with panel information and entry widgets for assigning
+proposals to groups
+
+\begin{description}
+
+\item[{\$w - toplevel widget}] \mbox{}
+\item[{\$args - reference to hash of arguments}] \mbox{}\begin{verbatim}
+   -panel - panel objec
+\end{verbatim}
+\begin{verbatim}
+   -view_id - view id
+\end{verbatim}
+\begin{verbatim}
+   -sortby - sort string
+\end{verbatim}
+\begin{verbatim}
+   -groupby - group string
+\end{verbatim}
+\begin{verbatim}
+   -hide_triage - flag for hiding triaged proposals
+\end{verbatim}
+\begin{verbatim}
+   -hide_arc_the - flag for hiding archive/theory proposals
+\end{verbatim}
+\begin{verbatim}
+   -hide_lp_vlp - flag for hiding LP/VLP proposals
+\end{verbatim}
+\begin{verbatim}
+   -verbose - level of verbosity
+\end{verbatim}
+\begin{verbatim}
+   -closecmd - call back for closing widget
+\end{verbatim}
+\begin{verbatim}
+   -changecmd - call back for handling changed data
+\end{verbatim}
+\end{description}
+\subsection*{PRIVATE METHODS\label{PrintPreview_PRIVATE_METHODS}\index{PrintPreview!PRIVATE METHODS}}
+\subsubsection*{close\label{PrintPreview_close}\index{PrintPreview!close}}
+
+
+Call back to destroy page
+
+\subsubsection*{preview\label{PrintPreview_preview}\index{PrintPreview!preview}}
+
+
+Launches the preview
+
+\subsection*{DEPENDENCIES\label{PrintPreview_DEPENDENCIES}\index{PrintPreview!DEPENDENCIES}}
+
+
+This module has no dependencies
+
+\subsection*{BUGS AND LIMITATIONS\label{PrintPreview_BUGS_AND_LIMITATIONS}\index{PrintPreview!BUGS AND LIMITATIONS}}
+
+
+There are no known bugs in this module.
+Please report problems to Sherry Winkelman swinkelman@cfa.harvard.edu
+Patches are welcome.
+
+\subsection*{AUTHOR\label{PrintPreview_AUTHOR}\index{PrintPreview!AUTHOR}}
+
+
+Sherry Winkelman swinkelman@cfa.harvard.edu
+
+\subsection*{LICENCE AND COPYRIGHT\label{PrintPreview_LICENCE_AND_COPYRIGHT}\index{PrintPreview!LICENCE AND COPYRIGHT}}
+
+
+Copyright (c) 2005, Sherry Winkelman $<$swinkelman@cfa.harvard.edu$>$. All rights 
+reserved.
+
+\clearpage
+\section{ProposalList\label{ProposalList}\index{ProposalList}}
+
+
+This object contains a list of proposal objects
+
+\subsection*{VERSION\label{ProposalList_VERSION}\index{ProposalList!VERSION}}
+
+
+\$Revision: 1.6 \$
+
+\subsection*{SYNOPSIS\label{ProposalList_SYNOPSIS}\index{ProposalList!SYNOPSIS}}
+\begin{verbatim}
+    use ProposalList;
+    my $list = new ProposalList($dbh, $panel_id);
+\end{verbatim}
+\subsection*{DESCRIPTION\label{ProposalList_DESCRIPTION}\index{ProposalList!DESCRIPTION}}
+
+
+Provides a single place to get at all of the proposals in a panel
+
+\subsection*{PUBLIC METHODS\label{ProposalList_PUBLIC_METHODS}\index{ProposalList!PUBLIC METHODS}}
+\subsubsection*{new(\$dbh, \$panel\_id)\label{ProposalList_new_dbh_panel_id_}\index{ProposalList!new(\$dbh, \$panel\ id)}}
+
+
+Creates a new Panel object.
+
+\begin{description}
+
+\item[{\$dbh - database handle}] \mbox{}
+\item[{\$panel\_id - panel id}] \mbox{}\end{description}
+\subsubsection*{proposal(\$prop\_id)\label{ProposalList_proposal_prop_id_}\index{ProposalList!proposal(\$prop\ id)}}
+
+
+Returns the proposal object for a specified proposal id
+
+\begin{description}
+
+\item[{\$prop\_id - proposal id}] \mbox{}\end{description}
+\subsection*{PRIVATE METHODS\label{ProposalList_PRIVATE_METHODS}\index{ProposalList!PRIVATE METHODS}}
+\subsubsection*{\_init\label{ProposalList__init}\index{ProposalList!\ init}}
+
+
+Initializes new ProposalList object.
+
+\subsection*{DEPENDENCIES\label{ProposalList_DEPENDENCIES}\index{ProposalList!DEPENDENCIES}}
+
+
+This module has no dependencies
+
+\subsection*{BUGS AND LIMITATIONS\label{ProposalList_BUGS_AND_LIMITATIONS}\index{ProposalList!BUGS AND LIMITATIONS}}
+
+
+There are no known bugs in this module.
+Please report problems to Sherry Winkelman swinkelman@cfa.harvard.edu
+Patches are welcome.
+
+\subsection*{AUTHOR\label{ProposalList_AUTHOR}\index{ProposalList!AUTHOR}}
+
+
+Sherry Winkelman swinkelman@cfa.harvard.edu
+
+\subsection*{LICENCE AND COPYRIGHT\label{ProposalList_LICENCE_AND_COPYRIGHT}\index{ProposalList!LICENCE AND COPYRIGHT}}
+
+
+Copyright (c) 2005, Sherry Winkelman $<$swinkelman@cfa.harvard.edu$>$. All rights 
+reserved.
+
+\clearpage
+\section{Proposal\label{Proposal}\index{Proposal}}
+
+
+This object contains data associated with a proposal,
+including target and too objects when necessary.
+
+\subsection*{VERSION\label{Proposal_VERSION}\index{Proposal!VERSION}}
+
+
+\$Revision: 1.70 \$
+
+\subsection*{SYNOPSIS\label{Proposal_SYNOPSIS}\index{Proposal!SYNOPSIS}}
+\begin{verbatim}
+    use Proposal;
+    my $proposal = new Proposal($dbh, $prop_id, $panel_id, $verbosity);
+\end{verbatim}
+\subsection*{DESCRIPTION\label{Proposal_DESCRIPTION}\index{Proposal!DESCRIPTION}}
+
+
+Provides a single place to access elements of a proposal
+
+\subsection*{PUBLIC METHODS\label{Proposal_PUBLIC_METHODS}\index{Proposal!PUBLIC METHODS}}
+\subsubsection*{new(\$dbh, \$prop\_id, \$panel\_id, \$verbosity)\label{Proposal_new_dbh_prop_id_panel_id_verbosity_}\index{Proposal!new(\$dbh, \$prop\ id, \$panel\ id, \$verbosity)}}
+
+
+Creates a new Proposal object
+
+\begin{description}
+
+\item[{\$dbh - database handle}] \mbox{}
+\item[{\$prop\_id - proposal id}] \mbox{}
+\item[{\$panel\_id - panel id}] \mbox{}
+\item[{\$verbosity - level of verbosity}] \mbox{}\end{description}
+\subsubsection*{set(\$field, \$value)\label{Proposal_set_field_value_}\index{Proposal!set(\$field, \$value)}}
+
+
+Overloads the set accessor from Class::Accessor to update \%changed to
+reflect that there are unsaved changes in the object.
+
+\subsubsection*{dump\label{Proposal_dump}\index{Proposal!dump}}
+
+
+Prints a data dump of the proposal object
+
+\subsubsection*{proposal(\$field, \$value)\label{Proposal_proposal_field_value_}\index{Proposal!proposal(\$field, \$value)}}
+
+
+Provides a general get/set accessor to all simple elements of a
+proposal
+
+\subsubsection*{joint\_prop(\$observatory, \$field, \$value)\label{Proposal_joint_prop_observatory_field_value_}\index{Proposal!joint\ prop(\$observatory, \$field, \$value)}}
+
+
+Provides a general get/set accessor to joint elements of a proposal
+
+\subsubsection*{target(\$targ\_index, \$field, \$value)\label{Proposal_target_targ_index_field_value_}\index{Proposal!target(\$targ\ index, \$field, \$value)}}
+
+
+Provides a general get/set accessor to target elements of a proposal
+
+\subsubsection*{target(\$alt\_grp\_id, \$field, \$value)\label{Proposal_target_alt_grp_id_field_value_}\index{Proposal!target(\$alt\ grp\ id, \$field, \$value)}}
+
+
+Provides a general get/set accessor to alternate target group elements of 
+a proposal
+
+\subsubsection*{final\_grade\_ref(\$grade\_index, \$value)\label{Proposal_final_grade_ref_grade_index_value_}\index{Proposal!final\ grade\ ref(\$grade\ index, \$value)}}
+
+
+Provides a general get/set accessor to a reference to a final grade
+
+\subsubsection*{final\_grade(\$grade\_index, \$value)\label{Proposal_final_grade_grade_index_value_}\index{Proposal!final\ grade(\$grade\ index, \$value)}}
+
+
+Provides a general get/set accessor to a final grade
+
+\subsubsection*{prelim\_grade\_ref\label{Proposal_prelim_grade_ref}\index{Proposal!prelim\ grade\ ref}}
+
+
+Provides a general get/set accessor to a reference to a preliminary grade
+
+\subsubsection*{prelim\_grade(\$grade\_index, \$value)\label{Proposal_prelim_grade_grade_index_value_}\index{Proposal!prelim\ grade(\$grade\ index, \$value)}}
+
+
+Provides a general get/set accessor to a preliminary grade
+
+\subsubsection*{getGradeStats\label{Proposal_getGradeStats}\index{Proposal!getGradeStats}}
+
+
+Returns the average and standard deviation of the final grades.
+
+\subsubsection*{num\_pnt\label{Proposal_num_pnt}\index{Proposal!num\ pnt}}
+
+
+Calcuates the total number of pointings approved for the proposal
+
+\begin{description}
+
+\item[{initialize flag - 1 is used for initializing}] \textbf{the database}\end{description}
+\subsubsection*{num\_targs\label{Proposal_num_targs}\index{Proposal!num\ targs}}
+
+
+Calcuates the total number of targets approved for the proposal
+
+\begin{description}
+
+\item[{initialize flag - 1 is used for initializing}] \textbf{the database}\end{description}
+\subsubsection*{num\_tax\label{Proposal_num_tax}\index{Proposal!num\ tax}}
+
+
+Calculates the total tax of pointings approved for the proposal
+
+\begin{description}
+
+\item[{initialize flag - 1 is used for initializing}] \textbf{the database}\end{description}
+\subsubsection*{num\_too\label{Proposal_num_too}\index{Proposal!num\ too}}
+
+
+Calculates the total number of approved TOOs for a response time for the 
+proposal
+
+\begin{description}
+
+\item[{response (vf, f, s, vs)}] \mbox{}
+\item[{initialize flag - 1 is used for initializing}] \textbf{the database}\end{description}
+\subsubsection*{num\_tc\label{Proposal_num_tc}\index{Proposal!num\ tc}}
+
+
+Calculates the total number of approved TCs for a TC grade for the proposal
+
+\begin{description}
+
+\item[{grade (e, a, d)}] \mbox{}
+\item[{initialize flag - 1 is used for initializing}] \textbf{the database}\end{description}
+\subsubsection*{prop\_time\label{Proposal_prop_time}\index{Proposal!prop\ time}}
+
+
+Calculates the total time w/slew tax plus probability approved for the 
+proposal
+
+\subsubsection*{calc\_status\label{Proposal_calc_status}\index{Proposal!calc\ status}}
+
+
+Calculates the status for the proposal
+
+\begin{description}
+
+\item[{initialize flag - 1 is used for initializing}] \textbf{the database}\end{description}
+\subsubsection*{total\_time\label{Proposal_total_time}\index{Proposal!total\ time}}
+
+
+Returns the total time w/slew tax plus probability approved for the proposal
+
+\begin{description}
+
+\item[{initialize flag - 1 is used for initializing}] \textbf{the database}\end{description}
+\subsubsection*{clear\_grades\label{Proposal_clear_grades}\index{Proposal!clear\ grades}}
+
+
+Clears the final grades, sets the normalized grade and average grade
+to 0.0 and sets the standard deviation to undef.
+
+\subsubsection*{save\_member(\$field, \$value)\label{Proposal_save_member_field_value_}\index{Proposal!save\ member(\$field, \$value)}}
+
+
+Saves the new value of a field to the proposal object
+
+\subsubsection*{save2database(\$panel\_id)\label{Proposal_save2database_panel_id_}\index{Proposal!save2database(\$panel\ id)}}
+
+
+Saves the proposal object to the database to the proposal in the
+database from the panel.
+
+\subsection*{PRIVATE METHODS\label{Proposal_PRIVATE_METHODS}\index{Proposal!PRIVATE METHODS}}
+\subsubsection*{\_init\label{Proposal__init}\index{Proposal!\ init}}
+
+
+Initializes new Proposal object.
+
+\subsubsection*{\_pop\_joint\label{Proposal__pop_joint}\index{Proposal!\ pop\ joint}}
+
+
+Initializes the joint observatory hash from the database
+
+\subsection*{DEPENDENCIES\label{Proposal_DEPENDENCIES}\index{Proposal!DEPENDENCIES}}
+
+
+This module has no dependencies
+
+\subsection*{BUGS AND LIMITATIONS\label{Proposal_BUGS_AND_LIMITATIONS}\index{Proposal!BUGS AND LIMITATIONS}}
+
+
+There are no known bugs in this module.
+Please report problems to Sherry Winkelman swinkelman@cfa.harvard.edu
+Patches are welcome.
+
+\subsection*{AUTHOR\label{Proposal_AUTHOR}\index{Proposal!AUTHOR}}
+
+
+Sherry Winkelman swinkelman@cfa.harvard.edu
+
+\subsection*{LICENCE AND COPYRIGHT\label{Proposal_LICENCE_AND_COPYRIGHT}\index{Proposal!LICENCE AND COPYRIGHT}}
+
+
+Copyright (c) 2005, Sherry Winkelman $<$swinkelman@cfa.harvard.edu$>$. All rights 
+reserved.
+
+\clearpage
+\section{Resurrect\label{Resurrect}\index{Resurrect}}
+
+
+This is a widget for resurrecting triaged proposals
+
+\subsection*{VERSION\label{Resurrect_VERSION}\index{Resurrect!VERSION}}
+
+
+\$Revision: 1.18 \$
+
+\subsection*{SYNOPSIS\label{Resurrect_SYNOPSIS}\index{Resurrect!SYNOPSIS}}
+\begin{verbatim}
+   use Resurrect;
+   my $resurrect = $mw->Toplevel();
+   $resurrect->Resurrect(-panel => $panel,
+                         -verbose => $verbosity,
+                         -closecmd => [ \&closeGroup => ($panel) ],
+                         -changecmd => [ \&updGroup => ($panel) ],
+                         )->pack(-expand => 1,
+                                 -fill => 'both');
+\end{verbatim}
+\subsection*{DESCRIPTION\label{Resurrect_DESCRIPTION}\index{Resurrect!DESCRIPTION}}
+
+
+Provides a convenient interface for resurrecting triaged proposals for 
+discussion in the panel
+
+\subsection*{PUBLIC METHODS\label{Resurrect_PUBLIC_METHODS}\index{Resurrect!PUBLIC METHODS}}
+\subsubsection*{Populate(\$w, \$args)\label{Resurrect_Populate_w_args_}\index{Resurrect!Populate(\$w, \$args)}}
+
+
+Populates the widget
+
+\begin{description}
+
+\item[{\$w - toplevel widget}] \mbox{}
+\item[{\$args - reference to hash of arguments}] \mbox{}\begin{verbatim}
+   -panel: a panel object
+\end{verbatim}
+\begin{verbatim}
+   -verbose: level of verbosity
+\end{verbatim}
+\end{description}
+\subsection*{PRIVATE METHODS\label{Resurrect_PRIVATE_METHODS}\index{Resurrect!PRIVATE METHODS}}
+
+
+-head2 mkView
+
+
+
+Creates a table with proposal information and checkboxes
+
+\subsubsection*{pop\_findframe\label{Resurrect_pop_findframe}\index{Resurrect!pop\ findframe}}
+
+
+Populates the frame which allows 'Find'
+
+\subsubsection*{get\_str\_posn\label{Resurrect_get_str_posn}\index{Resurrect!get\ str\ posn}}
+
+
+Finds the row and column of a search string and moves scrollbars there
+during the validation of a search string.
+
+\subsubsection*{reset\label{Resurrect_reset}\index{Resurrect!reset}}
+
+
+Resets the values in the widget to the original proposal object values
+
+\subsubsection*{save\label{Resurrect_save}\index{Resurrect!save}}
+
+
+Saves all changes to the proposal object and the database
+
+\subsubsection*{changed\_data\label{Resurrect_changed_data}\index{Resurrect!changed\ data}}
+
+
+Returns true if any data have been changed
+
+\subsubsection*{close\label{Resurrect_close}\index{Resurrect!close}}
+
+
+Call back to destroy page
+
+\subsection*{DEPENDENCIES\label{Resurrect_DEPENDENCIES}\index{Resurrect!DEPENDENCIES}}
+
+
+This module uses TK::Dialog, Tk::Pane (available from CPAN)
+
+\subsection*{BUGS AND LIMITATIONS\label{Resurrect_BUGS_AND_LIMITATIONS}\index{Resurrect!BUGS AND LIMITATIONS}}
+
+
+There are no known bugs in this module.
+Please report problems to Sherry Winkelman swinkelman@cfa.harvard.edu
+Patches are welcome.
+
+\subsection*{AUTHOR\label{Resurrect_AUTHOR}\index{Resurrect!AUTHOR}}
+
+
+Sherry Winkelman swinkelman@cfa.harvard.edu
+
+\subsection*{LICENCE AND COPYRIGHT\label{Resurrect_LICENCE_AND_COPYRIGHT}\index{Resurrect!LICENCE AND COPYRIGHT}}
+
+
+Copyright (c) 2005, Sherry Winkelman $<$swinkelman@cfa.harvard.edu$>$. All rights 
+reserved.
+
+\clearpage
+\section{Target\label{Target}\index{Target}}
+
+
+This object contains data associated with a target,
+including too objects when necessary.
+
+\subsection*{VERSION\label{Target_VERSION}\index{Target!VERSION}}
+
+
+\$Revision: 1.70 \$
+
+\subsection*{SYNOPSIS\label{Target_SYNOPSIS}\index{Target!SYNOPSIS}}
+\begin{verbatim}
+    use Target;
+    my $target = new Target($dbh, $prop_id, $target_index, $targ_props, $too_props, $verbosity);
+\end{verbatim}
+\subsection*{DESCRIPTION\label{Target_DESCRIPTION}\index{Target!DESCRIPTION}}
+
+
+Provides a single place to access elements of a target
+
+\subsection*{PUBLIC METHODS\label{Target_PUBLIC_METHODS}\index{Target!PUBLIC METHODS}}
+\subsubsection*{new(\$dbh, \$prop\_id, \$targ\_id, \$targ\_props, \$too\_props, \$verbosity)\label{Target_new_dbh_prop_id_targ_id_targ_props_too_props_verbosity_}\index{Target!new(\$dbh, \$prop\ id, \$targ\ id, \$targ\ props, \$too\ props, \$verbosity)}}
+
+
+Creates a new Target object
+
+\begin{description}
+
+\item[{\$dbh - database handle}] \mbox{}
+\item[{\$prop\_id - proposal id}] \mbox{}
+\item[{\$targ\_id - index of target}] \mbox{}
+\item[{\$targ\_props - list of target properties}] \mbox{}
+\item[{\$too\_props - list of too properties}] \mbox{}
+\item[{\$verbose - level of verbosity}] \mbox{}\end{description}
+\subsubsection*{set(\$field, \$value)\label{Target_set_field_value_}\index{Target!set(\$field, \$value)}}
+
+
+Overloads the set accessor from Class::Accessor to update \%changed to
+reflect that there are unsaved changes in the object.
+
+\subsubsection*{dump\label{Target_dump}\index{Target!dump}}
+
+
+Prints a data dump of the target object
+
+\subsubsection*{num\_tc\label{Target_num_tc}\index{Target!num\ tc}}
+
+
+Boolean representing whether there are phase, roll or time constraints
+for a target
+
+\subsubsection*{num\_tc\_1\label{Target_num_tc_1}\index{Target!num\ tc\ 1}}
+
+
+Boolean representing whether there are phase, roll or time constraints
+for a target for cycle n+1
+
+\subsubsection*{num\_tc\_2\label{Target_num_tc_2}\index{Target!num\ tc\ 2}}
+
+
+Boolean representing whether there are phase, roll or time constraints
+for a target for cycle n+2
+
+\subsubsection*{num\_pnt\label{Target_num_pnt}\index{Target!num\ pnt}}
+
+
+Calculates the number of approved pointings required for the target
+
+\subsubsection*{num\_pnt\_1\label{Target_num_pnt_1}\index{Target!num\ pnt\ 1}}
+
+
+Calculates the number of approved pointings required for the target for cycle
+n+1
+
+\subsubsection*{num\_pnt\_2\label{Target_num_pnt_2}\index{Target!num\ pnt\ 2}}
+
+
+Calculates the number of approved pointings required for the target for cycle
+n+2
+
+\subsubsection*{num\_followups(\$ao)\label{Target_num_followups_ao_}\index{Target!num\ followups(\$ao)}}
+
+
+Returns the number of approved followups for the target
+
+\subsubsection*{calc\_status\label{Target_calc_status}\index{Target!calc\ status}}
+
+
+Calculates the status of the target after first checking on the status of any
+TOO triggers
+
+\subsubsection*{calc\_status\_1\label{Target_calc_status_1}\index{Target!calc\ status\ 1}}
+
+
+Calculates the status of the target after first checking on the status of any
+TOO triggers for cycle n+1
+
+\subsubsection*{calc\_status\_2\label{Target_calc_status_2}\index{Target!calc\ status\ 2}}
+
+
+Calculates the status of the target after first checking on the status of any
+TOO triggers for cycle n+2
+
+\subsubsection*{calc\_tax\label{Target_calc_tax}\index{Target!calc\ tax}}
+
+
+Calculates the tax of the target
+
+\subsubsection*{calc\_tax\_1\label{Target_calc_tax_1}\index{Target!calc\ tax\ 1}}
+
+
+Calculates the tax of the target for cycle n+1
+
+\subsubsection*{calc\_tax\_2\label{Target_calc_tax_2}\index{Target!calc\ tax\ 2}}
+
+
+Calculates the tax of the target for cycle n+2
+
+\subsubsection*{calc\_tc\_mon\label{Target_calc_tc_mon}\index{Target!calc\ tc\ mon}}
+
+
+Calculates the tc\_mon score of the target
+
+\subsubsection*{calc\_tc\_group\label{Target_calc_tc_group}\index{Target!calc\ tc\ group}}
+
+
+Calculates the tc\_group score of the target
+
+\subsubsection*{calc\_tc\_group\_1\label{Target_calc_tc_group_1}\index{Target!calc\ tc\ group\ 1}}
+
+
+Calculates the tc\_group score of the target for cycle n+1
+
+\subsubsection*{calc\_tc\_group\_2\label{Target_calc_tc_group_2}\index{Target!calc\ tc\ group\ 2}}
+
+
+Calculates the tc\_group score of the target for cycle n+2
+
+\subsubsection*{calc\_tc\_too\label{Target_calc_tc_too}\index{Target!calc\ tc\ too}}
+
+
+Calculates the tc\_too score of the target
+
+\subsubsection*{calc\_tc\_grade\label{Target_calc_tc_grade}\index{Target!calc\ tc\ grade}}
+
+
+Calculates the tc grade of the target
+
+\subsubsection*{calc\_tc\_grade\_1\label{Target_calc_tc_grade_1}\index{Target!calc\ tc\ grade\ 1}}
+
+
+Calculates the tc grade of the target for cycle n+1
+
+\subsubsection*{calc\_tc\_grade\_2\label{Target_calc_tc_grade_2}\index{Target!calc\ tc\ grade\ 2}}
+
+
+Calculates the tc grade of the target for cycle n+2
+
+\subsubsection*{too(\$field, \$value)\label{Target_too_field_value_}\index{Target!too(\$field, \$value)}}
+
+
+Provides a general get/set accessor to all elements of a target.
+
+\subsubsection*{save\_member(\$field, \$value)\label{Target_save_member_field_value_}\index{Target!save\ member(\$field, \$value)}}
+
+
+Saves the new value of a field to the target object
+
+\subsubsection*{save2database\label{Target_save2database}\index{Target!save2database}}
+
+
+Saves the target object to the database.
+
+\subsection*{PRIVATE METHODS\label{Target_PRIVATE_METHODS}\index{Target!PRIVATE METHODS}}
+\subsubsection*{\_init\label{Target__init}\index{Target!\ init}}
+
+
+Initializes new Target object.
+
+\subsection*{DEPENDENCIES\label{Target_DEPENDENCIES}\index{Target!DEPENDENCIES}}
+
+
+This module has no dependencies
+
+\subsection*{BUGS AND LIMITATIONS\label{Target_BUGS_AND_LIMITATIONS}\index{Target!BUGS AND LIMITATIONS}}
+
+
+There are no known bugs in this module.
+Please report problems to Sherry Winkelman swinkelman@cfa.harvard.edu
+Patches are welcome.
+
+\subsection*{AUTHOR\label{Target_AUTHOR}\index{Target!AUTHOR}}
+
+
+Sherry Winkelman swinkelman@cfa.harvard.edu
+
+\subsection*{LICENCE AND COPYRIGHT\label{Target_LICENCE_AND_COPYRIGHT}\index{Target!LICENCE AND COPYRIGHT}}
+
+
+Copyright (c) 2005, Sherry Winkelman $<$swinkelman@cfa.harvard.edu$>$. All rights 
+reserved.
+
+\clearpage
+\section{Too\label{Too}\index{Too}}
+
+
+This object contains data associated with a too.
+
+\subsection*{VERSION\label{Too_VERSION}\index{Too!VERSION}}
+
+
+\$Revision: 1.9 \$
+
+\subsection*{SYNOPSIS\label{Too_SYNOPSIS}\index{Too!SYNOPSIS}}
+\begin{verbatim}
+    use Too;
+    my $too =  new Too($dbh, $prop_id, $targ_id, $i, $TooProps, $panel_id, $verbosity);
+\end{verbatim}
+\subsection*{DESCRIPTION\label{Too_DESCRIPTION}\index{Too!DESCRIPTION}}
+
+
+Provides a single place to access elements of a TOO
+
+\subsection*{PUBLIC METHODS\label{Too_PUBLIC_METHODS}\index{Too!PUBLIC METHODS}}
+\subsubsection*{new(\$dbh, \$prop\_id, \$targ\_id, \$i, \$TooProps, \$panel\_id, \$verbosity)\label{Too_new_dbh_prop_id_targ_id_i_TooProps_panel_id_verbosity_}\index{Too!new(\$dbh, \$prop\ id, \$targ\ id, \$i, \$TooProps, \$panel\ id, \$verbosity)}}
+
+
+Creates a new Too object
+
+\begin{description}
+
+\item[{\$dbh - database handle}] \mbox{}
+\item[{\$prop\_id - proposal id}] \mbox{}
+\item[{\$targ\_id - target id}] \mbox{}
+\item[{\$i - TOO order}] \mbox{}
+\item[{\$TooProps - reference to array of TOO properties}] \mbox{}
+\item[{\$panel\_id - panel id}] \mbox{}
+\item[{\$verbosity - level of verbosity}] \mbox{}\end{description}
+\subsubsection*{set(\$field, \$value)\label{Too_set_field_value_}\index{Too!set(\$field, \$value)}}
+
+
+Overloads the set accessor from Class::Accessor to update \%changed to
+reflect that there are unsaved changes in the object.
+
+\subsubsection*{dump\label{Too_dump}\index{Too!dump}}
+
+
+Prints a data dump of the too object
+
+\subsubsection*{save\_member(\$field, \$value)\label{Too_save_member_field_value_}\index{Too!save\ member(\$field, \$value)}}
+
+
+Saves the new value of a field to the too object
+
+\subsubsection*{num\_pnt\label{Too_num_pnt}\index{Too!num\ pnt}}
+
+
+Returns the number of pointings for the observation
+
+\subsubsection*{save2database\label{Too_save2database}\index{Too!save2database}}
+
+
+Saves the too object to the database.
+
+\subsection*{PRIVATE METHODS\label{Too_PRIVATE_METHODS}\index{Too!PRIVATE METHODS}}
+\subsubsection*{\_init\label{Too__init}\index{Too!\ init}}
+
+
+Initializes new Too object.
+
+\subsection*{DEPENDENCIES\label{Too_DEPENDENCIES}\index{Too!DEPENDENCIES}}
+
+
+This module has no dependencies
+
+\subsection*{BUGS AND LIMITATIONS\label{Too_BUGS_AND_LIMITATIONS}\index{Too!BUGS AND LIMITATIONS}}
+
+
+There are no known bugs in this module.
+Please report problems to Sherry Winkelman swinkelman@cfa.harvard.edu
+Patches are welcome.
+
+\subsection*{AUTHOR\label{Too_AUTHOR}\index{Too!AUTHOR}}
+
+
+Sherry Winkelman swinkelman@cfa.harvard.edu
+
+\subsection*{LICENCE AND COPYRIGHT\label{Too_LICENCE_AND_COPYRIGHT}\index{Too!LICENCE AND COPYRIGHT}}
+
+
+Copyright (c) 2005, Sherry Winkelman $<$swinkelman@cfa.harvard.edu$>$. All rights 
+reserved.
+
+\clearpage
+\section{Tk::EnumList\label{Tk::EnumList}\index{Tk::EnumList}}
+
+
+Manage an enumerated list
+
+\subsection*{SYNOPSIS\label{Tk::EnumList_SYNOPSIS}\index{Tk::EnumList!SYNOPSIS}}
+
+
+package TK::EnumList;
+
+
+
+\textit{\$enumlist} = \textit{\$parent}-$>$\textbf{EnumList}(?\textit{options}?)
+
+\subsection*{DESCRIPTION\label{Tk::EnumList_DESCRIPTION}\index{Tk::EnumList!DESCRIPTION}}
+
+
+This widget is used to create and manage an ordered list of strings
+from a prescribed set.  The set of available strings is presented as a
+grid of buttons; the ordered list is presented in a Listbox.
+
+
+
+The list may optionally allow duplicate values.
+
+\subsubsection*{Bindings\label{Tk::EnumList_Bindings}\index{Tk::EnumList!Bindings}}
+
+
+If the \texttt{$<$Escape$>$} key is struck, the entry selected in the
+listbox is deselected.
+
+\subsection*{WIDGET-SPECIFIC OPTIONS\label{Tk::EnumList_WIDGET-SPECIFIC_OPTIONS}\index{Tk::EnumList!WIDGET-SPECIFIC OPTIONS}}
+\subsubsection*{Construction time only Options\label{Tk::EnumList_Construction_time_only_Options}\index{Tk::EnumList!Construction time only Options}}
+
+
+These options are available only when calling the widget constructor.
+Unless otherwise noted, the option values are \textit{not} available via the
+\textbf{\$w-}cget()$>$ method.
+
+\begin{description}
+
+\item[{\textbf{-orderedlist}}] \mbox{}
+
+This specifies the reference to an array which will used to initially
+populate the ordered list.  The array should contain \textit{indices} into
+the list of available choices, not the actual entries.  This array
+will always reflect the current state of the orderedlist.  It may be
+retrieved with \texttt{\$widget-}cget(-orderedlist)$>$.  Do \textbf{not} muck about
+with the contents of this array after passing it to the widget; this
+will corrupt the widget's state.
+
+
+\item[{\textbf{-choicelist}}] \mbox{}
+
+This specifies the reference to an array which holds the values
+available to choose from.  For efficiency reasons this array is used
+\textit{in situ}. Do \textbf{not} alter it, as this will corrupt the widget
+state.
+
+
+\item[{\textbf{-duplicate}}] \mbox{}
+
+This dictates whether an element may be duplicated in the chosen list.
+It is a boolean value and defaults to false.
+
+
+\item[{\textbf{-sortbtns}}] \mbox{}
+
+This dictates whether the ascending and descending buttons are added
+to options for the chosen list.  Sorts default to ascending.
+
+
+\item[{\textbf{-aspectratio}}] \mbox{}
+
+The row to column ratio used to determine the dimensions of the grid
+holding the possible choices.  It defaults to \texttt{8/3}.  See \textsf{CHOICE GRID ALGORITHM} for more on how this is used.
+
+
+\item[{\textbf{-ncols}}] \mbox{}
+
+The number of columns in the grid of possible choices.  This is rarely
+specified.  See \textsf{Choice Grid Algorithm} for more on how this is
+used.
+
+
+\item[{\textbf{-nrows}}] \mbox{}
+
+The number of rows in the grid of possible choices.  This is rarely
+specified.  See \textsf{Choice Grid Algorithm} for more on how this is
+used.
+
+\end{description}
+\subsection*{WIDGET METHODS\label{Tk::EnumList_WIDGET_METHODS}\index{Tk::EnumList!WIDGET METHODS}}
+
+
+The \textbf{EnumList} method creates a widget object. The widget
+also inherits all the methods provided by the generic Tk::Widget
+class.
+
+
+
+The following additional methods are available for \textbf{EnumList} widgets:
+
+\begin{description}
+
+\item[{nrows}] \mbox{}
+
+returns the actual number of rows in the choices grid.
+
+
+\item[{ncols}] \mbox{}
+
+returns the actual number of cols in the choices grid.
+
+
+\item[{get}] \mbox{}
+
+returns the list of chosen entries.  Just as with the \textbf{-orderedlist}
+configuration option, this is a list of \textit{indices} into the
+\textbf{-choicelist} array.
+
+\end{description}
+\subsection*{CHOICE GRID ALGORITHM\label{Tk::EnumList_CHOICE_GRID_ALGORITHM}\index{Tk::EnumList!CHOICE GRID ALGORITHM}}
+
+
+\textbf{EnumList} uses a simple algorithm to calculate the dimensions of the
+grid holding the list of choices.  The grid dimensions are fixed at
+construction; the grid will not resize.
+
+
+
+If neither \texttt{-nrows} or \texttt{-ncols} is specified, the initial estimate
+is determined by using the \texttt{-aspectratio}; the number of rows is then
+tweaked until there are enough grid locations available.
+
+
+
+If \texttt{-ncols} is specified, the number of columns is fixed to that value,
+and the number of rows is calculated.
+
+
+
+If \texttt{-nrows} is specified, and \texttt{-ncols} is not, the number of rows is
+fixed to that value and the number of columns is calculated.
+
+
+
+If both \texttt{-ncols} and \texttt{-nrows} are specified, these are used as the
+initial guess, and the number of rows is incremented if necessary to
+accomodate the number of entries.
+
+\subsection*{ADVERTISED WIDGETS\label{Tk::EnumList_ADVERTISED_WIDGETS}\index{Tk::EnumList!ADVERTISED WIDGETS}}
+
+
+None.
+
+\subsection*{AUTHOR\label{Tk::EnumList_AUTHOR}\index{Tk::EnumList!AUTHOR}}
+
+
+Diab Jerius $<$djerius@cpan.org$>$
+
+\subsection*{COPYRIGHT AND LICENSE\label{Tk::EnumList_COPYRIGHT_AND_LICENSE}\index{Tk::EnumList!COPYRIGHT AND LICENSE}}
+
+
+Copyright 2005 Diab Jerius
+
+
+
+This software is released under the GNU General Public License. You
+may find a copy at \textsf{http://www.fsf.org/copyleft/gpl.html}.
+
+\clearpage
+\section{Tk::ViewTable\label{Tk::ViewTable}\index{Tk::ViewTable}}
+
+
+Add functions to a Tk::Table widget
+
+\subsection*{VERSION\label{Tk::ViewTable_VERSION}\index{Tk::ViewTable!VERSION}}
+
+
+\$Revision: 1.2 \$
+
+\subsection*{SYNOPSIS\label{Tk::ViewTable_SYNOPSIS}\index{Tk::ViewTable!SYNOPSIS}}
+\begin{verbatim}
+   require Tk::ViewTable
+   $table = $frame->Table(-rows => 6,
+                          -columns => 13,
+                          -fixedrows => 2,
+                          -scrollbars => 'w',
+                          -takefocus => 0,
+                          )->pack(-side => 'top');
+\end{verbatim}
+\subsection*{DESCRIPTION\label{Tk::ViewTable_DESCRIPTION}\index{Tk::ViewTable!DESCRIPTION}}
+
+
+Adds methods to shift and retain focus on widgets within the table.
+
+\subsection*{PUBLIC METHODS\label{Tk::ViewTable_PUBLIC_METHODS}\index{Tk::ViewTable!PUBLIC METHODS}}
+\subsubsection*{Populate\label{Tk::ViewTable_Populate}\index{Tk::ViewTable!Populate}}
+
+
+Sets up a tagged binding for children which will refocus to the table widget
+if they don't take focus when Button1 (left mouse button) is clicked
+
+\subsubsection*{tableFocus\label{Tk::ViewTable_tableFocus}\index{Tk::ViewTable!tableFocus}}
+
+
+Call back which sets focus on the table if the widget doesn't take focus
+
+\subsection*{PRIVATE METHODS\label{Tk::ViewTable_PRIVATE_METHODS}\index{Tk::ViewTable!PRIVATE METHODS}}
+\subsubsection*{ClassInit\label{Tk::ViewTable_ClassInit}\index{Tk::ViewTable!ClassInit}}
+
+
+Overrides buttons so that clicking on them causes focus to shift to it
+
+\subsubsection*{put\label{Tk::ViewTable_put}\index{Tk::ViewTable!put}}
+
+
+Overrides the put command of a Table widget to get the focus to step through
+children in a table
+
+\subsubsection*{focusNextEntry\label{Tk::ViewTable_focusNextEntry}\index{Tk::ViewTable!focusNextEntry}}
+
+
+Puts focus on next or previous entry
+
+\subsubsection*{firstFocus\label{Tk::ViewTable_firstFocus}\index{Tk::ViewTable!firstFocus}}
+
+
+Finds first child of a parent which will accept focus.
+
+\subsubsection*{lastFocus\label{Tk::ViewTable_lastFocus}\index{Tk::ViewTable!lastFocus}}
+
+
+Finds last child of a parent which will accept focus.
+
+\subsubsection*{myFocusOK\label{Tk::ViewTable_myFocusOK}\index{Tk::ViewTable!myFocusOK}}
+
+
+Returns true if takefocus is successful
+
+\subsection*{DEPENDENCIES\label{Tk::ViewTable_DEPENDENCIES}\index{Tk::ViewTable!DEPENDENCIES}}
+
+
+This module has no dependencies.
+
+\subsection*{BUGS AND LIMITATIONS\label{Tk::ViewTable_BUGS_AND_LIMITATIONS}\index{Tk::ViewTable!BUGS AND LIMITATIONS}}
+
+
+There are no known bugs in this module.
+Please report problems to Sherry Winkelman swinkelman@cfa.harvard.edu
+Patches are welcome.
+
+\subsection*{AUTHOR\label{Tk::ViewTable_AUTHOR}\index{Tk::ViewTable!AUTHOR}}
+
+
+Diab Jerius
+
+\subsection*{LICENCE AND COPYRIGHT\label{Tk::ViewTable_LICENCE_AND_COPYRIGHT}\index{Tk::ViewTable!LICENCE AND COPYRIGHT}}
+
+
+Copyright (c) 2005, Diab Jerius
+
+\printindex
+
+\end{document}

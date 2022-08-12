@@ -1,0 +1,1120 @@
+#!@PERLDB@ 
+#----------------------------------
+# Copyright (c) 1995, 2022 Smithsonian Astrophysical Observatory
+# You may not do anything you like with this file. 
+#
+# FILE NAME:  op_reports.pl
+# DEVELOPMENT:
+#       Observation processing script to write tab-delimited reports.
+#
+#       Reports:
+#                stats   -  first processing, first approved, default,latest
+#                           processing dates by obi         
+#                dates   -  only shows the obsid,obi,processing/vv dates, no other fields
+#                           used for debugging right now
+#
+#
+# NOTES:       
+#             
+#     science_1.ontime    = good time  (need to add alt_exp_mode values)
+#     science_1.adm_time  = on target time
+#
+# INPUT:       user input
+#
+# REVISION HISTORY:
+#
+# Date: 
+#---------------------------------------------------------
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use Getopt::Std;
+use strict;
+use DBI;
+use Time::Local;
+use POSIX;
+
+use vars qw( $db_dlm $report_type $key_dlm
+	@hdr  @stats_hdr @dates_hdr $srvr
+	$sql_date_fmt $sql_time_fmt $order
+	$estmt $out_file $debugit $stmp
+	$dsn $dbh $pwd  $user $convert2gmt
+	$opt_e $opt_U $opt_o $opt_z $opt_r  $opt_S $opt_d
+	%dbresults 
+	@display_order @blanks %obs_tab
+	$obsid $seqnbr $object $obsdate $obsend $obi $obs_ao
+	$pub_date $type $rights $app_time $ocat_status $sched_time
+	$f_ap_status $f_ap_date $f_ap_version 
+	$f_vv_status $f_vv_date
+        $d_ap_status $d_ap_date  $d_ap_version 
+	$d_vv_status $d_vv_date $d_dd_date $d_mail_date 
+	$d_ontime $d_goodtime  $d_chargetime
+        $df_ap_status $df_ap_date  $df_ap_version 
+	$df_vv_status $df_vv_date $df_dd_date $df_mail_date 
+	$df_ontime $df_goodtime  $df_chargetime $df_vv_version
+	$l_ap_status $l_ap_date $l_ap_version 
+	$l_vv_status $l_vv_date $cdo_review
+	$ii @the_results @local2gmt_dates
+	);
+
+@dates_hdr = (
+    "ObsId",
+    "Obi",
+    "First Proc ",
+    "First V&V ",
+    "Dist1 Proc ",
+    "Dist1 V&V ",
+    "Default Proc ",
+    "Default V&V ",
+    "Latest Proc ",
+    "Latest V&V "
+    );
+
+@stats_hdr = (
+    "ObsId",
+    "Object",
+    "Type",
+    "Seq Num",
+    "Obi",
+    "OCat Status",
+    "Start Time",
+    "Stop Time",
+    "Apprvd Time (ks)",
+    "Sched Time (ks)",
+    "First Proc Version",
+    "First Proc Date",
+    "First Proc Status",
+    "First V&V Date",
+    "First V&V Status",
+    "Dist1 Proc Version",
+    "Dist1 Proc Date",
+    "Dist1 Proc Status",
+    "Dist1 V&V Date",
+    "Dist1 V&V Status",
+    "Dist1 Distr Date",
+    "Dist1 Mailed Date",
+    "Dist1 OnTgt Time",
+    "Dist1 Good Time",
+    "Dist1 Charge Time",
+    "Default Proc Version",
+    "Default Proc Date",
+    "Default Proc Status",
+    "Default V&V Date",
+    "Default V&V Status",
+    "Default Notif Date",
+    "Default Mailed Date",
+    "Default OnTgt Time",
+    "Default Good Time",
+    "Default Charge Time",
+    "Latest Proc Version",
+    "Latest Proc Date",
+    "Latest Proc Status",
+    "Latest V&V Date",
+    "Latest V&V Status",
+    "Observing AO"
+    );
+
+# ***************** MAIN ***********************************
+  &parse_input;
+  &connect_database;
+  $db_dlm = "\t";
+  $key_dlm = "i";
+  $sql_date_fmt = "111";
+  $sql_time_fmt = "108";
+
+  if ($report_type =~ /dates/) {
+    $order = "obidet_0_5.obsid,obidet_0_5.obi"; 
+  }
+  else { 
+    $order = "obidet_0_5.date_end,obidet_0_5.obsid,obidet_0_5.obi"; 
+  }
+
+  # first get the basic data
+  &retrieve_basic_data;
+  
+  #sum up ontimes by obsid/obi/science_2 for alt_exp_mode
+  &sum_ontimes;
+
+  &first_proc_version;
+  &first_app_proc;
+  &default_app_proc;
+  &latest_proc;
+
+  #drop table build by sum_ontimes
+  $dbh->do("drop table #dtest2");
+
+
+  $dbh->disconnect;
+  if ($report_type =~ /stats/) {
+    @hdr = @stats_hdr;
+  }
+  elsif ($report_type =~ /dates/) {
+    @hdr = @dates_hdr;
+  }
+
+
+  # setup the output formats
+  &build_results_table;
+  $ii = $#the_results + 1;
+  print STDERR "Results: $ii records processed.\n";
+
+  &display_output_results(0);
+
+  if ($opt_z) {
+    close DBG_FILE;
+  }
+
+
+# ********************  SUBROUTINES **************************
+
+#------------------------------------------------------------
+sub parse_input 
+{
+  # default report type
+  $report_type = "stats";   
+
+
+  getopts('dU:o:r:ze:S:');
+  if (!$opt_U || !$opt_o) {
+    &print_usage;
+    exit 1;
+  }
+  $user = $opt_U;
+  if (defined $opt_S) {
+    $srvr = $opt_S;
+  } else {
+    $srvr = "ocatsqlsrv";
+  }
+  $out_file = $opt_o;
+  
+  if ($opt_e) {
+    print STDERR "Including  ER's ... \n";
+  }
+  else {
+    $estmt = qq( and target_info.type != "ER" and ocat_status != "canceled"
+	and ocat_status != "discarded" );
+  }
+
+  if ($opt_d) {
+    $convert2gmt = 0;
+  }
+  else {
+    $convert2gmt = 1;
+  }
+
+  if ($opt_z) {
+    $debugit = 1;
+    print STDERR "Opening debug file debug.txt\n";
+    open DBG_FILE,"> debug.txt";
+  }
+  if ($opt_r) {
+    if ($opt_r =~ /stat/) {
+      $report_type = "stats";
+    }
+    elsif ($opt_r =~ /date/) {
+      $report_type = "dates";
+    }
+  }
+
+}
+
+#------------------------------------------------------------
+sub print_usage
+{
+  print STDERR "USAGE: op_reports.pl -U dbuser [-r report_type] -o output_filename\n";
+  print STDERR "       -U    - database user name \n";
+  print STDERR "       -r    - observation processing report format\n";
+  print STDERR "               stats   : status by obsid,obi (default)\n";
+  print STDERR "               dates   : only status/dates by obsid,obi \n";
+  print STDERR "       -o    - full output filename for tab delimited results\n";
+  print STDERR "       -d    - if flag supplied keep default time zones,
+                               otherwise convert Local times to GMT  \n"
+;
+}
+ 
+#------------------------------------------------------------
+sub connect_database
+{
+
+  # get the password
+  system "stty -echo";
+  print STDERR "Password: ";
+  chomp($pwd = <STDIN>);
+  print STDERR "\n";
+  system "stty echo";
+
+
+
+  $stmp = "server=$srvr;database=axafapstat";
+  $dsn = "DBI:Sybase:$stmp";
+  $dbh = DBI->connect($dsn,$user, $pwd, {
+        PrintError => 1,
+        RaiseError => 0});
+  if ( !defined $dbh) {
+     exit 1;
+  }
+}
+
+#----------------------------------------------------------
+sub debug
+{
+  my($str) = @_;
+
+  if ($debugit) {
+    print DBG_FILE ("$str\n");
+  }
+}
+
+#---------------------------------------------
+sub build_results_table
+{
+  my($ii);
+  my(@myarr) = () ;
+
+  $ii = $#display_order + 1;
+  &debug("building the results  $ii\n");
+  @the_results=();
+  # Convert dates to GMT/UTC. $obsdate and $obsend are in TT (~UTC)
+  # all other dates are in local (EST/EDT) time.
+
+  for ($ii=0;$ii <= $#display_order;$ii++) {
+    &get_obsid_entry("$display_order[$ii]",1);
+
+    if ($obsid !~ / /) {
+      if($report_type =~ /stats/ ) {
+        # Convert all dates from axafobstat from local to GMT/UTC
+        for my $date ($f_ap_date,
+                      $f_vv_date,
+                      $d_ap_date,
+                      $d_vv_date,
+                      $d_dd_date,
+                      $d_mail_date,
+                      $df_ap_date,
+                      $df_vv_date,
+                      $df_dd_date,
+                      $df_mail_date,
+                      $l_ap_date,
+                      $l_vv_date){
+          # Dates can be undefined or have whitespace when empty.
+          if($convert2gmt && defined $date && $date !~ /^\s*$/){
+            $date = local2gmt($date);
+          }
+        }
+
+        @myarr = ($obsid,$object,$type,$seqnbr,$obi,$ocat_status,
+		$obsdate,$obsend,$app_time,$sched_time,
+		$f_ap_version,$f_ap_date,$f_ap_status,
+		$f_vv_date,$f_vv_status,
+		$d_ap_version, $d_ap_date , $d_ap_status,
+     		$d_vv_date,$d_vv_status,$d_dd_date,$d_mail_date,
+     		$d_ontime,$d_goodtime, $d_chargetime,
+		$df_ap_version, $df_ap_date , $df_ap_status,
+     		$df_vv_date,$df_vv_status,$df_dd_date,$df_mail_date,
+     		$df_ontime,$df_goodtime, $df_chargetime,
+		$l_ap_version,$l_ap_date,$l_ap_status,
+		$l_vv_date,$l_vv_status,$obs_ao
+		);
+      }
+      elsif($report_type =~ /dates/ ) {
+        @myarr = ($obsid,$obi,
+		$f_ap_date,$f_vv_date,
+		$d_ap_date,$d_vv_date,
+		$df_ap_date,$df_vv_date,
+		$l_ap_date,$l_vv_date);
+      }
+
+      $stmp = join($db_dlm,@myarr);
+      $stmp =~ s/             /       -       /g;
+      $stmp =~ s/             /       -       /g;
+      push(@the_results,$stmp);
+    }
+  }
+}
+
+#----------------------------------------------------------
+sub display_output_results()
+{
+  my($ecnt) = @_;
+  my($hh);
+
+  open (OFILE,">$out_file");
+
+  #print the headers
+  foreach $hh (@hdr) {
+    print OFILE "$hh";
+    print OFILE "$db_dlm";
+  }
+  print OFILE ("\n");
+
+  foreach $hh (@the_results) {
+    print OFILE ("$hh\n");
+  }
+  close OFILE;
+}
+
+
+
+
+
+
+#--------------------------------------------------------------------
+# retrieve all the data for a specified obsid entry
+#--------------------------------------------------------------------
+sub get_obsid_entry
+{
+  my($key,$deleteit) = @_;
+  my($str);
+  my(@blanks);
+
+  $str = $dbresults{$key};
+  if ($str) {
+    ($obsid,$obi,$seqnbr,$object,$ocat_status,$obsdate,$obsend,
+     $app_time,$sched_time,$type,$rights,$pub_date,
+     $f_ap_status,$f_ap_date ,$f_ap_version,
+     $f_vv_status,$f_vv_date,
+     $d_ap_status,$d_ap_date ,$d_ap_version,
+     $d_vv_status,$d_vv_date,$d_dd_date,$d_mail_date,
+     $d_ontime,$d_goodtime, $d_chargetime,
+     $df_ap_status,$df_ap_date ,$df_ap_version,
+     $df_vv_status,$df_vv_date,$df_dd_date,$df_mail_date,
+     $df_ontime,$df_goodtime, $df_chargetime,$df_vv_version,
+     $l_ap_status,$l_ap_date ,$l_ap_version,
+     $l_vv_status,$l_vv_date,$cdo_review,$obs_ao
+    ) = split($db_dlm,$str);
+
+  }
+  else {
+    @blanks = split(/,/,(" ," x 50));
+    ($obsid,$obi,$seqnbr,$object,$ocat_status,$obsdate,$obsend,
+     $app_time,$type,$rights,$pub_date,
+     $f_ap_status,$f_ap_date ,$f_ap_version,
+     $f_vv_status,$f_vv_date,
+     $d_ap_status,$d_ap_date ,$d_ap_version,
+     $d_vv_status,$d_vv_date,$d_dd_date,$d_mail_date,
+     $d_ontime,$d_goodtime, $d_chargetime,
+     $df_ap_status,$df_ap_date ,$df_ap_version,
+     $df_vv_status,$df_vv_date,$df_dd_date,$df_mail_date,
+     $df_ontime,$df_goodtime, $df_chargetime,$df_vv_version,
+     $l_ap_status,$l_ap_date ,$l_ap_version,
+     $l_vv_status,$l_vv_date,$cdo_review,$obs_ao
+    ) = @blanks;
+  }
+  if ($deleteit == 1) {
+    #&debug(" deleting $obsid ");
+    $dbresults{$key} = "";
+  }
+}
+
+
+#--------------------------------------------------------------------
+# add/replace all the data for a specified obsid entry
+#--------------------------------------------------------------------
+sub set_obsid_entry {
+
+  my($key) = @_;
+  my(@myarr,$str);
+
+  @myarr =
+    ($obsid,$obi,$seqnbr,$object,$ocat_status,$obsdate,$obsend,
+     $app_time,$sched_time,$type,$rights,$pub_date,
+     $f_ap_status,$f_ap_date ,$f_ap_version,
+     $f_vv_status,$f_vv_date,
+     $d_ap_status,$d_ap_date ,$d_ap_version,
+     $d_vv_status,$d_vv_date,$d_dd_date,$d_mail_date,
+     $d_ontime,$d_goodtime, $d_chargetime,
+     $df_ap_status,$df_ap_date ,$df_ap_version,
+     $df_vv_status,$df_vv_date,$df_dd_date,$df_mail_date,
+     $df_ontime,$df_goodtime, $df_chargetime,$df_vv_version,
+     $l_ap_status,$l_ap_date ,$l_ap_version,
+     $l_vv_status,$l_vv_date,$cdo_review,$obs_ao
+    );
+
+
+  $str = join($db_dlm,@myarr);
+  $dbresults{$key} = $str;
+
+}
+
+#-------------------------------------------------------------------
+# yyyy/mm/dd hh:mm
+#-------------------------------------------------------------------
+sub compare_dates
+{
+  my($d1,$d2) = @_;
+
+  my(@d1,@d2,$t1,$t2,$m1,$m2) ;
+
+
+  if (length($d1) > 1 and length($d2) < 2) {
+     return -1;
+  }
+  if (length($d2) > 1 and length($d1) < 2) {
+     return 1;
+  }
+  
+  $d1 =~ s/ /\//;
+  $d1 =~ s/\:/\//g;
+  $d2 =~ s/ /\//;
+  $d2 =~ s/\:/\//g;
+
+
+  @d1 = split(/\//,$d1);
+  $m1 = $d1[1] - 1;
+
+  @d2 = split(/\//,$d2);
+  $m2 = $d2[1] - 1;
+
+
+  if ($m1 < 0 || $m2 < 0) {
+    return ($m1 - $m2);
+  }
+  else {
+    # mm dd yy hh mm
+    $t1 = timelocal(0,$d1[4],$d1[3],$d1[2],$m1,$d1[0]);
+    $t2 = timelocal(0,$d2[4],$d2[3],$d2[2],$m2,$d2[0]);
+   
+    return ($t1 - $t2); 
+  }
+}
+
+#-------------------------------------------------------------------
+# Converts from local time to gmt/utc
+# Input looks like: YYYY/mm/dd HH:MM
+#-------------------------------------------------------------------
+sub local2gmt{
+  my($localt) = @_;
+  my(@localt,$epoch,$m1, @gmt, $gmt) ;
+
+  $localt =~ s/ /\//;
+  $localt =~ s/\:/\//g;
+
+  @localt = split(/\//,$localt);
+  $m1 = $localt[1] - 1; # timelocal takes month as 0-11
+
+  # local to epoch
+  # timelocal takes input as MM HH dd mm YY, 
+  $epoch = timelocal(0,$localt[4], $localt[3], $localt[2], $m1, $localt[0]);
+   
+  # epoch to gmt
+  @gmt = gmtime($epoch);
+
+  # Convert back to YYYY/mm/dd HH:MM
+  $gmt = strftime "%Y/%m/%d %H:%M", @gmt;
+
+  return $gmt
+}
+
+#----------------------------------------------------------------------
+# retrieve basic data from target_info so we know what
+# obsids to start working with (eventually add issues in)
+#----------------------------------------------------------------------
+sub retrieve_basic_data
+{
+
+  my ($basic_dbcols) = qq( target_info.obsid,
+        target_info.seq_nbr,
+        target_info.targname,
+        target_info.ocat_status,
+        convert(decimal(7,2),target_info.appr_exp_time),
+        target_info.type,
+        target_info.data_rights,
+        (convert(varchar(10),date_obs,$sql_date_fmt)
+    	+ " " + convert(varchar(5),date_obs,$sql_time_fmt)),
+        convert(varchar(10),public_date,$sql_date_fmt),
+        (convert(varchar(10),date_end,$sql_date_fmt)
+    	+ " " + convert(varchar(5),date_end,$sql_time_fmt)),
+	sched_exp_time,	
+	obidet_0_5.obi,axafocat..target.obs_ao_str);
+
+  my ($basic_constraints) = qq(
+        target_info.obsid *= axafocat..target.obsid and
+        target_info.obsid = obidet_0_5.obsid and
+        obidet_0_5.obidet_0_5_id *= science_1.obidet_0_5_id and
+        obidet_0_5.revision = (select max(revision) from obidet_0_5 o2 where
+        o2.obsid = obidet_0_5.obsid and o2.obi = obidet_0_5.obi) );
+
+
+  my($sql_stmt,$sth,@row,$cnt,$str,$keyval);
+
+  $basic_constraints .= qq(\n $estmt);
+  $sql_stmt = "select distinct $basic_dbcols ";
+  $sql_stmt .= qq(\nfrom target_info,obidet_0_5,science_1,axafocat..target where\n);
+
+  $sql_stmt .= "$basic_constraints ";
+  if ($order) {
+   $sql_stmt .= "\norder by $order";
+  }
+  else {
+   $sql_stmt .= " order by target_info.obsid ";
+  }
+
+  &debug("Basic query: $sql_stmt\n");
+  $sth = $dbh->prepare($sql_stmt);
+  if ($sth->execute()) {
+
+    while (@row = $sth->fetchrow_array)
+    {
+
+      ($obsid,$seqnbr,$object,$ocat_status,
+       $app_time,$type,$rights,$obsdate,
+       $pub_date,$obsend,$sched_time,$obi,$obs_ao ) = @row;
+       $keyval = $obsid . $key_dlm . $obi;
+       &set_obsid_entry($keyval);
+       push(@display_order,$keyval);
+       $stmp = $obs_tab{$obsid};
+       $stmp .= $obi . $key_dlm;
+       $obs_tab{$obsid} = $stmp;
+    }
+  }
+  else {
+    &debug("Basic query failed\n");
+  }
+
+  &debug("\n");
+  $cnt = $#display_order + 1;
+  &debug("Retrieved $cnt entries.\n");
+  print STDERR "Retrieved $cnt entries.\n";
+  
+
+
+}
+
+
+
+#-----------------------------------------------------------------
+# Lowest Proc version where Proc Status = DONE or Status = completed 
+# and Proc date > Obs date.  Custom Processing (CP) is included.  V&V 
+# may be null; or Proc & V&V may be null.
+#-----------------------------------------------------------------
+sub first_proc_version 
+{
+
+  my($sth,$sthcp,@row,$sql_stmt,$keyval,$str);
+  my($hh,@o2,$dc1,$dc2,$cnt);
+
+  $dbh->do(qq(create table #dtestvv (vvid int, obsid int, l2_version int,
+	vv_state varchar(20) NULL, vv_date datetime NULL)));
+  
+  
+  $dbh->do(qq(insert #dtestvv select
+	vvid,obsid,l2_version,vv_state,completion_date
+	from axafvv..vvreport 
+	));
+  $dbh->do(qq(create index dvv_vvid on  #dtestvv(vvid)));
+  $dbh->do(qq(create index dvv_obsid on  #dtestvv(obsid)));
+
+  $dbh->do(qq(update #dtestvv set vv_date = vvreview.creation_date ,
+	vv_state=vvreview.review_type
+	from #dtestvv,axafvv..vvreview vvreview where 
+	#dtestvv.vvid = vvreview.vvid and 
+	vvreview.creation_date < vv_date));
+
+
+  $sql_stmt = qq(select distinct science_2_obi.obsid,science_2_obi.obi,
+	science_2.ap_status,
+        (convert(varchar(10),science_2.ap_date,$sql_date_fmt)
+    	+ " " + convert(varchar(5),science_2.ap_date,$sql_time_fmt)),
+	science_2.revision,
+	#dtestvv.vv_state,
+        (convert(varchar(10),#dtestvv.vv_date,$sql_date_fmt)
+    	+ " " + convert(varchar(5),#dtestvv.vv_date,$sql_time_fmt))
+	from science_2,science_2_obi,target_info,#dtestvv 
+	where
+	science_2.obsid = target_info.obsid and
+	science_2.science_2_id = science_2_obi.science_2_id and
+	science_2.ap_status = "DONE" and
+	science_2.revision *= #dtestvv.l2_version and
+	science_2.obsid *= #dtestvv.obsid and
+	science_2.ap_date = (select min(ap_date) 
+	from science_2_obi sob ,science_2 s2b
+	where s2b.obsid = science_2.obsid and 
+	s2b.science_2_id = sob.science_2_id and
+	s2b.ap_status = "DONE" and
+	sob.obi = science_2_obi.obi )
+	);
+
+  $sql_stmt .= $estmt;
+  $sql_stmt .= qq( order by science_2.ap_date desc,#dtestvv.vv_date desc);
+  &debug("First processing: $sql_stmt\n");
+ 
+  #first query the science_2/vvreport table
+  $sth = $dbh->prepare($sql_stmt);
+  if ($sth->execute()) {
+    while (@row = $sth->fetchrow_array)
+    {
+       $keyval = $row[0] . $key_dlm . $row[1];
+       &get_obsid_entry($keyval);
+       ($obsid,$obi,$f_ap_status,$f_ap_date ,$f_ap_version,
+	$f_vv_status,$f_vv_date) = @row;
+       &set_obsid_entry($keyval);
+     }
+  }
+  else {
+    print STDERR "First processing Query failed!\n";
+  }
+  $cnt = $sth->rows;
+  print STDERR "Retrieved $cnt  first processing query\n";
+
+  #now pick up the cpstat if necessary
+  $sql_stmt = qq(select distinct vvreport.obsid,
+	"Completed",
+        (convert(varchar(10),vvreport.l2_ap_date,$sql_date_fmt)
+    	+ " " + convert(varchar(5),vvreport.l2_ap_date,$sql_time_fmt)),
+	NULL,
+	#dtestvv.vv_state,
+        (convert(varchar(10),#dtestvv.vv_date,$sql_date_fmt)
+    	+ " " + convert(varchar(5),#dtestvv.vv_date,$sql_time_fmt)),
+	NULL
+	from axafvv..vvreport vvreport,target_info,#dtestvv where
+	target_info.obsid = vvreport.obsid and
+        vvreport.proc_type = "CP" and
+	vvreport.vvid *= #dtestvv.vvid );
+  $sql_stmt .= $estmt;
+  $sql_stmt .= qq( order by vvreport.l2_ap_date);
+  &debug("First custom processing: $sql_stmt\n");
+  $sthcp = $dbh->prepare($sql_stmt);
+
+  if ($sthcp->execute()) {
+    while (@row = $sthcp->fetchrow_array)
+    {
+       # for each obsid/obi
+       @o2 = split($key_dlm,$obs_tab{$row[0]});
+       foreach $hh (@o2) {
+         if ($hh >= 0) {
+           $stmp = $row[0] . $key_dlm . $hh; 
+           &get_obsid_entry($stmp);
+           $dc1 = &compare_dates($row[2],$f_ap_date);
+           $dc2 = &compare_dates($row[2],$obsend);
+           if ($dc2 > 0 && (length($f_ap_date) <= 1 || $dc1 < 0 ) ) {
+             ($obsid,$f_ap_status,$f_ap_date ,$f_ap_version,
+	      $f_vv_status,$f_vv_date) = @row;
+             &set_obsid_entry($stmp);
+             &debug("Using custom entry for $obsid $obi");
+           }
+         }
+       }
+     }
+     $cnt = $sthcp->rows;
+     print STDERR "Retrieved $cnt first processing custom query\n";
+   }
+   else {
+     print STDERR "First processing custom query failed!\n";
+   }
+   print STDERR "Finished first processing query\n";
+   $dbh->do("drop table #dtestvv ");
+
+}
+
+#-------------------------------------------------------------------
+# Lowest Proc version where V&V Status = OK or ReprReq+Dist and Proc 
+# date > Obs date.  Custom processing is included.  These columns may 
+# duplicate the first processing columns.  Mail date, or mail date and 
+# distribution date, or all may be null.
+#-------------------------------------------------------------------
+sub first_app_proc
+{
+  my($sth,$sthcp,@row,$sql_stmt,$keyval);
+  my($hh,@o2,$dc1,$dc2,$cnt);
+
+  $sql_stmt = qq(create table #dtest3 (obsid int, obi int, max_vv int NULL,
+	completion_date datetime NULL,
+        vv_state varchar(20) NULL,revision int, 
+	ap_date datetime, ap_status varchar(20),
+        adm_time float NULL,charge_time float NULL,s2_id int));
+  $dbh->do($sql_stmt);
+  $sql_stmt = qq(insert #dtest3 select v2.obsid,sob.obi,s2.max_vv,
+	v2.completion_date,v2.vv_state,
+        s2.revision , s2.ap_date, s2.ap_status, s1.adm_time,
+	v2.charge_time,s2.science_2_id 
+        from axafvv..vvreport v2,science_2 s2, science_2_obi sob,
+        science_1 s1 where
+        s2.max_vv = v2.vvid and
+        s2.science_2_id = sob.science_2_id and
+        sob.science_1_id = s1.science_1_id);
+  $dbh->do($sql_stmt);
+  $dbh->do("create index d3_obsid on #dtest3(obsid)");
+  $dbh->do("create index d3_obi on #dtest3(obsid,obi)");
+
+
+
+  $sql_stmt = qq(select distinct #dtest3.obsid,#dtest3.obi,
+	#dtest3.ap_status,
+        (convert(varchar(10),#dtest3.ap_date,$sql_date_fmt) 
+    	+ " " + convert(varchar(5),#dtest3.ap_date,$sql_time_fmt)),
+	#dtest3.revision,
+	#dtest3.vv_state,
+        (convert(varchar(10),#dtest3.completion_date,$sql_date_fmt)
+    	+ " " + convert(varchar(5),#dtest3.completion_date,$sql_time_fmt)),
+        (convert(varchar(10),ven.email_notification_date,$sql_date_fmt)
+    	+ " " + convert(varchar(5),ven.email_notification_date,$sql_time_fmt)),
+        (convert(varchar(10),dd.medium_mail_date,$sql_date_fmt)
+    	+ " " + convert(varchar(5),dd.medium_mail_date,$sql_time_fmt)),
+	adm_time,#dtest2.ontime,charge_time
+	from #dtest3,target_info,axafobstat..view_email_notification ven,
+	axafobstat..dd_status dd,#dtest2
+	where
+        #dtest3.obsid *= ven.obsid and
+        #dtest3.revision *= ven.l2_version and
+	#dtest3.obsid = target_info.obsid and
+	#dtest3.s2_id = #dtest2.s2_id and
+	#dtest3.obi = #dtest2.obi and
+	#dtest3.max_vv *= dd.vvid  and
+	(#dtest3.vv_state = "OK" or #dtest3.vv_state = "Repr+DD") and
+        #dtest3.completion_date = (select min(completion_date) 
+	from #dtest3 d3 where
+        #dtest3.obsid = d3.obsid and
+        #dtest3.obi = d3.obi and
+	(d3.vv_state = "OK" or d3.vv_state = "Repr+DD")) 
+	);
+
+  $sql_stmt .= $estmt;
+  &debug("First approved processing: $sql_stmt\n");
+  $sth = $dbh->prepare($sql_stmt);
+ 
+  $sql_stmt = qq(select distinct vvrpt.obsid,
+	"Completed",
+        (convert(varchar(10),vvrpt.l2_ap_date,$sql_date_fmt) 
+    	+ " " + convert(varchar(5),vvrpt.l2_ap_date,$sql_time_fmt)),
+	NULL,
+	vvrpt.vv_state,
+        (convert(varchar(10),vvrpt.completion_date,$sql_date_fmt)
+    	+ " " + convert(varchar(5),vvrpt.completion_date,$sql_time_fmt)),
+        (convert(varchar(10),ven.email_notification_date,$sql_date_fmt)
+    	+ " " + convert(varchar(5),ven.email_notification_date,$sql_time_fmt)),
+        (convert(varchar(10),dd.medium_mail_date,$sql_date_fmt)
+    	+ " " + convert(varchar(5),dd.medium_mail_date,$sql_time_fmt)),
+	NULL,good_time,charge_time
+	from target_info,axafvv..vvreport vvrpt,
+        axafobstat..view_email_notification_cp ven,
+	axafobstat..dd_status dd where
+	vvrpt.obsid = target_info.obsid and
+	vvrpt.obsid *= ven.obsid and
+	vvrpt.l2_version *= ven.l2_version and
+	vvrpt.vv_version *= ven.vv_version and
+	vvrpt.proc_type = "CP" and
+	vvrpt.vvid *= dd.vvid and
+	(vvrpt.vv_state = "OK" or vvrpt.vv_state = "Repr+DD") 
+	);
+
+  $sql_stmt .= $estmt;
+  $sql_stmt .= qq( order by vvrpt.completion_date);
+  &debug("First custom approved: $sql_stmt\n");
+  $sthcp = $dbh->prepare($sql_stmt);
+
+  #first query the science_2/vvreport table
+  if ($sth->execute()) {
+    while (@row = $sth->fetchrow_array)
+    {
+       $keyval = $row[0] . $key_dlm . $row[1];
+       &get_obsid_entry($keyval);
+       ($obsid,$obi,$d_ap_status,$d_ap_date ,$d_ap_version,
+	$d_vv_status,$d_vv_date,$d_dd_date,$d_mail_date,
+	$d_ontime,$d_goodtime, $d_chargetime) = @row;
+       &set_obsid_entry($keyval);
+     }
+  }
+  else {
+    print STDERR "First approved processing Query failed!\n";
+  }
+  $cnt = $sth->rows;
+  print STDERR "Retrieved $cnt  first approved processing query\n";
+
+  #now pick up the cpstat if necessary
+  if ($sthcp->execute()) {
+    while (@row = $sthcp->fetchrow_array)
+    {
+       # for each obsid/obi
+       @o2 = split($key_dlm,$obs_tab{$row[0]});
+       foreach $hh (@o2) {
+         if ($hh >= 0) {
+           $stmp = $row[0] . $key_dlm . $hh; 
+           &get_obsid_entry($stmp);
+           $dc1 = &compare_dates($row[5],$d_vv_date);
+           $dc2 = &compare_dates($row[2],$obsend);
+
+           if ($dc2 >= 0 && (length($f_ap_date) <= 1 || $dc1 < 0 ) ) {
+              ($obsid,$d_ap_status,$d_ap_date ,$d_ap_version,
+	       $d_vv_status,$d_vv_date,$d_dd_date,$d_mail_date,
+	       $d_ontime,$d_goodtime, $d_chargetime) = @row;
+             &set_obsid_entry($stmp);
+             &debug("Using custom entry for $obsid $obi");
+           }
+         }
+       }
+     }
+     $cnt = $sthcp->rows;
+     print STDERR "Retrieved $cnt first approved processing custom query\n";
+   }
+   else {
+     print STDERR "First approved processing custom query failed!\n";
+   }
+   print STDERR "Finished first approved processing query\n";
+
+}
+
+
+#-------------------------------------------------------------------
+# Highest Proc version where V&V Status = OK or ReprReq+Dist and Proc 
+# date > Obs date. Mail date, or mail date and distribution date, or 
+# all may be null.  These columns may duplicate the first distribution 
+# columns.
+#-------------------------------------------------------------------
+sub default_app_proc
+{
+  my($sth,$sthcp,@row,$sql_stmt,$keyval);
+  my($hh,@o2,$dc1,$dc2,$cnt);
+
+  $sql_stmt = qq(select distinct science_2_obi.obsid,science_2_obi.obi,
+	science_2.ap_status,
+        (convert(varchar(10),science_2.ap_date,$sql_date_fmt) 
+    	+ " " + convert(varchar(5),science_2.ap_date,$sql_time_fmt)),
+	science_2.revision,
+	vvrpt.vv_state,
+        (convert(varchar(10),vvrpt.completion_date,$sql_date_fmt)
+    	+ " " + convert(varchar(5),vvrpt.completion_date,$sql_time_fmt)),
+        (convert(varchar(10),ven.email_notification_date,$sql_date_fmt)
+    	+ " " + convert(varchar(5),ven.email_notification_date,$sql_time_fmt)),
+        (convert(varchar(10),dd.medium_mail_date,$sql_date_fmt)
+    	+ " " + convert(varchar(5),dd.medium_mail_date,$sql_time_fmt)),
+	adm_time,#dtest2.ontime,charge_time,vv_version
+	from science_2,science_2_obi,target_info,science_1,#dtest2,
+	axafvv..vvreport vvrpt,axafobstat..dd_status dd,
+        axafobstat..view_email_notification ven
+	where
+	science_2.obsid = target_info.obsid and
+	science_2_obi.science_1_id = science_1.science_1_id and
+	science_2.science_2_id = science_2_obi.science_2_id and
+	science_2.max_vv = vvrpt.vvid  and
+	vvrpt.vvid *= dd.vvid and
+	vvrpt.obsid *= ven.obsid and
+	vvrpt.l2_version *= ven.l2_version and
+	science_2.science_2_id = #dtest2.s2_id and
+	science_2_obi.obi = #dtest2.obi and
+	(vvrpt.vv_state = "OK" or vvrpt.vv_state = "Repr+DD") and
+        vvrpt.l2_version = (select max(l2_version) 
+	from axafvv..vvreport v2,science_2 s2,science_2_obi sob  where
+        vvrpt.obsid = v2.obsid and
+        v2.l2_version = s2.revision and
+        v2.obsid = s2.obsid and
+        s2.science_2_id = sob.science_2_id and
+        sob.obi = science_2_obi.obi and
+	(v2.vv_state = "OK" or v2.vv_state = "Repr+DD")) 
+	);
+
+  $sql_stmt .= $estmt;
+  &debug("Default approved: $sql_stmt\n");
+  $sth = $dbh->prepare($sql_stmt);
+ 
+  $sql_stmt = qq(select distinct vvrpt.obsid,
+	"Completed",
+        (convert(varchar(10),vvrpt.l2_ap_date,$sql_date_fmt)
+    	+ " " + convert(varchar(5),vvrpt.l2_ap_date,$sql_time_fmt)),
+	NULL,
+	vvrpt.vv_state,
+        (convert(varchar(10),vvrpt.completion_date,$sql_date_fmt)
+    	+ " " + convert(varchar(5),vvrpt.completion_date,$sql_time_fmt)),
+        (convert(varchar(10),ven.email_notification_date,$sql_date_fmt)
+    	+ " " + convert(varchar(5),ven.email_notification_date,$sql_time_fmt)),
+        (convert(varchar(10),dd.medium_mail_date,$sql_date_fmt)
+    	+ " " + convert(varchar(5),dd.medium_mail_date,$sql_time_fmt)),
+	NULL,good_time,charge_time,vvrpt.vv_version
+	from target_info,axafvv..vvreport vvrpt,
+	axafobstat..view_email_notification_cp ven,
+	axafobstat..dd_status dd where
+	vvrpt.obsid = target_info.obsid and
+	vvrpt.vvid *= dd.vvid and
+	vvrpt.proc_type = "CP" and
+	vvrpt.obsid *= ven.obsid and
+	vvrpt.l2_version *= ven.l2_version and
+	vvrpt.vv_version *= ven.vv_version and
+	(vvrpt.vv_state = "OK" or vvrpt.vv_state = "Repr+DD") 
+	);
+
+  $sql_stmt .= $estmt;
+  $sql_stmt .= qq( order by vvrpt.vv_version desc);
+  &debug("Default custom approved: $sql_stmt\n");
+  $sthcp = $dbh->prepare($sql_stmt);
+
+  #first query the science_2/vvreport table
+  if ($sth->execute()) {
+    while (@row = $sth->fetchrow_array)
+    {
+       $keyval = $row[0] . $key_dlm . $row[1];
+       &get_obsid_entry($keyval);
+       ($obsid,$obi,$df_ap_status,$df_ap_date ,$df_ap_version,
+	$df_vv_status,$df_vv_date,$df_dd_date,$df_mail_date,
+	$df_ontime,$df_goodtime, $df_chargetime,$df_vv_version) = @row;
+       &set_obsid_entry($keyval);
+     }
+  }
+  else {
+    print STDERR "Default approved processing Query failed!\n";
+  }
+  $cnt = $sth->rows;
+  print STDERR "Retrieved $cnt  Default approved processing query\n";
+
+  #now pick up the cpstat if necessary
+  if ($sthcp->execute()) {
+    while (@row = $sthcp->fetchrow_array)
+    {
+       # for each obsid/obi
+       @o2 = split($key_dlm,$obs_tab{$row[0]});
+       foreach $hh (@o2) {
+         if ($hh >= 0) {
+           $stmp = $row[0] . $key_dlm . $hh; 
+           &get_obsid_entry($stmp);
+           $dc1 = &compare_dates($row[5],$df_ap_date);
+           $dc2 = &compare_dates($row[2],$obsend);
+           if ($dc2 >= 0 && ($df_ap_version < 1  || $dc1 > 0)  ) {
+             &debug("Using custom entry for $obsid $obi $df_ap_version $df_ap_date\n");
+              ($obsid,$df_ap_status,$df_ap_date ,$df_ap_version,
+	       $df_vv_status,$df_vv_date,$df_dd_date,$df_mail_date,
+	       $df_ontime,$df_goodtime, $df_chargetime) = @row;
+             &set_obsid_entry($stmp);
+           }
+         }
+       }
+     }
+     $cnt = $sthcp->rows;
+     print STDERR "Retrieved $cnt Default approved processing custom query\n";
+   }
+   else {
+     print STDERR "Default approved processing custom query failed!\n";
+   }
+   print STDERR "Finished Default approved processing query\n";
+
+}
+
+#-------------------------------------------------------------------
+# This is the most recent status of processing. It may duplicate the 
+# default version, or it may show a higher failed version, or it may 
+# show an incomplete thread.
+
+# Get the information from process level
+# (V&V may be null; or Proc & V&V may be null)
+#-------------------------------------------------------------------
+
+sub latest_proc
+{
+  my($sth,$sthpl,@row,$sql_stmt,$keyval);
+  my($cnt,$pipeline);
+
+  $sql_stmt = qq(select distinct science_2_obi.obsid,science_2_obi.obi,
+	science_2.ap_status,
+        (convert(varchar(10),science_2.ap_date,$sql_date_fmt) 
+    	+ " " + convert(varchar(5),science_2.ap_date,$sql_time_fmt)),
+	science_2.revision,
+	vvrpt.vv_state,
+        (convert(varchar(10),vvrpt.completion_date,$sql_date_fmt)
+    	+ " " + convert(varchar(5),vvrpt.completion_date,$sql_time_fmt)),
+	NULL
+	from science_2,science_2_obi,target_info,axafvv..vvreport vvrpt
+	where
+	science_2.obsid = target_info.obsid and
+	science_2.science_2_id = science_2_obi.science_2_id and
+	science_2.max_vv *= vvrpt.vvid  and
+	science_2.ap_date = (select max(ap_date) 
+	from science_2_obi sob ,science_2 s2b
+	where s2b.obsid = science_2.obsid and 
+	s2b.science_2_id = sob.science_2_id and
+	sob.obi = science_2_obi.obi ) 
+	);
+  $sql_stmt .= $estmt;
+  &debug("Latest processing: $sql_stmt\n");
+  $sth = $dbh->prepare($sql_stmt);
+
+
+  $sql_stmt = qq(select distinct process_level.obsid,process_level.obi,
+	process_level.ap_status,
+        (convert(varchar(10),process_level.ap_date,$sql_date_fmt)
+    	+ " " + convert(varchar(5),process_level.ap_date,$sql_time_fmt)),
+	process_level.revision,NULL,NULL,pipeline
+	from process_level,target_info
+	where
+	process_level.obsid = target_info.obsid and
+        process_level.pipeline != "science_2"
+	);
+
+  $sql_stmt .= $estmt;
+  &debug("Latest process level: $sql_stmt\n");
+  $sthpl = $dbh->prepare($sql_stmt);
+ 
+  if ($sth->execute()) {
+    while (@row = $sth->fetchrow_array)
+    {
+       $keyval = $row[0] . $key_dlm . $row[1];
+       &get_obsid_entry($keyval);
+       ($obsid,$obi,$l_ap_status,$l_ap_date ,$l_ap_version,
+	$l_vv_status,$l_vv_date,$cdo_review) = @row;
+       &set_obsid_entry($keyval);
+     }
+  }
+  else {
+    print STDERR "Latest processing query failed!\n";
+  }
+  $cnt = $sth->rows;
+  print STDERR "Retrieved $cnt  Latest processing query\n";
+
+  #now pick up the cpstat if necessary
+  if ($sthpl->execute()) {
+    while (@row = $sthpl->fetchrow_array)
+    {
+       # for each obsid/obi
+       $keyval = $row[0] . $key_dlm . $row[1];
+       &get_obsid_entry($keyval);
+       ($obsid,$obi,$l_ap_status,$l_ap_date ,$l_ap_version,
+	$l_vv_status,$l_vv_date,$pipeline) = @row;
+       $l_ap_status .= " $pipeline";
+       &set_obsid_entry($keyval);
+    }
+    $cnt = $sthpl->rows;
+    print STDERR "Retrieved $cnt Latest process level query\n";
+  }
+  else {
+     print STDERR "Latest process_level query failed!\n";
+  }
+  print STDERR "Finished Latest processing query\n";
+}
+
+
+
+#----------------------------------------------------------------------
+# create temp tables for primary/secondary exposure sums of good times
+#----------------------------------------------------------------------
+sub sum_ontimes
+{
+  
+  my($sth,$sthpl,@row,$sql_stmt,$keyval);
+
+  $sql_stmt = qq(create table #dtest (obsid int, obi int, 
+	ontime float NULL, s2_id int));
+  &debug("TEMP: $sql_stmt\n");
+  $dbh->do($sql_stmt);
+
+  $sql_stmt = qq(insert #dtest select distinct science_1.obsid,
+	science_1.obi, ontime, science_2_obi.science_2_id
+	from science_1,target_info,science_2_obi
+	where target_info.obsid = science_1.obsid and
+	target_info.obsid = science_2_obi.obsid and
+	science_2_obi.science_1_id = science_1.science_1_id and
+	target_info.type != "ER");
+  &debug("TEMP: $sql_stmt\n");
+  $dbh->do($sql_stmt);
+
+  $sql_stmt = qq(create table #dtest2 (obsid int, obi int, 
+	ontime float NULL, s2_id int));
+  &debug("TEMP: $sql_stmt\n");
+  $dbh->do($sql_stmt);
+  $sql_stmt = qq(insert #dtest2
+	select distinct obsid,obi,sum(ontime),s2_id from #dtest 
+	group by s2_id,obi);
+  &debug("TEMP: $sql_stmt\n");
+  $dbh->do($sql_stmt);
+  $dbh->do("create index d2_obsid on #dtest2(obsid)");
+  $dbh->do("create index d2_obi on #dtest2(obsid,obi)");
+
+  $dbh->do("drop table #dtest");
+}
+

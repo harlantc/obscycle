@@ -1,0 +1,216 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<!--#include virtual="op_header.html"-->
+<div id="tophdr" class="tophdr">
+<div id="imghdr" class="imghdr">
+<img src="/soft/include/header_left.gif" alt=" " border="0" >
+</div>
+<div id="titlehdr" class="titlehdr">
+Issue Tables
+</div>
+<div id="helphdr" class="helphdr">
+<a href="op_ghelp.html">Help page</a>
+</div>
+</div>
+
+<form METHOD=POST ACTION="/cgi-bin/op/op_issue.cgi" >
+
+
+<br>
+<table width="100%">
+<tr align="center">
+<td>
+<table border="1" cellspacing="0" cellpadding="0"  >
+<tr class="header2" >
+<th>Issue Fields</th>
+<th>Selection Criteria</th>
+</tr>
+
+<tr class="alt1" >
+<td><a href="op_ilist.html#Issueid ">IssueId</a></td>
+<td>
+<table border="0">
+<tr >
+<td>From:&nbsp;<input type="text" name="issueid_from" size=6 maxlength=6></td>
+<td>&nbsp;&nbsp;&nbsp;</td>
+<td>To:&nbsp;<input type="text" name="issueid_to" size=6 maxlength=6></td>
+</tr>
+</table>
+</td>
+</tr>
+
+<tr class="alt2">
+<td><a href="op_ilist.html#Status ">Status </a></td>
+<td>
+<table border="0">
+<tr>
+<td><input type="checkbox" name="status_all" checked> All&nbsp;&nbsp;</td>
+<td><input type="checkbox" name="status_open" > Open&nbsp;&nbsp;</td>
+<td><input type="checkbox" name="status_fixed"> Fixed&nbsp;</td>
+<td><input type="checkbox" name="status_closed"> Closed&nbsp;</td>
+<td><input type="checkbox" name="status_data"> Data&nbsp;&nbsp;</td>
+</tr>
+</table>
+
+</td>
+</tr>
+<tr class="alt1">
+<td ><a href="op_ilist.html#date_entered ">Date Open</a></td>
+<td>
+<table border="0"  >
+<tr align="center">
+<td><i> Include NULLs</i> <input type="checkbox" checked name="date_entered_null"></td><td>&nbsp;&nbsp;</td>
+<td>From</td><td><select name="date_entered_from_m"><option>Mon<option>Jan<option>Feb<option>Mar<option>Apr<option>May<option>Jun<option>Jul<option>Aug<option>Sep<option>Oct<option>Nov<option>Dec</select></td>
+<td><select  name="date_entered_from_d">
+<option>DD<option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8
+<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16
+<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24
+<option>25<option>26<option>27<option>28<option>29<option>30<option>31
+</select></td>
+<td><select name="date_entered_from_y"><option>Year<option>1999<option>2000<option>2001<option>2002<option>2003<option>2004<option>2005<option>2006<option>2007<option>2008<option>2009<option>2010<option>2011<option>2012<option>2013<option>2014<option>2015<option>2016<option>2017<option>2018<option>2019<option>2020</select></td>
+
+<td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+
+<td>&nbsp;To</td><td><select name="date_entered_to_m"><option>Mon<option>Jan<option>Feb<option>Mar<option>Apr<option>May<option>Jun<option>Jul<option>Aug<option>Sep<option>Oct<option>Nov<option>Dec</select></td>
+<td><select  name="date_entered_to_d">
+<option>DD<option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8
+<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16
+<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24
+<option>25<option>26<option>27<option>28<option>29<option>30<option>31
+</select></td>
+
+<td><select name="date_entered_to_y"><option>Year<option>1999<option>2000<option>2001<option>2002<option>2003<option>2004<option>2005<option>2006<option>2007<option>2008<option>2009<option>2010<option>2011<option>2012<option>2013<option>2014<option>2015<option>2016<option>2017<option>2018<option>2019<option>2020</select></td>
+</tr>
+</table>
+
+</td>
+</tr>
+
+
+<tr class="alt2" >
+<td ><a href="op_ilist.html#date_fixed "> Date Fixed</a></td>
+
+<td valign="middle" align="center">
+
+<table border="0"  >
+<tr align="center">
+<td><i> Include NULLs</i> <input type="checkbox" checked name="date_fixed_null"></td><td>&nbsp;&nbsp;</td>
+<td>From</td><td><select name="date_fixed_from_m"><option>Mon<option>Jan<option>Feb<option>Mar<option>Apr<option>May<option>Jun<option>Jul<option>Aug<option>Sep<option>Oct<option>Nov<option>Dec</select></td>
+<td><select  name="date_fixed_from_d">
+<option>DD<option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8
+<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16
+<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24
+<option>25<option>26<option>27<option>28<option>29<option>30<option>31
+</select></td>
+<td><select name="date_fixed_from_y"><option>Year<option>1999<option>2000<option>2001<option>2002<option>2003<option>2004<option>2005<option>2006<option>2007<option>2008<option>2009<option>2010<option>2011<option>2012<option>2013<option>2014<option>2015<option>2016<option>2017<option>2018<option>2019<option>2020</select></td>
+
+<td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+
+<td>&nbsp;To</td><td><select name="date_fixed_to_m"><option>Mon<option>Jan<option>Feb<option>Mar<option>Apr<option>May<option>Jun<option>Jul<option>Aug<option>Sep<option>Oct<option>Nov<option>Dec</select></td>
+<td><select  name="date_fixed_to_d">
+<option>DD<option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8
+<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16
+<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24
+<option>25<option>26<option>27<option>28<option>29<option>30<option>31
+</select></td>
+
+<td><select name="date_fixed_to_y"><option>Year<option>1999<option>2000<option>2001<option>2002<option>2003<option>2004<option>2005<option>2006<option>2007<option>2008<option>2009<option>2010<option>2011<option>2012<option>2013<option>2014<option>2015<option>2016<option>2017<option>2018<option>2019<option>2020</select></td>
+</tr>
+</table>
+
+</td>
+</tr>
+
+
+<tr class="alt1">
+<td><a href="op_ilist.html#date_resolved ">Date Resolved</a></td>
+
+<td valign="middle" align="center">
+<table border="0" >
+<tr align="center">
+<td><i> Include NULLs</i> <input type="checkbox" checked name="date_resolved_null"></td><td>&nbsp;&nbsp;</td>
+<td>From</td><td><select name="date_resolved_from_m"><option>Mon<option>Jan<option>Feb<option>Mar<option>Apr<option>May<option>Jun<option>Jul<option>Aug<option>Sep<option>Oct<option>Nov<option>Dec</select></td>
+<td><select  name="date_resolved_from_d">
+<option>DD<option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8
+<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16
+<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24
+<option>25<option>26<option>27<option>28<option>29<option>30<option>31
+</select></td>
+<td><select name="date_resolved_from_y"><option>Year<option>1999<option>2000<option>2001<option>2002<option>2003<option>2004<option>2005<option>2006<option>2007<option>2008<option>2009<option>2010<option>2011<option>2012<option>2013<option>2014<option>2015<option>2016<option>2017<option>2018<option>2019<option>2020</select></td>
+
+<td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+
+<td>&nbsp;To</td><td><select name="date_resolved_to_m"><option>Mon<option>Jan<option>Feb<option>Mar<option>Apr<option>May<option>Jun<option>Jul<option>Aug<option>Sep<option>Oct<option>Nov<option>Dec</select></td>
+<td><select  name="date_resolved_to_d">
+<option>DD<option>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8
+<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16
+<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24
+<option>25<option>26<option>27<option>28<option>29<option>30<option>31
+</select></td>
+
+<td><select name="date_resolved_to_y"><option>Year<option>1999<option>2000<option>2001<option>2002<option>2003<option>2004<option>2005<option>2006<option>2007<option>2008<option>2009<option>2010<option>2011<option>2012<option>2013<option>2014<option>2015<option>2016<option>2017<option>2018<option>2019<option>2020</select></td>
+</tr>
+</table>
+
+
+</td>
+</tr>
+
+<tr class="alt2">
+<td><a href="op_ilist.html#Category ">Category </a></td>
+
+<td>
+
+<table border="0" >
+<tr valign="middle">
+<td align="center" ><input type="checkbox" name="category_all" checked> All&nbsp;&nbsp;</td>
+<td align="center" ><input type="checkbox" name="category_ard" > ARD&nbsp;&nbsp;</td>
+<td align="center" ><input type="checkbox" name="category_spec"> SPEC&nbsp;</td>
+<td align="center" ><input type="checkbox" name="category_db"> DB&nbsp;</td>
+<td align="center" ><input type="checkbox" name="category_data"> Data&nbsp;&nbsp;</td>
+<td align="center" ><input type="checkbox" name="category_pipeline"> Pipeline&nbsp;&nbsp; </td>
+</tr>
+</table>
+
+</td>
+</tr>
+</table>
+</td></tr></table>
+
+<center>
+<p><b>Order by:</b>
+<br><b>You can order (sort) output table by categories below</b>
+
+<table class="hdr" border="0" >
+<tr align="center">
+<td><select class="select" name="order_one"><option>None<option selected>IssueId<option>Status<option>Date Open<option>Date Fixed<option>Date Resolved</select></td>
+
+<td><select class="select" name="order_two"><option selected>None<option>IssueId<option>Status<option>Date Open<option>Date Fixed<option>Date Resolved</select></td>
+
+<td><select class="select" name="order_three"><option selected>None<option>IssueId<option>Status<option>Date Open<option>Date Fixed<option>Date Resolved</select></td>
+</tr>
+</table>
+</center>
+<p>
+<center>
+<b>Predefined Output List</b>
+<table class="hdr" border="0" >
+<tr>
+<td align="center"><input type="radio" name="out" value="short" checked>&nbsp;Short Report</td>
+<td align="center"><input type="radio" name="out" value="long">&nbsp;&nbsp;Long Report</td>
+</tr>
+</table></center>
+
+<center>
+<p>
+<div class="btnDiv">
+<input type="submit" value="Submit">&nbsp;&nbsp;&nbsp;&nbsp;
+<input type="reset" value="Reset">
+</div>
+</center>
+</form>
+
+</div>
+
+</body>
+</html>

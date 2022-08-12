@@ -1,0 +1,175 @@
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 1995, 2021 Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_modified_institutions.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script provides a list of institutions to be converted 
+#     for determining personal conflicts for the peer_review.
+#     Output file contains the original institution and the modified
+#     institution.
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use vars qw ($dbh %param  @reqfiles $reqfile
+
+);
+
+use strict;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+
+@reqfiles = ( "prop_routines.pl", "modify_institute.pl", );
+foreach $reqfile (@reqfiles) {
+    unless ( eval { require $reqfile } ) {
+        print "Unable to find $reqfile\n";
+        exit(1);
+    }
+}
+
+# -------------------------- MAIN ----------------------------------
+{
+    my ( $dsn, $stmp, $idx );
+    &parse_input;
+
+    #database connection
+    $dbh = dbProposalConnection( $param{U}, $param{S}, $param{q} );
+
+    open( OFILE, "> $param{o}" )
+      || die "Unable to open $param{o} for writing!\n";
+    print STDERR "Output written to $param{o}\n";
+
+    do_query();
+    close OFILE;
+    chgroup( $param{o} );
+    chmod 0660, $param{o};
+
+}
+
+# ----------------------------------------------------------
+sub do_query {
+    my ($sql);
+    my ( $sth, @row, $ii, $out_inst, $lower );
+    if ( $param{l} ) {
+        $lower = "lower(institution)";
+    }
+    else {
+        $lower = "institution";
+    }
+    if ( $param{c} ) {
+        $sql = qq( select distinct $lower
+               from axafusers..Institution
+               order by $lower
+               );
+    }
+    else {
+        $sql = qq(create table #dtmp (pers_id int));
+        $dbh->do($sql);
+
+        # load with all the PIs for the cycle
+        $sql = qq(insert #dtmp select piid from proposal where 
+                  ao_str = "$param{a}" and piid is not null);
+        $dbh->do($sql);
+
+        # load with all the CoIs for the cycle
+        $sql = qq(insert #dtmp select c.pers_id from proposal p,coin c
+                  where p.proposal_id = c.proposal_id and
+                  p.ao_str = "$param{a}");
+        $dbh->do($sql);
+
+        # load with all the reviewers for the cycle
+        $sql = qq(insert #dtmp select pers_id from panel_member pm,panel,ao
+                  where ao.ao_str = "$param{a}" and 
+                  ao.ao_id = panel.ao and pm.panel_id = panel.panel_id);
+        $dbh->do($sql);
+
+        #print STDERR "$sql\n";
+
+        $sql = qq(select distinct $lower 
+              from axafusers..person_short ps ,#dtmp 
+              where ps.pers_id = #dtmp.pers_id
+              order by $lower
+              );
+
+    }
+    $sth = $dbh->prepare($sql);
+    $sth->execute();
+    while ( @row = $sth->fetchrow_array ) {
+        $out_inst = modify_institute( lc( $row[0] ) );
+        printf OFILE "%s\t$out_inst\n", $row[0];
+    }
+}
+
+# ----------------------------------------------------------
+# parse input parameters
+# ----------------------------------------------------------
+sub parse_input {
+    my ($pwd);
+    my $err = 0;
+    %param = (
+        U => undef,
+        S => "$ENV{DB_PROP_SQLSRV}",
+        o => "$ENV{ASCDS_PROP_INST_FILE}",
+        a => "$ENV{ASCDS_PROP_AO}",
+    );
+
+    GetOptions( \%param, "U=s", "S=s", "o=s", "a=s", "q=s", "c", "l", "h" )
+      or exit(1);
+
+    if ( !$param{h} ) {
+        while ( my ( $par, $val ) = each(%param) ) {
+            next if defined $val && $val ne "";
+            warn("parameter '$par' not set\n");
+            $err++;
+        }
+    }
+    else {
+        &usage;
+        exit(0);
+    }
+
+    if ($err) {
+        &usage;
+        exit(1);
+    }
+
+    if ( !$param{q} ) {
+        $pwd = get_password( $param{U}, $param{S} );
+    }
+    else {
+        $pwd = read_password( $param{q} );
+    }
+    $param{q} = $pwd;
+
+}
+
+sub usage {
+    print STDERR "\nUSAGE: prop_modified_institution.pl -U -o [ -S -a ]\n";
+    print STDERR "       -U database user name\n";
+    print STDERR "       -o output filename \n";
+    print STDERR "       -S database server, default is DB_PROP_SQLSRV\n";
+    print STDERR "       -a AO , default is ASCDS_PROP_AO\n";
+    print STDERR "       -c get 'clean' insitutes from axafusers..Insitution\n";
+    print STDERR "       -l output institutes lowercase, default capitalized\n";
+}
+

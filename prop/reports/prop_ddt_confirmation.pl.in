@@ -1,0 +1,167 @@
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 2019, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: 
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:  This script executes and prop_ingest_checks.pl and 
+#     prop_reports -confirm  and places output in specified file.
+#     Used by the CPS DDT thread
+#       
+#
+#* NOTES:
+#
+#       
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+use Getopt::Long;
+use strict;
+
+use vars qw( %param 
+	);
+
+{
+  my($cmd,$str,$fstr,$fname,$lname);
+
+
+  &parse_input;
+
+  $ENV{"ASCDS_TMP"} = $param{d};
+  $ENV{"ASCDS_PROP_RPS_ARCH"} = $param{d};
+  $ENV{"ASCDS_PROP_RPS_LOG"} = $param{d};
+
+  $lname = "$param{d}/$param{p}.log";
+  
+  $cmd = "prop_reports -U $param{U}  -pf $param{q} -confirm -prop  $param{p}";
+  print STDERR "$cmd\n";
+  open PFILE,"$cmd 2>$lname | ";
+  $fstr="";
+  while ($str = <PFILE>) {
+     $fstr .= $str;
+  }
+  close PFILE;
+  if (length($fstr) > 10) {
+    $fname = $param{o} . "/" . $param{p} . "_confirm.prop";
+    open OFILE,">$fname" or die "Unable to open $param{o} for writing\n";
+    print OFILE "Proposal=$param{p}\nResponse Time=$param{r}\n"; 
+    printf OFILE "===============================\n\n";
+    printf OFILE $fstr;
+    close OFILE;
+    chmod (0660,"$fname");
+  }
+     
+  # ingest checks for OCat conflicts and simbad/ned
+  #RESET for DMZ
+  $cmd = "prop_ingest_checks.pl -U $param{U} -q $param{q} -p $param{p} " ; 
+  print STDERR "$cmd\n";
+
+  open PFILE,"$cmd | ";
+  $fstr="";
+  while ($str = <PFILE>) {
+     $fstr .= $str;
+  }
+  close PFILE;
+  if (length($fstr) > 10) {
+    $fname = $param{o} . "/" . $param{p} . "_confirm.propconflict";
+    open OFILE,">$fname" or die "Unable to open $param{o} for writing\n";
+    print OFILE "Proposal=$param{p}\nResponse Time=$param{r}\n\n"; 
+    printf OFILE $fstr;
+    close OFILE;
+    chmod (0660,"$fname");
+  }
+     
+
+}
+
+#----------- END MAIN ------------------------------------------------------
+
+#---------------------------------------------------------------------------
+#---------------------------------------------------------------------------
+sub parse_input
+{
+  my($pfile);
+  my $err = 0;
+  my($tmp);
+
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+             p=> undef,
+             d=> undef,
+             o=> undef,
+             r=> undef,
+             q=> undef
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "p=s",
+          "d=s",
+          "o=s",
+          "q=s",
+          "r=s",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter '$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+}
+
+
+
+#---------------------------------------------------------------------------
+#---------------------------------------------------------------------------
+sub usage
+{
+  print STDERR "\nUSAGE: prop_ddt_confirmation.pl -Updor \n";
+  print STDERR "    -U   database user name\n";
+  print STDERR "    -S   database server, default is DB_PROP_SQLSRV name\n";
+  print STDERR "    -p   proposal number\n";
+  print STDERR "    -d   output directory for work files\n";
+  print STDERR "    -o   RPS DDT receiver directory\n";
+  print STDERR "    -r   response time\n";
+  print STDERR "\nResults are from propconflict using radius of 6 arcmin\n"; 
+  print STDERR "and simbad/ned difference of 1 arcmin\n";
+}
+
+
+
+
+sub get_date
+{
+  my(@dtmp,$yy,$mm,$thedate);
+
+  @dtmp = localtime;
+  $yy = $dtmp[5] + 1900;
+  $mm = $dtmp[4] + 1;
+  $thedate = sprintf("%-04.4d/%-02.2d/%-02.2d %-02.2d:%-02.2d",
+        $yy, $mm, $dtmp[3],
+        $dtmp[2], $dtmp[1]);
+
+  return $thedate;
+}
+

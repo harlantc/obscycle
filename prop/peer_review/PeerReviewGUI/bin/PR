@@ -1,0 +1,3253 @@
+#!/usr/bin/perl
+#
+# PR - Peer Review GUI
+#
+# Purpose: Provide a convenient way to interact with the Peer Review 
+#          database during Peer Review
+#
+# Copyright (c) 2012,2019, 2021-2022 
+# All Rights Reserved.  Std. disclaimer applies.
+#
+
+use strict;
+use DBI;
+use Data::Dumper;
+use Tk 800.00;
+use Tk::Table;
+require Tk::ErrorDialog;
+require Tk::NoteBook;
+require Tk::ROText;
+require Tk::LabFrame;
+require Tk::Optionmenu;
+
+
+use FindBin qw($Bin);
+use lib "$Bin/../lib";
+use config;
+use Panel;
+use Monitor;
+use EditNotebook;
+use BuildTable;
+use BuildView;
+use BuildSort;
+use MkGroup;
+use Resurrect;
+#use Finalize;
+use PrintPreview;
+#use Pod::Styles;
+#use Pod::Text;
+
+
+use subs qw(file_menuitems view_menuitems zoom_menuitems
+	    help_menuitems sort_menuitems
+	    tool_menuitems final_menuitems);
+
+# Description of global variables:
+#     $VERSION: version of script as supplied by CVS repository
+#     %param: hash of command-line options
+#     $mw: the GUI's main window from which all else is spawned
+#     $lcd_mw: the LCD main window projected to reviewers
+#     %prop: hash of proposal objects of all proposals in the panel
+#     $panel: Panel object which hold all proposals for the panel
+#     $dbh1: connection to Peer Review database
+#     $monitor: the monitor window which shows the statistics for the panel
+#     $add_group:  widget for adding proposals to groups
+#     $build_view: widget for building views
+#     $newbuild_view: new widget for building views
+#     $build_sort: widget for building sorts
+#     $LCD_View: Frame which displays the LCD view to reviewers
+#     $Fac_View: Frame which displays the view to facilitator
+#     $lcd_viewmenu: pull-down menu for LCD View
+#     $fac_viewmenu: pull-down menu for View
+#     $lcd_sortmenu: pull-down menu for LCD Sort
+#     $fac_sortmenu: pull-down menu for Sort
+#     $filemenu: pull-down menu for File
+#     $lcd_zoommenu: pull-down menu of LCD Zooming
+#     $hide_triage: flag indicating whether lcd window should hide triaged 
+#                   proposals from view
+#     $hide_arc_the: flag indicating whether lcd window should hide archive/ 
+#                    theory proposals from view
+#     $hide_lp_vlp: flag indicating whether lcd window should hide LP/VLP
+#                   proposals from view
+#     $quit: "Quit" menu item
+#     $lcd_view_id: indicates which LCD view is active
+#     $fac_view_id: indicates which Fac view is active
+#     $lcd_view_name: name of active LCD view
+#     $fac_view_name: name of active Fac view
+#     $triage: "Hide Triaged Proposals" menu item
+#     $arc_the: "Hide Archive/Theory Proposals" menu item
+#     $lp_vlp: "Hide LP/VLP Proposals" menu item
+#     $edit_pages: list of notebook pages of proposals being edited
+#     $nb: Notebook widget which holds proposals being edited
+#     $finalize: "Finalize" menu item
+#     $toolmenu: pull-down menu for Tools
+#     $resurrect: widget for resurrecting proposals
+#     $final: widget to finalize proposal selections
+#     $app_triage: "Triage" menu item
+#     $printFinalized: widget for finalized printouts
+#     $printPreview: widget for previewing printouts
+#     $printFacPreview: widget for previewing facilitator printouts
+#     $print1: "Print Preview" menu item
+#     $print2: "Print Facilitator Preview" menu item
+#     $finalmenu: pull-down menu for Finalize
+#     $dumpComments: "Dump Comments" menu item
+#     $dumpAllotments: "Dump Allotments" menu item
+#     $dumpPropCols: "Dump Proposal Columns" menu item
+#     $conflictReport: "Conflict Report" menu item
+#     @lcd_sorted_props: sorted list of proposals in LCD view
+#     @fac_sorted_props: sorted list of proposals in Fac view
+#     %lcd_search_cols: hash of name-position pairs for columns in LCD view
+#     %fac_search_cols: hash of name-position pairs for columns in Fac view
+#     $lcd_search_col: column name to search for value in LCD view
+#     $fac_search_col: column name to search for value in Fac view
+#     $lcd_search_str: string to search for in LCD view
+#     $fac_search_str: string to search for in Fac view
+#     $last_rank: the rank which marks where turn-off line is
+#     $std_font_size: the standard font size in the View (12)
+#     $font_size: the current font size in the View
+
+use vars qw ($VERSION %param $mw %prop $panel $dbh1 $monitor 
+	     $add_group $build_view $build_sort $LCD_View $lcd_viewmenu $lcd_mw
+	     $lcd_sortmenu $filemenu $hide_triage $quit $helpmenu $lcd_zoommenu
+	     $lcd_view_id $lcd_view_name $triage $edit_pages $nb $finalize
+	     $toolmenu $resurrect $final $app_triage 
+             $printPreview $printFacPreview $printFinalized
+	     $print1 $print2 $finalmenu 
+	     $finalizePrint   $finalize_view_id
+	     $dumpComments 
+	     $searchWidget $searchBG $searchFound
+	     $lcd_searchWidget $lcd_searchBG
+	     $lcd_lp_searchWidget $lcd_lp_searchBG
+	     $lcd_xvp_searchWidget $lcd_xvp_searchBG
+	     $dumpPropCols @lcd_sorted_props %lcd_search_cols $lcd_search_col
+	     $lcd_search_str $last_rank $help $std_font_size $font_size
+	     $hide_arc_the $arc_the $hide_lp_vlp $lp_vlp $dumpAllotments
+             $Fac_View $fac_viewmenu $fac_sortmenu $fac_view_id $fac_view_name
+             $fac_search_col $fac_search_str @fac_sorted_props
+             %fac_search_cols $fac_search_col $conflictReport $LCD_LP_View
+             $LCD_XVP_View @lcd_lp_sorted_props @lcd_xvp_sorted_props
+             %lcd_lp_search_cols %lcd_xvp_search_cols $lcd_lp_search_col 
+             $lcd_xvp_search_col $lcd_lp_search_str $lcd_xvp_search_str
+             $lcd_lp_mw $lcd_xvp_mw $hide_label $show_label);
+
+
+$VERSION = '$Id: PR,v 1.101 2011/04/26 17:02:25 wink Exp $';
+#'
+
+#******#
+# Main #
+#******#
+{
+    # Option Parsing
+    use Getopt::Long;
+    parse_opts();
+
+    if ($param{version})
+    {	
+	print $VERSION, "\n";
+	exit( 0 );
+    }
+
+    if ($param{help}) 
+    {
+	usage(0);
+    }
+
+    print "Running with verbosity $param{test}\n" if $param{test};
+    # Database connection 1
+    my $dsn1 = "dbi:Pg:dbname=$param{U}";
+    $dbh1 = DBI->connect($dsn1, "", "", {
+	PrintError => 0,
+	RaiseError => 1});
+#    DBI->trace(1);
+    # Initialize hide_triage to 'N'
+    $hide_triage = 'Y';
+    # Initialize hide_arc_the to 'N'
+    $hide_arc_the = 'N';
+    # Initialize hide_lp_vlp to 'N'
+    $hide_lp_vlp = 'N';
+    if (!$isXVP && !$isVLP) {
+      $hide_label="Hide LP Proposals";
+      $show_label="Show LP Proposals";
+    } else {
+      $hide_label="Hide LP/$xvp_vlp_lbl Proposals";
+      $show_label="Show LP/$xvp_vlp_lbl Proposals";
+    } 
+
+    $searchFound = $param{search};
+    
+    # Load the panel
+    $panel = new Panel($dbh1, $param{panel}, $param{if}, $param{test});
+    if ($panel->triage_applied =~ /n/i || $panel->num_grades_not_triaged <= 0) {
+      $hide_triage='N';
+      #if ($param{panel} != 99)  {
+        $lcd_view_id = 13; #14;
+        $lcd_view_name = "Preliminary Grades View";
+	$panel->set_sort("lcd",'',"pg_avg DESC","PGrade Avg");
+      #} 
+    } else {
+      #if ($param{panel} != 99)  {
+        $lcd_view_id = 19; #21;
+        $lcd_view_name = "Grading View";
+	$panel->set_sort("lcd",'',"prop_id ASC","Prop#");
+      #}
+    }
+      
+
+    my($gquery) = $dbh1->prepare ("select num_pgrades,num_grades from panel where panel_id=?");
+    $gquery->execute($param{panel});
+    while (my($g1,$g2) = $gquery->fetchrow_array) {
+      $num_pgrades = $g1;
+      $num_grades = $g2;
+    }
+ 
+    
+    my $proposals = $panel->proposals()->list();
+    %prop = %$proposals;
+
+    # Create the main window
+    $mw = MainWindow->new();
+    $mw->title("Facilitator View for Panel $param{panel}");
+    $mw->geometry("900x900+0+0");
+    $mw->minsize(300,150);
+    $mw->setPalette($param{bg});
+
+    # Set the base font and current font sizes
+    $font_size = $std_font_size = $param{fsize};
+    create_fonts($mw);
+    $mw->optionAdd("*font","normal");
+
+    # This means the main window can only be killed with the Quit button
+    $mw->protocol( 'WM_DELETE_WINDOW' => sub {});
+
+    $mw->configure(-menu => my $menubar = $mw->Menu);
+    $mw->bind('<Control-Key-q>' => \&exit);
+    $mw->bind('<Control-Key-s>' => \&viewShort);
+
+
+    # Add menus to toolbar
+    $filemenu = $menubar->cascade(-label => 'File',
+				  );
+    file_menuitems();
+
+    $toolmenu = $menubar->cascade(-label => 'Tools',
+				  );
+    tool_menuitems();
+
+    $finalmenu = $menubar->cascade(-label => 'Finalize   ',
+				   -foreground => 'red',
+				  );
+    final_menuitems();
+
+    $lcd_viewmenu = $menubar->cascade(-label => '        Panel View',
+				  );
+    lcd_view_menuitems();
+
+    $lcd_sortmenu = $menubar->cascade(-label => 'Panel Sort',
+				  );
+    lcd_sort_menuitems();
+
+    $lcd_zoommenu = $menubar->cascade(-label => 'Panel Zoom',
+				  );
+    lcd_zoom_menuitems();
+
+    #$fac_viewmenu = $menubar->cascade(-label => '   Facilitator View',
+				  #);
+    #fac_view_menuitems();
+
+    $fac_sortmenu = $menubar->cascade(-label => ' Facilitator Sort',
+				  );
+    fac_sort_menuitems();
+
+
+    # Create the monitor window
+    $monitor = $mw->Toplevel();
+    $monitor->title("Status Page for Panel $param{panel}");
+    $monitor->geometry("800x650+700+0");
+
+    # This means the main window can only be killed with the Quit button
+    $monitor->protocol( 'WM_DELETE_WINDOW' => sub {});
+
+    fill_monitor($monitor, $panel, $param{test});
+
+    # Create the panel view window
+    $lcd_mw = $mw->Toplevel();
+    $lcd_mw->title("Panel $param{panel}");
+    $lcd_mw->geometry("800x400+940+700");
+
+    # This means the main window can only be killed with the Quit button
+    $lcd_mw->protocol( 'WM_DELETE_WINDOW' => sub {});
+
+    # Create the LP/XVP panel view windows if BPP
+    if ($param{panel} == 99) {
+      if ($isXVP || $isVLP) {
+        $lcd_lp_mw = $mw->Toplevel();
+        $lcd_lp_mw->title("Panel $param{panel} (LP's only)");
+        #$lcd_lp_mw->geometry("+1080+780");
+        $lcd_lp_mw->geometry("800x400+1020+720");
+        $lcd_lp_mw->protocol( 'WM_DELETE_WINDOW' => sub {});
+
+        $lcd_xvp_mw = $mw->Toplevel();
+        my($ss) = $xvp_vlp_lbl . "'s only";
+        $lcd_xvp_mw->title("Panel $param{panel} ($ss)");
+        #$lcd_xvp_mw->geometry("+1180+830");
+        $lcd_xvp_mw->geometry("800x400+1100+740");
+        $lcd_xvp_mw->protocol( 'WM_DELETE_WINDOW' => sub {});
+      }
+    }
+
+    # Create the edit pages
+    EditNotebook->new( $mw, $quit, $param{test} );
+
+    # Default to the Facilitator View";
+    $fac_view_id = $param{facview};
+    $fac_view_name = $param{facname};
+    mkView('fac');
+    if ($lcd_view_id > 0) {
+      mkView('lcd');
+      if ($param{panel} == 99) {
+	mkView('lcd', undef, 'LP');
+	mkView('lcd', undef, $xvp_vlp_lbl);
+      }
+    }
+
+    MainLoop;
+}
+#**********#
+# End Main #
+#**********#
+
+#
+#****************************************************#
+# Subroutines to create pull-down menus from toolbar #
+#****************************************************#
+## Internal Utility ##
+# Name: file_menuitems
+# Purpose: handle '~File' menu
+# Usage: file_menuitems();
+# Returns: nothing
+sub file_menuitems {
+    $print1 = $filemenu->command(-label => 'Print Panel View',
+				 -state => 'disabled',
+				 -command => \&mkPrintPreview,
+				 );
+    #$print2 = $filemenu->command(-label => 'Print Facilitator View',
+				 #-state => 'disabled',
+				 #-command => \&mkPrintFacPreview,
+				 #);
+    $filemenu->separator;
+    $dumpComments = $filemenu->command(-label => 'Ascii Dump of Comments',
+				       -command => \&dumpComments,
+				  );
+    $dumpPropCols = $filemenu->command(-label => 'Ascii Dump of Panel View',
+				   -state => 'disabled',
+				   -command => \&dumpPropCols,
+				  );
+    $dumpAllotments = $filemenu->command(-label => 'Ascii Dump of Allotments',
+				       -command => \&dumpAllotments,
+				      );
+    $conflictReport = $filemenu->command(-label => 'Ascii Dump of Conflicts',
+				       -command => \&conflictReport,
+				      );
+    $filemenu->separator;
+    $quit = $filemenu->command(-label => 'Quit',
+			       -command => \&exit);
+}
+
+#
+## Internal Utility ##
+# Name: final_menuitems
+# Purpose: handle '~Finalize' menu
+# Usage: final_menuitems();
+# Returns: nothing
+sub final_menuitems {
+  $finalize_view_id = -1;
+
+  my $query = $dbh1->prepare(qq(select view_id, view_name from views where 
+				  panel_id = ? and pub = ?));
+  $query->execute($param{panel}, 'F') if $param{panel} != 99;
+  $query->execute($param{panel}, 'B') if $param{panel} == 99;
+  my %view_map;
+  while (my($view_id, $view_name) = $query->fetchrow_array) {
+    $view_map{$view_name} = "$view_id\tfg_avg DESC\tGradeAvg";
+    if ($finalize_view_id<0) { $finalize_view_id=$view_id; }
+  }
+  $query->finish;
+  my $rank_query = $dbh1->prepare(qq(select max(rank) from proposal where 
+                                     panel_id = ?));
+  $rank_query->execute($param{panel});
+  my ($is_ranked) = $rank_query->fetchrow_array;
+  $rank_query->finish;
+
+  foreach my $v_name (sort keys %view_map) {
+    $finalmenu->command(-label => $v_name,
+			-foreground => 'red',
+			-command => sub{
+			  if ($panel->num_ungraded) {
+			    $mw->messageBox(-title => 
+					    'PR: Usage Error',
+					    -type => 'OK',
+					    -message => 
+					    'All proposals must be graded before finalizing.');
+			  }
+			  else {
+			    ($lcd_view_id, my $sortby, my $sort_name) = 
+			      split /\t/, $view_map{$v_name};
+			    $fac_view_id = $lcd_view_id;
+			    $lcd_view_name = $v_name;
+			    $fac_view_name = $v_name;
+                            if ($is_ranked) {
+                              $sortby='rank';
+                              $sort_name='Rank';
+                            }
+			    $panel->set_sort('lcd', '', $sortby, $sort_name);
+			    $panel->set_sort('fac', '', $sortby, $sort_name);
+			    $hide_triage = 'Y';
+			    $hide_arc_the = 'Y';
+			    $hide_lp_vlp = 'Y';
+			    hideTriage();
+			    hideArcThe();
+			    hideLpVlp();
+			    mkView('lcd');
+			    if ($param{panel} == 99) {
+			      mkView('lcd', undef, 'LP');
+			      mkView('lcd', undef, $xvp_vlp_lbl);
+			    }
+			    mkView('fac');
+			  }
+			});
+  }
+    $finalmenu->command(-label => "Back to Facilitator View",
+		       -command => sub{
+			 $fac_view_id = 1;
+			 $fac_view_name = "Facilitator View";
+			 mkView('fac'); 
+		       }
+		      );
+  $finalmenu->separator;
+  $finalmenu->command(-label => 'Reset Rank',
+		      -command => sub {
+			init_rank() if 
+			  $lcd_view_name =~ /Finalize Time Allocation/;
+		      }
+		     );
+
+  $finalmenu->separator;
+  $finalizePrint = $finalmenu->command(-label => 'Print Finalize View',
+				       -command => sub {
+		my $query = $dbh1->prepare(qq(select max(rank) from proposal where
+                                    panel_id = ?));
+  		$query->execute($param{panel});
+  		my ($high_rank) = $query->fetchrow_array;
+  		$query->finish;
+                if ($high_rank <= 1) {
+			    $mw->messageBox(-title => 
+					    'PR: Usage Error',
+					    -type => 'OK',
+					    -message => 
+					    'Panel must be finalized before printing this view');
+                }
+                else {
+                  mkFinalizePrintPanel();
+               }
+            }
+	  );
+}
+
+#
+## Internal Utility ##
+# Name: tool_menuitems
+# Purpose: handle '~Tools' menu
+# Usage: tool_menuitems();
+# Returns: nothing
+sub tool_menuitems {
+    $toolmenu->command(-label => 'Assign Groups',
+			-command => sub {
+			    $quit->configure(-state => 'disabled');
+			    addGroup();
+			});
+    $toolmenu->separator;
+    $toolmenu->command(-label => 'Resurrect/Triage Tool',
+			-command => sub {
+			    $quit->configure(-state => 'disabled');
+			    resurrect();
+			});
+    my $triage_state = 'normal';
+    $triage_state = 'disabled' if ($panel->triage_applied =~ /Y/ or 
+				   $param{panel} > 90 );
+    $app_triage = $toolmenu->command(-label => 'Triage',
+				     -state => $triage_state,
+				     -command => sub {
+					 triagePanel();
+				     }
+				     );
+    $toolmenu->separator;
+    my $lbl = 'Show Triaged Proposals';
+    if ($hide_triage eq 'N') {
+      $lbl = 'Hide Triaged Proposals';
+    }
+ 
+    $triage = $toolmenu->command(-label => $lbl,
+				 -command => sub {
+				     hideTriage();
+				     mkView('fac');
+				     if ($lcd_view_id) {
+				       mkView('lcd');
+				       if ($param{panel} == 99) {
+					 mkView('lcd', undef, 'LP');
+					 mkView('lcd', undef, $xvp_vlp_lbl);
+				       }
+				     }
+				 }
+				 );
+    $arc_the = $toolmenu->command(-label => 'Hide Archive/Theory Proposals',
+				 -command => sub {
+				     hideArcThe();
+				     mkView('fac');
+				     if ($lcd_view_id) {
+				       mkView('lcd');
+				       if ($param{panel} == 99) {
+					 mkView('lcd', undef, 'LP');
+					 mkView('lcd', undef, $xvp_vlp_lbl);
+				       }
+				     }
+				 }
+				 );
+    $lp_vlp = $toolmenu->command(-label => $hide_label,
+				 -command => sub {
+				     hideLpVlp();
+				     mkView('fac');
+				     if ($lcd_view_id) {
+				       mkView('lcd');
+				       if ($param{panel} == 99) {
+					 mkView('lcd', undef, 'LP');
+					 mkView('lcd', undef, $xvp_vlp_lbl);
+				       }
+				     }
+				 }
+				 );
+    $toolmenu->separator;
+    $toolmenu->command(-label => 'Build View', 
+		       -command => sub {
+			   $quit->configure(-state => 'disable');
+			   buildView();
+		       });
+    $toolmenu->separator;
+    $toolmenu->command(-label => 'Build Sort',
+		       -command => sub {
+			   $quit->configure(-state => 'disable');
+			   buildSort();
+		       });
+}
+
+## Internal Utility ##
+# Name: updViewCmd
+# Purpose: handle updates from tools to refresh the views
+# Usage: updViewCmd();
+# Returns: nothing
+sub updViewCmd {
+  if ($lcd_view_id) {
+      mkView('lcd');
+      if ($param{panel} == 99) {
+        mkView('lcd', undef, 'LP');
+        mkView('lcd', undef, $xvp_vlp_lbl);
+      }
+   }
+   mkView('fac') if $fac_view_id;
+
+}
+
+
+
+#
+## Internal Utility ##
+# Name: lcd_view_menuitems
+# Purpose: handle 'LCD View' menu
+# Usage: lcd_view_menuitems();
+# Returns: nothing
+sub lcd_view_menuitems {
+  my $query = $dbh1->prepare(qq(select view_id, view_name
+				from views where panel_id = ? and 
+			        view_id >= 0 and pub = 'Y'
+			        order by view_name));
+  $query->execute($param{panel});
+  while (my ($v_id, $v_name) = $query->fetchrow_array) {
+    $lcd_viewmenu->command(-label => $v_name,
+		       -command => sub{
+			 $lcd_view_id = $v_id;
+			 $lcd_view_name = $v_name;
+			 if ($lcd_view_id) {
+                           if ($lcd_view_name =~ /preliminary grades view/i) {
+                              # always default to pg_avg desc for initial view
+                              $panel->set_sort('lcd', '', 'pg_avg DESC', 'PGrade Avg') ;
+                           }
+			   mkView('lcd');
+			   if ($param{panel} == 99) {
+			     mkView('lcd', undef, 'LP');
+			     mkView('lcd', undef, $xvp_vlp_lbl);
+			   }
+			 }
+		       }
+		      );
+  }
+  $query->finish;
+}
+
+#
+## Internal Utility ##
+# Name: fac_view_menuitems
+# Purpose: handle 'View' menu
+# Usage: fac_view_menuitems();
+# Returns: nothing
+sub fac_view_menuitems {
+  my $query = $dbh1->prepare(qq(select view_id, view_name
+				from views where panel_id = ? and 
+			        view_id >= 0 and pub = 'Y'
+			        order by view_name));
+#  $query->execute($param{panel});
+#  while (my ($v_id, $v_name) = $query->fetchrow_array) {
+   my $v_id=$param{facview};
+   my $v_name=$param{facname};
+    $fac_viewmenu->command(-label => $v_name,
+		       -command => sub{
+			 $fac_view_id = $v_id;
+			 $fac_view_name = $v_name;
+			 mkView('fac') if $fac_view_id;
+		       }
+		      );
+#  }
+#  $query->finish;
+}
+
+#
+## Internal Utility ##
+# Name: lcd_zoom_menuitems
+# Purpose: handle 'LCD Zoom' menu
+# Usage: lcd_zoom_menuitems();
+# Returns: nothing
+sub lcd_zoom_menuitems {
+  $lcd_zoommenu->command(-label => 'Zoom in',
+		     -command => sub{
+			$font_size += 4;
+                        mkView('lcd');
+                        if ($param{panel} == 99) {
+                          mkView('lcd', undef, 'LP');
+                          mkView('lcd', undef, $xvp_vlp_lbl);
+                        }
+		        apply_font($monitor) if $monitor;
+		     });
+  $lcd_zoommenu->command(-label => 'Zoom out',
+		     -command => sub{
+			$font_size -= 4;
+                        mkView('lcd');
+                        if ($param{panel} == 99) {
+                          mkView('lcd', undef, 'LP');
+                          mkView('lcd', undef, $xvp_vlp_lbl);
+                        }
+		        apply_font($monitor) if $monitor;
+		   });
+  $lcd_zoommenu->command(-label => 'Zoom normal',
+		     -command => sub{
+			$font_size = $std_font_size;
+                        mkView('lcd');
+                        if ($param{panel} == 99) {
+                          mkView('lcd', undef, 'LP');
+                          mkView('lcd', undef, $xvp_vlp_lbl);
+                        }
+		        apply_font($monitor) if $monitor;
+		   });
+}
+
+sub zoom_in {
+  my $widget = shift;
+  $font_size += 4;
+  apply_font($widget);
+  apply_font($monitor);
+}
+sub zoom_out {
+  my $widget = shift;
+  $font_size -= 4;
+  apply_font($widget);
+  apply_font($monitor);
+}
+sub zoom_normal {
+  my $widget = shift;
+  $font_size = $std_font_size;
+  apply_font($widget);
+  apply_font($monitor);
+}
+
+sub apply_font {
+  my $widget = shift;
+
+  my @kids = $widget->packSlaves;
+  foreach my $kid (@kids) {
+    if ($kid =~ /Table|Frame|Resurrect|Label/) {
+      my @kids2 = $kid->children;
+      foreach my $kid2 (@kids2) {
+	if ($kid2->name =~ /table|frame|pane/) {
+	  go_deeper($kid2);
+	}
+      }
+    }
+  }
+}
+
+sub set_font {
+  my $widget = shift;
+  my $fontname = "normal";
+  my $fsize = $std_font_size; 
+
+  if ($font_size <=  ($fsize-8)) {
+    $fontname="xsmall";
+    # reset font to minimum size allowed
+    $font_size = $fsize - 8;
+  } elsif ($font_size == ($fsize-4)) {
+    $fontname="small";
+  } elsif ($font_size == $fsize) {
+    $fontname="normal";
+  } elsif ($font_size == ($fsize+4)) {
+    $fontname="big";
+  } elsif ($font_size == ($fsize+8)) {
+    $fontname="bigger";
+  } elsif ($font_size == ($fsize+12)) {
+    $fontname="biggest";
+  } elsif ($font_size == ($fsize+16)) {
+    $fontname="xbig";
+  } elsif ($font_size >= ($fsize+20)) {
+    $fontname="xxbig";
+    # reset font to maximum size allowed
+    $font_size = $fsize + 20;
+  }
+
+  $widget->configure(-font => $fontname);
+
+}
+
+
+sub go_deeper {
+  my $widget = shift;
+  my @kids = $widget->children;
+  foreach my $kid (@kids) {
+    if ($kid->name =~ /label|button|rotext/) {
+      set_font($kid);
+    }
+    else {
+      go_deeper($kid);
+    }
+  }
+}
+
+sub create_fonts()
+{
+  my($topWidget) = @_;
+  my($fsize) = $std_font_size; 
+  my($font_family) = $param{font};
+  #xfontsel will show font families available
+
+  $topWidget->fontCreate( 'normal',
+        -family=>$font_family,
+        -weight=>'bold',
+        -size=>$fsize);
+  $topWidget->fontCreate( 'small',
+        -family=>$font_family,
+        -weight=>'bold',
+        -size=>($fsize-4));
+  $topWidget->fontCreate( 'xsmall',
+        -family=>$font_family,
+        -weight=>'bold',
+        -size=>($fsize-8));
+  $topWidget->fontCreate( 'big',
+        -family=>$font_family,
+        -weight=>'normal',
+        -size=>($fsize+4));
+  $topWidget->fontCreate( 'bigger',
+        -family=>$font_family,
+        -weight=>'normal',
+        -size=>($fsize+8));
+  $topWidget->fontCreate( 'biggest',
+        -family=>$font_family,
+        -weight=>'normal',
+        -size=>($fsize+12));
+  $topWidget->fontCreate( 'xbig',
+        -family=>$font_family,
+        -weight=>'normal',
+        -size=>($fsize+16));
+  $topWidget->fontCreate( 'xxbig',
+        -family=>$font_family,
+        -weight=>'normal',
+        -size=>($fsize+20));
+
+}
+
+
+#
+## Internal Utility ##
+# Name: lcd_sort_menuitems
+# Purpose: handle 'LCD Sort' menu
+# Usage: lcd_sort_menuitems();
+# Returns: nothing
+sub lcd_sort_menuitems {
+    my $query = $dbh1->prepare(qq(select sortby, groupby, sort_name from sorts 
+				  where panel_id = ? and groupby is null 
+                                  and sortby like '%,%'
+				  order by sort_name));
+    $query->execute($param{panel});
+    while (my ($sort_by, $group_by, $sort_name) = $query->fetchrow_array) {
+	$lcd_sortmenu->command(-label => $sort_name,
+			   -command => sub {
+                             if ($finalize_view_id != $lcd_view_id){
+			     $group_by = '' if !$group_by;
+			     $panel->set_sort('lcd', $group_by, $sort_by, 
+						  $sort_name);
+			     if ($lcd_view_id) {
+			       mkView('lcd');
+			       if ($param{panel} == 99) {
+				 mkView('lcd', undef, 'LP');
+				 mkView('lcd', undef, $xvp_vlp_lbl);
+			       }
+			     }
+			   }
+			   }
+			   );
+    }
+    $query->finish;
+    $query = $dbh1->prepare(qq(select sortby, groupby, sort_name from sorts 
+				  where panel_id = ? and groupby is not null
+				  order by sort_name));
+    $query->execute($param{panel});
+    while (my ($sort_by, $group_by, $sort_name) = $query->fetchrow_array) {
+	$lcd_sortmenu->command(-label => $sort_name,
+			   -command => sub {
+                             if ($finalize_view_id != $lcd_view_id){
+			     $group_by = '' if !$group_by;
+			     $panel->set_sort('lcd', $group_by, $sort_by, 
+						  $sort_name);
+			     if ($lcd_view_id) {
+			       mkView('lcd');
+			       if ($param{panel} == 99) {
+				 mkView('lcd', undef, 'LP');
+				 mkView('lcd', undef, $xvp_vlp_lbl);
+			       }
+			     }
+			   }
+			   }
+			   );
+    }
+    $query->finish;
+}
+
+#
+## Internal Utility ##
+# Name: fac_sort_menuitems
+# Purpose: handle 'Sort' menu
+# Usage: fac_sort_menuitems();
+# Returns: nothing
+sub fac_sort_menuitems {
+    my $query = $dbh1->prepare(qq(select sortby, groupby, sort_name from sorts 
+				  where panel_id = ? and groupby is null and
+                                  sortby like '%,%' 
+				  order by sort_name));
+    $query->execute($param{panel});
+    while (my ($sort_by, $group_by, $sort_name) = $query->fetchrow_array) {
+	$fac_sortmenu->command(-label => $sort_name,
+			   -command => sub {
+			     $group_by = '' if !$group_by;
+			     $panel->set_sort('fac', $group_by, $sort_by, 
+						  $sort_name);
+			     mkView('fac') if $fac_view_id;
+			   }
+			   );
+    }
+    $query->finish;
+    $query = $dbh1->prepare(qq(select sortby, groupby, sort_name from sorts 
+				  where panel_id = ? and groupby is not null
+				  order by sort_name));
+    $query->execute($param{panel});
+    while (my ($sort_by, $group_by, $sort_name) = $query->fetchrow_array) {
+	$fac_sortmenu->command(-label => $sort_name,
+			   -command => sub {
+			     $group_by = '' if !$group_by;
+			     $panel->set_sort('fac', $group_by, $sort_by, 
+						  $sort_name);
+			     mkView('fac') if $fac_view_id;
+			   }
+			   );
+    }
+    $query->finish;
+}
+
+
+#
+## Internal Utility ##
+# Name: help_menuitems
+# Purpose: handle '~Help' menu
+# Usage: help_menuitems();
+# Returns: nothing
+sub help_menuitems {
+  $helpmenu->command(-label => 'Help',
+		     -command => sub {
+		       my $url = qq(firefox -remote 'openURL(http://hea-www.harvard.edu/~wink/PRman)');
+		       system($url);
+		     }
+		    );
+}
+#*********************#
+# End pull-down menus #
+#*********************#
+#
+
+## Internal Utility ##
+# Name: dumpPropCols
+# Purpose: dump proposal columns of current view to a tab-delimited file
+# Usage: dumpPropCols()
+# Returns: nothing
+sub dumpPropCols {
+  # Compose the filename
+  my $time = file_timestamp();
+  $time =~ s/\s+/_/g;
+
+  my $sort = $panel->lcd_sortby;
+  $sort =~ s/\s+//g;
+
+  my $groupby = $panel->lcd_groupby;
+  $groupby =~ s/\s+//g;
+
+  my $view = $lcd_view_name;
+  $view =~ s/\s+//g;
+
+  my $file = "Pan" . $panel->panel_id . "_${view}_" . "Sort_$sort";
+  $file .= "_GroupBy:$groupby" if $groupby;
+  $file .= "_$time\n";
+  $file =~ s/,/\_/g;
+  $file =~ tr/a-zA-Z0-9 _-//cd;
+
+  # get the column names and data they represent
+  my $cols = $dbh1->prepare(qq(select col_name, attribute from sections s, 
+                               columns c, section_columns sc where 
+                               s.panel_id = c.panel_id and 
+                               c.panel_id = sc.panel_id and 
+                               s.view_id = sc.view_id and 
+                               s.section_id = sc.section_id and 
+                               c.col_id = sc.col_id and s.view_id = ? and 
+                               s.panel_id = ? and object = 'proposal' and 
+                               col_name != 'Abstract'
+                               order by section_order, col_order));
+  $cols->execute($lcd_view_id, $panel->panel_id);
+  my @info;
+  while (my ($col_name, $attribute) = $cols->fetchrow_array) {
+    my %col_info = (col_name => $col_name,
+		    data_name => $attribute);
+    push @info, \%col_info;
+  }
+  $cols->finish;
+
+  open (OUT, ">$file") ||
+    die "Sorry, can't open $file: $!\n";
+  # Print the column names to the file
+  my $col_line;
+  foreach my $col_info (@info) {
+    my $name = $$col_info{col_name};
+    $name =~ s/\s+//g;
+    $name = "PropNum\tPI" if $name =~ /PropNum/;
+    $col_line .= "$name\t";
+  }
+  $col_line =~ s/\t$//;
+  print OUT "$col_line\n";
+
+  # Print the data for each proposal
+  my %gslist = $panel->get_group_list($panel->lcd_groupby, $panel->lcd_sortby,
+				      $panel->hide_triage, 
+				      $panel->hide_arc_the, 
+				      $panel->hide_lp_vlp);
+  foreach my $group (sort keys %gslist) {
+    my $sorted_list = $gslist{$group};
+    my %sorted_list = %$sorted_list;
+
+    foreach my $prop_order (sort {$a <=> $b} keys %sorted_list) {
+      my $prop_id = $sorted_list{$prop_order};
+
+      my $prop_data;
+      foreach my $col_info (@info) {
+	if ($$col_info{col_name} =~ /PropNum/) {
+	  $prop_data .= $prop_id . "\t" . 
+	    $panel->proposals->proposal($prop_id)->last_name . "\t";
+	}
+	else {
+          if ($$col_info{data_name} =~ /prelim_grades/ )
+          {
+            for (my $gg=1;$gg <= $num_pgrades;$gg++) {
+	      $prop_data .= $panel->proposals->proposal($prop_id)->prelim_grade($gg) . " ";
+            }
+            $prop_data .= "\t";
+          }
+          elsif ($$col_info{data_name} =~ /final_grades/) {
+            for (my $gg=1;$gg <= $num_grades;$gg++) {
+	      $prop_data .= $panel->proposals->proposal($prop_id)->final_grade($gg) . " ";
+            }
+            $prop_data .= "\t";
+          } else {
+	    $prop_data .= $panel->proposals->proposal($prop_id)->get($$col_info{data_name}) . "\t";
+	  }
+	}
+      }
+      $prop_data =~ s/\t$//;
+      print OUT "$prop_data\n";
+    }
+  }
+  close OUT;
+}
+
+## Internal Utility ##
+# Name: dumpComments
+# Purpose: dump the proposal comments to a file
+# Usage: dumpComments()
+# Returns: nothing
+sub dumpComments {
+  my $timestamp = file_timestamp();
+  open (OUT, ">ProposalComments_$timestamp.txt") ||
+    die "Sorry, can't open ProposalComments_$timestamp.txt: $!\n";
+  print OUT "Comments for proposals in panel ", $panel->panel_id, "\t\t", 
+    scalar localtime;
+  $panel->set_sort('lcd','', 'prop_id', 'PropNum');
+  my %gslist = $panel->get_group_list($panel->lcd_groupby, $panel->lcd_sortby,
+				      $panel->hide_triage, 
+				      $panel->hide_arc_the, 
+				      $panel->hide_lp_vlp);
+
+  foreach my $group (sort keys %gslist) {
+    my $sorted_list = $gslist{$group};
+    my %sorted_list = %$sorted_list;
+
+    foreach my $prop_order (sort {$a <=> $b} keys %sorted_list) {
+      my $prop_id = $sorted_list{$prop_order};
+      if ((length($panel->proposals->proposal($prop_id)->comments) > 1) ||
+          (length($panel->proposals->proposal($prop_id)->g_cmt) > 1) ||
+          (length($panel->proposals->proposal($prop_id)->a_cmt) > 1))  {
+        print OUT "\n*****\n";
+        print OUT "$prop_id\t";
+        print OUT $panel->proposals->proposal($prop_id)->last_name;
+        print OUT "\nComments:\n";
+        print OUT $panel->proposals->proposal($prop_id)->comments;
+        print OUT "\n\nGrade Comments (final):\n";
+        print OUT $panel->proposals->proposal($prop_id)->g_cmt;
+        print OUT "\n\nGrade Comments (other):\n";
+        print OUT $panel->proposals->proposal($prop_id)->a_cmt;
+        print OUT "\n";
+      }
+    }
+  }
+  close OUT;
+}
+
+## Internal Utility ##
+# Name: dumpAllotments
+# Purpose: dump the proposal allotments to a file
+# Usage: dumpAllotments()
+# Returns: nothing
+sub dumpAllotments {
+  my $timestamp = file_timestamp();
+  open (OUT, ">PanelAllotments_$timestamp.txt") ||
+    die "Sorry, can't open ProposalAllotments_$timestamp.txt: $!\n";
+  print OUT "Allotments for Panel ", $panel->panel_id, "\t\t", 
+    scalar localtime;
+  print OUT "\n***********************\n";
+  print OUT "Allotted Time: ", $panel->time_slew_prob_allot, "\n";
+  print OUT "Allotted RC : ", $panel->rc_score_allot, "\n";
+  print OUT "Allotted Archive: ", $panel->arc_allot, "\n";
+  print OUT "Allotted Theory: ", $panel->the_allot, "\n";
+  close OUT;
+}
+
+## Internal Utility
+# Name: conflictReport
+# Purpose: dump a conflict report for panel to a file
+# Usage: conflictReport()
+# Returns: nothing
+sub conflictReport {
+  my $command = "conflicts.pl -U $param{U} -panel $param{panel}";
+  system($command);
+}
+
+## Internal Utility
+# Name: file_timestamp
+# Purpose: create timestamp for filename
+# Usage: file_timestamp()
+# Returns: string
+sub file_timestamp {
+  my ($sec, $min, $hr, $day, $month, $year) = (localtime)[0, 1, 2, 3, 4, 5];
+  $year += 1900;
+  $month++;
+  $month = sprintf("%02d", $month);
+  $day = sprintf("%02d", $day);
+  $sec = sprintf("%02d", $sec);
+  $min = sprintf("%02d", $min);
+  $hr = sprintf("%02d", $hr);
+  return "$year$month${day}_$hr\_$min$sec";
+}
+
+## Internal Utility ##
+# Name: triagePanel
+# Purpose: to marked the bottom quartile of proposal (based on preliminary
+#          grade) as triaged
+# Usage: triagePanel()
+# Returns: nothing
+sub triagePanel {
+  $panel->set_sort('lcd', '', 'pg_avg', 'PGradeAvg');
+  my %gslist = $panel->get_group_list($panel->lcd_groupby, $panel->lcd_sortby,
+				      $panel->hide_triage, 
+				      $panel->hide_arc_the, 
+				      $panel->hide_lp_vlp);
+  
+  # The number of targets to turn off is not simply num_targs because of
+  # the possibility of alternate targets
+  
+  foreach my $group (sort keys %gslist) {
+    my $sorted_list = $gslist{$group};
+    my %sorted_list = %$sorted_list;
+    
+    my $numProps = scalar keys %sorted_list;
+    my $cut_offNum = int(.25 * $numProps);
+    my $cut_offProp = $sorted_list{$cut_offNum};
+    my $cut_offGrade = $panel->proposals->proposal($cut_offProp)->pg_avg;
+    
+    foreach my $prop_order (sort {$a <=> $b} keys %$sorted_list) {
+      my $prop_id = $sorted_list{$prop_order};
+      my $numGrades = $panel->proposals->proposal($prop_id)->num_pg();
+      if ($panel->proposals->proposal($prop_id)->pg_avg <= $cut_offGrade &&
+	  $panel->proposals->proposal($prop_id)->prop_status !~ /$STAT_BPP/) {
+	if ( $numGrades >= $MIN_TRIAGE_PG) {
+	  $panel->proposals->proposal($prop_id)->save_member('prop_status', 'N');
+
+	  $panel->proposals->proposal($prop_id)->triage('Y');
+	  $panel->proposals->proposal($prop_id)->save_member('triage_sort', 2);
+	
+	  $panel->proposals->proposal($prop_id)->save_member('g1', 
+	      $panel->proposals->proposal($prop_id)->pg_avg);
+	  $panel->proposals->proposal($prop_id)->save_member('fg_avg', 
+	      $panel->proposals->proposal($prop_id)->pg_avg);
+	  $panel->proposals->proposal($prop_id)->save2database();
+        } else {
+          print STDERR "$prop_id falls below triage line but only $numGrades preliminary grades submitted\n";
+        }
+      }
+    }
+  }
+  $panel->set_grades();
+  if ($isXVP || $isVLP) {
+    $panel->set_lp_grades();
+    $panel->set_xvp_grades();
+    $panel->set_vlp_grades();
+  }
+     
+  $panel->update_stats();
+  $panel->set_running_totals();
+  $app_triage->configure(-state => 'disabled');
+  $panel->set_sort('lcd', '', 'pg_avg DESC', 'PGradeAvg');
+  if ($fac_view_id) {
+    mkView('fac');
+  }
+  if ($lcd_view_id) {
+    mkView('lcd');
+    if ($param{panel} == 99) {
+      mkView('lcd', undef, 'LP');
+      mkView('lcd', undef, $xvp_vlp_lbl);
+    }
+  }
+}
+
+#
+## Internal Utility ##
+# Name: hideTriage
+# Purpose: provides toggle between showing and hiding triaged proposals
+# Usage: hideTraige()
+# Returns: nothing
+sub hideTriage {
+    if ($hide_triage =~ /N/) {
+	$hide_triage = 'Y';
+	$panel->set_triage('Y');
+	$triage->configure(-label => 'Show Triaged Proposals');
+    }
+    else {
+	$hide_triage = 'N';
+	$panel->set_triage('N');
+	$triage->configure(-label => 'Hide Triage');
+    }
+}
+
+#
+## Internal Utility ##
+# Name: hideArcThe
+# Purpose: provides toggle between showing and hiding archive and theory
+#          proposals
+# Usage: hideArcThe()
+# Returns: nothing
+sub hideArcThe {
+    if ($hide_arc_the =~ /N/) {
+	$hide_arc_the = 'Y';
+	$panel->set_arc_the('Y');
+	$arc_the->configure(-label => 'Show Archive/Theory Proposals');
+    }
+    else {
+	$hide_arc_the = 'N';
+	$panel->set_arc_the('N');
+	$arc_the->configure(-label => 'Hide Archive/Theory Proposals');
+    }
+}
+
+## Internal Utility ##
+# Name: hideLpVlp
+# Purpose: provides toggle between showing and hiding LP and VLP proposals
+# Usage: hideLpVlp()
+# Returns: nothing
+sub hideLpVlp {
+    if ($hide_lp_vlp =~ /N/) {
+	$hide_lp_vlp = 'Y';
+	$panel->set_lp_vlp('Y');
+	$lp_vlp->configure(-label => $show_label);
+    }
+    else {
+	$hide_lp_vlp = 'N';
+	$panel->set_lp_vlp('N');
+	$lp_vlp->configure(-label => $hide_label);
+    }
+}
+
+#
+## Internal Utility ##
+# Name: mkView
+# Purpose: construct the view frame
+# Usage: mkView($view) or mkView($view, $rank, $BPP)
+#      If called with a rank, then the view should scroll to that proposal
+# Returns: nothing
+sub mkView {
+  my ($view, $rank, $BPP) = @_;
+  $rank = 0 if !$rank;
+  $rank = 1 if $rank < 0;
+
+
+
+
+  if ((!$isXVP && !$isVLP) && $BPP && $BPP =~ /LP|VLP|XVP/) {
+   
+    return; 
+  }
+  my ($view_id, $view_name, $groupby, $sortby, $sortname, $sortcol, $h_triage, 
+      $h_arc_the, $h_lp_vlp, $show_button, $finalize_frame, $View, $finalize);
+
+  if ($view =~ /lcd/) {
+    closePrintPreview();
+    closePrintFinalized();
+    if (!$BPP) {
+      $LCD_View->destroy if Tk::Exists($LCD_View);
+      @lcd_sorted_props = ();
+    }
+    elsif ($BPP eq 'LP') {
+      $LCD_LP_View->destroy if Tk::Exists($LCD_LP_View);
+      @lcd_lp_sorted_props = ();
+    }
+    elsif ($BPP =~ /XVP|VLP/) {
+      $LCD_XVP_View->destroy if Tk::Exists($LCD_XVP_View);
+      @lcd_xvp_sorted_props = ();
+    }
+
+    # Enable print menu buttons
+    $print1->configure(-state => 'normal');
+    $dumpPropCols->configure(-state => 'normal');
+
+    my $viewTitle = "Panel $param{panel}: $lcd_view_name with Sort on " . 
+      $panel->lcd_sortname;
+    if (!$BPP) {
+      $LCD_View = $lcd_mw->Frame(-label => $viewTitle);
+    }
+    elsif ($BPP eq 'LP') {
+      $LCD_LP_View = $lcd_lp_mw->Frame(-label => $viewTitle);
+    }
+    elsif ($BPP =~ /XVP|VLP/) {
+      $LCD_XVP_View = $lcd_xvp_mw->Frame(-label => $viewTitle);
+    }
+
+    # Special things are added to a Finalize view
+    my $finalize_query = $dbh1->prepare(qq(select pub from views where 
+                                         panel_id = ? and view_id = ?));
+    $finalize_query->execute($param{panel}, $lcd_view_id);
+    ($finalize) = $finalize_query->fetchrow_array;
+    $finalize_query->finish; 
+
+    # Set Rank button if a finalize view
+    if ($finalize =~ /F|B/) {
+      if (!$BPP) {
+	$finalize_frame = $LCD_View->Frame()->pack(-side => 'top');
+      }
+      elsif ($BPP eq 'LP') {
+	$finalize_frame = $LCD_LP_View->Frame()->pack(-side => 'top');
+      }
+      elsif ($BPP =~ /XVP|VLP/) {
+	$finalize_frame = $LCD_XVP_View->Frame()->pack(-side => 'top');
+      }
+    }
+
+    $view_id = $lcd_view_id;
+    $view_name = $lcd_view_name;
+    $groupby = $panel->lcd_groupby;
+    $sortby = $panel->lcd_sortby;
+    $sortname = $panel->lcd_sortname;
+    $sortcol = 'lcd_sortby';
+    $h_triage = $hide_triage;
+    $h_arc_the = $hide_arc_the;
+    $h_lp_vlp = $hide_lp_vlp;
+    $show_button = 1;
+    $View = $LCD_View if !$BPP;
+    $View = $LCD_LP_View if $BPP eq 'LP';
+    $View = $LCD_XVP_View if $BPP =~ /XVP|VLP/;
+  }
+  else {
+    $Fac_View->destroy if Tk::Exists($Fac_View);
+    @fac_sorted_props = ();
+  
+    #$print2->configure(-state => 'normal');
+
+    my $viewTitle = "Panel $param{panel}: $fac_view_name with Sort on " . 
+      $panel->fac_sortname;
+    $Fac_View = $mw->Frame(-label => $viewTitle);
+
+    # Special things are added to a Finalize view
+    my $finalize_query = $dbh1->prepare(qq(select pub from views where 
+                                         panel_id = ? and view_id = ?));
+    $finalize_query->execute($param{panel}, $fac_view_id);
+    ($finalize) = $finalize_query->fetchrow_array;
+    $finalize_query->finish; 
+
+    # Set Rank button if a finalize view
+    $finalize_frame = $Fac_View->Frame()->pack(-side => 'top') if 
+      $finalize =~ /F|B/;
+    $view_id = $fac_view_id;
+    $view_name = $fac_view_name;
+    $groupby = $panel->fac_groupby;
+    $sortby = $panel->fac_sortby;
+    $sortname = $panel->fac_sortname;
+    $sortcol = 'fac_sortby';
+    #$h_triage = 'N';
+    #$h_arc_the = 'N';
+    #$h_lp_vlp = 'N';
+    # cycle 17, Tara wants the hides to work in sync with Panel view
+    $h_triage = $hide_triage;
+    $h_arc_the = $hide_arc_the;
+    $h_lp_vlp = $hide_lp_vlp;
+    $show_button = 1;
+    $View = $Fac_View;
+  }
+
+  # Has the panel been ranked?
+  my $rank_query = $dbh1->prepare(qq(select max(rank) from proposal where 
+                                     panel_id = ?));
+  $rank_query->execute($param{panel});
+  my ($is_ranked) = $rank_query->fetchrow_array;
+  $rank_query->finish;
+
+  # Check if sort column exists in view; give error message if it does not
+  my $col_cnt = $dbh1->prepare(qq(select count(*) from section_columns sc, 
+                                  columns c where sc.panel_id = c.panel_id and
+                                  sc.col_id = c.col_id and sc.panel_id = ? and
+                                  attribute = ? and view_id = ?));
+
+
+  
+  my($finalflg) = 0;
+  if ($finalize =~ /F|B/ and $is_ranked ) {
+     $finalflg=1;
+     $sortby = "rank";
+     $groupby = "";
+     $panel->set_sort($view, '', 'rank', 'Rank') ;
+     #$panel->set_sort('fac', '', 'rank', 'Rank') ;
+     #print STDERR "The Finalize Tool is always sorted by rank\n";
+     my $viewTitle = "Panel $param{panel}: $view_name with Sort on Rank" ; 
+     $View->configure(-label => $viewTitle);
+  }
+
+  
+ 
+
+  my ($att, @rest) = split /\s+/, $sortby;
+  my (@atts) = split /,/, $att;
+  #print STDERR "$view:  finalize = $finalize $sortby\n";
+
+  my $is_sort = 0;
+  foreach my $col (@atts) {
+    $col =~ s/_sort//;
+    $col_cnt->execute($param{panel}, $col, $view_id);
+    my($cnt) = $col_cnt->fetchrow_array;
+    $col_cnt->finish;
+
+    # this allows sorting by PI which is part of the prop button
+    $is_sort += $cnt;
+    if ($cnt == 0) {
+      $is_sort++ if $col =~ /last_name/;
+      $is_sort++ if $col =~ /rank/i and $is_ranked ;
+      #print STDERR "Adding to is_sort\n" if $col =~ /rank/i and $is_ranked ;
+    }
+  }
+  if ($is_sort ne scalar @atts) {
+    my $message = $sortname ;
+    if (!$message) { $message = "One of the sort attributes "; }
+    $message .=
+      " is not a column in $view_name.  Defaulting to sort on PropNum.";
+    #print STDERR "$message\n";
+    $mw->messageBox(-title => 'PR: Warning',
+		    -message => $message,
+		    -type => 'OK',
+		    -icon => 'warning'
+		   );
+    #$panel->set($sortcol, 'prop_id');
+    $panel->set_sort($view, '', 'prop_id', 'PropNum') ;
+    $sortby = "prop_id";
+    $groupby = "";
+
+    my $viewTitle = "Panel $param{panel}: $view_name with Sort on PropNum" ; 
+    $View->configure(-label => $viewTitle);
+
+  }
+
+  
+  my $find_frame = $View->Frame(-label => 'Search For',
+			       )->pack(-side => 'top');
+
+  my $row = 2;
+  # Query to get information on sections and columns in view
+  my $get_section = $dbh1->prepare(qq(select s.section_id, section_name, 
+					section_order,section_type, 
+					section_width, col_name, col_order
+					from sections s, columns c, 
+					section_columns sc where
+					s.panel_id = c.panel_id and 
+					c.panel_id = sc.panel_id and 
+					s.view_id = sc.view_id and
+					s.section_id = sc.section_id and
+					c.col_id = sc.col_id and 
+					s.view_id = ? and s.panel_id = ?
+					order by section_order, col_order));
+  
+  # %sections contains the information about the sections
+  # of the table
+  my %sections;
+  
+  # @headers is an ordered list of headers
+  my @headers;
+  
+  $get_section->execute($view_id, $param{panel});
+  my $cur_sec = 0;
+  my $new_sec = 0;
+  while ( my($section_id, $section_name, $section_order, 
+	     $section_type, $section_width, $col_name,
+	     $col_order) = $get_section->fetchrow_array) {
+    if ($cur_sec != $section_id) {
+      $cur_sec = $section_id;
+      $new_sec = 1;
+    }
+    my %section;
+    if ($section_type !~ /spreadsheet|prop_edit|prop_status|combo_cols|multi_cols/) {
+      # no idea why it adds Rank to anything but the PropNum PI section
+      # but no complaints yet from CDO
+      $section_name .= ' Rank' if $is_ranked and $finalize !~ /F|B/;
+      %section = (name => $section_name,
+		  type => $section_type,
+		  id => $section_id, 
+		  width => $section_width);
+      push @headers, $section_name if $new_sec;
+      $new_sec = 0;
+      $sections{$section_id} = \%section;
+    }
+    else {
+      %section = (name => $section_name,
+		  type => $section_type,
+		  id => $section_id,
+		  width => $section_width);
+      push @headers, $col_name;
+      $sections{$section_id} = \%section;
+    } 
+  }
+  $get_section->finish;
+  # %rows contains a count of the number of rows to display for each section
+  #    - this information is then used to determine the maximum number 
+  #      of rows to display in the table
+  my %rows;
+  my $get_row1 = $dbh1->prepare(qq(select section_id, section_type from 
+				     sections where panel_id = ? and
+				     view_id = ?));
+  my $get_row2 = $dbh1->prepare(qq(select count(*) from section_columns
+				     where panel_id = ? and view_id = ? and
+				     section_id = ?));
+  $get_row1->execute($param{panel}, $view_id);
+  while (my($sec_id, $sec_type) = $get_row1->fetchrow_array) {
+    $rows{$sec_id} = 1 if $sec_type =~ /prop_id|spreadsheet|prop_edit|prop_status|combo_cols|multi_cols/;
+    $rows{$sec_id} = $sec_type if $sec_type eq 'proposal';
+    $rows{$sec_id} = 6 if $sec_type =~ /title|short_ttl|abstract|target/;
+  }
+  $get_row1->finish;
+  foreach my $sec_id (keys %rows) {
+    if ($rows{$sec_id} eq 'proposal') {
+      $get_row2->execute($param{panel}, $view_id, $sec_id); 
+      my ($count) = $get_row2->fetchrow_array;
+      $get_row2->finish;
+      $rows{$sec_id} = $count;
+    }
+  }
+  
+  my $num_rows = 0;
+  foreach my $sec_id (keys %rows) {
+    $num_rows = $rows{$sec_id} if $rows{$sec_id} > $num_rows;
+  }
+  if ($num_rows > 0) {
+    $num_rows = int(25 / $num_rows);
+    $num_rows++;
+  }
+  $num_rows = 15 if $num_rows > 20;
+  
+  my $table = new BuildTable($param{test}, $View, \@headers, 3,'nw', 
+			     $num_rows, 3, $font_size);
+
+  # Create the group/sort hash for display purposes
+  my %gslist = $panel->get_group_list($groupby, $sortby, $h_triage, 
+				      $h_arc_the, $h_lp_vlp) if !$BPP;
+  %gslist = $panel->get_group_list($groupby, $sortby, $h_triage, 
+				   $h_arc_the, $h_lp_vlp, 'LP') if 
+				     $BPP eq 'LP';
+  %gslist = $panel->get_group_list($groupby, $sortby, $h_triage, 
+				   $h_arc_the, $h_lp_vlp, $BPP) if 
+				     $BPP =~ /XVP|VLP/;
+
+  foreach my $group (sort keys %gslist) {
+    my $sorted_list = $gslist{$group};
+    my %sorted_list = %$sorted_list;
+    foreach my $prop_order (sort {$a <=> $b} keys %$sorted_list) {
+      $row++;
+      my $prop_id = $sorted_list{$prop_order};
+      
+      # this will allow us to skip to the row if a find is done
+      if ($view eq 'lcd') {
+	push @lcd_sorted_props, $prop_id if !$BPP;
+	push @lcd_lp_sorted_props, $prop_id if $BPP eq 'LP';
+	push @lcd_xvp_sorted_props, $prop_id if $BPP =~ /XVP|VLP/;
+      }
+      push @fac_sorted_props, $prop_id if $view =~ /fac/;
+      
+      my $col = 0;
+      foreach my $sec_num (sort {$a <=> $b} keys %sections){
+	$col++;
+	if ($sec_num > 100) {
+	  $sec_num = $sec_num % 100;
+	}
+	if ($sections{$sec_num}{type} =~ /prop_id/) {
+	  my $show_rank = 1 if $is_ranked and $finalize !~ /F|B/;
+	  $table->prop_buttons($row, $col,
+			       $prop_id, $quit, 
+			       $monitor, $panel, $show_button, $show_rank); 
+	}
+	elsif ($sections{$sec_num}{type} =~ /proposal/) {
+	  my $prop_cols = get_cols($sections{$sec_num}, $view_id);
+          #print STDERR "UGH $BPP\n";
+	  $table->prop_info_new($view, $BPP,$row, $col, $prop_cols,
+				$panel->proposals->proposal($prop_id), 
+				$sections{$sec_num}{width});
+	}
+	elsif ($sections{$sec_num}{type} =~ /title/) {
+	  $table->text($row, $col, 
+		       $prop{$prop_id}->title(), 
+		       $sections{$sec_num}{width}, 9);
+	}
+        elsif ($sections{$sec_num}{type} =~ /short_ttl/) {
+          $table->text($row, $col, 
+                       $prop{$prop_id}->short_ttl(), 
+                       $sections{$sec_num}{width}, 2);
+        }
+	elsif ($sections{$sec_num}{type} =~ /abstract/) {
+	  $table->text($row, $col, 
+		       $prop{$prop_id}->abstract(), 
+		       $sections{$sec_num}{width}, 9);
+	}
+	elsif ($sections{$sec_num}{type} =~ /target/) {
+	  $table->target_table($row, $col, 
+			       $prop{$prop_id}, 
+			       5, $sec_num, $view_id);
+	}
+	elsif ($sections{$sec_num}{type} =~ 
+	       /spreadsheet|combo_cols|multi_cols/) {
+	  my $cols = get_cols($sections{$sec_num}, $view_id);
+	  $col = $table->spreadsheet($view, $BPP,$row, $col, $cols, 
+				     $prop{$prop_id});
+	}
+	elsif ($sections{$sec_num}{type} =~ /prop_edit/) {
+	  my $cols = get_cols($sections{$sec_num}, $view_id);
+	  my $query = $dbh1->prepare(qq(select count(*) from proposal where 
+                                        panel_id = ? and rank is null));
+	  $query->execute($param{panel});
+	  my ($disable) = $query->fetchrow_array;
+	  $query->finish;
+	  $disable++ if $panel->locked =~ /Y/;
+
+	  $col = prop_edit($table, $row, $col, $cols,
+			   $prop_id, $panel, $disable);
+	}
+	elsif ($sections{$sec_num}{type} =~ /prop_status/) {
+	  if ($prop{$prop_id}->prop_status =~ /$STAT_BPP/) {
+	    my $cols = get_cols($sections{$sec_num}, $view_id);
+	    $col = $table->spreadsheet($view, $BPP,$row, $col, $cols,
+				       $prop{$prop_id});
+	  }
+	  else {
+	    $col = prop_status_button($table, $row, $col, $prop{$prop_id},$view);
+	  }
+	}
+      }
+    }
+  }
+
+  $table->print_headers(1, $panel, \&mkView, $view, $BPP,$finalflg);
+  
+  $table->table->configure(-takefocus => 1);
+  $table->table->bind( '<Enter>' => 'focus' );
+  $table->pack(-fill => 'both', -expand => 1);
+  $table->update;
+
+
+  if ($rank) {
+    my ($row, $col);
+    if (!$BPP) {
+      ($row, $col) = get_str_psn($rank, \%lcd_search_cols, 
+				 'Rank', \@lcd_sorted_props);
+    }
+    elsif ($BPP eq 'LP') {
+      ($row, $col) = get_str_psn($rank, \%lcd_lp_search_cols, 
+				       'Rank', \@lcd_lp_sorted_props);
+    }
+    elsif ($BPP =~ /XVP|VLP/) {
+      ($row, $col) = get_str_psn($rank, \%lcd_xvp_search_cols, 
+					 'Rank', \@lcd_xvp_sorted_props);
+    }
+    my($xx) = $row;
+    if ($xx < 8) {$xx=3; }
+    $table->table->see($xx, $col);
+  }
+  
+  
+  if ($view =~ /lcd/) {
+    if (!$BPP) {
+      pop_finalize($view, $finalize_frame) if $finalize =~ /F|B/;
+      $LCD_View->pack(-expand => 1, -fill => 'both');
+      $LCD_View->update;
+      apply_font($LCD_View);
+      pop_LCD_findframe($find_frame, $table);
+    }
+    elsif ($BPP eq 'LP') {
+      pop_finalize($view, $finalize_frame) if $finalize =~ /F|B/;
+      $LCD_LP_View->pack(-expand => 1, -fill => 'both');
+      $LCD_LP_View->update;
+      apply_font($LCD_LP_View);
+      pop_LCD_LP_findframe($find_frame, $table);
+    }
+    elsif ($BPP =~ /XVP|VLP/) {
+      pop_finalize($view, $finalize_frame) if $finalize =~ /F|B/;
+      $LCD_XVP_View->pack(-expand => 1, -fill => 'both');
+      $LCD_XVP_View->update;
+      apply_font($LCD_XVP_View);
+      pop_LCD_XVP_findframe($find_frame, $table);
+    }
+  }
+  else {
+    pop_finalize($view, $finalize_frame) if $finalize =~ /F|B/;
+    $Fac_View->pack(-expand => 1, -fill => 'both');
+    $Fac_View->update;
+    pop_Fac_findframe($find_frame, $table);
+  }
+}
+
+## Class Method ##
+# Name: prop_status_button
+# Purpose: display a field as a radio button in the finalize
+# Parameters: table widget
+#             row of cell
+#             column of cell
+#             proposal object
+# Returns: column  populate
+sub prop_status_button {
+  my ($table, $row, $col, $prop,$view) = @_;
+  # Check that the rank column has been initialized
+  my $rank_query = $dbh1->prepare(qq(select count(*) from proposal where
+                                     panel_id = ? and rank is NULL));
+  $rank_query->execute($param{panel});
+  my ($not_ranked) = $rank_query->fetchrow_array;
+
+  
+
+
+  my $state = 'normal';
+  $state = 'disabled' if $panel->locked =~ /Y/ or $not_ranked;
+
+  my $frame = $table->mk_pack_frame;
+  foreach my $val (qw/Y N G/) {
+    next if $val =~ /G/ and $prop->type =~ /ARCHIVE|THEORY/;
+    $frame->Radiobutton(-text => $val,
+			-value => $val,
+			-state => $state,
+			-variable => $prop->get_ref('prop_status'),
+			-command => sub {
+			  if ($prop->infeasible eq 'Y') {
+			    $frame->messageBox(-title => 
+					       'PR: Infeasible Proposal',
+					       -type => 'OK',
+					       -message => 
+					       'You cannot approve an infeasible proposal.');
+			    $prop->save_member('prop_status', 'N');
+
+			  }
+			  else {
+                            if ($val !~ /N/i && $prop->type !~ /ARCHIVE|THEORY/ ) {
+                              my $p_query = $dbh1->prepare(qq(select count(*) 
+                                from target where (targ_status='Y' or 
+                                targ_status_1='Y' or targ_status_2 = 'Y') 
+		                and panel_id = ? and prop_id = ?));
+                              $p_query->execute($param{panel}, $prop->prop_id);
+                              my ($no_tgts) = $p_query->fetchrow_array;
+                              if ($no_tgts == 0 && $prop->prop_status !~ /N/i) {
+                                 print STDERR "There are no approved/gray targets for proposal " . $prop->prop_id. "\n";
+			         $frame->messageBox(-title => 
+					       '"PR:',
+					       -type => 'OK',
+					       -message => 
+					       'All targets are turned off for this proposal.');
+                              }
+                            }
+			    $prop->save_member('prop_status', 
+					       $prop->prop_status);
+			    $panel->set_grades;
+                            if ($isXVP || $isVLP) {
+                              $panel->set_lp_grades();
+                              $panel->set_xvp_grades();
+                              $panel->set_vlp_grades();
+                            }
+			    $panel->set_running_totals;
+			    $panel->update_stats;
+			  }
+			},
+		       )->pack(-side => 'left');
+  }
+  $table->table()->put($row, $col, $frame);
+
+  return $col;
+}
+
+## Class Method ##
+# Name: prop_edit
+# Purpose: display a field as an entry widget with a save button for finalize
+# Parameters: table widget
+#             row of cell
+#             column of cell
+#             hash of fields
+#             proposal id
+#             panel object
+#             disable
+# Returns: last column populated
+sub prop_edit {
+  my ($table, $row, $col, $fields, $prop_id, $panel, $disable) = @_;
+
+  foreach my $col_num (sort {$a <=> $b} keys %$fields) {
+    my $frame = $table->mk_pack_frame;
+    if ($$fields{$col_num}{display} =~ /entry/) {
+      my $attribute = $$fields{$col_num}{attribute};
+      my $entry = $frame->Entry(-textvariable => 
+				$panel->proposals->proposal($prop_id)->get_ref($attribute),
+				-width => 3,
+				-justify => 'right',
+				-validate => 'key',
+				-validatecommand => sub {
+				  if ($attribute =~ /rank/) {
+				    # must be an integer
+				    ($_[0] =~ /\d+/ || $_[0] eq '');
+				  }
+				  else {
+				    1;
+				  }
+				},
+				-invalidcommand => sub {
+				  if ($attribute =~ /rank/) {
+				    $frame->messageBox(-title => 
+						       'PR: Data Entry Error',
+						       -type => 'OK',
+						       -message => 
+						       'Rank must be an integer.');
+				  }
+				  else {
+				  }
+				}
+			       )->pack(-side => "left",
+				       -expand => 1,
+				       -fill => 'both');
+      my $save = $frame->Button(-text => 'Save',
+				-command => sub {
+				  if ($attribute =~ /rank/) {
+				    $panel->move_rank($prop_id);
+				    $panel->lcd_sortby('rank');
+				    $panel->fac_sortby('rank');
+				    mkView('lcd');
+				    mkView('fac');
+				  }
+				},
+			       )->pack(-side => 'left',
+				       -expand => 1,
+				       -fill => 'both');
+
+      $entry->configure(-state => 'disabled') if $disable;
+      $save->configure(-state => 'disabled') if $disable;
+    }
+    $table->table()->put($row, $col, $frame);
+    $col++
+  }
+  # Subtract off last column added to return the position of the last column
+  # in the section
+  $col--;
+  return $col;
+}
+
+## Internal Utility ##
+# Name: pop_finalize
+# Purpose: populate the frame which is added to finalize views
+# Usage: pop_finalize($view, $find_frame)
+# Returns: nothing
+sub pop_finalize {
+  my $view = shift;
+  my $frame = shift;
+
+  # Lock the panel
+  my $lock_perm = $dbh1->prepare(qq(select count(*) from passwords where 
+                                    uname = ?));
+
+  $lock_perm->execute($param{U});
+  my ($permission) = $lock_perm->fetchrow_array;
+  $lock_perm->finish;
+
+  my $lock_label = 'Lock Panel';
+  $lock_label = 'Unlock Panel' if $panel->locked =~ /Y/;
+
+  my $state = 'normal';
+  $state = 'disabled' if $panel->locked =~ /Y/;
+  if ($view =~ /fac/) {
+    $frame->Button(-text => $lock_label,
+		   -anchor => 'w',
+		   -command => sub {
+		     if ($permission) {
+		       $panel->lock('N') if $lock_label =~ /Unlock/;
+		       $panel->lock('Y') if $lock_label =~ /Lock/;
+		       mkView('fac');
+		       mkView('lcd');
+		     }
+		     else {
+		       my $logged = &cdo_login();
+		       if ($logged =~ /Y/) {
+			 $panel->lock('N') if $lock_label =~ /Unlock/;
+			 $panel->lock('Y') if $lock_label =~ /Lock/;
+			 mkView('fac');
+			 mkView('lcd');
+		       }
+		     }
+		   },
+		  )->pack(-side => 'left');
+    
+    # Initialize Rank
+    my $init_state = $state;
+    my $init_q = $dbh1->prepare(qq(select count(*) from proposal where 
+                                 rank > 0 and panel_id = ?));
+    $init_q->execute($param{panel});
+    my ($ranked) = $init_q->fetchrow_array;
+    $init_q->finish;
+    
+    $init_state = 'disable' if $ranked;
+    
+    $frame->Button(-text => 'Initialize Rank',
+		   -state => $init_state,
+		   -anchor => 'w',
+		   -command => sub {&init_rank();},
+		  )->pack(-side => 'left');
+
+    # Turn-off Rank Below X
+    my $turn_off_frame = $frame->Frame(-label => 'Turn-off Below Rank',
+				       -borderwidth => 2,
+				       -relief => 'groove',
+				      )->pack(-side => 'left',
+					      -padx => 20,
+					      -expand => 1,
+					      -fill => 'both');
+    $turn_off_frame->Entry(-textvariable => \$last_rank,
+			   -state => $state,
+			   -width => 5,
+			   -validate => 'key',
+			   -validatecommand => sub {($_[1] =~ /\d/) ||
+						      ($_[0] =~ /\d+/);},
+			   -invalidcommand => sub {
+			     $frame->messageBox(-title => 'PR: Data Entry Error',
+						-type => 'OK',
+						-message => 'Rank must be an integer');
+			   },
+			  )->pack(-side => 'left');
+    $turn_off_frame->Button(-text => 'Submit',
+			    -state => $state,
+			    -anchor => 'w',
+			    -command => sub {&turn_off_rank();},
+			   )->pack(-side => 'right');
+  }
+  my($AO1) = $AO + 1;
+  my($AO2) = $AO + 2;
+
+  # Allotment Summaries
+  if ($param{panel} != 99) {
+    my $allot = $frame->Frame(-borderwidth => 2,
+			      -relief => 'groove');
+    $allot->Label(-text => 'Panel Allotments')->grid(-columnspan => 4,
+						     -sticky => 'nsew');
+    $allot->Label(-text => 'AO:',
+		  -anchor => 'e'
+		 )->grid($allot->Label(-text => $AO,
+				       -anchor => 'w'),
+			 $allot->Label(-text => $AO1,
+				       -anchor => 'w'),
+			 $allot->Label(-text => $AO2,
+				       -anchor => 'w'),
+			 -sticky => 'ew');
+    $allot->Label(-text => 'Allotted Time:',
+		  -anchor => 'e'
+		 )->grid($allot->Label(-text => $panel->time_slew_prob_allot,
+				       -anchor => 'w'),
+			 $allot->Label(-text => $panel->time_slew_prob_allot_1,
+				       -anchor => 'w'),
+			 $allot->Label(-text => $panel->time_slew_prob_allot_2,
+				       -anchor => 'w'),
+			 -sticky => 'ew');
+    $allot->Label(-text => 'Allotted RC :',
+		  -anchor => 'e'
+		 )->grid($allot->Label(-text => $panel->rc_score_allot,
+				       -anchor => 'w'),
+			 $allot->Label(-text => $panel->rc_score_allot_1,
+				       -anchor => 'w'),
+			 $allot->Label(-text => $panel->rc_score_allot_2,
+				       -anchor => 'w'),
+			 -sticky => 'ew');
+    $allot->Label(-text => 'Allotted Archive $:',
+		  -anchor => 'e'
+		 )->grid($allot->Label(-text => $panel->arc_allot,
+				       -anchor => 'w'),
+			 -sticky => 'ew');
+    $allot->Label(-text => 'Allotted Theory $:',
+		  -anchor => 'e'
+		 )->grid($allot->Label(-text => $panel->the_allot,
+				       -anchor => 'w'),
+			 -sticky => 'ew');
+    $allot->pack(-side => 'right');
+  }
+  else {
+    my $allot = $frame->Frame(-borderwidth => 2,
+			      -relief => 'groove');
+    $allot->Label(-text => 'Panel Allotments')->grid(-columnspan => 8,
+						     -sticky => 'nsew');
+    $allot->Label(-text => 'LP')->grid(-columnspan => 3,
+				       -column => 1,
+				       -row => 2,
+				       -sticky => 'nsew');
+    $allot->Label(-text => $xvp_vlp_lbl)->grid(-columnspan => 3,
+					-column => 5, 
+					-row => 2,
+					-sticky => 'nsew'
+				       );
+
+    $allot->Label(-text => 'AO:',
+		  -anchor => 'e'
+		 )->grid($allot->Label(-text => $AO,
+				       -anchor => 'w'),
+			 $allot->Label(-text => $AO1,
+				       -anchor => 'w'),
+			 $allot->Label(-text => $AO2,
+				       -anchor => 'w'),
+			 $allot->Label(-text => '',
+				       -anchor => 'w'),
+			 $allot->Label(-text => $AO,
+				       -anchor => 'w'),
+			 $allot->Label(-text => $AO1,
+				       -anchor => 'w'),
+			 $allot->Label(-text => $AO2,
+				       -anchor => 'w'),
+			 -sticky => 'ew');
+    $allot->Label(-text => 'Allotted Time:',
+		  -anchor => 'e'
+		 )->grid($allot->Label(-text => $panel->lp_time_slew_prob_allot,
+				       -anchor => 'w'),
+			 $allot->Label(-text => $panel->lp_time_slew_prob_allot_1,
+				       -anchor => 'w'),
+			 $allot->Label(-text => $panel->lp_time_slew_prob_allot_2,
+				       -anchor => 'w'),
+			 $allot->Label(-text => '',
+				       -anchor => 'w'),
+			 $allot->Label(-text => $panel->xvp_time_slew_prob_allot,
+				       -anchor => 'w'),
+			 $allot->Label(-text => $panel->xvp_time_slew_prob_allot_1,
+				       -anchor => 'w'),
+			 $allot->Label(-text => $panel->xvp_time_slew_prob_allot_2,
+				       -anchor => 'w'),
+			 -sticky => 'ew');
+    $allot->Label(-text => 'Allotted RC :',
+		  -anchor => 'e'
+		 )->grid($allot->Label(-text => $panel->rc_score_allot,
+				       -anchor => 'w'),
+			 $allot->Label(-text => $panel->rc_score_allot_1,
+				       -anchor => 'w'),
+			 $allot->Label(-text => $panel->rc_score_allot_2,
+				       -anchor => 'w'),
+			 -sticky => 'ew');
+    $allot->pack(-side => 'right');
+  }
+}
+
+## Internal Utility ##
+# Name: cdo_login
+# Purpose: widget for cdo to log-in to approve final selections
+# Parameters: none
+# Returns: nothing
+sub cdo_login {
+  my ($pw, $uname);
+  my $db = $mw->DialogBox(-title => 'PR: Login',
+			  -buttons => ['Ok', 'Cancel'],
+			  -default_button => 'Ok');
+  $db->geometry("+20+30");
+  $db->add('LabEntry',
+	   -textvariable =>\$uname,
+	   -width => 20,
+	   -label => 'Username',
+	   -labelPack => [-side => 'left'])->pack();
+  $db->add('LabEntry',
+	   -textvariable => \$pw,
+	   -width => 20,
+	   -label => 'Password',
+	   -show => '*',
+	   -labelPack => [-side => 'left'])->pack();
+  my $answer = $db->Show();
+  
+  if ($answer eq 'Cancel') {
+    return 'N';
+  }
+  else {
+    return 'N' if !$uname;
+
+    my $app = 'Y';
+    my $get_pwd = $dbh1->prepare(qq(select pwd from passwords where 
+                                        uname = ?));
+    $get_pwd->execute($uname);
+    my ($pwd) = $get_pwd->fetchrow_array;
+    $get_pwd->finish;
+    if ($pwd eq $pw) {
+      return 'Y';
+    }
+    else {
+      $mw->messageBox(-title => 'PR: Login Error',
+		      -type => 'OK',
+		      -message => "Only authorized CDO persons can lock/unlock a panel.  If you are an authorized person, please try again."
+		     );
+      #	  $db->destroy;
+      return 'N';
+    }
+  }
+}
+
+## Internal Utility ##
+# Name: init_rank
+# Purpose: initial rank column based on fg_avg
+# Usage: init_rank()
+# Returns: nothing
+sub init_rank {
+  #my %groups = $panel->get_group_list('','fg_avg DESC', 'N');
+  #my $ordered_props = $groups{1};
+  #foreach my $rank (sort {$a <=> $b} keys %$ordered_props) {
+  #  my $prop_id = $$ordered_props{$rank};
+  #  $panel->proposals->proposal($prop_id)->save_member('rank', $rank);
+  #}
+  my $rank=1;
+  my $q1 = "select  prop_id from proposal where panel_id = " . 
+	$panel->panel_id . qq(
+        and triage not in ('Y','A')
+        order by fg_avg DESC,prop_id);
+  my $sth = $dbh1->prepare($q1);
+  $sth->execute;
+  while (my $prop_id = $sth->fetchrow_array) {
+    $panel->proposals->proposal($prop_id)->save_member('rank', $rank);
+    $rank += 1;
+  }
+  $sth->finish;
+
+  my $q2 = "select  prop_id from proposal where panel_id = " . 
+	$panel->panel_id . qq(
+        and triage in ('Y','A')
+        order by fg_avg DESC,prop_id);
+  $sth = $dbh1->prepare($q2);
+  $sth->execute;
+  while (my $prop_id = $sth->fetchrow_array) {
+    $panel->proposals->proposal($prop_id)->save_member('rank', $rank);
+    $rank += 1;
+  }
+  $sth->finish;
+
+  mkView('lcd');
+  mkView('fac');
+
+
+
+
+}
+
+## Internal Utility ##
+# Name: turn_off_rank
+# Purpose: turn-off all GO proposals below $last_rank
+# Usage: turn_off_rank()
+# Returns: nothing
+sub turn_off_rank {
+  # Check that the rank column has been initialized
+  my $rank_query = $dbh1->prepare(qq(select count(*) from proposal where
+                                     panel_id = ? and rank is NULL));
+  $rank_query->execute($param{panel});
+  my ($not_ranked) = $rank_query->fetchrow_array;
+  $rank_query->finish;
+  if ($not_ranked) {
+    $mw->messageBox(-title => 
+		    'PR: Usage Error',
+		    -type => 'OK',
+		    -message => 
+		    'You must initialize rank first.');
+
+    return;
+  }
+
+  my $query = $dbh1->prepare(qq(select prop_id from proposal where 
+                                panel_id = ? and rank > ?));
+  $query->execute($param{panel}, $last_rank);
+  while (my ($prop_id) = $query->fetchrow_array) {
+    $panel->proposals->proposal($prop_id)->save_member('prop_status', 'N') if 
+      $panel->proposals->proposal($prop_id)->prop_status =~ /Y/;
+  }
+  $query->finish;
+
+  $panel->set_grades;
+  if ($isXVP || $isVLP) {
+    $panel->set_lp_grades();
+    $panel->set_xvp_grades();
+    $panel->set_vlp_grades();
+  }
+  $panel->set_running_totals;
+  $panel->update_stats;
+  mkView('fac');
+}
+
+## Internal Utility ##
+# Name: pop_LCD_findframe
+# Purpose: populate the frame which allows 'Find'
+# Usage: pop_LCD_findframe($find_frame, $table, $BPP)
+# Returns: nothing
+sub pop_LCD_findframe {
+  my $frame = shift;
+  my $table = shift;
+
+  my $get_cols = $dbh1->prepare(qq(select s.section_id, section_type, 
+                                   col_name, object, attribute from 
+                                   sections s, columns c, section_columns sc 
+                                   where s.panel_id = c.panel_id and 
+                                   c.panel_id = sc.panel_id and 
+                                   s.view_id = sc.view_id and 
+                                    s.section_id = sc.section_id and 
+                                   c.col_id = sc.col_id and 
+                                   s.view_id = ? and s.panel_id = ? 
+                                   order by section_order, col_order));
+  $get_cols->execute($lcd_view_id, $param{panel});
+
+  my @cols;
+  my $idx = 0;
+  my $prev_sec = 0;
+  while (my ($sec_id, $sec_type, 
+	     $name, $obj, $att) = $get_cols->fetchrow_array) {
+    $idx++ if $sec_type =~ /spreadsheet/;
+    $idx++ if ($sec_type !~ /spreadsheet/ and $prev_sec < $sec_id);
+    $prev_sec = $sec_id if $prev_sec < $sec_id;
+    
+    $prev_sec = $sec_id;
+    $lcd_search_cols{$name} = {idx => $idx,
+			       name => $name,
+			       obj => $obj,
+			       att => $att};
+    push @cols, $name;
+
+    # Need to add in PI to go with PropNum because database stores them
+    # as a single column in the columns table
+    if ($name =~ /PropNum/) {
+      $lcd_search_cols{PI} = {idx => $idx,
+			      name => 'PI',
+			      obj => $obj,
+			      att => 'last_name'};
+      push @cols, 'PI';
+    }
+  }
+  $get_cols->finish;
+  
+  $lcd_search_col = $cols[0];
+  $lcd_search_str = "";
+  $lcd_searchWidget=0;
+  $frame->Optionmenu(-textvariable => \$lcd_search_col,
+		     -options => [@cols],
+		     -command => [sub {$lcd_search_str = '';}],
+		    )->pack(-side => 'left');
+  $frame->Entry(-textvariable => \$lcd_search_str,
+		-width => 15,
+		-validate => 'key',
+		-validatecommand => sub {
+		  my ($row, $col) = get_str_psn($_[0], \%lcd_search_cols, 
+						$lcd_search_col, 
+						\@lcd_sorted_props);
+                  if ($lcd_searchWidget > 0) {
+                      $lcd_searchWidget->configure(-background=> $lcd_searchBG);
+                  }
+                  my($xx) = $row;
+                  if ($xx < 8) {$xx=3; }
+		  $table->table->see($xx, $col);
+
+                  if ($row > 1) {
+                    my($duh) = $table->table->get(($row-1),$col);
+                    my @kids = $duh->children;
+                    while ($kids[0] =~ /Frame/) {
+                      @kids = $kids[0]->children;
+                    }
+                    for (my $kk=0; $kk<=0;$kk++) {
+                      my($kid) = $kids[$kk];
+                      #print STDERR "searching kid $kid\n";
+                      $lcd_searchWidget = $kid;
+                      $lcd_searchBG = $kid->cget(-background);
+                      $kid->configure(-background => $searchFound);
+                    }
+                  }
+		  1;
+		},
+	       )->pack(-side => 'left');
+}
+
+## Internal Utility ##
+# Name: pop_LCD_LP_findframe
+# Purpose: populate the frame which allows 'Find'
+# Usage: pop_LCD_LP_findframe($find_frame, $table)
+# Returns: nothing
+sub pop_LCD_LP_findframe {
+  my $frame = shift;
+  my $table = shift;
+
+  my $get_cols = $dbh1->prepare(qq(select s.section_id, section_type, 
+                                   col_name, object, attribute from 
+                                   sections s, columns c, section_columns sc 
+                                   where s.panel_id = c.panel_id and 
+                                   c.panel_id = sc.panel_id and 
+                                   s.view_id = sc.view_id and 
+                                    s.section_id = sc.section_id and 
+                                   c.col_id = sc.col_id and 
+                                   s.view_id = ? and s.panel_id = ? 
+                                   order by section_order, col_order));
+  $get_cols->execute($lcd_view_id, $param{panel});
+
+  my @cols;
+  my $idx = 0;
+  my $prev_sec = 0;
+  while (my ($sec_id, $sec_type, 
+	     $name, $obj, $att) = $get_cols->fetchrow_array) {
+    $idx++ if $sec_type =~ /spreadsheet/;
+    $idx++ if ($sec_type !~ /spreadsheet/ and $prev_sec < $sec_id);
+    $prev_sec = $sec_id if $prev_sec < $sec_id;
+    
+    $prev_sec = $sec_id;
+    $lcd_lp_search_cols{$name} = {idx => $idx,
+				  name => $name,
+				  obj => $obj,
+				  att => $att};
+    push @cols, $name;
+
+    # Need to add in PI to go with PropNum because database stores them
+    # as a single column in the columns table
+    if ($name =~ /PropNum/) {
+      $lcd_lp_search_cols{PI} = {idx => $idx,
+				 name => 'PI',
+				 obj => $obj,
+				 att => 'last_name'};
+      push @cols, 'PI';
+    }
+  }
+  $get_cols->finish;
+  $lcd_lp_search_col = $cols[0];
+  $lcd_lp_search_str = "";
+  $lcd_lp_searchWidget = 0;
+  $frame->Optionmenu(-textvariable => \$lcd_lp_search_col,
+		     -options => [@cols],
+		     -command => [sub {$lcd_lp_search_str = '';}],
+		    )->pack(-side => 'left');
+  $frame->Entry(-textvariable => \$lcd_lp_search_str,
+		-width => 15,
+		-validate => 'key',
+		-validatecommand => sub {
+		  my ($row, $col) = get_str_psn($_[0], \%lcd_lp_search_cols, 
+						$lcd_lp_search_col, 
+						\@lcd_lp_sorted_props);
+                  if ($lcd_lp_searchWidget > 0) {
+                      $lcd_lp_searchWidget->configure(-background=> $lcd_lp_searchBG);
+                  }
+                  my($xx) = $row;
+                  if ($xx < 8) {$xx=3; }
+		  $table->table->see($xx, $col);
+
+                  if ($row > 1) {
+                    my($duh) = $table->table->get(($row-1),$col);
+                    my @kids = $duh->children;
+                    while ($kids[0] =~ /Frame/) {
+                      @kids = $kids[0]->children;
+                    }
+                    for (my $kk=0; $kk<=0;$kk++) {
+                      my($kid) = $kids[$kk];
+                      #print STDERR "lcd_lp_searching kid $kid\n";
+                      $lcd_lp_searchWidget = $kid;
+                      $lcd_lp_searchBG = $kid->cget(-background);
+                      $kid->configure(-background => $searchFound);
+                    }
+                  }
+		  1;
+		},
+	       )->pack(-side => 'left');
+}
+
+## Internal Utility ##
+# Name: pop_LCD_XVP_findframe
+# Purpose: populate the frame which allows 'Find'
+# Usage: pop_LCD_XVP_findframe($find_frame, $table)
+# Returns: nothing
+sub pop_LCD_XVP_findframe {
+  my $frame = shift;
+  my $table = shift;
+
+  my $get_cols = $dbh1->prepare(qq(select s.section_id, section_type, 
+                                   col_name, object, attribute from 
+                                   sections s, columns c, section_columns sc 
+                                   where s.panel_id = c.panel_id and 
+                                   c.panel_id = sc.panel_id and 
+                                   s.view_id = sc.view_id and 
+                                    s.section_id = sc.section_id and 
+                                   c.col_id = sc.col_id and 
+                                   s.view_id = ? and s.panel_id = ? 
+                                   order by section_order, col_order));
+  $get_cols->execute($lcd_view_id, $param{panel});
+
+  my @cols;
+  my $idx = 0;
+  my $prev_sec = 0;
+  while (my ($sec_id, $sec_type, 
+	     $name, $obj, $att) = $get_cols->fetchrow_array) {
+    $idx++ if $sec_type =~ /spreadsheet/;
+    $idx++ if ($sec_type !~ /spreadsheet/ and $prev_sec < $sec_id);
+    $prev_sec = $sec_id if $prev_sec < $sec_id;
+    
+    $prev_sec = $sec_id;
+    $lcd_xvp_search_cols{$name} = {idx => $idx,
+				   name => $name,
+				   obj => $obj,
+				   att => $att};
+    push @cols, $name;
+
+    # Need to add in PI to go with PropNum because database stores them
+    # as a single column in the columns table
+    if ($name =~ /PropNum/) {
+      $lcd_xvp_search_cols{PI} = {idx => $idx,
+				  name => 'PI',
+				  obj => $obj,
+				  att => 'last_name'};
+      push @cols, 'PI';
+    }
+  }
+  $get_cols->finish;
+  $lcd_xvp_search_col = $cols[0];
+  $lcd_xvp_search_str = "";
+  $lcd_xvp_searchWidget = 0;
+  $frame->Optionmenu(-textvariable => \$lcd_xvp_search_col,
+		     -options => [@cols],
+		     -command => [sub {$lcd_xvp_search_str = '';}],
+		    )->pack(-side => 'left');
+  $frame->Entry(-textvariable => \$lcd_xvp_search_str,
+		-width => 15,
+		-validate => 'key',
+		-validatecommand => sub {
+		  my ($row, $col) = get_str_psn($_[0], \%lcd_xvp_search_cols, 
+						$lcd_xvp_search_col, 
+						\@lcd_xvp_sorted_props);
+                  if ($lcd_xvp_searchWidget > 0) {
+                      $lcd_xvp_searchWidget->configure(-background=> $lcd_xvp_searchBG);
+                  }
+                  my($xx) = $row;
+                  if ($xx < 8) {$xx=3; }
+		  $table->table->see($xx, $col);
+
+                  if ($row > 1) {
+                    my($duh) = $table->table->get(($row-1),$col);
+                    my @kids = $duh->children;
+                    while ($kids[0] =~ /Frame/) {
+                      @kids = $kids[0]->children;
+                    }
+                    for (my $kk=0; $kk<=0;$kk++) {
+                      my($kid) = $kids[$kk];
+                      #print STDERR "searching kid $kid\n";
+                      $lcd_xvp_searchWidget = $kid;
+                      $lcd_xvp_searchBG = $kid->cget(-background);
+                      $kid->configure(-background => $searchFound);
+                    }
+                  }
+		  1;
+		},
+	       )->pack(-side => 'left');
+}
+
+## Internal Utility ##
+# Name: pop_Fac_findframe
+# Purpose: populate the frame which allows 'Find'
+# Usage: pop_Fac_findframe($find_frame, $table)
+# Returns: nothing
+sub pop_Fac_findframe {
+  my $frame = shift;
+  my $table = shift;
+
+  my $get_cols = $dbh1->prepare(qq(select s.section_id, section_type, 
+                                   col_name, object, attribute from 
+                                   sections s, columns c, section_columns sc 
+                                   where s.panel_id = c.panel_id and 
+                                   c.panel_id = sc.panel_id and 
+                                   s.view_id = sc.view_id and 
+                                    s.section_id = sc.section_id and 
+                                   c.col_id = sc.col_id and 
+                                   s.view_id = ? and s.panel_id = ? 
+                                   order by section_order, col_order));
+  $get_cols->execute($fac_view_id, $param{panel});
+
+  my @cols;
+  my $idx = 0;
+  my $prev_sec = 0;
+  while (my ($sec_id, $sec_type, 
+	     $name, $obj, $att) = $get_cols->fetchrow_array) {
+    $idx++ if $sec_type =~ /spreadsheet/;
+    $idx++ if ($sec_type !~ /spreadsheet/ and $prev_sec < $sec_id);
+    $prev_sec = $sec_id if $prev_sec < $sec_id;
+    
+    $prev_sec = $sec_id;
+    $fac_search_cols{$name} = {idx => $idx,
+			   name => $name,
+			   obj => $obj,
+			   att => $att};
+    push @cols, $name;
+
+    # Need to add in PI to go with PropNum because database stores them
+    # as a single column in the columns table
+    if ($name =~ /PropNum/) {
+      $fac_search_cols{PI} = {idx => $idx,
+			  name => 'PI',
+			  obj => $obj,
+			  att => 'last_name'};
+      push @cols, 'PI';
+    }
+  }
+  $get_cols->finish;
+
+  $fac_search_col = $cols[0];
+  $fac_search_str = "";
+  $searchWidget=0;
+  $frame->Optionmenu(-textvariable => \$fac_search_col,
+		     -options => [@cols],
+		     -command => [sub {$fac_search_str = '';}],
+		    )->pack(-side => 'left');
+  $frame->Entry(-textvariable => \$fac_search_str,
+		-width => 15,
+		-validate => 'key',
+		-validatecommand => sub {
+		  my ($row, $col) = get_str_psn($_[0], \%fac_search_cols, 
+						$fac_search_col, 
+						\@fac_sorted_props);
+                  if ($searchWidget > 0 ) {
+                      $searchWidget->configure(-background=> $searchBG);
+                  }
+                  #my($visrows) = $table->table->cget(-rows);
+                  my($xx) = $row;
+                  if ($xx < 8) {$xx=3; }
+                  #print STDERR "setting row=$row xx=$xx\n";
+		  $table->table->see($xx, $col);
+
+                  if ($row > 2) {
+                    my($duh) = $table->table->get(($row-1),$col);
+                    my @kids = $duh->children;
+                    while ($kids[0] =~ /Frame/) {
+                      @kids = $kids[0]->children;
+                    }
+                    for (my $kk=0; $kk<=0;$kk++) {
+                      my($kid) = $kids[$kk];
+                      #print STDERR "setting $searchFound for $kid\n";
+                      $searchWidget = $kid;
+                      $searchBG = $kid->cget(-background);
+                      $kid->configure(-background => $searchFound);
+                    }
+                  }
+		  1;
+		},
+	       )->pack(-side => 'left');
+}
+
+## Class Method ##
+# Name: get_str_psn
+# Purpose: Call back to find row and column of search string and move
+#          scrollbars there during the validation of a search string
+# Returns: true
+sub get_str_psn {
+  my $string = shift;
+  my $col_def = shift;
+  my $col_name = shift;
+  my $list = shift;
+  my $row = 1;
+  my $found = 0;
+  if ($$col_def{$col_name}{obj} =~ /prop/ ) {
+    foreach my $prop_id (@$list)  {
+      $row++;
+      my $compare = $prop{$prop_id}->proposal($$col_def{$col_name}{att});
+
+      my $lc_str = lc($string);
+      my $lc_substr = lc($compare); 
+      $found = 1 if $lc_substr =~ /$lc_str/;
+      last if $lc_substr =~ /$lc_str/;
+    }
+  }
+  elsif ($$col_def{$col_name}{obj} =~ /targ/) {
+    foreach my $prop_id (@$list) {
+      $row++;
+      for (my $i = 1; $i <= $prop{$prop_id}->num_targets; $i++) {
+	my $compare = $prop{$prop_id}->target($i)->get($$col_def{$col_name}{att});
+	my $lc_str = lc($string);
+	my $lc_substr = lc($compare); 
+	$found = 1 if $lc_substr =~ /$lc_str/;
+	last if $lc_substr =~ /$lc_str/;
+      }
+      last if $found;
+    }
+  }
+
+  # Add 2 to the row count to account for the fixed rows which are the headers
+  # This should fix the situation where occasionally the row is one or two
+  # rows below the last row visible on the table
+  $row += 2;
+
+  if (!$found) {
+    $mw->messageBox(-title => 'PR: Warning',
+		    -message => "$string not found in column $col_name",
+		    -type => 'OK',
+		    -icon => 'warning') if $string;
+    $row = 1;
+    
+  }
+
+  my $col = $$col_def{$col_name}{idx};
+  return $row, $col;
+}
+
+#
+## Internal Utility ##
+# Name: get_cols
+# Purpose: get the columns to display in a section
+# Usage: get_cols($section_id)
+# Returns: reference to a hash of columns
+#           - the keys are the column order
+#           - the values are a reference to a hash with the following keys
+#                  attribute
+#                  name
+#                  edit_flag
+#                  display
+#                  table_id
+#                  width
+sub get_cols {
+    my ($sec, $view_id) = @_;
+    my %sections = %$sec;
+    my $query = qq(select col_order, attribute,  col_name, edit_flag, display,
+		   table_id, col_width from section_columns sc, columns c 
+                   where sc.col_id = c.col_id  and 
+		   sc.panel_id = c.panel_id and 
+		   section_id = ? and sc.panel_id = ? and view_id = ?
+		   );
+
+    my $get_col = $dbh1->prepare($query);
+
+    # %cols contains information for the columns in the section
+    my %cols;
+    $get_col->execute($sections{id}, $param{panel}, $view_id);
+    while (my ($col_order, $attribute, $col_name, 
+	       $edit_flag, $display, $table_id,
+	       $col_width) = $get_col->fetchrow_array) {
+	my %col = (attribute => $attribute,
+		   name => $col_name,
+		   edit_flag => $edit_flag,
+		   display => $display,
+		   table_id => $table_id,
+		   width => $col_width);
+	$cols{$col_order} = \%col;
+    }
+    $get_col->finish;
+    
+    return \%cols;
+}
+
+#
+## Internal Utility ##
+# Name: addGroup
+# Purpose: creates the MkGroup widget to assign proposals to groups
+# Usage: addGroup()
+# Returns: nothing
+sub addGroup {
+    if (! Exists $add_group) {
+	$add_group = $mw->Toplevel();
+	$add_group->title("Assign Groups for Panel $param{panel}");
+	$add_group->geometry("600x900+0+50");
+        $add_group->minsize(600, 300);
+
+	$add_group->MkGroup(-panel => $panel,
+			    -searchFound => $searchFound,
+			    -verbose => $param{test},
+			    -closecmd => [ \&closeGroup => ($panel) ],
+			    -changecmd => [ \&updGroup => ($panel) ],
+			    )->pack(-expand => 1,
+				    -fill => 'both');
+	
+	# This means the main window can only be killed with the Close button
+	$add_group->protocol( 'WM_DELETE_WINDOW' => sub {});		
+	
+    }
+    else {
+	$add_group->deiconify();
+	$add_group->raise();
+    }
+}
+
+#
+## Internal Utility ##
+# Name: closeGroup
+# Purpose: call back to destroy the MkGroup widget
+# Usage: \&closeGroup => ($panel)
+# Returns: nothing
+sub closeGroup {
+  $add_group->destroy if Tk::Exists($add_group);
+  $quit->configure(-state => 'normal');
+  $panel->set_groups();
+}
+
+#
+## Internal Utility ##
+# Name: updGroup
+# Purpose: call back to check if group changes were made
+# Usage: [ \&updGroup => ($panel) ]
+# Returns: nothing
+sub updGroup {
+    my ($self, $changed) = @_;
+    $add_group->title('Assign Groups (changes made)') if $changed > 0;
+    $add_group->title('Assign Groups') if $changed == 0;
+}
+
+#
+## Internal Utility ##
+# Name: resurrect
+# Purpose: create the resurrect widget
+# Usage: resurrect()
+# Returns: nothing
+sub resurrect {
+    if (!Exists $resurrect) {
+	$resurrect = $mw->Toplevel();
+	$resurrect->title("Resurrect/Triage Tool for Panel $param{panel}");
+	$resurrect->geometry("+0+100");
+
+	$resurrect->Resurrect(-panel => $panel,
+			      -verbose => $param{test},
+			      -searchFound => $searchFound,
+                              -updviewmenucmd => [\&updViewCmd => ()],
+			      -closecmd => [ \&closeResurrect => ($panel) ],
+			      )->pack(-expand => 1,
+				      -fill => 'both');
+
+	# This means the main window can only be killed with the Close button
+	$resurrect->protocol( 'WM_DELETE_WINDOW' => sub {});    
+    }
+    else {
+	$resurrect->deiconify();
+	$resurrect->raise();
+    }
+#    apply_font($resurrect);
+}
+
+#
+## Internal Utility ##
+# Name: closeResurrect
+# Purpose: call back to destroy the resurrect widget
+# Usage: [ \&closeResurrect => ($panel) ]
+# Returns: nothing
+sub closeResurrect {
+    $resurrect->destroy if Tk::Exists($resurrect);
+    $quit->configure(-state => 'normal');
+    if ($lcd_view_id) {
+      mkView('lcd');
+      if ($param{panel} == 99) {
+	mkView('lcd', undef, 'LP');
+	mkView('lcd', undef, $xvp_vlp_lbl);
+      }
+    }
+    mkView('fac') if $fac_view_id;
+}
+
+#
+## Internal Utility ##
+# Name: mkPrintPreview
+# Purpose: create the widget for previewing printouts
+# Usage: \&mkPrintPreview
+# Returns: nothing
+sub mkPrintPreview {
+    if (!Exists $printPreview) {
+	$printPreview = $mw->Toplevel();
+	$printPreview->title("Print for Panel $param{panel}");
+	$printPreview->geometry("+0+100");
+	$printPreview->PrintPreview(-view_id => $lcd_view_id,
+				    -groupby => $panel->lcd_groupby,
+				    -sortby => $panel->lcd_sortby,
+				    -hide_triage => $hide_triage,
+				    -hide_arc_the => $hide_arc_the,
+				    -hide_lp_vlp => $hide_lp_vlp,
+				    -panel => $panel,
+				    -verbose => $param{test},
+				    -closecmd => [ \&closePrintPreview => 
+						   ($panel) ],
+				   )->pack(-expand => 1,
+					   -fill => 'both');
+
+	# This means the main window can only be killed with the Quit button
+	$printPreview->protocol( 'WM_DELETE_WINDOW' => sub {});
+    
+    }
+    else {
+	$printPreview->deiconify();
+	$printPreview->raise();
+    }
+}
+
+#
+## Internal Utility ##
+# Name: closePrintPreview
+# Purpose: destroy the preview widget
+# Usage: [ \&closePrintPreview => ($panel) ]
+# Returns: nothing
+sub closePrintPreview {
+    $printPreview->destroy if Tk::Exists($printPreview);
+}
+
+#
+## Internal Utility ##
+# Name: mkPrintFacPreview
+# Purpose: create the widget for previewing printouts
+# Usage: \&mkPrintFacPreview
+# Returns: nothing
+sub mkPrintFacPreview {
+    if (!Exists $printFacPreview) {
+	$printFacPreview = $mw->Toplevel();
+	$printFacPreview->title("Print for Facilitator $param{panel}");
+	$printFacPreview->geometry("+0+100");
+	$printFacPreview->PrintPreview(-view_id => $fac_view_id,
+				    -groupby => $panel->fac_groupby,
+				    -sortby => $panel->fac_sortby,
+				    -hide_triage => $hide_triage,
+				    -hide_arc_the => $hide_arc_the,
+				    -hide_lp_vlp => $hide_lp_vlp,
+				    -panel => $panel,
+				    -verbose => $param{test},
+				    -closecmd => [ \&closePrintFacPreview => 
+						   ($panel) ],
+				   )->pack(-expand => 1,
+					   -fill => 'both');
+
+	# This means the main window can only be killed with the Quit button
+	$printFacPreview->protocol( 'WM_DELETE_WINDOW' => sub {});
+    
+    }
+    else {
+	$printFacPreview->deiconify();
+	$printFacPreview->raise();
+    }
+}
+
+#
+## Internal Utility ##
+# Name: closePrintFacPreview
+# Purpose: destroy the preview widget
+# Usage: [ \&closePrintFacPreview => ($panel) ]
+# Returns: nothing
+sub closePrintFacPreview {
+    $printFacPreview->destroy if Tk::Exists($printFacPreview);
+}
+
+
+
+#
+## Internal Utility ##
+# Name: mkFinalizePrintPanel
+# Purpose: create print widget
+# Usage: \&mkFinalizePrintPanel
+# Returns: nothing
+sub mkFinalizePrintPanel {
+#print STDERR "dbg finalized: " . $panel->lcd_sortby . " -- ".  $panel->lcd_groupby . "\n";
+  # has to be sorted by rank for running totals to be correct,  we could also
+  # force sort by rank and redisplay panel views 
+  if ($panel->lcd_sortby =~ /^rank,/i || $panel->lcd_sortby =~ /^rank asc/i) {
+    if (!Exists $printFinalized) {
+	$printFinalized = $mw->Toplevel();
+	$printFinalized->title("Print Finalize for Panel $param{panel}");
+	$printFinalized->geometry("+0+100");
+
+	$printFinalized->PrintPreview(-view_id => $finalize_view_id,
+				-groupby => "",
+				-sortby => "rank ASC,fg_avg DESC",
+				-hide_triage => "N",
+				-hide_arc_the => "N",
+				-hide_lp_vlp => "N",
+				-panel => $panel,
+				-verbose => $param{test},
+				-closecmd => [ \&closePrintFinalized => 
+					       ($panel) ],
+			       )->pack(-expand => 1,
+				       -fill => 'both');
+
+	# This means the main window can only be killed with the Close button
+	$printFinalized->protocol( 'WM_DELETE_WINDOW' => sub {});
+    
+    }
+    else {
+	$printFinalized->deiconify();
+	$printFinalized->raise();
+    }
+  } else {
+     my $msg = "Panel view must first be sorted on ascending Rank";
+     $mw->messageBox(-title => 'PR: Warning',
+		    -message => $msg,
+		    -type => 'OK',
+		    -icon => 'warning'
+		   );
+     print STDERR  "$msg\n";
+  }
+}
+#
+## Internal Utility ##
+# Name: closePrintFinalized
+# Purpose: destroy print widget
+# Usage: [ \&closePrintFinalized => ($panel) ]
+# Returns: nothing
+sub closePrintFinalized {
+    $printFinalized->destroy if Tk::Exists($printFinalized);
+}
+
+#
+## Internal Utility ##
+# Name: buildView
+# Purpose: create widget for building views
+# Usage: buildView()
+# Returns: nothing
+sub buildView {
+   my ($self) = @_;
+    if (! Exists $build_view) {
+	$build_view = $mw->Toplevel();
+	$build_view->title("Build View for Panel $param{panel}");
+	$build_view->geometry("700x500+0+100");
+
+	$build_view->BuildView(-dbh => $dbh1,
+			       -panel_id => $param{panel},
+			       -verbose => $param{test},
+			       -previewcmd => [\&previewView => 
+					       ($self)],
+			       -lcdviewmenucmd => [\&addLCDViewMenu => 
+						($self) ],
+			       #-facviewmenucmd => [\&addFacViewMenu => 
+						#($self) ],
+			       -closecmd => [ \&closeBuildView => 
+					      ($self) ],
+			      )->pack(-expand => 1,
+				      -fill => 'both');
+	
+	# This means the main window can only be killed with the Close button
+	$build_view->protocol( 'WM_DELETE_WINDOW' => sub {});
+    
+    }
+    else {
+	$build_view->deiconify();
+	$build_view->raise();
+    }
+}
+
+#
+## Internal Utility ##
+# Name: previewView
+# Purpose: call back to place the newly created view into the view frame
+# Usage: [\&previewView => ($self)]
+# Returns: nothing
+sub previewView {
+    my ($self) = @_;
+    $lcd_view_id = -1;
+    my $get_view_info = $dbh1->prepare(qq(select view_name from 
+					  views where view_id = ? and
+					  panel_id = ?));
+    #$get_view_info->execute($fac_view_id, $param{panel});
+    #($fac_view_name) = $get_view_info->fetchrow_array;
+    #$get_view_info->finish;
+
+    #mkView('fac') if $fac_view_id;
+
+    $get_view_info->execute($lcd_view_id, $param{panel});
+    ($lcd_view_name) = $get_view_info->fetchrow_array;
+    $get_view_info->finish;
+    mkView('lcd') if $lcd_view_id;
+}
+
+#
+## Internal Utility ##
+# Name: addLCDViewMenu
+# Purpose: call back to add the newly created view to the LCD view menu list
+# Usage: [\&addLCDViewMenu => ($self) ]
+# Returns: nothing
+sub addLCDViewMenu {
+    my ($self, $v_id) = @_;
+    my $get_view_info = $dbh1->prepare(qq(select view_name from 
+					  views where view_id = ? and 
+					  panel_id = ?));
+    $get_view_info->execute($v_id, $param{panel});
+    my ($v_name) = $get_view_info->fetchrow_array;
+    $get_view_info->finish;
+    $lcd_viewmenu->command(-label => $v_name,
+		       -command => sub{
+			 $lcd_view_id = $v_id;
+			 $lcd_view_name = $v_name;
+			 if ($lcd_view_id) {
+			   mkView('lcd');
+			   if ($param{panel} == 99) {
+			     mkView('lcd', undef, 'LP');
+			     mkView('lcd', undef, $xvp_vlp_lbl);
+			   }
+			 }
+		       }
+		       );
+}
+
+#
+## Internal Utility ##
+# Name: addFacViewMenu
+# Purpose: call back to add the newly created view to the Fac view menu list
+# Usage: [\&addFacViewMenu => ($self) ]
+# Returns: nothing
+sub addFacViewMenu {
+    my ($self, $v_id) = @_;
+    my $get_view_info = $dbh1->prepare(qq(select view_name from 
+					  views where view_id = ? and 
+					  panel_id = ?));
+    $get_view_info->execute($v_id, $param{panel});
+    my ($v_name) = $get_view_info->fetchrow_array;
+    $get_view_info->finish;
+    $fac_viewmenu->command(-label => $v_name,
+		       -command => sub{
+			 $fac_view_id = $v_id;
+			 $fac_view_name = $v_name;
+			 mkView('fac') if $fac_view_id;
+		       }
+		       );
+}
+
+#
+## Internal Utility ##
+# Name: closeBuildView
+# Purpose: call back to destroy the build view widget
+# Usage: [ \&closeBuildView => ($self) ]
+# Returns: nothing
+sub closeBuildView {
+    $build_view->destroy if Tk::Exists($build_view);
+    $quit->configure(-state => 'normal');
+}
+
+#
+## Internal Utility ##
+# Name: buildSort
+# Purpose: create a widget for building sorts
+# Usage: buildSort()
+# Returns: nothing
+sub buildSort {
+    my ($self) = @_;
+    if (! Exists $build_sort) {
+	$build_sort = $mw->Toplevel();
+	$build_sort->title("Build Sort for Panel $param{panel}");
+	$build_sort->geometry("500x450+0+100");
+
+	$build_sort->BuildSort( -dbh => $dbh1,
+				-panel_id => $param{panel},
+				-verbose => $param{test},
+				-previewcmd => [\&previewSort => ($self)],
+				-lcdsortmenucmd => [\&addLCDSortMenu => ($self) ],
+				-facsortmenucmd => [\&addFacSortMenu => ($self) ],
+				-closecmd => [ \&closeBuildSort => ($self) ],
+				)->pack(-expand => 1,
+					-fill => 'both');
+
+	# This means the main window can only be killed with the Close button
+	$build_sort->protocol( 'WM_DELETE_WINDOW' => sub {});
+    
+    }
+    else {
+	$build_sort->deiconify();
+	$build_sort->raise();
+    }
+}
+
+#
+## Internal Utility ##
+# Name: previewSort
+# Purpose: call back to preview the new sort
+# Usage: [\&previewSort => ($self)]
+# Returns: nothing
+sub previewSort {
+    my @self = shift;
+    my $sortby = shift;
+    my $groupby = shift;
+    my $sortname = shift;
+    #$panel->set_sort('fac', $groupby, $sortby, $sortname);
+    #mkView('fac') if $fac_view_id;
+    $panel->set_sort('lcd', $groupby, $sortby, $sortname);
+    mkView('lcd') if $lcd_view_id;
+}
+
+#
+## Internal Utility ##
+# Name: addLCDSortMenu
+# Purpose: call back to add the new sort to the sort menu list
+# Usage: [\&addLCDSortMenu => ($self) ]
+# Returns: nothing
+sub addLCDSortMenu {
+  my ($self, $sort_name, $sortby, $groupby) = @_;
+  $lcd_sortmenu->command(-label => $sort_name,
+		       -command => sub{
+			 $panel->set_sort('lcd',$groupby, $sortby, $sort_name);
+			 if ($lcd_view_id) {
+			   mkView('lcd');
+			   if ($param{panel} == 99) {
+			     mkView('lcd', undef, 'LP');
+			     mkView('lcd', undef, $xvp_vlp_lbl);
+			   }
+			 }
+		       }
+		      );
+}
+
+#
+## Internal Utility ##
+# Name: addFacSortMenu
+# Purpose: call back to add the new sort to the sort menu list
+# Usage: [\&addFacSortMenu => ($self) ]
+# Returns: nothing
+sub addFacSortMenu {
+  my ($self, $sort_name, $sortby, $groupby) = @_;
+  $fac_sortmenu->command(-label => $sort_name,
+		       -command => sub{
+			 $panel->set_sort('fac',$groupby, $sortby, $sort_name);
+			 mkView('fac') if $fac_view_id;
+		       }
+		      );
+}
+
+#
+## Internal Utility ##
+# Name: closeBuildSort
+# Purpose: call back to destroy the build sort widget
+# Usage: [ \&closeBuildSort => ($self) ]
+# Returns: nothing
+sub closeBuildSort {
+    $build_sort->destroy if Tk::Exists($build_sort);
+    $quit->configure(-state => 'normal');
+}
+
+#
+## Internal Utility ##
+# Name: parse_opts
+# Purpose: define permitted commandline options
+# Usage: parse_opts()
+# Returns: nothing; 
+#          exits if an unrecognized parameter is given or if a required
+#          parameter is not given
+sub parse_opts
+{
+	      #printer => 'HL-2040-series',
+
+    %param = (
+	      U => undef,
+	      panel => undef,
+	      gv => 'acroread',
+	      printer => 'HL2240D',
+	      font => 'arial',
+	      fsize => 12,
+	      facview => 1,
+	      facname => "Facilitator View",
+	      maxtgt => 50,
+              bg => "#f5efe9",
+              search => "#ffff00",
+	      if => 'N',
+	      test => 0
+	      );
+    
+    GetOptions( \%param,
+		"U=s",
+		"panel=i",
+		"gv=s",
+		"font=s",
+		"fsize=i",
+		"facview=i",
+		"facname=s",
+		"maxtgt=i",
+		"printer=s",
+		"bg=s",
+		"search=s",
+		"if=s",
+		"test=i",
+		"verbose",
+		"version",
+		"help",
+		) or exit(1);
+    
+    return if $param{help} or $param{version};
+    
+    
+    my $err = 0;
+    while ( my ( $par, $val ) = each ( %param ) )
+    {
+	next if defined $val;
+	warn("parameter `$par' not set\n");
+	$err++;
+    }
+    
+    $MAX_TGTS=$param{maxtgt};
+    exit(1) if $err;
+}
+
+#
+## Internal Utility ##
+# Name: usage
+# Purpose: display help documentation and exit
+# Usage: usage(0)
+# Returns: nothing
+sub usage
+{
+  my ( $exit ) = @_;
+
+  local $^W = 0;
+  require Pod::Text;
+  Pod::Text::pod2text( '-75', $0 );
+  exit $exit;
+}
+
+
+__END__
+
+=head1 NAME
+
+PR - GUI for recording proposal changes and discussions during Peer Review.
+
+=head1 USAGE
+
+PR [options]
+
+=head1 DESCRIPTION
+
+This is a GUI used during Peer Review to aid the facilitator in recording
+the discussions and descisions made by their panel.
+
+=head1 OPTIONS
+
+B<PR> uses long option names.  You can type as few characters as
+are necessary to match the option name.
+
+=over 
+
+=item B<-U> <user name>
+
+peer review user name (required)
+
+=item B<-panel>
+
+panel number you wish to load (required)
+
+=item B<-maxtgt>
+
+maximum targets to display in Edit Page, default 50
+
+=item B<-fsize>
+
+font size you wish to use, default is 12
+
+=item B<-font>
+
+font family you wish to load.
+Default is 'arial'.  Other suggested choices:
+
+  century schoolbook l
+  comic sans ms
+  courier
+  courier new
+  nimbus sans l
+  times
+  times new roman
+  verdana 
+
+=item B<-gv>
+
+PDF viewer to use (default is acroread)
+
+=item B<-printer>
+
+printer destination (defaults to Peer Review name)
+
+=item B<-if>
+
+Y to ignore finalize (defaults to N)
+
+=item B<-test>
+
+a number indicating the degree of verbosity to use
+
+=item B<-help>
+
+displays documentation for B<PR>
+
+=item B<-version>
+
+displays the version
+
+=item B<-verbose>
+
+displays required options
+
+=back
+
+=head1 DESCRIPTION
+
+This is the Chandra Peer Review GUI.  To run, you must specify a user name 
+and panel number.
+
+PR -U pedroia -panel 5
+
+=head1 CONFIGURATION
+
+The environmental variable PERL5LIB needs to be pointing to the location of the
+Peer Review GUI library
+
+=head1 AUTHOR
+
+Sherry L. Winkelman  (prior to 2012)
+
+=head1 VERSION
+
+Cycle 19

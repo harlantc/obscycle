@@ -1,0 +1,47 @@
+#!@PERL@ 
+use strict;
+
+
+use CGI ':standard';
+use vars qw ($cgi);
+
+{
+  my($fname,$type,$filename);
+  my($nocache) = "1s";
+
+  $cgi = new CGI;
+  $fname = $cgi->param("in");
+  $fname =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/eg;
+  $type = $cgi->param("type");
+  $type =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/eg;
+  if ($fname =~ /\.\./ ||
+     $fname =~ /\\/ ||
+     length($fname) > 50) {
+     $fname="BAD INPUT";
+
+  }
+
+
+  if ($type =~ /psf/i) {
+     $filename = $ENV{'OBSCYCLE_DATA_PATH'} . "/prop/psf/data/" . $fname;
+  } else {
+     $filename = $ENV{'OBSCYCLE_DATA_PATH'} . "/prop/pimms/data/" . $fname;
+  }
+
+  open (FH,"< $filename") or error("Unable to open $fname",$nocache);
+  print $cgi->header( -type => "text/plain", -expires => $nocache);
+  while (<FH>) {
+      print $_;
+  }
+  close FH;
+  exit(0);
+}
+
+
+sub error {
+  my($msg,$nocache) =@_;
+  print $cgi->header( -type => "text/plain", -expires => $nocache);
+  print "$msg\n\n";
+  exit (0); 
+}
+

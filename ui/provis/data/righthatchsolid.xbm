@@ -1,0 +1,4 @@
+#define righthatchsolid_width 6
+#define righthatchsolid_height 6
+static unsigned char righthatchsolid_bits[] = {
+   0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };

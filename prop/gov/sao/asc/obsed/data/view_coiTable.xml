@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE table SYSTEM "table.dtd">
+
+<table name="view_coi" key="ocat_propid">
+  <column name="ocat_propid">
+    <type>INTEGER</type>
+    <tooltip>Target Table Proposal Identifier</tooltip>
+  </column>
+  <column name="last">
+    <type>STRING</type>
+    <tooltip>CoI Investigator --- last name</tooltip>
+  </column>
+</table>

@@ -1,0 +1,319 @@
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 1995, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: 
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:  This script executes and parse propconflict output for
+#	the specified proposal.  If coordinates are provided it will also
+#       check rejected proposals for the DDT thread.
+#       
+#
+#
+#* NOTES:
+#
+#       
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+use Getopt::Long;
+use strict;
+
+use vars qw( %param $hdr $cleanup $hline 
+	);
+
+{
+  my($ostr,$rstr,$sstr,$pcmd);
+  my($logit,$didit,$lfile,$ofile);
+  my($mailfile,$subj,$cmd,$tcmd,$thedate);
+
+  $didit = 0;
+  $cleanup = 0;
+  $logit = 1;
+
+  &parse_input;
+
+  $hline = "ATTN: PROPOSER:  ***** PLEASE READ THIS *****\n";
+
+  # open the log file for simbad differences
+  $lfile = $ENV{'ASCDS_PROP_RPS_LOG'};
+  if (!$lfile) {
+    $lfile = ".";
+  }
+  $lfile .= "/prop_ingest_checks.log";
+  if (!(-e $lfile)) {
+    $logit =2;
+    open LOGFILE,"> $lfile";
+    close LOGFILE;
+    chmod(0660,$lfile);
+  }
+
+
+  # execute propconflict for the given proposal number,
+  # checking coordinates and obscat conflicts
+  $ofile = $ENV{'ASCDS_TMP'};
+  if (!-d $ofile) {
+     mkdir($ofile,0700);
+  }
+
+  $ofile .= "/" . $param{p} . ".check";
+  $pcmd =  "propconflict -U $param{U} -q $param{q} -f peer,simbad,ned,rosat_brightness ";
+  $pcmd .= " -t 'db=prop,prop=$param{p}' -s db=ocat > $ofile 2>>$lfile";
+  if (!(open (LOGFILE,">> $lfile"))) {
+     $logit = 0;
+     print STDERR "ERROR: prop_ingest_checks.pl unable to open $lfile.\n";
+  }
+  else {
+    $thedate = get_date();
+    print LOGFILE "$thedate: $pcmd\n";
+    close LOGFILE;
+  }
+  `$pcmd`;
+
+
+  #parse rosat conflicts for grating only
+  $rstr = `parse_rass.pl -g -i $ofile`;
+
+  #parse coordinate results
+  $sstr = `parse_simbad.pl -i $ofile `;
+
+  #parse ocat conflict results
+  $ostr = `parse_ocatconflict.pl -i $ofile`;
+
+
+  $mailfile = $ENV{'ASCDS_PROP_RPS_ARCH'};
+  $mailfile .= "/mail/" . $param{p} . ".propconflict";
+  open MFILE,">$mailfile" or die "Unable to open $mailfile for writing\n";
+
+  if (length($sstr) > 10 ) {
+    $didit = 1;
+    print MFILE "$hdr\n";
+    print MFILE "$sstr\n";
+  }
+  unlink $ofile;
+
+  if (length($rstr) > 2) {
+    if (!$didit) {
+      print MFILE "$hline\n";
+    }
+    
+    print MFILE "\n*******************************************************\n";
+    print MFILE "*          ROSAT BRIGHTNESS CHECK \n";
+    print MFILE "*******************************************************\n";
+
+    $didit = 1;
+    print MFILE "\n$rstr\n";
+  }
+  
+  if ($ostr  =~ /hard/i || $ostr =~ /soft/i) {
+    if (!$didit) {
+      print MFILE "$hline\n";
+    }
+    else {
+      print MFILE "\n********************************************************\n\n";
+    }
+    print MFILE "\n** Listed below are existing Catalog Chandra Observations at or near the \ngiven proposal coordinates.  A 'hard' overlap means the existing\nobservation is using the same detector and the same grating as the \nproposed observation. A 'soft' overlap means the detectors/gratings are different.";
+    print MFILE "\n\nPlease verify for yourself that your observation is not scientifically \nredundant with a previous observation. You may wish to describe directly \nthe unique value of your proposed observation.  If necessary, you may \nresubmit your revised proposal before the proposal deadline.  If you \nwish to instead withdraw your submitted proposal from consideration, or \nif you have further questions, please contact the CXC Help desk via  \nhttp://cxc.harvard.edu/helpdesk/ or cxchelp\@head.cfa.harvard.edu .\n\n";
+
+    print MFILE "$ostr\n";
+    $didit = 1;
+  }
+  close MFILE;
+
+
+  if ($didit) {
+    if ($param{e} ) {
+       #reopen the log file
+       if (!(open (LOGFILE,">> $lfile"))) {
+          $logit = 0;
+       }
+
+       if ($param{t}) {
+          $subj = "Out-of-Cycle DDT Proposal Check for #$param{p}";
+          $tcmd = qq(prop_rps_too_mail.pl -s "$subj" -f $mailfile -p S -normal );
+          $tcmd .= " 2>> ";
+          $tcmd .= $ENV{"ASCDS_PROP_RPS_LOG"};
+          $tcmd .= "/prop_rps_too_ingest.log";
+          system($tcmd);
+          if ($logit) {
+            print  LOGFILE "$tcmd\n";
+          }
+       } else {
+          $subj = "Chandra Proposal Checks for #$param{p}";
+       }
+       $tcmd = $ENV{"ASCDS_OTS"};
+       if ($tcmd) {
+         $tcmd .= "/bin/";
+       }
+       $tcmd = "mailx";
+       #$cmd = qq(fmt -s -w 80 $mailfile | $tcmd -r cxchelp\@head.cfa.harvard.edu  -s "$subj" $param{e});
+       $cmd = qq($tcmd -r cxchelp\@head.cfa.harvard.edu  -s "$subj" $param{e} < $mailfile);
+       if ($logit) {
+         print LOGFILE "$cmd\n";
+       }
+       system($cmd);
+    } 
+    else {
+      open MFILE,"<$mailfile";
+      while ( <MFILE> ) {
+        print STDOUT $_;
+      }
+      close MFILE;
+    }
+  }
+
+  if ($logit) {
+    close LOGFILE;
+  }
+  if ($cleanup) {
+    unlink $param{q};
+  }
+    
+}
+
+#----------- END MAIN ------------------------------------------------------
+
+#---------------------------------------------------------------------------
+#---------------------------------------------------------------------------
+sub parse_input
+{
+  my($pfile);
+  my $err = 0;
+  my($tmp);
+
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+             p=> undef
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "p=s",
+          "l=s",
+          "t",
+          "c",
+          "e=s",
+          "q=s",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter '$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+  if(!$param{q}) {
+    $tmp=time(); 
+    $pfile = qq(/tmp/$ENV{"USER"}.$tmp);
+    `.pingest $pfile`;
+    $cleanup = 1;
+    $param{q} = $pfile;
+  }
+
+  if ($param{c}) {
+    $cleanup = 1;
+  }
+
+  &get_coordinate_template;
+
+}
+
+
+
+#---------------------------------------------------------------------------
+#---------------------------------------------------------------------------
+sub usage
+{
+  print STDERR "\nUSAGE: prop_ingest_checks.pl -Up [-eqtl] \n";
+  print STDERR "    -U   database user name\n";
+  print STDERR "    -S   database server, default is DB_PROP_SQLSRV name\n";
+  print STDERR "    -e   send email if conflicts/coordinate differences\n";
+  print STDERR "    -p   proposal number\n";
+  print STDERR "    -t   modify output based on DDT vs regular proposal cycle\n";
+  print STDERR "    -l   file for coordinate template instead of using default message\n";
+  print STDERR "\nResults are from propconflict using radius of 6 arcmin\n"; 
+  print STDERR "and simbad/ned difference of 1 arcmin\n";
+}
+
+
+
+#---------------------------------------------------------------------------
+# get header template or use default
+#---------------------------------------------------------------------------
+sub get_coordinate_template
+{
+  
+  if ($param{l} && open(TFILE,"< $param{l}"))  {
+    while (<TFILE>) {
+      $hdr .= $_;
+    }
+    close TFILE;
+  }
+  else {
+    $hdr =<<EndHdr; 
+$hline
+
+           TARGET COORDINATE VERIFICATION
+
+A coordinate check with NED and SIMBAD has found a disagreement
+of over one arcminute between the target name and the coordinates
+entered in your proposal.  Please verify your coordinates.
+
+If your coordinates are correct (e.g. the target may be extended
+or SIMBAD is using out-of-date coordinates), no action is necessary.
+
+If necessary, resubmit your proposal with the corrected coordinates.
+
+If you have questions, please contact the CXC Help desk
+(http://cxc.harvard.edu/helpdesk/) or cxchelp\@head.cfa.harvard.edu .
+
+EndHdr
+
+    if (!$param{t}) {
+      $hdr .=<<EndHdr2; 
+If you recognize a coordinate problem after the proposal deadline has 
+passed, please resubmit and contact our helpdesk as above.  Your late
+revised proposal will go into the CXC proposal error queue.  After you contact 
+us, we will verify that only coordinates have changed, and rule 
+on late acceptance.  
+
+EndHdr2
+    }
+  }
+}
+
+sub get_date
+{
+  my(@dtmp,$yy,$mm,$thedate);
+
+  @dtmp = localtime;
+  $yy = $dtmp[5] + 1900;
+  $mm = $dtmp[4] + 1;
+  $thedate = sprintf("%-04.4d/%-02.2d/%-02.2d %-02.2d:%-02.2d",
+        $yy, $mm, $dtmp[3],
+        $dtmp[2], $dtmp[1]);
+
+  return $thedate;
+}
+

@@ -1,0 +1,152 @@
+object	attribute	name	width	edit	type	table_id	sortby	groupby	justify	pub
+dummy	dummy	None	null	N	label	null	N	Y	c	N
+proposal	prop_id	PropNum	null	N	button	null	Y	N	c	Y
+proposal	tc_prop	TC	null	N	label	null	Y	Y	c	Y
+proposal	mcop	MCOP	null	N	label	null	Y	Y	c	Y
+proposal	conflict	Conflict	null	N	label	null	Y	Y	c	Y
+proposal	mon_flag	MonP	null	N	label	null	Y	Y	c	Y
+proposal	grid_flag	GridP	null	N	label	null	Y	Y	c	Y
+proposal	group_id	Grp	3	Y	label	null	Y	Y	l	Y
+proposal	category	Cat	3	N	label	null	Y	Y	c	Y
+proposal	scicat	SciCat	null	N	label	null	Y	Y	l	Y
+proposal	tag_num	Tag	4	N	label	null	Y	Y	c	Y
+proposal	last_name	PI	null	N	label	null	Y	N	l	Y
+proposal	type	Type	null	N	label	null	Y	Y	l	Y
+proposal	big_proj	Sub Type	null	N	label	null	Y	Y	l	Y
+proposal	prop_req_time	Tot Req Time 24/25/26	7	N	multi	null	N	N	c	Y
+proposal	prop_app_time	Tot App Time 24/25/26	7	Y	multi	null	N	N	c	Y
+proposal	prop_app_hel	Tot App HEL 24/25/26	7	Y	multi	null	N	N	c	Y
+proposal	total_req_time	Req Time 24/25/26	7	N	multi	null	Y	N	r	Y
+proposal	total_app_time	App Time 24/25/26	7	Y	multi	null	Y	N	r	Y
+proposal	tax_tot	Tax Total 24/25/26	7	Y	multi	null	Y	N	r	Y
+proposal	rc_score_app	RC Total 24/25/26	7	Y	multi	null	Y	N	r	Y
+proposal	num_targ_req	Num Targ Req 24/25/26	3	N	multi	null	Y	N	r	Y
+proposal	num_targ_app	Num Targ App 24/25/26	3	Y	multi	null	Y	N	r	Y
+proposal	num_obs_req	Num Obs Req 24/25/26	3	N	multi	null	Y	N	r	Y
+proposal	num_obs_app	Num Obs App 24/25/26	3	Y	multi	null	Y	N	r	Y
+proposal	prop_app_time	Tot Time App/Req (24)	7	Y	combo	null	N	N	c	Y
+proposal	total_app_time	Time App/Req (24)	7	Y	combo	null	N	N	c	Y
+proposal	num_targ_app	Num Targ App/Req (24)	3	Y	combo	null	N	N	c	Y
+proposal	num_obs_app	Num Obs App/Req (24)	3	Y	combo	null	N	N	c	Y
+proposal	prop_app_time_1	Tot Time App/Req (25)	7	Y	combo	null	N	N	c	Y
+proposal	total_app_time_1	Time App/Req (25)	7	Y	combo	null	N	N	c	Y
+proposal	num_targ_app_1	Num Targ App/Req (25)	3	Y	combo	null	N	N	c	Y
+proposal	num_obs_app_1	Num Obs App/Req (25)	3	Y	combo	null	N	N	c	Y
+proposal	prop_app_time_2	Tot Time App/Req (26)	7	Y	combo	null	N	N	c	Y
+proposal	total_app_time_2	Time App/Req (26)	7	Y	combo	null	N	N	c	Y
+proposal	num_targ_app_2	Num Targ App/Req (26)	3	Y	combo	null	N	N	c	Y
+proposal	num_obs_app_2	Num Obs App/Req (26)	3	Y	combo	null	N	N	c	Y
+proposal	prop_req_time	Tot Req Time (24)	7	N	label	null	Y	N	r	Y
+proposal	prop_app_time	Tot App Time (24)	7	Y	label	null	Y	N	r	Y
+proposal	prop_app_hel	Tot App HEL (24)	7	Y	label	null	Y	N	r	Y
+proposal	total_req_time	Req Time (24)	7	N	label	null	Y	N	r	Y
+proposal	total_app_time	App Time (24)	7	Y	label	null	Y	N	r	Y
+proposal	tax_tot	Tax Total (24)	7	Y	label	null	Y	N	r	Y
+proposal	rc_score_app	RC Total (24)	7	Y	label	null	Y	N	r	Y
+proposal	num_targ_req	Num Targ Req (24)	3	N	label	null	Y	N	r	Y
+proposal	num_targ_app	Num Targ App (24)	3	Y	label	null	Y	N	r	Y
+proposal	num_obs_req	Num Obs Req (24)	3	N	label	null	Y	N	r	Y
+proposal	num_obs_app	Num Obs App (24)	3	Y	label	null	Y	N	r	Y
+proposal	prop_req_time_1	Tot Req Time (25)	7	N	label	null	Y	N	r	Y
+proposal	prop_app_time_1	Tot App Time (25)	7	Y	label	null	Y	N	r	Y
+proposal	prop_app_hel_1	Tot App HEL (25)	7	Y	label	null	Y	N	r	Y
+proposal	total_req_time_1	Req Time (25)	7	N	label	null	Y	N	r	Y
+proposal	total_app_time_1	App Time (25)	7	Y	label	null	Y	N	r	Y
+proposal	tax_tot_1	Tax Total (25)	7	Y	label	null	Y	N	r	Y
+proposal	rc_score_app_1	RC Total (25)	7	Y	label	null	Y	N	r	Y
+proposal	num_targ_req_1	Num Targ Req (25)	3	N	label	null	Y	N	r	Y
+proposal	num_targ_app_1	Num Targ App (25)	3	Y	label	null	Y	N	r	Y
+proposal	num_obs_req_1	Num Obs Req (25)	3	N	label	null	Y	N	r	Y
+proposal	num_obs_app_1	Num Obs App (25)	3	Y	label	null	Y	N	r	Y
+proposal	prop_req_time_2	Tot Req Time (26)	7	N	label	null	Y	N	r	Y
+proposal	prop_app_time_2	Tot App Time (26)	7	Y	label	null	Y	N	r	Y
+proposal	prop_app_hel_2	Tot App HEL (26)	7	Y	label	null	Y	N	r	Y
+proposal	total_req_time_2	Req Time (26)	7	N	label	null	Y	N	r	Y
+proposal	total_app_time_2	App Time (26)	7	Y	label	null	Y	N	r	Y
+proposal	tax_tot_2	Tax Total (26)	7	Y	label	null	Y	N	r	Y
+proposal	rc_score_app_2	RC Total (26)	7	Y	label	null	Y	N	r	Y
+proposal	num_targ_req_2	Num Targ Req (26)	3	N	label	null	Y	N	r	Y
+proposal	num_targ_app_2	Num Targ App (26)	3	Y	label	null	Y	N	r	Y
+proposal	num_obs_req_2	Num Obs Req (26)	3	N	label	null	Y	N	r	Y
+proposal	num_obs_app_2	Num Obs App (26)	3	Y	label	null	Y	N	r	Y
+proposal	cum_app_time	Run App Time (24)	7	N	label	null	N	N	r	Y
+proposal	cum_app_time_1	Run App Time (25)	7	N	label	null	N	N	r	Y
+proposal	cum_app_time_2	Run App Time (26)	7	N	label	null	N	N	r	Y
+proposal	cum_app_hel	Run App HEL (24)	7	N	label	null	N	N	r	Y
+proposal	cum_app_hel_1	Run App HEL (25)	7	N	label	null	N	N	r	Y
+proposal	cum_app_hel_2	Run App HEL (26)	7	N	label	null	N	N	r	Y
+proposal	cum_arc	Run Arc$	7	N	label	null	N	N	r	Y
+proposal	cum_the	Run The$	7	N	label	null	N	N	r	Y
+proposal	cum_rc_score	Run RC (24)	7	N	label	null	N	N	r	Y
+proposal	cum_rc_score_1	Run RC (25)	7	N	label	null	N	N	r	Y
+proposal	cum_rc_score_2	Run RC (26)	7	N	label	null	N	N	r	Y
+proposal	cum_vftoo	Run <5 TOO	7	N	label	null	N	N	r	Y
+proposal	cum_ftoo	Run 5-20 TOO	7	N	label	null	N	N	r	Y
+proposal	cum_stoo	Run 20-40 TOO	7	N	label	null	N	N	r	Y
+proposal	cum_hst	Run HST	7	N	label	null	N	N	r	Y
+proposal	cum_noao	Run NOAO	7	N	label	null	N	N	r	Y
+proposal	cum_nrao	Run NRAO	7	N	label	null	N	N	r	Y
+proposal	cum_xmm	Run XMM	7	N	label	null	N	N	r	Y
+proposal	cum_rxte	Run RXTE	7	N	label	null	N	N	r	N
+proposal	cum_spitzer	Run SPITZER	7	N	label	null	N	N	r	N
+proposal	cum_suzaku	Run SUZAKU	7	N	label	null	N	N	r	Y
+proposal	cum_swift	Run SWIFT	7	N	label	null	N	N	r	Y
+proposal	cum_nustar	Run NUSTAR	7	N	label	null	N	N	r	Y
+proposal	cum_time_temp	Run Time	7	N	label	null	N	N	r	N
+proposal	joint_flag	Joint	null	N	label	null	Y	Y	l	Y
+proposal	prop_status	StatP	null	Y	label	null	Y	Y	c	Y
+proposal	prop_status	Final Status	null	N	label	null	Y	Y	c	N
+proposal	temp_status	App Prop	null	Y	label	null	Y	Y	c	N
+proposal	cdo_approval	CDO App	3	N	label	null	N	N	c	N
+proposal	prelim_grades	Prelim Grades	40	N	table	1	N	N	c	Y
+proposal	final_grades	Final Grades	40	Y	table	1	N	N	c	Y
+proposal	prelim_gradesx	PrelimGrades	40	N	table	1	N	N	c	Y
+proposal	final_gradesx	FinalGrades	40	Y	table	1	N	N	c	Y
+proposal	pg_avg	PGrade Avg	4	N	label	null	Y	N	r	Y
+proposal	pg_med	PGrade Median	4	N	label	null	Y	N	r	Y
+proposal	pg_stdev	PGrade Stdev	4	N	label	null	Y	N	r	Y
+proposal	fg_avg	Grade Avg	4	Y	label	null	Y	N	r	Y
+proposal	fg_med	Grade Median	4	Y	label	null	Y	N	r	Y
+proposal	fg_stdev	Grade Stdev	4	Y	label	null	Y	N	r	Y
+proposal	fg_norm	Grade Norm	4	Y	label	null	Y	N	r	Y
+proposal	joint	Joint ReqT	6	N	table	2	N	N	c	Y
+proposal	joint	Joint AppT	6	Y	table	2	N	N	c	Y
+proposal	title	Title	null	N	text	null	N	N	c	Y
+proposal	short_ttl	Short Title	null	N	text	null	N	N	c	Y
+proposal	abstract	Abstract	null	N	text	null	N	N	c	Y
+proposal	triage	Triage	null	Y	label	null	Y	Y	c	Y
+proposal	sup_triage	Lower Triage	null	Y	label	null	Y	Y	c	N
+proposal	rank	Rank	4	N	entry	null	Y	Y	c	N
+target	targ_num	Targ Num	3	N	label	null	N	N	r	Y
+target	targ_name	Target	null	N	label	null	N	N	l	Y
+target	req_time	Req Time (24)	7	N	label	null	N	N	r	Y
+target	app_time	App Time (24)	7	Y	label	null	N	N	r	Y
+target	tax	Targ Tax (24)	7	Y	label	null	N	N	r	Y
+target	rc_score	Targ RC (24)	7	Y	label	null	N	N	r	Y
+target	targ_status	StatT (24)	null	Y	label	null	N	N	c	Y
+target	num_obs_req	Num Obs Req (24)	3	N	label	null	N	N	r	Y
+target	num_obs_app	Num Obs App (24)	3	N	label	null	N	N	r	Y
+target	req_time_1	Req Time (25)	7	N	label	null	N	N	r	Y
+target	app_time_1	App Time (25)	7	Y	label	null	N	N	r	Y
+target	tax_1	Targ Tax (25)	7	Y	label	null	N	N	r	Y
+target	rc_score_1	Targ RC (25)	7	Y	label	null	N	N	r	Y
+target	targ_status_1	StatT (25)	null	Y	label	null	N	N	c	Y
+target	num_obs_req_1	Num Obs Req (25)	3	N	label	null	N	N	r	Y
+target	num_obs_app_1	Num Obs App (25)	3	N	label	null	N	N	r	Y
+target	req_time_2	Req Time (26)	7	N	label	null	N	N	r	Y
+target	app_time_2	App Time (26)	7	Y	label	null	N	N	r	Y
+target	tax_2	Targ Tax (26)	7	Y	label	null	N	N	r	Y
+target	rc_score_2	Targ RC (26)	7	Y	label	null	N	N	r	Y
+target	targ_status_2	StatT (26)	null	Y	label	null	N	N	c	Y
+target	num_obs_req_2	Num Obs Req (26)	3	N	label	null	N	N	r	Y
+target	num_obs_app_2	Num Obs App (26)	3	N	label	null	N	N	r	Y
+target	detector	Inst	null	N	label	null	N	N	l	Y
+target	grating	Grat	null	N	label	null	N	N	l	Y
+target	time_crit	Time Const	null	N	label	null	N	N	c	Y
+target	mcop	MCOP	null	N	label	null	N	N	c	Y
+target	monitor	Mon	null	N	label	null	N	N	c	Y
+target	raster_scan	Grid	null	N	label	null	N	N	c	Y
+target	too_prob_app	Prob	4	N	label	null	N	N	r	Y
+target	response_time	Resp Time	null	N	label	null	N	N	l	Y
+target	uninterrupt	Uninterrupt	null	N	label	null	N	N	c	Y
+target	mp_remarks	MP Remarks	null	N	text	null	N	N	c	N

@@ -1,0 +1,405 @@
+#!@PERLDB@ 
+#----------------------------------
+# Copyright (c) 1995, Smithsonian Astrophysical Observatory
+# You may not do anything you like with this file. 
+#
+# FILE NAME:  op_custom_table.cgi
+# DEVELOPMENT:
+#
+# NOTES:       
+#             
+# INPUT:       user input
+#
+# REVISION HISTORY:
+#
+# Date: 
+#---------------------------------------------------------
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+
+use CGI ':standard';
+use File::Basename;
+use strict;
+use DBI;
+use DBD::Sybase;
+
+
+unless (eval {require "op_config.pl"}) {
+    print "Unable to find op_config.pl\n"; exit(1);
+}
+
+unless (eval {require "op_subroutines.pl"}) {
+    print "Unable to find op_subroutines.pl\n"; exit(1);
+}
+
+unless (eval {require "op_status_columns.inc"}) {
+    print "Unable to find op_status_columns.inc\n"; exit(1);
+}
+unless (eval {require "op_status_routines.pl"}) {
+    print "Unable to find op_status_routines.pl\n"; exit(1);
+}
+
+unless (eval {require "op_issue_routines.pl"}) {
+    print "Unable to find op_issue_routines.pl\n"; exit(1);
+}
+
+#---------------------------------------------------------
+use vars qw ($dsn $dbh $db $srv $pwd $uid $CGI_BIN
+	@display_order $display_issues 
+	@sorted_custom @categories  @custom_fields @stat_col
+        $h $footer $note $host $title $db_dlm 
+        $report_type  $report_fmt  @fmt_tab $fmt $dlm
+	$rdbrepair $dbg_file $sql_date_fmt $sql_time_fmt
+	$cat_cnt $res_cnt %want_col $wcnt
+        $where $order $jj  $ii @warning
+        $tmp_file  $tmp_dir $tmp_host $tmp_dat $tmp_err
+  	@fields @fields_link @hdr @the_results @the_results_link 
+	$s1 $s2 $s3 $stmp $sepline
+        $obsid $alt_exp $seqnbr $object $version $ap_cp $ap_date $ap_status
+        $charge_time $good_time $release $caldb $vv_date $vv_status $vv_version
+        $dd_date $mail_date $ocat_status $ingested $pipe_config 
+        $tgt_ra $tgt_dec $nom_roll $fp_detect $bibcode
+        $readout $grating $datamode $readmode
+        $app_time $type $rights $pub_date 
+        $ap_dir $cp_comment $cp_dist $ap_dist $obsdate 
+        $sched_time $ontime $obs_interval $delta
+        $propno $pifirst $pilast $quality $issues $sci_2_id @sci_2_ids
+        $obsid_fmt $alt_exp_fmt $seqnbr_fmt $object_fmt $version_fmt $ap_cp_fmt
+        $ap_date_fmt $ap_stat_fmt
+        $charge_time_fmt $good_time_fmt $release_fmt $caldb_fmt $vv_date_fmt 
+        $vv_status_fmt $vv_version_fmt
+        $dd_date_fmt $mail_date_fmt $ocat_status_fmt 
+        $ingested_fmt $pipe_config_fmt 
+        $tgt_ra_fmt $tgt_dec_fmt $nom_roll_fmt $readout_fmt 
+        $grating_fmt $datamode_fmt $readmode_fmt
+        $app_time_fmt $type_fmt $rights_fmt $pub_date_fmt 
+        $ap_dir_fmt $cp_comment_fmt $cp_dist_fmt $ap_dist_fmt $obsdate_fmt 
+        $sched_time_fmt $ontime_fmt $obs_interval_fmt $delta_fmt
+        $pifirst_fmt $pilast_fmt $propno_fmt $issues_fmt $dbg
+	);
+
+#order is critical
+@categories = (
+	"obsid",
+ 	"sequence_number",
+ 	"object",
+	"ra_nom",
+ 	"dec_nom",
+	"roll_num",
+ 	"instrument",
+	"grating",
+	"type",
+	"date_obs",
+ 	"proc_version",
+	"ap_cp",
+	"ap_date",
+	"ap_status",
+ 	"chargetime",
+ 	"goodtime",
+ 	"cxcds_version",
+ 	"caldb",
+	"vv_date",
+	"vv_version",
+	"vv_disposition",
+  	"notify_date",
+	"mail_date",
+	"ocat_status",
+	"ingested",
+	"pipe_conf",
+ 	"datamode",
+ 	"readmode",
+ 	"approved_exp_time",
+ 	"data_rights",
+ 	"public_date",
+ 	"issues");
+
+@custom_fields = (
+    "ObsId",
+    "SeqNum",
+    "Object",
+    "RA",
+    "Dec",
+    "Roll",
+    "Instrument",
+    "Grating",
+    "Type",
+    "Obs Date",
+    "Proc Version",
+    "Proc Type",
+    "Proc Date",
+    "Proc Status",
+    "Charge Time",
+    "Good Time",
+    "Release",
+    "CALDB Version",
+    "V&V Date",
+    "V&V Version",
+    "V&V Status",
+    "Data Distr Date",
+    "Data Mail Date",
+    "OCat Status",
+    "Ingested",
+    "Pipe. Config.",
+    "DataMode",
+    "ReadMode",
+    "Apprvd Time (ks)",
+    "Data Rights",
+    "Public Rel Date",
+    "Issues");
+
+
+#order is critical
+@stat_col = (
+        $obsid_fmt ,
+        $seqnbr_fmt ,
+        $object_fmt ,
+        $tgt_ra_fmt ,
+        $tgt_dec_fmt ,
+        $nom_roll_fmt ,
+        $readout_fmt ,
+        $grating_fmt ,
+        $type_fmt ,
+        $obsdate_fmt ,
+        $version_fmt ,
+        $ap_cp_fmt,
+        $ap_date_fmt ,
+        $ap_stat_fmt,
+        $charge_time_fmt ,
+        $good_time_fmt ,
+        $release_fmt ,
+        $caldb_fmt ,
+        $vv_date_fmt ,
+        $vv_version_fmt,
+        $vv_status_fmt,
+        $dd_date_fmt ,
+        $mail_date_fmt ,
+        $ocat_status_fmt ,
+        $ingested_fmt ,
+        $pipe_config_fmt ,
+        $datamode_fmt ,
+        $readmode_fmt,
+        $app_time_fmt ,
+        $rights_fmt ,
+        $pub_date_fmt,
+        $issues_fmt
+        );
+
+
+
+
+###########################  M A I N  ############################
+{
+  $SIG{__WARN__} = \&catch_warn;
+
+  &clean_up;
+  
+  $display_issues = 0;
+  $db_dlm = "\t";
+  $note = "";
+ 
+
+  &build_where_clause();
+  if ($where eq "") {
+     &error("Please refine your search query: $where");
+     display_file($tmp_err,1);
+     exit 0;
+  }
+  logit("Custom table query: $where\n");
+
+  &build_order_clause();
+
+  $stmp = "server=$srv;database=$db";
+  $dsn = "DBI:Sybase:$stmp";
+  $dbh = DBI->connect($dsn, $uid, $pwd, {
+        PrintError => 1,
+        RaiseError => 0});
+  if ( !defined $dbh) {
+     display_file($tmp_err,1);
+     exit 1;
+  }
+  &parse_custom_columns();
+
+  $report_fmt = param("tab_del");
+  if (!$report_fmt) {
+    $report_fmt = "HTML";
+  }
+  $report_type = "custom";
+
+
+
+
+  # go get the data 
+  &retrieve_data;
+
+  $dbh->disconnect;
+
+  &build_custom_results_table;
+  &display_output_results(1);
+
+}
+
+
+#---------------------------------------------------------------------------
+sub check_col{
+
+  my($fieldname,$orig_col) = @_;
+  my($tmp,$col,$jj);
+
+
+  for ($jj=0;$jj <= $#sorted_custom;$jj++) {
+    ($col,$tmp) = split(/ /,$sorted_custom[$jj]);
+    if ($orig_col == $col && $custom_fields[$tmp] ne $fieldname) {
+      &debug("warning: $orig_col  $custom_fields[$tmp] ** $fieldname ** \n") if $dbg;
+      $warning[$wcnt] = "<font size=-1 color=\"\#CC0000\">WARNING:</font> <font size=-1>View Column ( $orig_col )  for \"$fieldname\" is already selected.</font><br>\n";
+	  $wcnt++;
+      last;
+    }
+
+  }
+
+  return;
+}
+
+
+
+#-----------------------------------------------------------------
+sub parse_custom_columns 
+{
+  my($jj,$ii,$cat,$cln,$colum,$cat_col);
+  my(@custom_order);
+
+  # count up number of fields selected.  This is used later to make
+  # sure the display column is a valid number.
+  $cat_cnt = 0;
+  foreach $cat (@categories) {
+    if(param("$cat")) {
+      $cat_cnt++; 
+    }
+  }
+
+  #
+  # Check each field and see if it's been selected and what
+  # column number the output should be displayed in.
+  $wcnt = 0;
+  $res_cnt = 0;
+  $title = "Custom";
+  foreach $cat (@categories) {
+    if(param("$cat")) {
+      $cat_col = $cat."_col";
+      $cln = param("$cat_col");
+      if ($custom_fields[$res_cnt] =~ /Issue/) {
+        $display_issues = 1;
+      }
+      push(@custom_order,"$cln $res_cnt");
+    }
+    $res_cnt++;
+  } 
+
+  @sorted_custom = sort numerically @custom_order;
+  for ($ii=0;$ii<=$#sorted_custom;$ii++) {
+    
+    ($cln,$jj) = split(/ /,$sorted_custom[$ii]);
+    &check_col($custom_fields[$jj],$cln);
+    $fmt_tab[$ii] = $stat_col[$jj]; 
+    $hdr[$ii] = $custom_fields[$jj]; 
+  }
+
+
+  if($cat_cnt <= 0)
+   { 
+     &error("Oops, you forgot to select any field at all!"); 
+     display_file($tmp_err,1);
+     exit(0);
+  }
+
+}
+
+#---------------------------------------------------------------------------
+sub numerically{ 
+  $a <=> $b; 
+}
+
+
+#---------------------------------------------------------------------------
+sub build_custom_results_table
+{
+  my(@custom_tmp) = ();
+  my(@myarr) = ();
+  my($ii,$ee,$hh);
+  my($rastr,$decstr);
+  my(@ctmp) = ();
+ 
+  &debug("building custom results  $#display_order\n") if $dbg;
+  @the_results=();
+  for ($ii=0;$ii <= $#display_order;$ii++) {
+    &get_obsid_entry("$display_order[$ii]",1);
+
+    if ($obsid !~ / /) {
+      ($rastr) = sexages($tgt_ra/15.0);
+      ($decstr) = sexages($tgt_dec);
+
+      if ($display_issues == 1) {
+        $issues = &get_issueids_for_obsid($obsid);
+      }
+      if (!$issues) {
+        $issues = " ";
+      }
+      #order is critical
+      @custom_tmp = ();
+      @custom_tmp = (
+        $obsid,
+        $seqnbr,
+        $object,
+        $rastr ,
+        $decstr ,
+        $nom_roll,
+        $readout,
+        $grating,
+        $type,
+        $obsdate,
+        $version,
+        $ap_cp,
+        $ap_date,
+        $ap_status,
+        $charge_time,
+        $good_time,
+        $release,
+        $caldb,
+        $vv_date,
+        $vv_version,
+        $vv_status,
+        $dd_date,
+        $mail_date,
+        $ocat_status,
+        $ingested,
+        $pipe_config,
+        $datamode,
+        $readmode,
+        $app_time,
+        $rights,
+        $pub_date,
+        $issues
+        );
+
+      @myarr = ();
+      foreach $hh (@sorted_custom) {
+        @ctmp = split(/ /,$hh);
+        push(@myarr,$custom_tmp[$ctmp[1]]);
+      }
+      push(@myarr,$issues);
+      $stmp = join($db_dlm,@myarr);
+      push(@the_results,$stmp);
+
+      # This will pick up additional fields needed to support the vv status
+      # in future -- maybe we should split all at once but do each line as
+      # we are ready to display(see how the_results is used)
+      @myarr = ($obsid,$version,$vv_version,$ocat_status,$type,$report_type,$bibcode);
+      $stmp = join($db_dlm,@myarr);
+      push(@the_results_link,$stmp);
+    }
+   }
+}
+

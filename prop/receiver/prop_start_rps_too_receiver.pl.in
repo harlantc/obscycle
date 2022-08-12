@@ -1,0 +1,71 @@
+#!@PERL@ 
+#*H****************************************************************************
+#* Copyright (c) 1995, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+# 
+#* FILE NAME: prop_start_rps_too_receiver.pl
+# 
+#* DEVELOPMENT: ObsCycle
+# 
+#* DESCRIPTION:
+# 
+#  Start the rps receiver process to read the rps_too mail queue 
+#  and move the submitted proposals to the official ASCDS_RPS_TOO_RECV
+#  directory.  Log the incoming proposals in the received_too_proposal.log
+#  for viewing by the User Support Group.
+#
+#  Any output from system commands is appended to the prop_rps_too_receiver log.
+#
+#* NOTES:
+# 
+#        <None>
+# 
+#* REVISION HISTORY:
+# 
+# 
+#H****************************************************************************/
+#
+#
+#
+#
+# setup log file
+$logfile= "$ENV{ASCDS_PROP_RPS_LOG}/prop_rps_too_receiver.log";
+
+$u  = $ENV{ASCDS_RPS_TOO_USER};
+$me = $ENV{USER};
+$otsdir = "/bin";
+
+if ($u) {
+  if (! ($me =~ $u)) {
+      print "ERROR: Current user must be $u\n";
+      exit;
+  }
+}
+else {
+  print "ERROR: Environment variable ASCDS_RPS_TOO_USER must be set.\n";
+  exit;
+}
+
+
+# first, kill any existing receiver process
+system "prop_kill_rps_receiver.pl -too";
+
+if (! -e $logfile ) {
+  open (IFILE,">$logfile");
+  close IFILE;
+}
+ 
+if (! -w $logfile )  {
+  die "Log file not writable for $logfile"; 
+}
+
+
+print "nohup prop_rps_receiver @ARGV 1>>$logfile &\n";
+system "nohup prop_rps_receiver @ARGV -too 1>>$logfile &";
+
+sleep(1);
+system ("$otsdir/ps -ef | grep prop_rps_receiver");
+print "On-Call path: $ENV{ASCDS_PROP_NOTIFY}\n";
+
+exit 0;

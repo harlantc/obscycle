@@ -1,0 +1,124 @@
+1;
+# ----------------------------------------------------------
+# parse the institution name
+# ----------------------------------------------------------
+sub modify_institute
+{
+    my($orig_inst) = @_;
+    my($out_inst) = $orig_inst;
+
+    while ($out_inst =~ s/centre /center /) {;}
+    while ($out_inst =~ s/institut /institute /) {;}
+    while ($out_inst =~ s/ inst / institute /) {;}
+    while ($out_inst =~ s/ inst$/ institute/) {;}
+    while ($out_inst =~ s/^inst /institute /) {;}
+    while ($out_inst =~ s/ univ / university /) {;}
+    while ($out_inst =~ s/^univ /university /) {;}
+    while ($out_inst =~ s/^univ\. /university /) {;}
+    while ($out_inst =~ s/ univ\. /university /) {;}
+    while ($out_inst =~ s/^u\. /university /) {;}
+    while ($out_inst =~ s/^u /university /) {;}
+    while ($out_inst =~ s/universidad /university /) {;}
+    while ($out_inst =~ s/universidade /university /) {;}
+    while ($out_inst =~ s/universita\' /university /) {;}
+    while ($out_inst =~ s/universita\` /university /) {;}
+    while ($out_inst =~ s/universitaet /university /) {;}
+    while ($out_inst =~ s/\jhu/johnshopkinsuniversity/) {;}
+    while ($out_inst =~ s/oss\. astronomico di /osservatorio astronomico di /) {;}
+    while ($out_inst =~ s/osservtorio/osservatorio/) {;}
+    while ($out_inst =~ s/inaf oa /inaf osservatorio astronomico di /) {;}
+    while ($out_inst =~ s/inaf-oa /inaf osservatorio astronomico di /) {;}
+    while ($out_inst =~ s/ist di astrofisica /iasf /) {;}
+    while ($out_inst =~ s/ist di astrofisica /iasf /) {;}
+    while ($out_inst =~ s/st di astrofisica /iasf /) {;}
+    while ($out_inst =~ s/operations/operation/) {;}
+    while ($out_inst =~ s/ inc\.//) {;}
+    while ($out_inst =~ s/ inc$//) {;}
+    while ($out_inst =~ s/ inc //) {;}
+    while ($out_inst =~ s/ for //) {;}
+    while ($out_inst =~ s/ fur //) {;}
+    while ($out_inst =~ s/ fuer //) {;}
+    while ($out_inst =~ s/ of //) {;}
+    while ($out_inst =~ s/ and //) {;}
+    while ($out_inst =~ s/ the //) {;}
+    while ($out_inst =~ s/^the //) {;}
+    while ($out_inst =~ s/ de //) {;}
+    while ($out_inst =~ s/ di //) {;}
+    while ($out_inst =~ s/ et //) {;}
+    while ($out_inst =~ s/ at //) {;}
+    while ($out_inst =~ s/ la //) {;}
+    while ($out_inst =~ s/ in //) {;}
+    $out_inst =~ s/[^a-zA-Z0-9]//g;
+    #while ($out_inst =~ s/\"//) {;}
+    #while ($out_inst =~ s/\&//) {;}
+    #while ($out_inst =~ s/\'//) {;}
+    #while ($out_inst =~ s/-//) {;}
+    #while ($out_inst =~ s/\///) {;}
+    #while ($out_inst =~ s/\.//) {;}
+    #while ($out_inst =~ s/\,//) {;}
+    #while ($out_inst =~ s/ //) {;}
+    while ($out_inst =~ s/iasfinaf/inafiasf/) {;}
+    while ($out_inst =~ s/untsvilleuah/untsville/) {;}
+
+    if ($orig_inst =~ /harvard/ || 
+        $orig_inst =~ /smithsonian/ || 
+        $orig_inst =~ /smithosonian/ || 
+        $orig_inst =~ /cfa/ || 
+        $orig_inst =~ /cxc/ || 
+        ($orig_inst =~ /sao/  && 
+          $orig_inst !~ /paulo/  &&  $orig_inst !~ /paolo/ && $orig_inst !~ /special/ )){
+      $out_inst = "sao";
+    }
+    elsif (($orig_inst =~ /kavli/  && $orig_inst =~ mit) ||
+        $orig_inst =~ /.*(mass).*(inst).*(tech).*/ ) {
+      $out_inst = "mit";
+    }
+    elsif ($orig_inst =~ /sron/ ) {
+      $out_inst = "sron";
+    }
+    elsif ($orig_inst =~ /.*(max).*(planck).*(extraterr).*/ ) {
+      $out_inst = "maxplanckextraterr";
+    }
+    elsif ($orig_inst =~ /spitzer/ || 
+           $orig_inst =~ /ipac/ ) {
+      $out_inst = "ipac";
+    }
+    elsif ($orig_inst =~ /astronomico di brera/) {
+      $out_inst = "inafosservatorioastronomicobrera";
+    }
+    elsif ($orig_inst =~ /astronomico di palermo/) {
+      $out_inst = "inafosservatorioastronomicopalermo";
+    }
+    elsif ($orig_inst =~ /ist di astrofisica cnr, roma/) {
+      $out_inst = "inafosservatorioastronomicoroma";
+    }
+    elsif ($orig_inst eq "eso") {
+      $out_inst = "europeansouthernobservatory"
+    }
+    elsif ($orig_inst eq "esa") {
+      $out_inst = "europeanspaceagency"
+    }
+    elsif ($orig_inst eq "esac") {
+      $out_inst = "europeanspaceastronomycenter"
+    }
+
+    if ($out_inst =~ /europeanspaceagency/ && $out_inst =~ /esac/) {
+      $out_inst = "europeanspaceastronomycenter"
+    }
+    if ($out_inst =~ /europeanspaceagency/ && $out_inst =~ /esa/) {
+      $out_inst = "europeanspaceagency"
+    }
+    if ($out_inst =~ "pacetelescopescienceinst") {
+      $out_inst = "stsci"
+    }
+    $out_inst =~ s/nasagoddardspaceflightcenter/nasagsfc/;
+    $out_inst =~ s/nasagoddard/nasagsfc/;
+    if ($out_inst =~ /nasagsfcusra/) {$out_inst = "nasagsfc";}
+    if ($out_inst =~ /esaesac/) {$out_inst = "europeanspaceastronomycenter";}
+    $out_inst =~ s/warwickuniversity/warwick/;
+    $out_inst =~ s/universitywarwick/warwick/;
+
+    return $out_inst;
+       
+}
+

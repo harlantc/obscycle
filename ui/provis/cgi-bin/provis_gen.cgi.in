@@ -1,0 +1,535 @@
+#!@PERLDB@
+
+# _INSERT_SAO_COPYRIGHT_HERE_(2008,2009)_
+# _INSERT_GPL_LICENSE_HERE_
+
+our %Global;
+
+use Cwd qw( abs_path );
+use File::Basename qw( dirname );
+use lib dirname(abs_path($0));
+
+require("provis_config.cgi");
+
+END
+{
+    Cleanup($PARAMS{'cf'});
+}
+
+sub Cleanup 
+{
+    local($inCalibrationFile) = @_;
+     
+    if ( $inCalibrationFile eq $Global{'LIBASTROCAL_FILE'})
+    {
+	return;
+    };
+    
+    for ($indx = 0; $indx < $Global{'maxclients'}; $indx++)
+    {
+	$indx1 = $indx +1;
+
+	if ( rename("${inCalibrationFile}.${indx1}","${inCalibrationFile}.${indx}") )
+	{
+	    if ( $indx == 0 )
+	    {
+		unlink "${inCalibrationFile}.${indx}";
+		unlink "${inCalibrationFile}" ;
+		return;
+	    }
+	};
+    }
+
+}
+
+$SIG{INT} = sub { Cleanup($PARAMS{'cf'}); };
+$SIG{QUIT} = sub { Cleanup($PARAMS{'cf'}); };
+$SIG{TERM} = sub { Cleanup($PARAMS{'cf'}); };
+$SIG{ABRT} = sub { Cleanup($PARAMS{'cf'}); };
+
+sub ResolveTargetName {
+
+    local($inTargetName,$simbadURL) = @_;
+    local($tname);
+
+    $tname = $inTargetName;
+    $tname =~ s/\+/\%2B/;
+    
+    $simbadURL =~ s/id[+]TARGETNAME/id+$tname/;
+
+    open(TMPHANDLE, "$Global{'wget'} -t 1 -T 2 \"$simbadURL\" -O - -q |") || return 0 ;
+
+    $coords = <TMPHANDLE>;
+
+    $lineCount=0;
+    while( $inputLine = <TMPHANDLE>) {
+	if ( $inputLine ne "" )
+	{
+	    $lineCount = $lineCount+1;
+	};
+    };
+
+    close(TMPHANDLE);
+
+    if ( $coords =~  /::error::/ )
+    {
+	$coords = "No results found";
+    }
+    elsif ( $coords eq "" || $coords =~  /[Ee][Rr][Rr][Oo][Rr]/ ) 
+    {
+	return 0;
+    }
+    elsif ( $lineCount > 1 )
+    {
+	$coords = "Multiple results";
+    }
+    else
+    {
+
+	# Split the coordinates using spaces as the delimiter
+	@coordsArray = split(/\s+/, $coords);
+	
+	$raHours = shift(@coordsArray);
+	$raMinutes = shift(@coordsArray);
+	
+	# If the minutes field has a decimal, remove it and 
+	# recalculate the value as minutes and seconds
+	if($raMinutes =~ /\./) {
+	    @raMinutesArray = split(/\./, $raMinutes);
+	    $raMinutes = $raMinutesArray[0];
+	    $raSeconds = $raMinutesArray[1] * 6;
+	} 
+	
+	# The next field will either be the ra seconds,
+	# or dec degrees.  If it has a + or - sign, then
+	# it's the dec degrees.
+	$foundDec = 0;
+	$raSecOrdecDegrees = shift(@coordsArray);
+	if($raSecOrdecDegrees =~ /\+/ ||
+	   $raSecOrdecDegrees =~ /\-/) {
+	    $foundDec = 1;
+	    $decDegrees = $raSecOrdecDegrees;
+	} else {
+	    $raSeconds = $raSecOrdecDegrees;
+	}
+	
+	if($foundDec == 0) {
+	    $decDegrees = shift(@coordsArray);
+	} 
+	
+	# Get the dec minutes and seconds fields,
+	# recalculate the dec minutes and seconds if
+	# needed
+	$decMinutes = shift(@coordsArray);
+	$decSeconds = "00";
+	if($decMinutes =~ /\./) {
+	    @decMinutesArray = split(/\./, $decMinutes);
+	    $decMinutes = $decMinutesArray[0];
+	    $decSeconds = $decMinutesArray[1] * 6;
+	} elsif(@coordsArray > 0){
+	    $decSeconds = shift(@coordsArray);
+	}
+	
+	# Stop parsing file, since we found the coordinates
+	$coords = "$raHours $raMinutes $raSeconds $decDegrees $decMinutes $decSeconds";
+	
+    };
+
+
+
+
+
+
+
+
+    print "$coords";
+    
+
+    return 1;
+
+
+}
+
+
+sub GeneratePlotImage {
+    local($inType,
+	  $inCalibrationFile,
+	  $inEphemerisFile,
+	  $inTitle,
+	  $inCoords,
+	  $inBaseJD,
+	  $inStartJD,
+	  $inEndJD,
+	  $inPitchCurve,
+	  $inPitchLow,
+	  $inPitchHigh,
+	  $inPitchColor,
+	  $inPitchLineType,
+	  $inPitchLineWidth,
+	  $inRollCurve,
+	  $inRollLow,
+	  $inRollHigh,
+	  $inRollColor,
+	  $inRollLineType,
+	  $inRollLineWidth,
+	  $inRollToleranceLineType,
+	  $inVisCurve,
+	  $inVisLow,
+	  $inVisHigh,
+	  $inVisColor,
+	  $inVisLineType,
+	  $inVisLineWidth,
+	  $inMaxExpCurve,
+	  $inMaxExpLow,
+	  $inMaxExpHigh,
+	  $inMaxExpColor,
+	  $inMaxExpLineType,
+	  $inMaxExpLineWidth,
+	  $inMaxExpFillType,
+	  $inBadPitchCurve,
+	  $inBadPitchLineType,
+	  $inBadPitchLineWidth,
+	  $inBadPitchFillType,
+	  $inMaxExpTime,
+	  $inWidth,
+	  $inWidthU,
+	  $inHeight,
+	  $inHeightU,
+	  $inFont,
+	  $inAxisLinewidth) = @_;
+
+    
+    if ( $inType eq "ps" || $inType eq "jpeg"|| $inType eq "png" || $inType eq "plps" ) {
+	$startMJD=$inStartJD-$inBaseJD;
+	$endMJD=$inEndJD-$inBaseJD;
+	$graphTitle = $inTitle;
+        $graphTitle =~ s/"/\\"/;
+
+	
+	if ( $inType eq "jpeg" || $inType eq "png" ) {
+	    $picWidth=&Round($inWidth);
+	    $picHeight=&Round($inHeight);
+	}
+	else
+	{
+	    $picWidth= $inWidth;
+	    $picHeight=$inHeight;
+	    if ( $inWidthU eq "i")
+	    {
+		$picWidth .= $inWidthU;
+
+	    };
+
+	    if ( $inHeightU eq "i")
+	    {
+		$picHeight .= $inHeightU;
+	    };
+
+	};
+
+	if ( $inType eq "ps" )
+	{
+	    $graphmode = 'notsimple';
+	}
+	else
+	{
+	    $graphmode = 'simple';
+	}
+
+	$command1 ="$Global{'webbin'}/provis_gen_data -cf $inCalibrationFile -jb $inBaseJD -ef $inEphemerisFile -c \"$inCoords\"  -sjd $inStartJD -ejd $inEndJD -rf $inRollCurve -vf $inVisCurve -pf $inPitchCurve -mf $inMaxExpCurve -mt $inMaxExpTime -bf $inBadPitchCurve -nf 0";
+
+	$command2="$Global{'wish'} $Global{'webbin'}/provis_gen_graph.tcl  \"axisLinewidth=$inAxisLinewidth\" \"font=$inFont\" \"graphWidth=$picWidth\"  \"graphHeight=$picHeight\"   \"graphMode=$graphmode\" \"graphTitle=$graphTitle\"  \"MJDBase=$inBaseJD\" \"MJDLow=$startMJD\" \"MJDHigh=$endMJD\" \"ROLLCurve=$inRollCurve\"   \"ROLLHigh=$inRollHigh\" \"ROLLLow=$inRollLow\"  \"ROLLColor=$inRollColor\" \"ROLLLineType=$inRollLineType\"  \"ROLLTOLERANCELineType=$inRollToleranceLineType\" \"ROLLLineWidth=$inRollLineWidth\" \"PITCHCurve=$inPitchCurve\" \"PITCHHigh=$inPitchHigh\" \"PITCHLow=$inPitchLow\" \"PITCHColor=$inPitchColor\" \"PITCHLineType=$inPitchLineType\" \"PITCHLineWidth=$inPitchLineWidth\" \"VISCurve=$inVisCurve\" \"VISHigh=$inVisHigh\" \"VISLow=$inVisLow\" \"VISColor=$inVisColor\" \"VISLineType=$inVisLineType\" \"VISLineWidth=$inVisLineWidth\"  \"BADPITCHRegions=$inBadPitchCurve\" \"BADPITCHLineType=$inBadPitchLineType\" \"BADPITCHLineWidth=$inBadPitchLineWidth\" \"BADPITCHFillType=$inBadPitchFillType\" \"MAXEXPCurve=$inMaxExpCurve\" \"MAXEXPLow=$inMaxExpLow\" \"MAXEXPHigh=$inMaxExpHigh\"  \"MAXEXPColor=$inMaxExpColor\" \"MAXEXPLineType=$inMaxExpLineType\" \"MAXEXPLineWidth=$inMaxExpLineWidth\" \"MAXEXPFillType=$inMaxExpFillType\"  \"patternsLocation=$Global{'FILL_PATTERNS_DIR'}\" ";
+
+	$device=$inType;
+	if ( $inType eq "png" )
+	{
+	    $device="${device}16m";
+	};
+	if ( $inType eq "ps" )
+	{
+	    $device="pswrite";
+	};
+
+	$command3="$Global{'gs'}  -q -sDEVICE=${device} -sOutputFile=- -dNOPAUSE -dBATCH  -g${inWidth}x${inHeight} -dEPSCrop -r$Global{'xres'}x$Global{'yres'} - ";
+      CASE: {
+	  
+	  if ( $inType eq "jpeg" || $inType eq "png" ) 
+	  {
+	      
+	      $command="$command1 | $command2 | $command3 ";
+	      if ( $testMode eq "" )
+	      {
+		  print "Content-type: image/$inType\n\n";
+	      };
+	      last CASE;
+	  }
+	  if ( $inType eq "plps" ) 
+	  {
+	      $command="$command1 | $command2 "; 
+	      last CASE;
+	  }
+	  if ( $inType eq "ps" ) 
+	  {
+	      $command="$command1 | $command2 | ps2pdf -";
+	      if ( $testMode eq "" )
+	      {
+		#print "Content-type: application/postscript\n\n";
+                print "Content-Type: application/Force-download\n";
+                print "Content-Disposition: attachment; filename=\"provis.pdf\"\n\n";
+        
+	      }
+	      last CASE;
+	  }
+      };
+	
+	if ( system ($command)/256 == 0 )
+	{
+	    Cleanup($inCalibrationFile);
+	    return 1;
+	}
+	else
+	{
+	    if ( $inType eq "jpeg" || $inType eq "png") {
+		system("$command2 \"errorData={Failed to generate plot}\" | $command3 ");
+	    }
+	    else
+	    {
+		system(" $command2 \"errorData={Failed to generate plot}\" ");	
+	    };
+	};
+	
+	
+    }
+    else
+    {  
+	&PrintErrorAndExit("Unsupported Type: '$inType' for image generation") ;	
+    };
+    
+    Cleanup($inCalibrationFile);
+
+    return 0;
+}
+
+sub GeneratePlotData {
+    local($inCalibrationFile,
+	  $inEphemerisFile,
+	  $inCoords,
+	  $inBaseJD,
+	  $inStartJD,
+	  $inEndJD,
+	  $inPitchCurve,
+	  $inRollCurve,
+	  $inVisCurve,
+	  $inMaxExpCurve,
+	  $inBadPitchCurve,
+	  $inMaxExpTime,
+	  $inNiceFlag) = @_;
+
+    local($retcode) = 0;
+
+    print "Content-type: text/plain \n\n";
+#    print "./provis_gen_data -cf $inCalibrationFile -jb $inBaseJD -ef $inEphemerisFile -c \"$inCoords\"  -sjd $inStartJD -ejd $inEndJD -rf $inRollCurve -vf $inVisCurve -pf $inPitchCurve -mf $inMaxExpCurve -mt $inMaxExpTime -bf $inBadPitchCurve -nf $inNiceFlag -ed $inNiceFlag";
+ 
+    $retcode = system ("$Global{'webbin'}/provis_gen_data -cf $inCalibrationFile -jb $inBaseJD -ef $inEphemerisFile -c \"$inCoords\"  -sjd $inStartJD -ejd $inEndJD -rf $inRollCurve -vf $inVisCurve -pf $inPitchCurve -mf $inMaxExpCurve -mt $inMaxExpTime -bf $inBadPitchCurve -nf $inNiceFlag -ed $inNiceFlag");
+
+    if ($retcode/256 == 0 )
+    {
+
+	Cleanup($inCalibrationFile);
+	return 1;
+    };
+    
+    print "\nSTART ERROR\n";
+    if ($retcode/256 == 2) {
+      print "Failed to generate plot data using specified parameters:  Coordinat
+es are invalid.\n";
+    }
+    else {
+      print "Failed to generate plot data using specified parameters\n";
+    }
+
+    print "END ERROR\n";
+
+    Cleanup($InCalibrationFile);
+
+    return 0;
+}
+
+sub PrintErrorAndExit 
+{
+    local($msg,$title)= @_ ;
+    if ( $title eq '' )
+    {
+	$title= "Server Error";
+    };
+    print <<EOF; 
+Content-type: text/html
+
+
+<html>
+<head>
+<title>$title</title>
+</head>
+<body>
+<h1>$title</h1>
+<h3>$msg</h3>
+</body>
+</html>
+EOF
+	
+    exit  1;
+}
+
+sub Round {
+    local($number) = shift;
+    return int($number + .5);
+}
+
+
+$testMode=$ENV{'PROVISTEST'};
+
+$ENV{'DISPLAY'} = $Global{'DISPLAY'};
+$ENV{'ASCDS_INSTALL'} = $Global{'ASCDS_INSTALL'};
+$ENV{'LD_LIBRARY_PATH'} = "$Global{'LD_LIBRARY_PATH'}:$ENV{'LD_LIBRARY_PATH'}";
+$ENV{'BLT_LIBRARY'} = $Global{'BLT_LIBRARY'};
+$ENV{'PATH'} = "$Global{'PATH'}:$ENV{'PATH'}";
+
+
+if ( ($ENV{'REQUEST_METHOD'} eq 'GET') || ($ENV{'REQUEST_METHOD'} eq 'HEAD') ) 
+{
+    $buffer= $ENV{'QUERY_STRING'};
+    
+} 
+elsif ($ENV{'REQUEST_METHOD'} eq 'POST') 
+{
+
+    if ($ENV{'CONTENT_TYPE'}=~ m#^application/x-www-form-urlencoded$#i )
+    {
+	if ( length($ENV{'CONTENT_LENGTH'}) == 0 ) 
+	{
+	    &PrintErrorAndExit("Empty Content-Length.") ;
+	} 
+	else 
+	{
+	    read(STDIN, $buffer, $ENV{'CONTENT_LENGTH'}) ;
+	}
+    }
+    else 
+    { 
+	&PrintErrorAndExit("Unsupported Content-Type: '$ENV{'CONTENT_TYPE'}'") ;
+    }
+	
+}
+else 
+{
+    ($buffer= $ARGV[0]) =~ s/[?]//g ;
+#    &PrintErrorAndExit("Unsupported REQUEST_METHOD.") ;
+}
+
+
+
+
+@pairs = split(/&/, $buffer);
+foreach $pair (@pairs) {
+    ($name, $value) = split(/=/, $pair);
+    #target names can have '+' signs
+    #$value =~ tr/+/ /;
+    $value =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/eg;
+    $value =~ s/\\/'\\\\'/eg;
+    $PARAMS{$name} = $value;
+}
+
+
+if ( $PARAMS{'cf'} eq "")
+{    
+    $PARAMS{'cf'}= $Global{'LIBASTROCAL_FILE'};    
+}
+else 
+{
+    $PARAMS{'cf'}= "$Global{'uploaddir'}/$PARAMS{'cf'}.cal"; 
+
+    if ( $PARAMS{type} ne 'cleanup')
+    {
+	$retry=0;
+	while ( (! -e "$PARAMS{'cf'}") && ($retry <$Global{'retries'}) )
+	{
+	    sleep $Global{'timeout'};
+	    $retry = $retry + 1;
+	}
+    };
+};
+
+
+
+if ( $PARAMS{'ef'} eq "")
+{
+    $PARAMS{'ef'}= $Global{'EPHEMERIS_FILE'};   
+}
+else
+{
+    $PARAMS{'ef'}= "$Global{'uploaddir'}/$PARAMS{'ef'}.ephem"; 
+}
+
+#remove final double quote from input coordinates
+while ($PARAMS{c} =~ s/ $//) {;}
+if ($PARAMS{c} =~ /\"$/) {
+   chop($PARAMS{c});
+}
+
+
+
+
+SWITCH: {
+    if ( $PARAMS{type} eq 'res' )
+    {
+
+        print "Content-type: text/text\n\n";
+	
+	if ( &ResolveTargetName($PARAMS{'name'},$Global{'simbadURL'}) == 0 )
+	{	
+	    if ( &ResolveTargetName($PARAMS{'name'},$Global{'simbadURL_Failover'}) == 0 )
+	    {
+		print "Name server failure";
+	    };
+	    
+	};
+	last SWITCH;
+    }
+    if ( $PARAMS{type} eq 'data' )
+    {
+	&GeneratePlotData($PARAMS{'cf'},$PARAMS{'ef'},$PARAMS{'c'},$PARAMS{'jb'},$PARAMS{'sjd'},$PARAMS{'ejd'},$PARAMS{'pf'},$PARAMS{'rf'},$PARAMS{'vf'},$PARAMS{'mf'},$PARAMS{'bf'},$PARAMS{'mt'},1);
+	last SWITCH;
+    } 
+    if ( $PARAMS{type} eq 'plotdata' )
+    {
+	&GeneratePlotData($PARAMS{'cf'},$PARAMS{'ef'},$PARAMS{'c'},$PARAMS{'jb'},$PARAMS{'sjd'},$PARAMS{'ejd'},$PARAMS{'pf'},$PARAMS{'rf'},$PARAMS{'vf'},$PARAMS{'mf'},$PARAMS{'bf'},$PARAMS{'mt'},0);
+	last SWITCH;
+    } 
+    if (( $PARAMS{type} eq 'ps') || ( $PARAMS{type} eq 'jpeg' ) || ( $PARAMS{type} eq 'png' ) || ( $PARAMS{type} eq 'plps' ) ) 
+    {
+
+	&GeneratePlotImage($PARAMS{type},$PARAMS{'cf'},$PARAMS{'ef'},$PARAMS{'title'},$PARAMS{'c'},$PARAMS{'jb'},$PARAMS{'sjd'},$PARAMS{'ejd'},$PARAMS{'pf'},  $PARAMS{'plow'},$PARAMS{'phigh'},$PARAMS{'pcolor'},$PARAMS{'pline'}, $PARAMS{'pwidth'},$PARAMS{'rf'},  $PARAMS{'rlow'},$PARAMS{'rhigh'},$PARAMS{'rcolor'},$PARAMS{'rline'},$PARAMS{'rwidth'},$PARAMS{'rtline'},$PARAMS{'vf'},  $PARAMS{'vlow'},$PARAMS{'vhigh'},$PARAMS{'vcolor'},$PARAMS{'vline'},$PARAMS{'vwidth'},$PARAMS{'mf'},  $PARAMS{'mlow'},$PARAMS{'mhigh'},$PARAMS{'mcolor'},$PARAMS{'mline'},$PARAMS{'mwidth'},$PARAMS{'mfill'},$PARAMS{'bf'},$PARAMS{'bline'},$PARAMS{'bwidth'},$PARAMS{'bfill'}, $PARAMS{'mt'},$PARAMS{'width'},$PARAMS{'widthu'},$PARAMS{'height'},$PARAMS{'heightu'},$PARAMS{'font'},$PARAMS{'axisLinewidth'});
+	    
+	last SWITCH;
+    }
+    if  ( $PARAMS{type} eq 'cleanup')
+    {    
+	
+	if ( $PARAMS{'cf'} ne $Global{'LIBASTROCAL_FILE'})
+	{
+	    for ($indx = 0; $indx <= $Global{'maxclients'}; $indx++)
+	    {
+		unlink "$PARAMS{'cf'}.${indx}";
+	    };
+	    unlink "$PARAMS{'cf'}" ;
+	    
+	    print "Content-type: text/plain \n\n";	
+	};
+
+	last SWITCH;
+    }
+    PrintErrorAndExit("Unsupported Request");
+}
+
+
+

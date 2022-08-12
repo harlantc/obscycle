@@ -1,0 +1,8 @@
+#!/bin/tcsh -f
+
+# sybpydb for ASE 15.7 only supports Python 2.6,2.7 and 3.1
+#setenv PYTHONPATH "${ASCDS_INSTALL}/lib/python2.7/site-packages:${PYTHONPATH}"
+#setenv LD_LIBRARY_PATH "/proj/cm/Release/install.DS10.7/otslib:${LD_LIBRARY_PATH}"
+# now using SYBASE 16 so don't really need the wrapper
+pdfGen_cli.py $*
+

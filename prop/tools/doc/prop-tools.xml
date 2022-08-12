@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE cxchelptopics SYSTEM "CXCHelp.dtd">
+<cxchelptopics>
+<ENTRY context="proposaltools" key="prop-tools" refkeywords="proposal proposing tools" seealsogroups="prop-tools">
+<SYNOPSIS>
+
+Tools that aid in the preparation and submission of Chandra proposals
+
+</SYNOPSIS>
+<ADDRESS>
+<URL>
+prop-tools.html
+</URL>
+
+</ADDRESS>
+<ADDRESS>
+<URL>
+http://cxc.harvard.edu/ciao/ahelp/prop-tools.html
+</URL>
+
+</ADDRESS>
+<DESC>
+<PARA>
+
+Below we list tools available to help in feasibility studies,
+proposal preparation, and proposal submission.   Refer to the <HREF link="http://cxc.harvard.edu/proposer/">
+Proposer area </HREF> of the Chandra X-ray Center web site for links to these tools and the most current proposing information.  
+
+</PARA>
+<PARA title="Tools that Access the Chandra Observation Catalog Database">
+ 
+  To obtain information about observations that have already taken
+place or have been approved to take place with Chandra, use 
+Web ChaSeR to search the Chandra Data Archive.  See the 
+<HREF link="http://cxc.harvard.edu/cda/">Chandra Archive web pages</HREF>
+ for more information.
+</PARA>
+
+<PARA title="Tools for Assessing Feasibility">
+
+The following tools will aid in determining the feasibility of using
+one of the Chandra detectors to observe a specific target.  When
+appropriately used, they can help provide a reasonable estimate of
+exposure time.
+</PARA>
+<LIST>
+<ITEM>
+PIMMS (Portable Interactive Multi-Mission Simulator) -- use
+when there is an estimate of source flux for a simple source spectra
+from either a count rate estimated from a previous mission or a flux
+in some energy band; estimates the amount of ACIS pile-up on the count
+rate
+</ITEM>
+<ITEM>
+Sherpa or XSPEC -- to provide a simulation of more complicated spectra
+ estimates spectral shape and uncertainty; some pile-up modeling capability
+</ITEM>
+<ITEM>
+MARX (Model of AXAF's Response to X-rays) -- for a source with
+complicated spatial structure; perform Monte-Carlo simulation of the
+observation, including approximation to mirror and instrument
+characteristics; output is a simulated data set that can be analyzed
+with CIAO and other data analysis packages; simulates ACIS pile-up
+</ITEM>
+
+</LIST>
+<PARA title="Proposal Planning Tools">
+
+These tools aid in the preparation of a Chandra proposal, in particular: 
+evaluating target visibility and observing constraints, and converting between 
+date/time systems and coordinate systems. These are available either
+over the web, or through a command-line interface; refer to ahelp
+files for the individual tools for more information. 
+</PARA>
+<LIST>
+<ITEM>
+COLDEN -- calculate galactic neutral hydrogen column
+density
+</ITEM>
+<ITEM>
+DATES --  perform interactive calendar and time conversions
+</ITEM>
+<ITEM>
+PRECESS --  perform astronomical coordinate conversions
+</ITEM>
+<ITEM>
+ObsVis -- (command-line interface only) allows inspection of instrument fields-of-view,
+observatory roll angle and target visibility
+</ITEM>
+<ITEM>
+PRoVis -- (web only) interactively plots Chandra spacecraft pitch, roll and visibility by date for any celestial target
+</ITEM>
+</LIST>
+<PARA title="Chandra Proposal Submission">
+
+Electronic submission of proposal information is required. The
+scientific justification must also be submitted electronically.  Paper
+copies will be accepted only from individuals without access to the
+Internet.  
+
+</PARA>
+<LIST>
+<ITEM>
+WWW version of the Remote Proposal Submission (RPS) system -- a
+form-based interface to proposal processor; links exist to help for
+each page of the form and for each parameter;  generic RPS help is
+available at the top of the form. The form is available through the
+Proposer page URL at the top of this file.
+
+</ITEM>
+<ITEM>
+E-mail server of the RPS system -- instructions for use may be
+obtained by sending a blank e-mail message to
+rps@head.cfa.harvard.edu; note that if you are unable to send a
+message with no subject or text, enter a single character in either
+position; the response will be an ASCII file of instructions.
+</ITEM>
+
+</LIST>
+
+</DESC>
+<VERSION>CIAO 4.5</VERSION>
+<LASTMODIFIED>December 2012</LASTMODIFIED>
+
+</ENTRY>
+
+</cxchelptopics>

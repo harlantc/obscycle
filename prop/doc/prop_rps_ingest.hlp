@@ -1,0 +1,277 @@
+===============================================================================
+
+	            HELP FILE for prop_rps_ingest
+
+===============================================================================
+
+
+General
+-------
+
+The prop_rps_ingest process ingests the received proposals into the 
+Archive database and SYBASE proposal tables. The process logs any action 
+performed on the proposal files to include: renames, ingest results, and 
+error messages. This process should be started using either the 
+prop_start_rps_ingest.pl or prop_start_rps_too_ingest.pl scripts.
+
+prop_start_rps_ingest.pl  
+------------------------
+
+The prop_start_rps_ingest script is written using Perl. It starts the 
+prop_rps_ingest application which processes and ingests proposals received
+during the normal cycle into the database.  This process may NOT be run in 
+the background mode because it requires the user to enter a password for 
+database access.
+
+prop_start_rps_too_ingest.pl  
+----------------------------
+
+The prop_start_rps_too_ingest script is written using Perl. It starts the 
+prop_rps_ingest application which processes and ingests unanticipated 
+out-of-cycle TOO and Director's Discretionary Time (DDT) proposals into 
+the database.  This process may NOT be run in the background mode because 
+it requires the user to enter a password for database access.
+
+
+PARAMETERS
+----------
+
+-U [user]       REQUIRED  - archive server user name
+-P [password]   REQUIRED  - archive server user password
+-S [server]     OPTIONAL  - archive server 
+                            default is DB_PROP_ARCSRV
+-d [duration]   OPTIONAL  - sleep duration for incorporating mail 
+
+-too            OPTIONAL  - used for ingesting out of cycle TOO proposals 
+
+-r [retries]    OPTIONAL  - number of retries to connect to archive server 
+                            Default is 5.
+
+
+NOTE:  Input/Output files are accessed from the official Proposal directories 
+       defined by the environment variables:
+
+   ASCDS_PROP_RPS_ARCH  - all proposals successfully ingested into
+                          the Proposal database.
+   ASCDS_PROP_RPS_RECV  - all submitted proposals for the normal cycle
+   ASCDS_RPS_TOO_RECV   - all submitted out-of-cycle TOO proposals
+   ASCDS_PROP_RPS_ERR   - all submitted proposals that require human
+                          intervention. 
+   ASCDS_PROP_RPS_LOG   - log file for the RPS ingest function.
+
+   ASCDS_ARCHIVE_SERVER - database archive server.
+   DB_PROP_SQLSRV       - database sybase server.
+
+
+INPUT/OUTPUT
+-------------
+
+1) STDIN:  
+
+   >Enter Password:  User must enter password for access to the database 
+                     and archive server.
+
+2) Input Files: 
+
+$ASCDS_PROP_RPS_LOG/prop_number.rps  -  this file contains an ascii integer 
+  number.  The number is incremented for each incoming proposal read, and 
+  the file is re-written with the updated number.
+
+$ASCDS_PROP_RPS_RECV/<tag_number>.prop -  Received proposal files that have
+  passed the keyword validation check.
+
+$ASCDS_PROP_TOO_RECV/<tag_number>.prop -  Received out-of-cycle proposal 
+  files that have passed the keyword validation check.
+
+
+3) Output Files:
+  
+
+$ASCDS_PROP_RPS_LOG/prop_rps_ingest.log  - this file contains the
+  processing log for the ingest application.  It contains start and
+  termination messages, results from the ingest operation, etc.
+
+$ASCDS_PROP_RPS_LOG/prop_rps_too_ingest.log  - this file contains the
+  processing log for the ingest application.  It contains start and
+  termination messages, results from the ingest operation, etc.
+
+$ASCDS_PROP_RPS_ERR/<filename>.prop - Received proposal files that have
+  not been successfully ingested into the database.
+
+$ASCDS_PROP_RPS_ERR/<filename>.err - Associated error message for the
+  proposal file identified by the same tag/proposal number.
+
+
+$ASCDS_PROP_RPS_ARCH/<proposal_number>.prop - copies of successfully ingested
+  proposals.
+
+$ASCDS_PROP_RPS_ARCH/mail/<proposal_number>.mail - copies of e-mail confirmation
+  message for successfully ingested proposals.
+
+
+4) Output Files for Archive: 
+
+<proposal_number>.prop - Received proposal name/value pair files that have
+  been successfully verified.
+
+
+
+SETUP AND USAGE
+---------------
+
+prop_start_rps_ingest.pl and prop_start_rps_too_ingest.pl  use the environment 
+variables that are set in the file 'ascds_setup_prop' and 'ascds_setup_db'.  
+These proposal environment variables include :
+
+	$ASCDS_PROP_DIR       - home directory for proposal related files
+	$ASCDS_PROP_RPS_DIR   - home directory for RPS related files
+	$ASCDS_PROP_RPS_RECV  - received files (normal cycle)
+	$ASCDS_RPS_TOO_RECV   - received files (out-of_cycle)
+	$ASCDS_PROP_RPS_ARCH  - proposal files successfully ingested 
+	$ASCDS_PROP_RPS_ERR   - proposal files that contain errors such as
+	                        resubmissions.
+	$ASCDS_PROP_RPS_LOG   - all process logs
+	$ASCDS_PROP_RPS_EMAIL - notify this user of termination of 
+	                        prop_rps_ingest process
+        $ASCDS_PROP_AO        - current open proposal cycle number
+        $ASCDS_PROP_TOO_AO    - current cycle number for mission planning
+
+The user should not ordinarily change their values. The '~rps_prop/.cshrc.user'
+file has already been setup to execute the appropriate ASCDS scripts to set 
+the working environment. 
+
+The script assumes that all directories have been created and permissions
+properly set.  All directories above should exist with the following UNIX
+permissions set: drwxrws--.  The directories should belong to the UNIX
+group 'prop'.
+
+Only those users having permissions to read proposals should have access to
+these directories.  Authorized users should belong to the group 'prop'.
+If you need access, contact the system administrator.
+
+
+To start the RPS ingest process for the normal cycle:
+  	> su - rps_prop
+  	> Password: <enter password>
+  	> prop_start_rps_ingest.pl -U <user> 
+        > Enter Password: <enter database password>
+
+To start the RPS ingest process for the out-of-cycle TOO requests:
+  	> su - rps_too
+  	> Password: <enter password>
+  	> prop_start_rps_too_ingest.pl -U <user> 
+        > Enter Password: <enter database password>
+
+
+
+NEW CYCLE PROCEDURES
+--------------------
+
+NOTE: all files from previous cycles should be tar'd and saved before
+      clearing directories.
+
+1. set the ASCDS_PROP_AO and ASCDS_PROP_TOO_AO to the proper cycle.
+1. set value in $ASCDS_PROP_RPS_LOG/prop_number.rps file to 0.
+2. clear $ASCDS_PROP_RPS_ARCHIVE and $ASCDS_PROP_RPS_ARCHIVE/mail directories 
+3. clear/remove the prop_rps_ingest.log file
+
+
+DETAILED DESCRIPTION - GENERAL INSTRUCTIONS
+-------------------------------------------------------------------
+
+The prop_rps_ingest process reads all files found in the $ASCDS_PROP_RPS_RECV
+or $ASCDS_RPS_TOO_RECV directory.  During the open proposal season for RPS, the
+process should be running 24 hours a day, 7 days a week.  However, nothing is 
+lost if the process is not running.  The only affect, will be a delay in the
+proposer receiving a proposal submission confirmation message. 
+
+For the out-of-cycle TOO requests, this process should be running 24 hours
+a day, 7 days a week.  The only time it should be brought down is to change
+the ASCDS_PROP_TOO_AO environment variable.
+
+If for any reason, the processes terminates, the prop_rps_ingest_died.pl
+script is executed which sends an e-mail message to $ASCDS_PROP_RPS_EMAIL 
+notifying the recipient of termination of the process.
+
+
+Proposal numbers are assigned using the format 'AACCnnnn' where:
+
+AA = AO or Cycle number
+CC = category number
+        10 Solar System and Misc.
+        20 Normal Stars and WD
+        30 WD Binaries and CV
+        40 BH and NS Binaries
+        50 SN, SNR, and Isolated NS
+        60 Normal Galaxies
+        70 Active Galaxies and Quasars
+        80 Clusters of Galaxies
+        90 Extragalactic Diffsue Emission and Surveys
+        91 Galactic Diffuse Emission and Surveys
+
+nnnn = proposal number
+
+The rules for use are:
+
+     nnnn starts at 1 and increments for each proposal regardless of
+     category (i.e., we want one proposal number 97     )
+
+
+Out-of-Cycle proposal numbers are formed by using the $ASCDS_PROP_TOO_AO
+and category code as described above.  The tag number assigned during
+the prop_rps_receiver process is used as the 4 digit proposal number.
+
+
+--------------------------------------------------------------------
+prop_rps_ingest
+
+  ON exit - sends email to notify $ASCDS_PROP_RPS_EMAIL recipient of 
+            termination of prop_rps_ingest (handles signals).
+--------------------------------------------------------------------
+log start of ingest
+while (FOREVER) {
+
+   connect to database
+   For each entry in receive directory {
+      find key fields (PI last name,Proposal Title,Subject Category
+      retrieve overview data where match found for PI Last Name AND Title
+      if (match found)
+         move file to error queue
+         move error message to error queue w/ <rootname>.errmsg
+      else {
+         determine next available proposal number for this subject category
+         rename file using proposal number as rootname and log this info
+         ingest file into database
+         if (successful)
+           move file to archive area
+           e-mail PI,Observer (proposal number, database fields)
+         else
+           move file to error queue
+           move error message to error queue w/ <rootname>.errmsg
+      }
+   }
+   disconnect from database
+   sleep for specified duration
+}
+log termination
+
+    
+log termination of ingest
+send termination email message (prop_rps_ingest_died.pl)
+EXIT
+
+
+
+RESTRICTIONS
+------------
+
+prop_rps_ingest must be run in the foreground.
+
+REFERENCES
+----------
+
+See the prop_rps.hlp and prop_rps_receiver.hlp files for a description of the 
+RPS system.
+
+See the Proposal section of the Data System Software Design Document 
+(DS01) for more detail about the proposal submission cycle. 

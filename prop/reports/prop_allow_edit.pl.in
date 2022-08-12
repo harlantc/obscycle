@@ -1,0 +1,206 @@
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 2018, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_allow_edit.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script allows CDO to set/unset the allow_edit for a proposal
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+
+use vars qw( $dbh %param @reqfiles $reqfile
+	);
+
+use strict;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+
+@reqfiles = (
+        "prop_routines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+
+# ---------------- MAIN ----------------------------------------------
+{
+  my($dsn,$sql,$ssql);
+  my($sth,@row);
+  my($pno,$pstat,$plast,$ptype,$pedit,$peditStr,$prank);
+
+  &parse_input;
+
+  $dbh = dbProposalConnection($param{U}, $param{S}, $param{q});
+  my $editflag = 0;
+  if ($param{on}) { $editflag = 1; }
+
+  if ($param{l}) {
+    $ssql = qq(select distinct proposal_number,status,last,type,allow_edit
+	from proposal,axafusers..person_short ps where
+        proposal.piid *= ps.pers_id and
+        allow_edit=1);
+    $sth = $dbh->prepare($ssql);
+    $sth->execute();
+   
+    printf STDOUT "Proposal,P.I.,Status,Type\n" ;
+    while ( ($pno,$pstat,$plast,$ptype) = $sth->fetchrow_array) {
+      printf STDOUT "%s,%s,%s,%s\n" ,$pno,$plast,$pstat,$ptype;
+    }
+    $sth->finish;
+    $dbh->disconnect();
+    exit(0);
+   
+  }
+
+  $ssql = qq(select distinct proposal_number,status,last,type,rank,allow_edit
+	from proposal,axafusers..person_short ps where
+        proposal.piid *= ps.pers_id and
+	proposal.proposal_number = "$param{p}" );
+
+
+  $sth = $dbh->prepare($ssql);
+  $sth->execute();
+   
+  ($pno,$pstat,$plast,$ptype,$prank,$pedit) = $sth->fetchrow_array; 
+  if (!$pno ) {
+    print STDOUT "ERROR: Proposal $param{p} doesn't exist. \n";
+  } elsif ($pstat =~ /APPROV|REJECT/i && $editflag == 1) {
+    print STDOUT "ERROR: Proposal has a final state of $pstat. \n";
+    printf STDOUT ("%s %s %s %s \n",$pno,$plast,$ptype,$pstat);
+  } elsif ($pstat =~ /HOLD/i && $editflag == 1) {
+    print STDOUT "ERROR: Proposal has a status of $pstat. Please reset status before allowing user to edit. \n";
+    printf STDOUT ("%s %s %s %s \n",$pno,$plast,$ptype,$pstat);
+  } elsif ($prank && $prank > 0 && $editflag == 1) {
+    print STDOUT "ERROR: Proposal has already been graded at Peer Review, edits not allowed. \n";
+    printf STDOUT ("%s %s %s %s \n",$pno,$plast,$ptype,$pstat);
+  } else {
+    $sql = qq(update proposal set allow_edit=$editflag where proposal_number='$pno');
+    $dbh->do($sql);
+    $sth->finish;
+    $sth = $dbh->prepare($ssql);
+    $sth->execute();
+    ($pno,$pstat,$plast,$ptype,$prank,$pedit) = $sth->fetchrow_array; 
+    $peditStr="off";
+    $peditStr="on" if ($pedit == 1) ;
+    printf STDOUT ("%s %s %s %s : Edit is %s\n",$pno,$plast,$ptype,$pstat, $peditStr);
+  }
+}
+
+
+# ----------------------------------------------------------
+# parse input parameters
+# ----------------------------------------------------------
+sub parse_input 
+{
+  my($pwd);
+  my $err = 0;
+
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "on",
+          "off",
+          "l",
+          "p=s",
+          "q=s",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter `$par' not set\n");
+      $err++;
+    }
+    if ($param{p}) {
+      my($pstr) = int($param{p}); 
+      if ($pstr !~ /$param{p}/) {
+        warn("Error: Proposal number must be numeric.\n");
+        $err++;
+      } 
+    } 
+
+    if ($param{on} && $param{off}) {
+      warn("Choose -on or -off,  not both\n");
+      $err++;
+    }
+    if (defined $param{l}) {
+      if ( defined $param{on} || defined $param{off}) {
+        warn("-on or -off ignored if -l parameter specified\n");
+      }
+    }
+    else {
+      if ( !defined $param{p} ) {
+        warn("-p is required. Please specify the proposal number\n");
+        $err++;
+      }
+      if ( !defined $param{on} && !defined $param{off}) {
+        warn("Choose -on or -off for  edits of specified proposal\n");
+        $err++;
+      }
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+  $param{q} = $pwd;
+
+
+}
+
+
+
+sub usage 
+{
+    print STDERR "\nUSAGE: prop_allow_edit.pl -Up  [ -S ]\n";
+    print STDERR "       -U database user name\n";
+    print STDERR "       -p proposal_number\n";
+    print STDERR "       -on flag indicating allow edits of this proposal\n" ;
+    print STDERR "       -off flag indicating remove edit of this proposal\n" ;
+    print STDERR "       -l  list all proposals with allow_edit on\n";
+    print STDERR "       -S database server, default is DB_PROP_SQLSRV\n";
+}
+

@@ -1,0 +1,212 @@
+#!@PERLDB@
+#*H****************************************************************************
+#* Copyright (c) 2015, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: peer_reassignments.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#    Retrieve the reviewer reported conflicts and display the current
+#    proposal assignments for each reported conflict.
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+BEGIN
+{
+   $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use vars qw ($dbh %param @reqfiles $reqfile @theprops
+	);
+
+use strict;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+
+@reqfiles = (
+        "prop_routines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+
+
+# -------------------------- MAIN ----------------------------------
+{
+  my($dsn,$stmp,$idx);
+  &parse_input;
+
+
+  #database connection
+  $dbh = dbProposalConnection($param{U}, $param{S}, $param{q});
+
+
+  my($oname) = $param{o};
+  open(OFILE,"> $oname")  ||
+      die "Unable to open $oname for writing!\n";
+  printf OFILE "\nReassignment Requests for Cycle $param{a}       %s\n\n",get_date();
+  &do_requests();
+
+  close OFILE;
+  chmod 0660,$oname;
+  chgroup($oname);
+
+
+}
+
+
+
+# ----------------------------------------------------------
+# ----------------------------------------------------------
+sub do_requests
+{
+  my($sql);
+  my($sth,@row,$str);
+
+  $sql = qq(select distinct rc.type,proposal_number,
+	p1.panel_name,
+	(ps.last+','+convert(varchar(1),ps.first)), '  ',
+	rc.submission_date,proposal.type,
+	rc.proposal_id
+        from axafusers..person_short ps,reviewer_conflicts rc,
+	panel_member pm, panel p1, panel_proposal pp,proposal,ao
+        where rc.pers_id = ps.pers_id
+	and rc.pers_id  = pm.pers_id
+	and pm.panel_id = p1.panel_id
+	and p1.ao = ao.ao_id
+	and ao.ao_str like "$param{a}"
+	and rc.proposal_id = proposal.proposal_id
+	and rc.type in ('Secondary','Primary')
+        and proposal.ao_str like "$param{a}" 
+        order by lower(ps.last));
+
+#print STDERR "$sql\n";
+
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+
+  printf OFILE ("%-10.10s\t%-8.8s\t%-5.5s\t%-20.20s\t%-20.20s\t%s    \t%s\n",
+	" ","Proposal","Panel","Primary","Secondary","Submission Date","Type");
+  printf OFILE ("%-10.10s\t%-8.8s\t%-5.5s\t%-20.20s\t%-20.20s\t%s\t%s\n",
+     "----------","--------","-----","--------------------","--------------------","--------------------","-------");
+
+
+  while (@row = $sth->fetchrow_array) {
+    if ($row[0] =~ /secondary/i) {
+      $row[4] = $row[3];
+      $row[3] = "";
+    }
+      
+    printf OFILE ("\n%-10.10s\t%-8.8s\t%-5.5s\t%-20.20s\t%-20.20s\t%s\t%s\n","Request",$row[1],$row[2],$row[3],$row[4],$row[5],$row[6]);
+    get_current_assignment($row[$#row],$row[1]);
+  }
+}
+sub get_current_assignment
+{
+  my($proposal_id,$pno) = @_;
+  my($sql);
+  my($sth,@row,$str);
+
+  $sql = qq(select distinct panel_name,
+	(pri.last+','+convert(varchar(1),pri.first)),
+	(sec.last+','+convert(varchar(1),sec.first))
+        from axafusers..person_short pri,
+        axafusers..person_short sec,
+	proposal_review pr, panel p1
+        where pr.proposal_id = $proposal_id
+	and pr.primary_reviewer *= pri.pers_id
+	and pr.secondary_reviewer  *= sec.pers_id
+	and pr.panel_id = p1.panel_id
+        order by panel_name);
+#print STDERR "$sql\n";
+
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+
+  while (@row = $sth->fetchrow_array) {
+     if (length($row[1]) < 3) { $row[1] = " "; }
+     if (length($row[2]) < 3) { $row[2] = " "; }
+     printf OFILE ("%-10.10s\t%-8.8s\t%-5.5s\t%-20.20s\t%s\t \t\n","Current",$pno,@row);
+  }
+}
+
+
+
+
+# ----------------------------------------------------------
+# parse input parameters
+# ----------------------------------------------------------
+sub parse_input
+{
+  my ($pwd);
+  my $err = 0;
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+             o=> undef,
+             a=> "$ENV{ASCDS_PROP_AO}",
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "o=s",
+          "a=s",
+          "r=s",
+          "q=s",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter '$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+  $param{q} = $pwd;
+
+}
+
+sub usage
+{
+    print STDERR "\nUSAGE: peer_reassignments.pl -Uo [Sa]\n";
+    print STDERR "       -U database user name\n";
+    print STDERR "       -S database server, default is DB_PROP_SQLSRV\n";
+    print STDERR "       -a AO , default is ASCDS_PROP_AO\n";
+    print STDERR "       -o output filename \n";
+}
+

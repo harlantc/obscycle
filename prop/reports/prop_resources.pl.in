@@ -1,0 +1,437 @@
+#!@PERLDB@
+#*H****************************************************************************
+#* Copyright (c) 2020,2021 Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_resources.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script will call the MP resource allocator script and reformat
+#     the output data for CPS.  
+#     Default Output is JSON format: # Proposal, TargetNumber, TargetName, score
+#     -b produces SQL update statements for Peer Review Database
+#
+#      See https://icxc.harvard.edu/mp/mp-pod/resource_cost_calculator.html
+#
+#* NOTES:
+#
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use vars qw ($dbh %param  @reqfiles $reqfile
+  %tgts %proprc %proprc1 %proprc2
+	$TARGID $PROPNUM $TARGNUM $TARGNAME $PROPTYPE
+	$MP_TARGID $MP_SCORE $MP_SCORE1 $MP_SCORE2 $mpscore $prop
+	);
+
+use strict;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+use Cwd qw(cwd);
+use Time::HiRes ('sleep');
+
+@reqfiles = (
+        "prop_routines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+# from the db query
+$TARGID = 0;
+$PROPNUM = 1;
+$TARGNUM = 2;
+$TARGNAME = 3;
+$PROPTYPE = 4;
+
+# from the MP file  space-delimited file, use offsets
+# MP_SCORE doesn't seem to be used by keeping it anyway just to note what
+# columns RC is in by default
+$MP_TARGID = 0;
+$MP_SCORE = 13;  # default for the normalized score current cycle
+$MP_SCORE1 = 14;  # default for the normalized score cycle N+1
+$MP_SCORE2 = 15;  # default for the normalized score cycle N+2
+
+# -------------------------- MAIN ----------------------------------
+{
+  my($dsn,$str,$idx,$logfile,$logname,$stmp,$pnos_quer);
+  my($sql,$sth,@row,$istr,@tarr,$cmd,$totcnt);
+
+  my ($pwd,$rmit) = &parse_input;
+
+  $totcnt=0;
+  %tgts={};
+  %proprc=();
+  %proprc1=();
+  %proprc2=();
+
+  my (@pnos) = ();
+  if ( $param{p} ) {
+    push( @pnos, $param{p} );
+    $logname = $param{p};
+  }
+  elsif ($param{i}) {
+    open (IFILE,"< $param{i}");
+    while ($stmp = <IFILE>) {
+      if ($stmp !~ /^#/) {
+        chomp($stmp);
+        $stmp =~ s/ //g;
+        push(@pnos, $stmp);
+      }
+    }
+    $logname = "prop_list"
+  }
+  #database connection
+  $dbh = cpsProposalConnection($param{U}, $param{S}, $pwd);
+  for (my $ii=0;$ii< 3 && !defined $dbh;$ii++)  {
+    print STDERR "RC: Trying database connection  $DBI::errstr\n";
+    sleep(.01);
+    $dbh = cpsProposalConnection($param{U}, $param{S}, $pwd);
+  }
+  if (!defined $dbh) {
+    print STDERR "RC: Unable to connect to the database\n";
+    if  (!$param{b} && !$param{c}) {
+      print STDOUT qq({"rows":[);
+      print STDOUT qq({ "id":1,"data":[
+      " "," ","Unable to determine constraints"," "," ", " "]},
+        );
+      print STDOUT qq(]}\n);
+    }
+    exit 1;
+  }
+
+  $sql = qq(select targid,proposal.proposal_number,
+	targ_num,targname,type from proposal,target 
+	where proposal.proposal_id= target.proposal_id );
+  if (@pnos) {
+    $logfile = "$param{t}/$logname.log";
+    $pnos_quer = join(',', map "'$_'", @pnos);
+    $sql .= qq( and proposal_number in ($pnos_quer));
+  } else {
+    $logfile = "$param{t}/cycle$param{a}.log";
+    $sql .= qq( and ao_str = "$param{a}");
+  }
+  $sql .= " order by targid";
+  print STDERR "$sql\n" if $param{z};
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  while (@row = $sth->fetchrow_array) {
+    $tgts{int($row[$TARGID])} = join('\t',@row);
+  }
+  $dbh->disconnect();
+
+	
+  # run the MP script
+  $ENV{PATH} .= ":" . $param{m} ;
+  $ENV{DB_PROP_SQLSRV} = $param{S};
+  $cmd = qq($param{m}/resource_cost_calculator.pl -user $param{U} -database proposal );
+  $cmd .= "-q $param{q} " if ($param{q}) ;
+  if (@pnos) {
+     $cmd .= " -propid $pnos_quer";
+  } else {
+     $cmd .= " -cycles $param{a}";
+  }
+  $cmd .= " -z " if ($param{z});
+  print STDERR "$cmd\n" if ($param{z});
+
+  if (!$param{b} && !$param{c}) {
+    print STDOUT qq({"rows":[);
+  }
+  open PFILE,"$cmd 2>>$logfile |";
+  while ($istr = <PFILE>) {
+    print STDERR "$istr" if ($param{z});
+    if ($istr =~ /Normalized/) { 
+      # determine correct offset for Normalized score column
+      my @harr = split(/\|/,$istr);
+      for (my $ii=0;$ii<= $#harr;$ii++) {
+        if ($harr[$ii] =~ "Normalized_N2") {
+          $MP_SCORE2 = $ii;
+          # last; # stop after first match to get N and not, N+1, N+2
+        }
+        elsif($harr[$ii] =~ /Normalized_N1/){
+          $MP_SCORE1 = $ii;
+        }
+        elsif($harr[$ii] =~ /Normalized_N/){
+          $MP_SCORE = $ii;
+        }
+      }
+    } else {
+      # parse the output
+      my @rarr = split(/\|/,$istr);
+      #my $targid = substr($istr,$MP_TARGID,6);
+      my $targid = $rarr[$MP_TARGID];
+      if ($targid =~ /\d/ && $targid > 0){
+        my $key = int($targid);
+        my $tstr = $tgts{$key};
+        #my $score = substr($istr,$MP_SCORE,8);
+
+        my $score = $rarr[$MP_SCORE];
+        my $score1 = $rarr[$MP_SCORE1];
+        my $score2 = $rarr[$MP_SCORE2];
+        chomp($score);
+        chomp($score1 );
+        chomp($score2);
+
+
+        @tarr = split(/\\t/,$tstr);
+        print STDERR "$row[$MP_TARGID]...$#tarr...$tgts{$key}\n" if $param{z};
+        if ($param{b}) {
+          my $ao = 0;
+          my $aos = "";
+          for ( ( $score, $score1, $score2 ) ){
+            if ($ao ne 0 ){
+              $aos = "_$ao"
+            }
+            if ($_ =~ /inf/) {
+              $_ = -1111;
+            }
+            if ($tarr[$PROPTYPE] =~ /TOO/) {
+              print STDOUT "-- TOO\nupdate target set rc_score$aos=0 where targ_id = $key and prop_id = $tarr[$PROPNUM];\n";
+            }
+            elsif ($_ >= 0 )  {
+              printf STDOUT "update target set rc_score$aos=%f where targ_id = $key and prop_id = $tarr[$PROPNUM];\n",$_;
+            } else {
+              if ($_ == -1111) {
+                printf STDOUT "\n-- $tarr[$PROPNUM]: RC$aos for Target $tarr[$TARGNUM]  is infeasible \n";
+                printf STDERR "\n-- $tarr[$PROPNUM]: RC$aos for Target $tarr[$TARGNUM]  is infeasible \n";
+              } else {
+                printf STDOUT "\n-- $tarr[$PROPNUM]: Target $tarr[$TARGNUM]  unable to determine RC$aos\n";
+                printf STDERR "\n-- $tarr[$PROPNUM]: Target $tarr[$TARGNUM]  unable to determine RC$aos\n";
+              }
+              printf STDOUT "-- $istr";
+              printf STDOUT "update target set rc_score$aos=%f where targ_id = $key and prop_id = $tarr[$PROPNUM];\n\n",$_;
+            }
+        $ao++;
+        }
+        } elsif ($#tarr > 0)  {
+          $totcnt++;
+
+          foreach $mpscore ($score, $score1, $score2) { 
+            if ($mpscore < 0) {
+              $mpscore = "Unable to calculate";
+            } elsif ($mpscore =~ /inf/) {
+              $mpscore = "Infeasible";
+            }
+          }
+          if ($param{c}){
+            if ($totcnt eq 1){
+              open( OFILE, "> total_rc" );
+              print STDOUT qq(proposal_number, targid, rc, rc_1, rc_2\n);
+            }
+            # trim whitespace. Not sure why it's not done for json, but don't 
+            # want to mess with it.
+            $score =~  s/^\s+|\s+$//g;
+            $score1 =~  s/^\s+|\s+$//g;
+            $score2 =~  s/^\s+|\s+$//g;
+            print STDOUT qq($tarr[$PROPNUM],$key,$score,$score1,$score2,\n);
+            $proprc{ $tarr[$PROPNUM] } += $score unless 
+              ($score =~ /Inf/ || $score < 0);
+            $proprc1{ $tarr[$PROPNUM] } += $score1 unless
+              ( $score1 =~ /Inf/ || $score1< 0 );
+            $proprc2{ $tarr[$PROPNUM] } += $score2 unless
+              ( $score2 =~ /Inf/ || $score2 < 0 );
+          }
+          else{
+          print STDOUT qq({ "id":$key,"data":[
+"$tarr[$PROPNUM]","$tarr[$TARGNUM]","$tarr[$TARGNAME]","$score","$score1","$score2"]},
+);
+          }
+        } else {
+          print STDERR "Unable to find database info for targid:$key.\n";
+        }
+     
+      } else {
+         print STDERR $istr;
+      }
+    }
+  }
+  if (!$param{b} && !$param{c}) {
+    if ($totcnt == 0) {
+        print STDOUT qq({ "id":1,"data":[
+    " "," ","Unable to determine constraints"," "," "," "]},
+        );
+    }
+    print STDOUT qq(]}\n);
+  }
+  elsif ($param{c}){
+    if ($totcnt == 0) {
+      print STDOUT "Unable to determine constraints",
+    }
+    else{
+    print OFILE qq(proposal_number,rc_score,rc_score_1,rc_score_2\n);
+    print OFILE map { "$_,$proprc{$_},$proprc1{$_},$proprc2{$_}\n"} keys %proprc;
+
+      close OFILE;
+    }
+  }
+
+  # cleanup
+  close PFILE;
+  chmod 0660, $logfile;
+  if (-z $logfile ) {
+      unlink($logfile) or die "Can't delete $logfile: $!";
+  }
+
+  if ($rmit) {
+    unlink($param{q});
+  }
+  exit;
+}
+
+sub cpsProposalConnection
+{
+  my($usr,$srvr,$pwd) = @_;;
+  my($stmp,$dsn,$dbh);
+
+  #database connection
+  $stmp = "server=$srvr;database=proposal";
+  $dsn = "DBI:Sybase:$stmp";
+  $dbh = DBI->connect($dsn, $usr, $pwd, {
+        PrintError => 0,
+        RaiseError => 0});
+  #if ( !defined $dbh) {
+    #exit 1;
+  #}
+
+  return $dbh;
+}
+
+
+# ----------------------------------------------------------
+# parse input parameters
+# ----------------------------------------------------------
+sub parse_input
+{
+  my ($pwd);
+  my $rmit = 0;
+  my $err = 0;
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+             m=> "/data/mpcritrc/bin",
+             t=> ".",
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "m=s",
+          "a=s",
+          "p=s",
+          "q=s",
+          "t=s",
+          "i=s",
+          "b",
+          "c",
+          "z",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter '$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+  if ((!$param{a} && !$param{p} && !$param{i}) ||
+      ($param{a} && $param{p} && $param{i}) ||
+      ($param{a} && $param{p}) ||
+      ($param{a} && $param{i}) ||
+      ($param{p} && $param{i})
+      ) {
+    warn("One of -a, -i, or -p must be specified");
+    $err++;
+  }
+
+  if ($param{b} and $param{c}) {
+    warn("-c cannot be used with -b argument");
+    $err++;
+  }
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+  if(!$param{q}) {
+    $pwd = get_passwordL($param{U},$param{S});
+
+    $param{q} = "$param{t}/.$ENV{USER}.mpr";
+    write_password($param{q},$pwd);
+    $rmit=1;
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+
+  if ($param{q} !~ /^\//) {
+    # since we need to chdir later, prepend current directory
+    my $pstr = cwd;
+    $pstr .= "/" . $param{q};
+    $param{q} = $pstr;
+  }
+
+  if (!-e $param{q}) {
+    warn ("Unable to open $param{q} for reading");
+    &usage;
+    exit(1);
+  }
+
+
+  return $pwd,$rmit;
+
+}
+sub get_passwordL
+{
+  my($usr,$srvr) = @_;
+  my($pwd);
+
+  use Term::ReadKey;
+  {
+       ReadMode 'noecho';
+       print STDERR "Enter password for $usr on $srvr: ";
+       $pwd = ReadLine( 0 );
+       chomp $pwd;
+       ReadMode 'restore';
+       print STDERR "\n";
+  }
+
+  return $pwd;
+}
+
+
+sub usage
+{
+    print STDERR "\nUSAGE: prop_resources.pl \n";
+    print STDERR "       -U database user name\n";
+    print STDERR "       -S database server, default DB_PROP_SQLSRV\n";
+    print STDERR "       -m path to MP scripts, default /data/mpcritrc/bin\n";
+    print STDERR "       -q fullpath of password file\n";
+    print STDERR "       -p single proposal number\n";
+    print STDERR "       -a cycle \n";
+    print STDERR "       -b sql format \n";
+    print STDERR "       -c csv format \n";
+    print STDERR "       -t temporary work directory, default is current \n";
+    print STDERR "       -i file containing proposal numbers (1 per line) \n";
+    print STDERR "\n Output written to STDOUT in json format, -c(csv), or -b(sql) format\n";
+}

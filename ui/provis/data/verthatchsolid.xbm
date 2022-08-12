@@ -1,0 +1,4 @@
+#define verthatchsolid_width 5
+#define verthatchsolid_height 1
+static unsigned char verthatchsolid_bits[] = {
+   0x04 };

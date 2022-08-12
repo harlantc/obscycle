@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE table SYSTEM "table.dtd">
+
+<table name="phasereq" key="obsid">
+  <column name="obsid">
+    <type>INTEGER</type>
+    <tooltip>Observation Identifier</tooltip>
+  </column>
+  <column name="phase_period">
+    <type>DOUBLE</type>
+    <tooltip>Phase Period(days)</tooltip>
+  </column>
+  <column name="phase_epoch">
+    <type>DOUBLE</type>
+    <tooltip>Phase Epoch(MJD)</tooltip>
+    <number>
+      <minimum>46066.0</minimum>
+    </number>
+  </column>
+  <column name="phase_start">
+    <type>DOUBLE</type>
+    <tooltip>Minimum Orbital Phase</tooltip>
+    <number>
+      <maximum>1.0</maximum>
+      <minimum>0.0</minimum>
+    </number>
+  </column>
+  <column name="phase_end">
+    <type>DOUBLE</type>
+    <tooltip>Maximum Orbital Phase</tooltip>
+    <number>
+      <maximum>1.0</maximum>
+      <minimum>0.0</minimum>
+    </number>
+  </column>
+  <column name="phase_start_margin">
+    <type>DOUBLE</type>
+    <tooltip>Error margin on minimum orbital phase</tooltip>
+    <number>
+      <maximum>1.0</maximum>
+      <minimum>0.0</minimum>
+    </number>
+  </column>
+  <column name="phase_end_margin">
+    <type>DOUBLE</type>
+    <tooltip>Error margin on maximum orbital phase</tooltip>
+    <number>
+      <maximum>1.0</maximum>
+      <minimum>0.0</minimum>
+    </number>
+  </column>
+  <column name="phase_unique">
+    <type>CHOICE</type> 
+    <tooltip>Is the phase unique</tooltip>
+    <choices>
+      <item>N</item>
+      <item>Y</item>
+    </choices>
+  </column>
+</table>

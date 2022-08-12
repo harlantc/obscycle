@@ -1,0 +1,12 @@
+<web-app>
+ <display-name>ObsCat Editor Support Application</display-name>
+ <description>Provide security support for Users of the ObsCat Editor.</description>
+ <servlet>
+   <servlet-name>obsed</servlet-name>
+   <servlet-class>DBServerMapper</servlet-class>
+ </servlet>
+ <servlet-mapping>
+   <servlet-name>obsed</servlet-name>
+   <url-pattern>/MapServer</url-pattern>
+ </servlet-mapping>
+</web-app>

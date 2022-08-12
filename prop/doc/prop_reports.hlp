@@ -1,0 +1,377 @@
+===============================================================================
+
+	            HELP FILE for prop_reports
+
+===============================================================================
+
+
+General
+-------
+
+The prop_reports application will print reports based on information
+for each requested proposal. If the information requested needs to be 
+organized on a per target basis, please see the prop_target_reports.hlp 
+file.
+
+Proposals can be specified by a file containing a list of proposals(-f),
+by a specific proposal number(-prop), by a panel name(-panel), or the
+user may request all proposals(-all).  This list of proposals may then
+be further refined by specifying the type of observer(-t GTO,TOO,CAL,GO) 
+and/or the status of the proposal(-s APPROVED,PROPOSED). The defaults
+are all types with a status of PROPOSED.
+
+The different report types are shown in the Detailed Description section.
+
+
+PARAMETERS
+----------
+
+Use proposals that match the following criteria.
+If no option is entered, the default is all proposals with a
+status of PROPOSED for the current proposal AO cycle.
+-panel [panel id ]       OPTIONAL  - specific panel id
+-prop  [proposal number] OPTIONAL  - specific proposal number
+-f     [filename]        OPTIONAL  - file of proposal numbers
+-all                     OPTIONAL  - all proposals from any cycle
+                                     with any status.
+
+Limit proposals to the following specified values:
+-ao     [AO ]            OPTIONAL  - AO cycle
+-status [status ]        OPTIONAL  - status PROPOSED or APPROVED
+-type   [observer type ] OPTIONAL  - type of observer, default is all
+
+Report Types: 
+-abstract  proposal summary with abstract
+-titles    proposals list with titles
+-appsumm   Summary with abstract for approved proposals,accepted targets only
+-confirm   Proposal confirmation format
+-pri       primary reviews
+-sec       secondary reviews
+-tech      technical evaluations
+-peer      peer reviews
+-final     final reviews
+-approved  Print final format files ONLY for accepted proposals: 
+           accept letter, technical evaluations and peer review
+-letter    Print final format: confirmation/reject letter,
+           technical evaluations and peer review
+
+-U [user]       REQUIRED  - proposal database user name
+-S [server]     OPTIONAL  - proposal database server 
+                            default is ASCDS_SQLOC_SERVER
+-p              OPTIONAL  - print parameters
+
+
+
+
+INPUT/OUTPUT
+-------------
+
+1) STDIN:  
+
+   >Enter Password:  User must enter password for access to the database.
+
+2) Input Files: 
+
+   
+   File containing proposal numbers when using the -f input parameter option.  
+   This file contains proposal numbers separated by white-space characters
+   (blanks, tabs, new-lines, or form-feeds).
+
+
+   The template files identified by ASCDS_PROP_ACCEPT and ASCDS_PROP_REJECT
+   are LaTeX files with sprintf place holders for specified values.  The
+   values must be kept in order although the template may change.
+
+3) Output Files:
+
+   For -abstract, -title, -pri, -sec, -tech, -peer, -final, -confirm, 
+   and -appsumm options the output is written to STDOUT.
+
+   For -letter and -approved options, files are written to the following
+   directory.  The format of these files are determined by the accept/reject 
+   template files.
+
+   $ASCDS_PROP_DIR/letters/panel##/proposal_number.tex
+
+
+4) Output Files for Archive: 
+
+   N/A
+
+
+SETUP AND USAGE
+---------------
+
+prop_reports uses the environment variables that are set in the file 
+'ascds_setup_prop' and 'ascds_setup_db'.  These proposal environment 
+variables include :
+
+        ASCDS_PROP_DIR       - top level proposal directory
+        ASCDS_PROP_AO        - current open proposal cycle number
+        ASCDS_PROP_ACCEPT    - template filename for accept letters
+        ASCDS_PROP_REJECT    - template filename for reject letters
+        ASCDS_ARCOC_SERVER   - database archive server.
+        ASCDS_SQLOC_SERVER   - database sybase server.
+
+The user should not ordinarily change their values. 
+
+Only those users having permissions to read proposals should have access to
+the proposal database and any files that contain proposal data.
+All files created should belong to the group 'prop'.  Permission should
+be set so that only the owner and group have permissions to access these
+files.  If you need access, contact the system administrator.
+
+
+
+
+DETAILED DESCRIPTION - GENERAL INSTRUCTIONS
+-------------------------------------------------------------------
+
+The different report formats are described here.
+
+1. -abstract 
+   Notes: Prints summary for all selected proposals
+   Proposals are sorted by PI. 
+
+Proposal Title: 
+
+PI:                                 Observer: 
+Subject Category: 
+
+Abstract: 
+
+
+                                                               Grat- Exp.   Count
+R.A.          Dec.          Target Name           Det.   Mode   ing  Time   Rate
+--------------------------------------------------------------------------------------
+
+
+2. -titles 
+   Notes: Proposals are sorted by proposal number.
+
+Proposal# P.I.       #Tgts Exp.Time Title
+-----------------------------------------------------------------------
+
+
+3. -pri(Primary) , -sec(Secondary), -peer(Peer) and -final(Final)
+   Notes: Proposals are sorted by proposal number.
+
+Review:            Chandra xxxxxxx Review Form for 
+Proposal Number:                                   Panel: 
+Subject Category:  
+P.I. Name:         
+Proposal Title:    
+_______________________________________________________________________________
+
+Review Report:
+
+                                                                 Below Avg.
+                                        Tops    Good    Average  or Problem
+Importance of Science                   [    ]  [    ]   [    ]    [    ]
+Proposal Science justification          [    ]  [    ]   [    ]    [    ]  
+Feasibility                             [    ]  [    ]   [    ]    [    ]
+Use of Chandra capability               [    ]  [    ]   [    ]    [    ]  
+Clarity of proposal                     [    ]  [    ]   [    ]    [    ]  
+Good proposal, but all targets assigned to higher ranked proposal  [    ]
+Good proposal, but TOO/constrained observations are limited        [    ]
+
+Comments:
+
+
+If accepted, enter specific recommendations concerning targets, time, 
+observing conditions:
+
+
+
+Specify reason why the grade was not higher. Optional if accepted. :
+
+
+
+Degree of effort required to achieve analysis goals (for Phase 2 review):
+
+        Easy                    [     ]
+        Average                 [     ]
+        Above-Average Effort    [     ]
+
+
+
+__________End_Review_Report______________________________________________
+
+
+
+
+
+4. -tech
+   Notes: Proposals are sorted by proposal number.
+
+Review:            Chandra Technical Evaluation Form for 
+Proposal Number:   
+Subject Category: 
+P.I. Name:       
+Proposal Title: 
+
+_______________________________________________________________________________
+
+
+Reviewer : 
+Technical Problems (Y/N): N
+Conflict with GTO or Calibration targets (Y/N): 
+Conflict with targets in other proposals (Y/N): 
+Comments: 
+
+
+
+5. -letter 
+   Notes: Proposals are sorted by proposal number.
+
+   accept/reject letter with targets, joint time and grade
+   File in $ASCDS_PROP_DIR/letters/panel##/proposal_number.txt
+
+6. -approved 
+   Notes: Proposals are sorted by proposal number.
+
+   accept letter only with targets, joint time and grade
+   File in $ASCDS_PROP_DIR/letters/panel##/proposal_number.txt
+
+7. -confirm  
+   Notes: Proposals are sorted by proposal number.  The following is a 
+   sample only, not all fields are displayed.
+
+Proposal Number   : 
+Number of Targets :
+
+Principal Investigator -
+Title             : 
+First Name        : 
+Middle Name       : 
+Last Name         : 
+Department        : 
+Institute         : 
+Address/Street    : 
+City/Town         : 
+State/Province    : 
+Zip/Postal Code   : 
+Country           :
+Telephone Number  :
+Fax Number        : 
+E-Mail Address    : 
+Update Address    :
+
+Distrib. Medium   : 
+Multi-Telescope Observations: 
+Telescopes        : 
+Subject Category  : 
+Observation Type  :
+Proprietary Rights: 
+Proposal Title    :
+
+
+Abstract          : 
+
+
+Co-Investigators         : 
+
+1st Co-I doing observing :
+Obs. Investigator Phone  : 
+
+Name of Administrator    : 
+Administrative Authority :
+Administrative Institute : 
+
+Total Number Targets:
+Total Time          : 
+
+
+===============================================================================
+Target Number            : 
+Target Name              : 
+Target Position Flag     : 
+Solar System Object      :
+Total Observing Time     :
+Constrained Observation  :
+Optical Monitor Data     :
+  V Magnitude            : 
+Detector                 :
+Grating                  : 
+Count Rate               :
+1st Order Count Rate     : 
+Total Field Count Rate   : 
+Extended Source ?        : 
+HRC Parameters           : 
+
+ACIS Parameters          : 
+---------------        
+
+Required ACIS Parameters -  
+  Exposure Mode          : 
+  Event Telemetry Format : 
+  Use Standard 6 Chips   : 
+  CCDs I0 On             : 
+  CCDs I1 On             : 
+  CCDs I2 On             : 
+  CCDs I3 On             : 
+  CCDs S0 On             : 
+  CCDs S1 On             : 
+  CCDs S2 On             : 
+  CCDs S3 On             : 
+  CCDs S4 On             : 
+  CCDs S5 On             : 
+
+Optional Custom ACIS Parameters that affect PILEUP -
+  Subarray Type          : 
+  Use Alternating Exposure Readout    : 
+
+Optional Custom ACIS Parameters that affect TELEMETRY-
+  On-chip Summing           : 
+  Use Event Filter          :
+  Use defined spatial windows : 
+
+              Start Start                 Lower      Energy  Sampling
+  Chip  Type  Row   Column  Width  Height Threshold  Range   Rate
+  ---------------------------------------------------------------------
+
+  Use special spatial windows :
+  Definition for spatial windows : 
+
+
+CONSTRAINTS:
+-----------
+Window Constraint         : N
+Roll Constraint           : N
+Monitoring Observation    : N
+
+Phase Dependent           : N
+
+Uninterrupted Observation : N
+
+REMARKS : 
+
+
+
+8. -appsumm  
+    Notes: Prints only approved proposals with accepted targets. 
+    Proposals are sorted by PI. 
+
+Proposal Title: 
+Type       : 
+PI         : 
+Institution: 
+Country    : 
+
+Abstract: 
+
+                                                                 Approved
+R.A.         Dec.          Target Name         Detector Grating  Time(ks)
+----------------------------------------------------------------------------
+
+
+
+RESTRICTIONS
+------------
+
+
+REFERENCES
+----------
+
+See the Proposal section of the Data System Software Design Document 
+(DS01) for more detail about the proposal submission cycle. 

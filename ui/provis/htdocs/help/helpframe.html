@@ -1,0 +1,807 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>PRoVis Reference Manual </title>
+<!--#include virtual="/soft/include/cxcds_meta.html"-->
+<meta name="title" content="PRoVis Reference Manual" >
+<link rel="stylesheet" href="/soft/include/cxcds.css" type="text/css" media="screen">
+<link rel="stylesheet" href="/soft/provis/provis.css" type="text/css" media="screen">
+</head>
+<body>
+<div class="topDiv">
+<div id="cxcheader">
+  <div class="propheaderleft">
+       <a href="/index.html"> <img id="spacecraft" src="/soft/include/cxcheaderlogo.png" width="300px" alt="Chandra X-Ray Observatory (CXC)"></a>
+  </div>
+  <div class="propheadercenter"> PRoVis Reference Manual
+  </div>
+</div>
+
+<h2 class="hdr">TABLE OF CONTENTS</h2>
+
+<p>
+<dl>
+<dt> <a href="#1.0_OVERVIEW">1.0 OVERVIEW </a>
+</dt>
+<dt> <a href="#2.0_ACTION_BUTTONS">2.0 ACTIONS BUTTONS</a>
+  <dd> <a href="#2.1_RESOLVE_NAME">2.1 RESOLVE NAME</a>
+  <dd> <a href="#2.2_CLEAR_TARGET">2.2 CLEAR TARGET</a>
+  <dd> <a href="#2.3_RESET_DATES">2.3 RESET DATES</a>
+  <dd> <a href="#2.4_RESET_OPTIONS">2.4 RESET OPTIONS</a>
+  <dd> <a href="#2.5_GENERATE_PLOT">2.5 GENERATE PLOT</a>
+  <dd> <a href="#2.6_GET_POSTSCRIPT">2.6 GET PDF</a>
+  <dd> <a href="#2.7_CANCEL">2.7 CANCEL</a>
+  <dd> <a href="#2.8_HELP">2.8 HELP</a>
+<dt> <a href="#3.0_TARGET_PARAMETERS_INPUT_FRAME">3.0 TARGET PARAMETERS INPUT FRAME </a>
+  <dd> <a href="#3.1_START_AND_END_DATES">3.1 START AND END DATE</a>
+  <dd> <a href="#3.2_TARGET_COORDINATES">3.2 TARGET COORDINATES</a>
+<dt> <a href="#4.0_PLOT_OPTIONS_INPUT_FRAME"> 4.0 PLOT OPTIONS INPUT FRAME </a>
+  <dd> <a href="#4.1_VIEW_PITCH_ANGLE">4.1 VIEW PITCH ANGLE</a>
+  <dd> <a href="#4.2_VIEW_PITCH_CURSOR">4.2 VIEW PITCH CURSOR</a>
+  <dd> <a href="#4.3_VIEW_ROLL_ANGLE">4.3 VIEW ROLL ANGLE</a>
+  <dd> <a href="#4.4_VIEW_ROLL_CURSOR">4.4 VIEW ROLL CURSOR</a>
+  <dd> <a href="#4.5_VIEW_AVERAGE_VISIBILITY">4.5 VIEW AVERAGE VISIBILITY</a>
+  <dd> <a href="#4.6_VIEW_VISIBILITY_CURSOR">4.6 VIEW VISIBILITY CURSOR</a>
+  <dd> <a href="#4.7_VIEW_PITCH_ANGLE_RESTRICTIONS">4.7 VIEW PITCH ANGLE RESTRICTIONS</a>
+  <dd> <a href="#4.8_SHOW_CROSSHAIR_">4.8 SHOW CROSSHAIR</a>
+  <dd> <a href="#4.9_VIEW_PLOT_DATA">4.9 VIEW PLOT DATA</a>
+  <dd> <a href="#4.10_AUTOFIT_PLOT_IN_FRAME_">4.10 AUTOFIT PLOT IN FRAME</a>
+  <dd> <a href="#4.11_AXIS_ZOOM_FACTOR">4.11 AXIS ZOOM FACTOR</a>
+  <dd> <a href="#4.12_AXIS_MOVE_FACTO">4.12 AXIS MOVE FACTOR</a>
+  <dd> <a href="#4.13_POSTSCRIPT_SIZE">4.13 PDF SIZE</a>
+  <dd> <a href="#4.14_FONT_TYPE_AND_SIZE">4.14 FONT TYPE AND SIZE</a>
+  <dd> <a href="#4.15_AXIS_LINE_WIDTH">4.15 AXIS LINE WIDTH</a>
+<dt><a href="#5.0_PLOT_FRAME">5.0 PLOT FRAME </a>
+  <dd> <a href="#5.1_MOUSE_POINTER_POSITION">5.1 MOUSE POINTER POSITION</a>
+  <dd> <a href="#5.2_AXIS_BUTTONS">5.2 AXIS BUTTONS</a>
+    <dl>
+    <dt> <a href="#5.2.1_MOVE_LIMITS_UP">5.2.1 MOVE LIMITS UP</a>
+    <dt> <a href="#5.2.2_MOVE_LIMITS_DOWN">5.2.2 MOVE LIMITS DOWN</a>
+    <dt> <a href="#5.2.3_ZOOM_IN">5.2.3 ZOOM IN</a>
+    <dt> <a href="#5.2.4_ZOOM_OUT">5.2.4 ZOOM OUT</a>
+    <dt> <a href="#5.2.5_RESET_LIMITS">5.2.5 RESET LIMITS</a>
+    </dl>
+<dt><a href="#6.0_GENERATING_PLOTS_">6.0 GENERATING PLOTS </a>
+   <dd><a href="#6.1_TARGET_NAME_RESOLUTION">6.1 NAME RESOLUTION</a>
+<dt> <a href="#7.0_MANIPULATING_PLOTS">7.0 MANIPULATING PLOTS </a>
+<dt> <a href="#8.0_MAXEXPO">8.0 MAXIMUM EXPOSURE TIMES</a>
+<dt> <a href="#9.0_CAVEATS">9.0 CAVEATS</a>
+</dl>
+
+
+<br>
+<br>
+<br>
+<br>
+
+
+<a class=top name="TOP"></a>
+<a class=hdr name="1.0_OVERVIEW">1.0 OVERVIEW </a>
+<br>
+PRoVis is a web based application that allows viewing and interactive
+manipulation of Roll, Pitch and Visibility Plots. There are a
+number of options that users can modify to customize the resulting
+plots.  PDF version of plots can also be
+generated. 
+PRoVis uses a recent projected Chandra spacecraft ephemeris to
+generate plots. Since Chandra's orbit does not change much from
+year-to-year, plots are also closely applicable for any mission year.
+The plots are generated directly into the browser, unless PDF
+is requested, for which the browser needs to have an external viewer
+configured to retrieve and view PDF. The PRoVis GUI
+consists of 4 elements: buttons frame, target parameters frame, plot
+options frame and actual plot frame. To use: enter the J2000 sky
+coordinates of the source of interest in the boxes on the left in the
+target parameters frame and press enter or click on 'Generate Plot'
+button in the buttons frame. A number of different formats for RA and
+Dec coordinates of the target are accepted (see <a href="#3.2_TARGET_COORDINATES">Target Coordinates</a>).
+Alternatively, type in a target name in the 'Target Name' input box
+in the target frame and either press return which will resolve the
+name to sky coordinates or click on "Generate Plot' which will
+resolve the name to coordinates and generate plot in one step.
+ See <a href="#5.0_PLOT_FRAME">Plot Frame</a>
+for info on plot layout.
+
+
+
+<p>
+<a class="hdr" name="2.0_ACTION_BUTTONS">2.0 ACTION BUTTONS</a>
+&nbsp;&nbsp; <a href="helpframe.html#TOP" class="top">TOP</a>
+<br>
+
+Action buttons allow the user to
+perform the following tasks:
+<ul>
+<li>resolve target name to coordinates
+<li>clear target input boxes
+<li>reset start and end dates to defaults
+<li>reset plot options to defaults
+<li>(re)generate plots
+<li>generate PDF version of a plot
+<li>cancel pending request
+<li>show PRoVis help
+</ul>
+
+<p>
+The buttons are enabled/disabled based on the current state of PRoVis.
+Initially only the help button is enabled. Target coordinates or target
+name must first be entered to enable other buttons. Some of the
+buttons are enabled if target input or plot options have changed.
+The cancel button is enabled whenever there is a pending
+request in progress.
+
+<p>
+<a class="hdr" name="2.1_RESOLVE_NAME">2.1 RESOLVE NAME</a>
+&nbsp;&nbsp; <a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+PRoVis accepts target name in the target frame. If the 'enter' key
+is pressed or 'Resolve Name' button is clicked in the buttons frame
+after typing in a target name, PRoVis will attempt to resolve this
+target name into sky coordinates using the SIMBAD server.
+Users can click on Cancel if SIMBAD is busy and the request is taking too
+long. If there are too many hits that match the target name,
+a
+'Multiple results' message is displayed in target coordinates input
+box. If no target was found, a 'No results found' message is
+displayed.
+
+<p>
+<a class="hdr" name="2.2_CLEAR_TARGET">2.2 CLEAR TARGET</a>
+&nbsp; &nbsp; <a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+Clears the information in Target Coordinates and Target Name input
+boxes in Target Frame
+
+<p>
+<a class="hdr" name="2.3_RESET_DATES">2.3 RESET DATES</a>
+&nbsp;&nbsp; <a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+Resets Start and End Dates in target frame. The dates are
+reset to the default values for observation cycle.
+
+
+<p>
+<a class="hdr" name="2.4_RESET_OPTIONS">2.4 RESET OPTIONS</a>
+&nbsp;&nbsp;<a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+Resets values of options in the plot options frame to defaults.
+
+
+
+
+<p>
+<a class="hdr" name="2.5_GENERATE_PLOT">2.5 GENERATE PLOT</a>
+&nbsp;&nbsp; <a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+Generates new plot or regenerates the
+existing one if a plot is already displayed. Values from
+target frame and plot options frame are used to set attributes of the
+new plot. If a target name is present and target coordinates
+box is empty in target frame, then this target name is resolved first
+and then a plot is generated.
+
+
+
+
+<p>
+<a class="hdr" name="2.6_GET_POSTSCRIPT">2.6 GET PDF</a>
+&nbsp;&nbsp; <a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+Values from target frame and plot
+options frame are used to generate PDF version of a plot.
+Your browser must be configured to correctly handle
+application/pdf mime type. 
+
+
+
+<p>
+<a class="hdr" name="2.7_CANCEL">2.7 CANCEL</a>
+&nbsp;&nbsp; <a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+
+Cancels any pending requests.
+
+
+
+<p>
+<a class="hdr" name="2.8_HELP">2.8 HELP</a>
+&nbsp; &nbsp; <a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+Displays this reference manual in the plot frame. The
+'Generate Plot' button will return you to the plot, as long as a Target
+Name or Coordinates have been entered.
+
+<p>
+<a class="hdr" name="3.0_TARGET_PARAMETERS_INPUT_FRAME">3.0 TARGET PARAMETERS INPUT FRAME</a>
+&nbsp; &nbsp; <a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+
+
+
+
+Target parameters input frame
+allows the user to specify start and end dates, target coordinates
+and/or target name for a desired observation. 
+
+
+<p>
+<a class="hdr" name="3.1_START_AND_END_DATES">3.1 START AND END DATES</a>
+&nbsp;&nbsp;<a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+<p>
+For start and end dates, default values change with every observation
+cycle. Users may enter dates within the ephemeris
+provided to either zoom in or out.
+<p>If the dates entered are not within the ephemeris dates for the
+current cycle, the date will be displayed in yellow.
+
+
+<p>
+<a class="hdr" name="3.2_TARGET_COORDINATES">3.2 TARGET COORDINATES</a>
+&nbsp;&nbsp;<a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+
+
+
+Target coordinates should be specified as right ascension and
+declination in succession. Both RA and Dec can be specified in
+sexagesimal format (hours/minutes/seconds for RA,
+degrees/arcminutes/arcseconds for Dec) using either spaces or colons
+(:) as separators, or in decimal degrees. In addition, RA can be
+specified in decimal hours by appending either "H" or "h" (do not type
+the double quotes) to the decimal value. If the RA is specified in
+sexagesimal format then the Dec value must be separated from the RA
+value by a comma or a plus or minus sign, or the degree
+(or decimal degree) part of the Dec must have a "D" or "d" appended to
+it, or all three hours/minutes/seconds values must be included. In all
+other cases, trailing zero values for minutes/seconds (RA) or
+arcminutes/
+arcseconds (Dec) may be dropped. Extra whitespace is always ignored.
+<p>
+
+<table align="center" border="0" width="100%">
+  <tbody>
+    <tr>
+      <td>Examples: </td>
+    </tr>
+    <tr>
+      <td>String entered </td>
+      <td> Translation </td>
+    </tr>
+    <tr>
+      <td>-------------- </td>
+      <td> ----------- </td>
+    </tr>
+    <tr>
+      <td>23 59 59.9999 -89 59 59.999 </td>
+      <td> 23 59 59.9999 -89 59 59.999 </td>
+    </tr>
+    <tr>
+      <td>23:59:59.9999 -89:59:59.999 </td>
+      <td> 23 59 59.9999 -89 59 59.999 </td>
+    </tr>
+    <tr>
+      <td>23.7654, +0.6857 </td>
+      <td> 01 35 03.6960 +00 41 08.520 </td>
+    </tr>
+    <tr>
+      <td>09h 16m 54.28s 32d 15' 6.1" </td>
+      <td> 09 16 54.2800 +32 15 06.100 </td>
+    </tr>
+    <tr>
+      <td>10.9876h, +14 </td>
+      <td> 10 59 15.3600 +14 00 00.000 </td>
+    </tr>
+    <tr>
+      <td>0, 0 </td>
+      <td> 00 00 00.0000 +00 00 00.000 </td>
+    </tr>
+    <tr>
+      <td>14 12, 16 10 </td>
+      <td> 14 12 00.0000 +16 10 00.000 </td>
+    </tr>
+    <tr>
+      <td>14 12 +16 10 </td>
+      <td> 14 12 00.0000 +16 10 00.000 </td>
+    </tr>
+    <tr>
+      <td>14 12 16d 10 </td>
+      <td> 14 12 00.0000 +16 10 00.000 </td>
+    </tr>
+  </tbody>
+</table>
+
+<p>
+<a class="hdr" name="4.0_PLOT_OPTIONS_INPUT_FRAME">4.0 PLOT OPTIONS INPUT FRAME</a>
+&nbsp;&nbsp;<a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+Plot options are used to set some of
+the attributes of the generated plots:<br>
+
+
+
+
+<ul>
+
+<li> curves to be included in plot (pitch,roll,visibility,bad pitch)
+   By default the plot shows the source visibility in blue, the
+   roll angle in magenta, and the pitch angle in red as a function of
+   time on the x-axis.
+<li>line colors,types and widths for curves
+<li>fill type and colors for regions
+<li>plot target visibility
+<li>auto fitting of plot into frame with resizing of window/frame
+<li>zoom factor and move factor used to change axis limits
+<li>size of PDF plot
+<li>font type and size for plot
+<li>axis line width
+Autofitting and plot data visibility
+automatically implement refreshing of data or regeneration of plot if
+one is loaded. Crosshair and curve cursors visibility take immediate
+effect when selected. All other options require the
+plot to be
+regenerated by clicking on 'Generate Plot' button to reflect changes
+in already loaded plot.
+</ul>
+
+
+<p>
+<a class="hdr" name="4.1_VIEW_PITCH_ANGLE">4.1 VIEW PITCH ANGLE</a>
+&nbsp;&nbsp;<a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+
+Selecting pitch angle will include the
+pitch angle vs. date curve in the generated plot and plot data
+display. The following attributes for the curve can be
+modified:<br>
+<ul>
+<li>line type
+<li>line color
+<li>line width
+</ul>
+
+<p>
+'Generate
+Plot' button must be clicked to update the plot with new
+attributes.
+
+<p>
+<a class="hdr" name="4.2_VIEW_PITCH_CURSOR">4.2 VIEW PITCH CURSOR</a>
+&nbsp;&nbsp;<a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+Selecting this option will display a marker projecting the
+cursor position onto pitch curve.
+
+<p>
+<a class="hdr" name="4.3_VIEW_ROLL_ANGLE">4.3 VIEW ROLL ANGLE</a>
+&nbsp;&nbsp;<a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+
+
+
+
+Selecting roll angle will include roll
+angle curve in generated plot and plot data display. The
+following attributes for the curve can be modified:<br>
+
+<ul>
+<li>line type
+<li>line color
+<li>line width
+</ul>
+<p>
+The 'Generate Plot' button must be clicked to update 
+the plot with new attributes.
+
+<p>
+<a class="hdr" name="4.4_VIEW_ROLL_CURSOR">4.4 VIEW ROLL CURSOR</a>
+&nbsp;&nbsp;<a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+Selecting this option will display a marker projecting the
+cursor position onto roll curve. 
+
+
+
+<p>
+<a class="hdr" name="4.5_VIEW_AVERAGE_VISIBILITY">4.5 VIEW AVERAGE VISIBILITY</a>
+&nbsp;&nbsp;<a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+
+Selecting average visibility will
+include average visibility curve in generated plot and plot data
+display.  The following attributes for the curve can be
+modified:<br>
+<ul>
+<li>line type
+<li>line color
+<li>line width
+</ul>
+<p>
+The 'Generate Plot' button must be clicked to update 
+the plot with new attributes.
+
+<p>
+<a class="hdr" name="4.6_VIEW_VISIBILITY_CURSOR">4.6 VIEW VISIBILITY CURSOR</a>
+&nbsp;&nbsp;<a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+If selected, a marker will be displayed on the visibility
+curve at the date selected by the cursor location.
+
+
+<p>
+<a class="hdr" name="4.7_VIEW_PITCH_ANGLE_RESTRICTIONS">4.7 VIEW PITCH ANGLE RESTRICTIONS</a>
+&nbsp;&nbsp;<a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+Selecting this option will include bad pitch restriction regions 
+in generated plot and plot data display. 
+The following attributes for the curve can be
+modified:
+<ul>
+<li>region color
+<li>line style
+<li>line width
+<li>fill type
+</ul>
+<p>
+The 'Generate Plot' button must be clicked to update 
+the plot with new attributes.
+</p>
+<p>Plot regions are labeled as Forbidden to
+indicate pitch angle constraints imposed by satellite thermal and
+safety considerations,as detailed in the 
+<a href="http://cxc.harvard.edu/proposer/POG/html/chap3.html#tth_sEc3.3.3">Pitch
+Angle Constraints</a> in the 
+<a href="http://cxc.harvard.edu/proposer/POG">Proposers' Observatory
+Guide</a> .
+</p>
+
+<p>
+<a class="hdr" name="4.8_SHOW_CROSSHAIR_">4.8 SHOW CROSSHAIR</a>
+&nbsp;&nbsp;<a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+If selected, crosshair will be displayed in the plot whenever
+mouse pointer hovers over it.
+
+
+<p>
+
+<a class="hdr" name="4.9_VIEW_PLOT_DATA">4.9 VIEW PLOT DATA</a>
+&nbsp;&nbsp;<a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+If selected, plot data will be displayed in tabulated format in a lower
+frame on the same webpage.  It will be refreshed each time the
+date limits change.  Selecting this option will automatically
+open another frame, while deselecting will close that frame.
+ If autofit is selected, the plot will be regenerated to fit new frame
+size.  Rolling mouse pointer over rows in the table will
+display (if selected) the cursor, crosshair and curve values in the
+plot for the corresponding date in the table.  Clicking on a
+row in the table will select a row and generate shaded area on the plot
+corresponding to data in this row.  Clicking on selected row
+will deselect it and corresponding shaded region in the plot
+will be removed.
+
+
+
+
+<p>
+
+<a class="hdr" name="4.10_AUTOFIT_PLOT_IN_FRAME_">4.10 AUTOFIT PLOT IN FRAME</a>
+&nbsp;&nbsp;<a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+
+
+
+
+If selected, autofit causes PRoVis to
+regenerate the plot each time the frame size changes to fill the plot
+framesize considering min and max allowable dimensions for the plot
+image.
+
+<p>
+<a class="hdr" name="4.11_AXIS_ZOOM_FACTOR">4.11 AXIS ZOOM FACTOR</a>
+&nbsp;&nbsp;<a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+
+A float value which is used when zooming in and out plot limits using
+mouse pointer.  It determines what the new limits will be in
+relation to the current ones whenever zooming in/out takes place.
+ Zoom factor of 2, when zooming in will decrease interval between
+lower and higher limit by factor of 2, when zooming out will increase
+this interval by factor of 2.
+
+<p>
+<a class="hdr" name="4.12_AXIS_MOVE_FACTO">4.12 AXIS MOVE FACTOR</a>
+&nbsp;&nbsp;<a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+A float value which is used when moving limits using
+mouse pointer.  It determines what the new limits will be in
+relation
+to the current ones whenever limits are moved up or down using mouse
+pointer.  This factor specifies by how much limits are moved
+in relation to the current interval between low and high limits.
+
+<p>
+<a class="hdr" name="4.13_POSTSCRIPT_SIZE">4.13 PDF SIZE</a>
+&nbsp;&nbsp;<a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+Specifies the width and height in inches of desired PDF version of plot.
+ If left blank, the size will be matched to the actual screen size of
+plot image.
+
+<p>
+
+<a class="hdr" name="4.14_FONT_TYPE_AND_SIZE">4.14 FONT TYPE AND SIZE</a>
+&nbsp;&nbsp;<a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+Size and type of font to be used in text in plots. 
+
+
+<p>
+<a class="hdr" name="4.15_AXIS_LINE_WIDTH">4.15 AXIS LINE WIDTH</a>
+&nbsp;&nbsp;<a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+Width of axis line.
+
+
+<p>
+
+<a class="hdr" name="5.0_PLOT_FRAME">5.0 PLOT FRAME</a>
+&nbsp;&nbsp;<a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+
+Plot frame contains image of a plot, buttons to manipulate the limits
+of x axis and fields to display position of mouse pointer in axis units.
+
+
+<p>
+
+<a class="hdr" name="5.1_MOUSE_POINTER_POSITION">5.1 MOUSE POINTER POSITION</a>
+&nbsp;&nbsp;<a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+The y-axis values for the target/spacecraft at the appropriate x-axis
+value (date) are automatically displayed when the mouse hovers
+over the plot image.  In addition PRoVis displays
+calendar date as well.
+
+<p>
+<a class="hdr" name="5.2_AXIS_BUTTONS">5.2 AXIS BUTTONS</a>
+&nbsp;&nbsp;<a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+
+
+
+
+The bottom side of plot
+contains a set of buttons that allow 
+<ul>
+
+<li> moving of limits up and
+down by an amount specified in the options frame 'move factor'
+<li>
+zooming in and out of limits by an amount specified in the options
+frame 'zoom factor'
+<li>resetting of limits to initial values
+</ul>
+
+<p>
+<a class="hdr" name="5.2.1_MOVE_LIMITS_UP">5.2.1 MOVE LIMITS UP</a>
+&nbsp;&nbsp;<a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+
+Button <img style="width: 23px; height: 17px;" alt="right arrow" src="../images/rightarrow.bmp"> moves
+limits up by specified fraction (taken from 'Axis Move Factor' in Plot
+Options frame) of current limits interval for selected
+axis.  Axis can be reset to old values using  <img style="width: 23px; height: 17px;" alt="reset" src="../images/zoomreset.bmp">button.
+
+<p>
+<a class="hdr" name="5.2.2_MOVE_LIMITS_DOWN">5.2.2 MOVE LIMITS DOWN</a>
+&nbsp;&nbsp;<a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+Button  <img style="width: 23px; height: 17px;" alt="right arrow" src="../images/leftarrow.bmp"> moves
+limits down by specified fraction (taken from 'Axis Move Factor' in
+Plot Options frame) of current limits interval for
+selected axis.  Axis can be reset to old values using <img style="width: 23px; height: 17px;" alt="reset" src="../images/zoomreset.bmp"> button.
+
+
+<p>
+<a class="hdr" name="5.2.3_ZOOM_IN">5.2.3 ZOOM IN</a>
+&nbsp;&nbsp;<a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+
+
+
+
+Button <img style="width: 23px; height: 17px;" alt="zoom" src="../images/zoomin.bmp">
+zooms in limits by specified fraction (taken from
+'Axis Zoom
+Factor' in Plot Options frame) of current limits interval for
+selected axis.  Axis can be reset to old values using <img style="width: 23px; height: 17px;" alt="reset" src="../images/zoomreset.bmp"> button.
+
+
+
+
+
+<p>
+<a class="hdr" name="5.2.4_ZOOM_OUT">5.2.4 ZOOM OUT</a>
+&nbsp;&nbsp;<a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+
+
+
+
+Button <img style="width: 23px; height: 17px;" alt="zoom" src="../images/zoomout.bmp"> zooms
+in limits by specified fraction (taken from 'Axis
+Zoom
+Factor' in Plot Options frame) of current limits interval for
+selected axis.  Axis can be reset to old values using <img style="width: 23px; height: 17px;" alt="reset" src="../images/zoomreset.bmp">button.
+
+
+<p>
+
+<a class="hdr" name="5.2.5_RESET_LIMITS">5.2.5 RESET LIMITS</a>
+&nbsp;&nbsp;<a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+
+
+
+
+Button <img src="../images/zoomreset.bmp" name="graphics2" alt="reset" align="bottom" border="0" height="17" width="23"> 
+resets the values of selected axis limits to original values set when
+the last 'Generate Plot' was performed. 
+
+<p>
+
+<a class="hdr" name="6.0_GENERATING_PLOTS_">6.0 GENERATING PLOTS</a>
+&nbsp;&nbsp;<a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+Plots can be generated in 3 ways:
+<ul>
+<li>enter target coordinates in target frame and press enter
+<li>enter target coordinates in target
+frame and click on 'Generate Plot' button
+<li>enter target name in
+target frame (make sure target coordinates entry box is empty) and
+click on 'Generate Plot' button
+</ul>
+PRoVis disables 'Generate Plot' button if there is an error in the 
+target parameters (dates or
+coordinates) or if the existing plot matches the parameter values
+entered.  Date problems are highlighted in appropriate field.
+
+<p>
+<a class="hdr" name="6.1_TARGET_NAME_RESOLUTION">6.1 TARGET NAME RESOLUTION</a>
+&nbsp;&nbsp;<a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+PRoVis uses the SIMBAD catalog (located at <a href="http://simbad.harvard.edu/">http://simbad.harvard.edu/</a>)
+to resolve the target name to celestial coordinates. To use it, type
+in the name of target to be resolved in 'Target Name' entry box in
+the target frame and press enter or click on the "Generate Plot"
+button (make sure though the Target Coordinates box is empty). PRoVis
+will only display resolved coordinates if a single
+result
+is found. If multiple matches are found, PRoVis will display a
+"Multiple results" message in the Target Coordinates field. If no
+matches are found it displays "No results found"
+message. 
+
+<p>
+<a class="hdr" name="7.0_MANIPULATING_PLOTS">7.0 MANIPULATING PLOTS</a>
+&nbsp;&nbsp;<a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+
+
+
+
+Plots can be manipulated using buttons at the bottom of the plot image.
+ In addition,
+the mouse pointer and mouse buttons can be used to various
+degrees depending on your browser.  For all browsers:
+
+<ul>
+<li>Left mouse button click will center plot using current mouse pointer
+coordinates as the new center of plot
+</ul>
+<p>
+In Mozilla Firefox,
+SeaMonkey, Netscape and Internet Explorer the following additional
+functionality is supported:
+<ul>
+<li>Shift+Left mouse button click
+will zoom in on the plot using the current mouse pointer coordinates
+as new plot center
+<li>Ctrl+Left mouse button click will zoom out
+the plot using the current mouse pointer coordinates as new plot
+center
+<li>Shift+Ctrl+Left mouse button click resets the plot to
+the original state set by your last "Generate Plot" request
+</ul>
+
+<p>
+<a class="hdr" name="8.0_MAXEXPO">8.0 MAXIMUM EXPOSURE TIMES</a>
+&nbsp;&nbsp;<a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+<!--
+For proposers whose observations require constraints for scientific
+reasons, once the pitch angle for a given target is known, e.g., using
+PRoVis, you may wish to estimate the maximum uninterrupted exposure
+time using the estimates on the 
+<a href="http://cxc.harvard.edu/proposer/maxexpo.html">MaxExpo</a> page, 
+or you may need to
+examine detailed projected estimates of usable orbit intervals (and 
+their unusable complement during the radiation zone) at the 
+<a href="http://cxc.harvard.edu/proposer/orbits.html">Orbits</a> page.
+-->
+For proposers whose observations require constraints for scientific
+reasons, once the pitch angle for a given target is known, e.g., using
+PRoVis, you may need to
+examine detailed projected estimates of usable orbit intervals (and
+their unusable complement during the radiation zone) at the
+<a href="http://cxc.harvard.edu/proposer/orbits.html">Orbits</a> page.
+
+<p>
+<a class="hdr" name="9.0_CAVEATS">9.0 CAVEATS</a>
+&nbsp;&nbsp;<a class="top" href="helpframe.html#TOP">TOP</a>
+<br>
+
+<ul>
+<li> Works best with Mozilla Firefox(v1.5.0.5 or newer), SeaMonkey(v1.1.8
+or newer), Safari(v3.1.2 or newer) and Internet Explorer (v6 and newer) 
+browsers.
+
+<li> Accuracy of mouse pointer display is 1 pixel which may
+translate to significant number in data units depending on
+axis limits set.
+
+<li> On Windows, you might have to configure your mouse pointer 'precision
+select' cursor to 'crosshair' in Controll Panel/Mouse Properties
+if it is does not show up when hovering over the plot. 
+
+<li> IE v6 does not render properly transparent png graphics so
+selected data rows will show up as non transparent blocks in the
+plot.  Newer versions of IE: v7 and v8 beta work properly.
+
+
+</ul>
+</div>
+
+<div style="clear:both;float:left;overflow:hidden;width:99%">
+<!--#include virtual="/soft/include/cxcfooter.html"-->
+
+</div>
+
+</body>
+</html>

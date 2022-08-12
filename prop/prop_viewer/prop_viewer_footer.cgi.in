@@ -1,0 +1,43 @@
+#!@PERL@ 
+# This file just displays the footer information
+
+# Get version info
+open(VERSION, "../VERSION");
+$versionInfo = <VERSION>;
+close(VERSION);
+
+print STDOUT "Content-type: text/html", "\n\n";
+print STDOUT <<End_of_Page;
+
+<center>CXC Data System Software Version:
+$versionInfo
+</center>
+<p>
+<div class="cxcfooterlinks" align="center">
+<br clear="all">
+<font face="Arial,Helvetica,sans-serif"><a href="/index.html">Chandra
+Science</a>&nbsp;|&nbsp;<a href="http://chandra.harvard.edu/">Chandra
+Home</a>&nbsp;|&nbsp;<a href="/cdo/observatory_links.html">Astronomy
+links</a>&nbsp;|&nbsp;<a href="https://icxc.harvard.edu/">iCXC (CXC
+only)</a>&nbsp;|&nbsp;<a href="/htdig/search.html">Search</a></font>
+
+</div>
+
+<br clear="all"><br>
+<table class="cxcfooter" align="left" cellpadding="3" cellspacing="3">
+<tr>
+<td class="cxclogo" align="left" valign="middle"><img src="/incl/cxc-logo_sm45.jpg" border="0" alt="CXC Logo"></td>
+<td class="cxccolophon" align="left" valign="top">
+<font face="Arial,Helvetica,sans-serif" size="-1"><i>The Chandra X-Ray
+Center (CXC) is operated for NASA by the Smithsonian Astrophysical Observatory.</i><br>
+60 Garden Street, Cambridge, MA 02138 USA.&nbsp;&nbsp;&nbsp; Email: <a href="mailto:cxcweb\@head.cfa.harvard.edu">cxcweb\@head.cfa.harvard.edu</a><br>
+Smithsonian Institution, Copyright &copy; 1998-2004. All rights reserved.
+
+
+</font>
+</td>
+</tr>
+</table>
+
+End_of_Page
+

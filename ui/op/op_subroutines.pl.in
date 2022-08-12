@@ -1,0 +1,451 @@
+#!@PERLDB@ 
+#------------------------------------------------------------
+# Copyright (c) 1995, Smithsonian Astrophysical Observatory
+# You may not do anything you like with this file. 
+#
+# FILE NAME:   op_subroutines.pl
+# DEVELOPMENT: 
+#
+# NOTES:       Subroutines common to apstat
+#             
+# INPUT:      
+#
+# REVISION HISTORY:
+#
+# Date: 
+#---------------------------------------------------------
+use Time::Local;
+use CGI ':standard';
+
+$op_subroutines = 1;
+use vars qw($log_file);
+
+  unless (eval {require "cxcds_utils.pl"}) {
+    print "Unable to find cxcds_utils.pl\n"; exit(1);
+  }
+
+
+#-----------------------------------------------------
+#clean up, before creating new file
+# remove anything older than 1 day 
+#-----------------------------------------------------
+sub clean_up {
+  my ($del_h,@del_list);
+  my (@file_stat);
+  my ($del_diff);
+
+  # get current time
+  $del_h = time;
+
+
+  # op status html files
+  @del_list = glob("$tmp_dir/op*");
+  foreach $f (@del_list) {
+    chomp($f);
+    @file_stat = stat "$f";
+    $del_diff = $del_h - $file_stat[8];
+    if ($del_diff > ((24*1) * 60 * 60) ) 
+	{  unlink("$f"); }
+  }
+
+  # op status issue files
+  @del_list = glob("$tmp_dir/[0-9]*.i.html");
+  foreach $f (@del_list) {
+    chomp($f);
+    @file_stat = stat "$f";
+    $del_diff = $del_h - $file_stat[8];
+    if ($del_diff > ((24 *3) * 60 * 60) ) 
+	{  unlink("$f"); }
+  }
+
+  # op status VV report directory/files
+  opendir DDIR,"$tmp_dir";
+  @del_list =  readdir DDIR;
+  close DDIR;
+  foreach $f (@del_list) {
+    chomp($f);
+    my($ddname) = "$tmp_dir/$f";
+    if (-d $ddname && $f ne "." && $f ne ".." && $f =~ /N[0-9]*_VV/) {
+      @file_stat = stat "$ddname";
+      $del_diff = $del_h - $file_stat[8];
+      if ($del_diff > ((24 * 3) * 60 * 60) ) {  
+         unlink(glob("$ddname/*"));
+         &debug("removing $f\n");
+         rmdir($ddname); 
+      }
+    }
+  }
+}
+
+
+# ------------------------------------------------------------------
+#                       Date Where                                  # 
+# ------------------------------------------------------------------
+sub date_where {
+
+  my($fname, $date_gen_from_m, $date_gen_from_d, $date_gen_from_y, 
+     $date_gen_to_m, $date_gen_to_d, $date_gen_to_y, $date_gen_null )= @_;
+
+  my($date_gen_where,$no_from,$no_to,$lfrom,$lto);
+  my($date_from_y,$date_from_m,$date_from_d);
+  my($date_to_y,$date_to_m,$date_to_d);
+
+
+  $date_gen_where = "";
+
+  if ((!$date_gen_from_y || $date_gen_from_y =~ /Year/) &&
+      (!$date_gen_from_m || $date_gen_from_m =~ /Mon/) &&
+      (!$date_gen_from_d || $date_gen_from_d =~ /DD/) ) {
+    $no_from = 1;
+  }
+  if ((!$date_gen_to_y || $date_gen_to_y =~ /Year/) &&
+      (!$date_gen_to_m || $date_gen_to_m =~ /Mon/) &&
+      (!$date_gen_to_d || $date_gen_to_d =~ /DD/) ) {
+    $no_to = 1;
+  }
+
+  if ($no_from && $no_to) {
+    #no dates entered
+  }
+  else {
+    #set up defaults for partially entered dates
+    if (!$no_from) {
+      if($date_gen_from_y =~ /Year/) { 
+       $date_from_y = 1999;
+      }
+      else { 
+        $date_from_y =  $date_gen_from_y; 
+      }
+      if($date_gen_from_m =~ /Mon/) { 
+       $date_from_m = "JAN";
+      }
+      else { 
+        $date_from_m =  $date_gen_from_m; 
+      }
+      if($date_gen_from_d =~ /DD/) { 
+       $date_from_d = 1;
+      }
+      else { 
+        $date_from_d =  $date_gen_from_d; 
+      }
+      $lfrom = &format_date($date_from_y,$date_from_m,$date_from_d);
+    }
+
+    if (!$no_to) {
+      if($date_gen_to_y =~ /Year/) { 
+       $date_to_y = 2037;
+      }
+      else { 
+        $date_to_y =  $date_gen_to_y; 
+      }
+      if($date_gen_to_m =~ /Mon/) { 
+       $date_to_m = "Jan";
+      }
+      else { 
+        $date_to_m =  $date_gen_to_m; 
+      }
+      if($date_gen_to_d =~ /DD/) { 
+       $date_to_d = 1;
+      }
+      else { 
+        $date_to_d =  $date_gen_to_d; 
+      }
+      $lto = &format_date($date_to_y,$date_to_m,$date_to_d);
+    }
+
+	
+    if($lfrom) { 
+      $date_gen_where = "$fname >= '$lfrom'"; } 
+    if($lto) {  
+      if ($date_gen_where) {
+        $date_gen_where .= " and ";
+      }
+    $date_gen_where .= "$fname <= '$lto'" 
+    } 
+  }
+    
+  if($date_gen_null) {
+    if ($fname !~ /dd_date/) { 
+      if($date_gen_where) { 
+        $date_gen_where = "(".$date_gen_where.") or ($fname = NULL)"; 
+      }
+    }
+    else {
+      $date_gen_where = "$fname is NULL";
+    }
+  }
+
+  return $date_gen_where;
+}
+
+# ---------------------------------------------------------------
+# converts degrees to sexagesimal
+# ---------------------------------------------------------------
+sub sexages {
+
+    my $angle = shift(@_);
+    my $sign = " ";
+    if ($angle < 0.0) {
+        $sign = "-";
+        $angle = -$angle;
+    }
+    my $d = int($angle);
+    $angle = ($angle - $d) * 60.0;
+    my $m = int($angle);
+    $angle = ($angle - $m) * 60.0;
+    my $s = $angle;
+
+    $rv = sprintf("%s%02d:%02d:%5.2f", $sign, $d, $m, $s);
+    return $rv;
+}
+
+# ---------------------------------------------------------------
+# Print Error Message
+# ---------------------------------------------------------------
+sub error {
+
+  local ($msg)=@_;
+  my($hstr,$fstr);
+
+  $str = footer_no_date();
+  $hstr = cxc_header("Observation Processing Status Tool Error");
+  while ( $msg =~ s/\n/<br>/ ) {};
+  &debug("open $tmp_err\n") if $dbg;
+  open(ER,">$tmp_err");
+  
+  print ER <<header;
+$hstr
+<p><blink><font color="red">Error:</font></blink>$msg<br> <br> <br>
+header
+
+  print ER $fstr;
+  print ER "</body>\n</html>\n";
+
+  close(ER);
+  chmod(0660,"$tmp_err");
+}
+
+
+#------------------------------------------------
+# append debug statements to file
+#------------------------------------------------
+sub debug
+{
+  my ($msg)=@_;
+  debug_log($dbg_file,$msg);
+}
+sub logit
+{
+  my ($msg)=@_;
+  my ($q) = new CGI;
+  my($fmsg) = $q->remote_host(); ## print the user ip address
+  $fmsg .= " [" . $q->user_agent() . "] :: ";
+  $fmsg .=  $msg;
+  debug_log($log_file,$fmsg);
+}
+
+sub debug_log
+{
+  my ($dfile,$msg)=@_;
+  my($tt,@dtmp);
+
+  @dtmp = localtime;
+  $tt = sprintf( "%d/%02.2d/%02.2d:%02.2d%02.2d%02.2d",
+        $dtmp[5] + 1900,$dtmp[4]+1,$dtmp[3],$dtmp[2],$dtmp[1],$dtmp[0]);
+
+  open(DBG_FILE,">> $dfile") ||
+	die ("Unable to open $dfile \n");
+  print DBG_FILE "$tt--> $msg";
+  close DBG_FILE;
+  chmod(0660,$dfile);
+}
+
+
+sub catch_warn {
+  my $signame = shift;
+  my ($estr);
+
+  &debug("$signame\n") if $dbg;
+  if ($signame =~ /DBI/ || $sginame =~ /DBD/) {
+    $estr = qq(Unable to connect to the database.  Either the server is down or there is a configuration problem.  Please contact the <a href="http://cxc.harvard.edu/helpdesk/">Help Desk</a>.);
+  }
+  else {
+    $estr = $signame;
+  }
+  &error("$estr\n");
+}
+
+# ---------------------------------------------------------------------
+# format the date from yyyy mon dd  to yyyy mm dd
+# this will also correct invalid dates (ie: 11/31 would become 11/30)
+# ---------------------------------------------------------------------
+sub format_date {
+  my($yy,$mon,$dd) = @_;
+  my(@timearr);
+  my($mm);
+  my($thedate);
+
+  my(@months)= ("JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG",
+        "SEP","OCT","NOV","DEC");
+
+  for ($mm=0;$mm <= $#months;$mm++) {
+    if ($months[$mm] =~ /$mon/i) {
+      last;
+    }
+  }
+  $mm=0 if ($mm > 11) ;
+
+  $dd=1 if ($dd <= 0 || $dd>31);
+  $yy=1999 if ($yy < 1999 );
+
+
+  #convert the time
+  my $ld = (31,28,31,30,31,30,31,31,30,31,30,31)[$mm];
+  if (($mm) == 1){$ld++ if((!($yy%4) && ($yy%100) )|| !($yy % 400) )}
+  if ($dd > $ld) { $dd=$ld;}
+  $t1 = timelocal(0,0,0,$dd,$mm,$yy);
+
+  #convert back to valid string
+  @timearr = localtime($t1); 
+
+  $yy = $timearr[5] + 1900;
+  $mm = $months[$timearr[4]];
+  $dd = $timearr[3];
+  $thedate = $yy . " " . $mm . " " . $dd;
+  return $thedate;
+}
+
+
+
+# ----------------------------------------------------------------
+# routine to display file to STDOUT  with
+# correct html mimetype
+# ----------------------------------------------------------------
+sub display_file {
+  my($fname,$htmlflg) = @_;
+  my($cgi);
+
+  $cgi = new CGI;
+  open (FH,"< $fname") or &error("Unable to open $fname");
+  if($htmlflg) {
+    print $cgi->header( -type => "text/html", -expires => $nocache);
+  }
+  else  {
+    print $cgi->header( -type => "text/plain", -expires => $nocache);
+  }
+  while (<FH>) {
+      print $_;
+  }
+  close FH;
+}
+
+# ----------------------------------------------------------------
+# read in a file to a string
+# This is mainly used because the "include virtual" in html doesn't
+# seem to work when writing files to STDOUT.
+# ----------------------------------------------------------------
+sub read_file
+{
+  my($fname) = @_;
+  my($str);
+
+  open (RFILE,"<$fname");
+  while ( <RFILE> ) {
+    $str .= $_;
+  }
+  return $str;
+}
+  
+# ----------------------------------------------------------------
+# read in the standard CXC header for html pages
+# ----------------------------------------------------------------
+sub cxc_header 
+{
+  my($title,$helplink) = @_;
+  my($hstr);
+
+  my($meta)= getMeta();
+
+  $hstr = qq(
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<head>
+<title>Chandra Observation Processing Status</title>
+$meta
+<link rel="stylesheet" href="/soft/op/op.css" type="text/css" media="screen">
+</head>
+<body class="plain">
+<table width="100%">
+<tr style="white-space:nowrap;">
+<td><img src="/soft/include/header_left.gif" alt=" " border="0">
+</td>
+<td align="left"><h2>$title</h2></td>
+);
+  if ($helplink) {
+    $hstr .= qq(
+<td align="right"><a href="$helplink">Help</a></td>
+);
+  }
+  $hstr .= "</tr> </table>";
+
+  return $hstr;
+}
+
+sub cxc_header_new 
+{
+  my($title,$helplink) = @_;
+  my($hstr);
+
+  my($meta)= getMeta();
+
+
+  $hstr = qq(
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<head>
+<title>Chandra Observation Processing Status</title>
+$meta
+<link rel="stylesheet" href="/soft/include/cxcds.css" type="text/css" media="screen">
+<link rel="stylesheet" href="/soft/op/op.css" type="text/css" media="screen">
+</head>
+<body>
+<div class="opdiv">
+<div class="tophdr">
+<div class="imghdr">
+<img src="/soft/include/header_left.gif" alt=" " border="0">
+</div>
+<div class="titlehdr">
+$title
+</div>
+);
+  if ($helplink) {
+    $hstr .= qq(
+<div class="helphdr">
+<a class="mainlink" href="$helplink">Help</a>
+</div>
+);
+  }
+  $hstr .= "</div> ";
+  return $hstr;
+}
+
+# ----------------------------------------------------------------
+# create the standard footer with no date at the bottom
+# ----------------------------------------------------------------
+sub footer_no_date
+{
+  my($str);
+  my($nofooter) = "<p>";
+   
+  $str = <<endHTML;
+<hr noshade>
+<p>
+<center><font size=-1><a href="/soft/op/op_pst.html">Chandra Observations Processing Status</a></font></center>
+<p>
+<!--PLEASE DO NOT MODIFY THIS LINE OR ANYTHING BELOW!-->
+<!-- Optional -->
+
+endHTML
+
+  return $nofooter;
+}
+   
+

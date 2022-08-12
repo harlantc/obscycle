@@ -1,0 +1,382 @@
+
+img {
+ margin: 0;
+ padding: 0;
+ border: 0;
+ outline: 0;
+ vertical-align: baseline;
+}
+
+body {
+        width:auto;
+        height:auto;
+        margin: .2em;
+        background-color: #eeeeee;
+        line-height: 1;
+}
+
+img#spacecraft {
+        z-index:1;
+        border:0px;
+        margin:0;
+        padding:0;
+        left:10px;
+        top:10px;
+        text-align:left; }
+
+#cxcheaderplain {
+        background-image: linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)),
+          url('/soft/include/galactic.jpg');
+        background-position:center;
+	margin: .2em;
+        padding: .2em;
+ 	clear: both;
+	display: block;
+	overflow: hidden;
+	position:relative;
+	border-top-right-radius: 1em;
+	border-top-left-radius: 1em;
+	-moz-border-radius-topleft: 1em;
+	-moz-border-radius-topright: 1em;
+	-webkit-border-top-left-radius: 1em;
+	-webkit-border-top-right-radius: 1em;
+	width:99%;
+}
+
+#cxcheaderplain img { 
+  color: #ffffff;
+  font-size: 2.5em;
+  text-align:center;
+ }
+
+
+
+#cxcheader {
+        background-image: linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)),
+          url('/soft/include/galactic.jpg');
+        background-position:center;
+	margin: .2em;
+        padding: .2em;
+ 	clear: both;
+	display: block;
+	overflow: hidden;
+	position:relative;
+	border-top-right-radius: 1em;
+	border-top-left-radius: 1em;
+	-moz-border-radius-topleft: 1em;
+	-moz-border-radius-topright: 1em;
+	-webkit-border-top-left-radius: 1em;
+	-webkit-border-top-right-radius: 1em;
+	width:99%;
+}
+
+#cxcheader img { 
+  color: #ffffff;
+  font-size: 2.5em;
+  text-align:center;
+ }
+
+
+#cxcheaderleft {  
+	float: left;
+	clear: left;
+        width: 24%;
+        margin-left: .2em;
+}
+
+#cxcheaderright { 
+	float: right;
+	clear: right;
+        margin-right: .2em;
+        font-size: small;
+ }
+
+#cxcheaderright a { 
+  color: #ffffff;
+  font-weight: bold;
+  display: block;
+  padding: .5em;
+  margin: .3em .1em;
+}
+
+#cxcheaderleft a:hover { 
+               text-decoration: none;
+                background: transparent;
+ }
+
+#cxcheaderright ul li {  
+  list-style:none;
+  float:left;
+  padding: .6em .4em .2em .4em;
+}
+
+#cxcheaderright ul li a { 
+               text-decoration: none;
+ }
+
+
+#cxcheaderright ul li a:hover { 
+                background-color: #333;
+}
+
+
+#cxcheaderright ul { 
+  clear: right;
+ }
+
+#cxcheaderright li {  
+  list-style:none;
+  float:right;
+  padding: .6em .4em .2em .4em;
+}
+
+
+/* End Header Stuff */
+
+
+/* Footer Stuff */
+
+.footerbody {
+	background-color:#eee;
+}
+
+#cxcfooter {
+        background-image: linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)),
+          url('/soft/include/galactic.jpg');
+        background-position:center;
+	float: none;
+	margin: .2em;
+	padding: .5em;
+	clear: both;
+	overflow: hidden;
+        position: relative; 
+ 	border-bottom-right-radius: 1em;
+	border-bottom-left-radius: 1em;
+	-moz-border-radius-bottomleft: 1em;
+	-moz-border-radius-bottomright: 1em;
+	-webkit-border-bottom-left-radius: 1em;
+	-webkit-border-bottom-right-radius: 1em;
+	width:99%;
+}
+
+#cxcfooter img { 
+  color: #ffffff;
+  font-size: 1.5em;
+  width: 50px;
+ }
+
+#cxcfooter ul li {
+	text-align:center;
+	width:29%;
+	float:left;
+	display: block;
+	padding: .5em 0 .5em 0;
+}
+
+#cxcfooter a {
+	color:white;
+	text-decoration:underline;
+}
+
+#cxcfooterleft {
+	width:18%;
+	float: left;
+	clear: left;
+	display:block;
+        margin-left: .2em;
+}	
+
+#cxcfooterright {
+        text-align:center;
+	display:block;
+	float: right;
+	clear: right;
+        margin-right: .2em;
+        margin-top: .5em;
+}
+#cxcfootercenter {
+        width: 70%;
+	margin:auto;
+        float: left;
+        text-align: center;
+}
+
+#cxcfootercenter p {
+        color: white;
+        font-size:90%;
+        text-align:center;
+        margin-left: 1%;
+        clear: both;
+}
+
+
+#cxcfooterright p {
+	color: white;
+	font-size:90%;
+	padding: 1%;
+	clear: both;
+        text-align:center;
+}
+
+.topDiv {
+   width: auto;
+   height: 88%;
+   display: block;
+   overflow: auto;
+	margin: auto;
+}
+
+.footerDiv {
+        width: auto;
+	height: 10%;
+	margin: auto;
+	display: block;
+	overflow: hidden;
+	border-bottom-right-radius: 1em;
+        border-bottom-left-radius: 1em;
+        -moz-border-radius-bottomleft: 1em;
+        -moz-border-radius-bottomright: 1em;
+        -webkit-border-bottom-left-radius: 1em;
+        -webkit-border-bottom-right-radius: 1em;
+}
+
+
+.menudiv {
+ /*    width:100%; */
+     width:auto;
+     height:auto;
+}
+
+.hdrleft {
+     width:30%;
+     position:relative;
+     float: left;
+     clear: left;
+}
+.hdrcenter {
+     width:60%;
+     position:relative;
+     margin-top: .2em;
+     padding: 0;
+     float: left;
+     clear: right;
+     text-align:center;
+}
+.hdrright {
+     width:8%;
+     position:relative;
+     float: right;
+     clear: right;
+     padding-top: 10px;
+     padding-right: .4em;
+}
+
+.mainhdr3 {
+     text-align:center;
+     font-weight:bold;
+     color:#ffffff;
+     font-size:125%;
+}
+.mainhdr2 {
+     text-align:center;
+     font-weight:bold;
+     color:#ffffff;
+}
+.mainhdr {
+     text-align:center;
+     font-weight:bold;
+     color:#ffffff;
+     font-size: 200%;
+}
+.cxchdrlink {
+     text-align:center;
+     font-weight:normal!important;
+     color:#ffffff;
+     font-size: 150%;
+     float:left;
+}
+.cxchdrlink:hover {
+     text-decoration:underline!important;
+     background-color:transparent!important;
+}
+
+.mainlink {
+     color:white;
+     font-size:x-large;
+     font-weight:bold;
+}
+a.mainlink:link {
+     color:white;
+     text-decoration:none;
+}
+
+a.mainlink:visited {
+     color:white;
+}
+a.mainlink:hover {
+     text-decoration:underline;
+}
+.mainlink2 {
+     color:white;
+     font-size:large;
+     font-weight:bold;
+     text-decoration:none;
+}
+a.mainlink2:link {
+     color:white;
+}
+
+a.mainlink2:visited {
+     color:white;
+}
+a.mainlink2:hover {
+     text-decoration:underline;
+}
+.mainlink3 {
+     color:white;
+     font-size:medium;
+     text-decoration:none;
+}
+a.mainlink3:link {
+     color:white;
+}
+
+a.mainlink3:visited {
+     color:white;
+}
+a.mainlink3:hover {
+     text-decoration:underline;
+}
+
+/* header used by proposal apps */
+
+.propheaderleft {
+  clear:both;
+  float:left;
+  width:35%;
+}
+
+.propheadercenter {
+  padding-top:1em;
+  margin:.3em .1em ;
+  float:left;
+  color:white;
+  font-size:2.0em;
+}
+
+
+.propheaderright {
+        float: right;
+        margin-right: .2em;
+        font-size: small;
+}
+
+.propheaderright a {
+  color: #ffffff;
+  text-align: left;
+  font-weight: bold;
+  display: block;
+  padding: .5em;
+  margin: .3em .1em;
+}
+

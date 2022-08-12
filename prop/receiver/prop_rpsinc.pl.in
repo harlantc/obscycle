@@ -1,0 +1,45 @@
+#!@PERL@ 
+#*H****************************************************************************
+#* Copyright (c) 1995, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_rpsinc.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#
+#  prop_rpsinc  captures the STDERR output and sends it to STDOUT
+#  
+#  The application software executes a popen for this script and then
+#  displays the output to the user.
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+#
+#
+#
+$usr = $ENV{"USER"};
+$tmpdir = $ENV{"ASCDS_TMP"};
+if (! -d $tmpdir ) {
+  mkdir($tmpdir);
+  `\\chgrp prop "$tmpdir"`;
+  chmod(02770,$tmpdir);
+}
+$logname = $tmpdir . "/.inctmp." . $usr;
+$fname = "/var/mail/$usr";
+if ( -s $fname ) {
+  system "inc  2> $logname";
+  system "cat $logname";
+  unlink($logname);
+}
+exit 0;

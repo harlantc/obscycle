@@ -1,0 +1,1541 @@
+%!PS-Adobe-3.0 EPSF-3.0
+%%BoundingBox: 0 303 611 811
+%%Pages: 0
+%%Creator: (BLT 2.4 Graph)
+%%CreationDate: (Wed Jun  4 16:18:32 2008)
+%%Title: (.g)
+%%DocumentData: Clean7Bit
+%%Orientation: Portrait
+%%DocumentNeededResources: font Helvetica Courier
+%%EndComments
+
+
+% including file "/export/rmilas/BLT/blt2.4z/lib/blt2.4/bltGraph.pro"
+
+%%BeginProlog
+%
+% PostScript prolog file of the BLT graph widget.
+%
+% Copyright 1989-1992 Regents of the University of California.
+% Permission to use, copy, modify, and distribute this
+% software and its documentation for any purpose and without
+% fee is hereby granted, provided that the above copyright
+% notice appear in all copies.  The University of California
+% makes no representations about the suitability of this
+% software for any purpose.  It is provided "as is" without
+% express or implied warranty.
+%
+% Copyright 1991-1997 Bell Labs Innovations for Lucent Technologies.
+%
+% Permission to use, copy, modify, and distribute this software and its
+% documentation for any purpose and without fee is hereby granted, provided
+% that the above copyright notice appear in all copies and that both that the
+% copyright notice and warranty disclaimer appear in supporting documentation,
+% and that the names of Lucent Technologies any of their entities not be used
+% in advertising or publicity pertaining to distribution of the software
+% without specific, written prior permission.
+%
+% Lucent Technologies disclaims all warranties with regard to this software,
+% including all implied warranties of merchantability and fitness.  In no event
+% shall Lucent Technologies be liable for any special, indirect or
+% consequential damages or any damages whatsoever resulting from loss of use,
+% data or profits, whether in an action of contract, negligence or other
+% tortuous action, arising out of or in connection with the use or performance
+% of this software.
+%
+
+200 dict begin
+
+/BaseRatio 1.3467736870885982 def	% Ratio triangle base / symbol size
+/BgColorProc 0 def			% Background color routine (symbols)
+/DrawSymbolProc 0 def			% Routine to draw symbol outline/fill
+/StippleProc 0 def			% Stipple routine (bar segments)
+/DashesProc 0 def			% Dashes routine (line segments)
+  
+% Define the array ISOLatin1Encoding (which specifies how characters are 
+% encoded for ISO-8859-1 fonts), if it isn't already present (Postscript 
+% level 2 is supposed to define it, but level 1 doesn't). 
+ 
+systemdict /ISOLatin1Encoding known not { 
+  /ISOLatin1Encoding [ 
+    /space /space /space /space /space /space /space /space 
+    /space /space /space /space /space /space /space /space 
+    /space /space /space /space /space /space /space /space 
+    /space /space /space /space /space /space /space /space 
+    /space /exclam /quotedbl /numbersign /dollar /percent /ampersand 
+    /quoteright 
+    /parenleft /parenright /asterisk /plus /comma /minus /period /slash 
+    /zero /one /two /three /four /five /six /seven 
+    /eight /nine /colon /semicolon /less /equal /greater /question 
+    /at /A /B /C /D /E /F /G 
+    /H /I /J /K /L /M /N /O 
+    /P /Q /R /S /T /U /V /W 
+    /X /Y /Z /bracketleft /backslash /bracketright /asciicircum /underscore 
+    /quoteleft /a /b /c /d /e /f /g 
+    /h /i /j /k /l /m /n /o 
+    /p /q /r /s /t /u /v /w 
+    /x /y /z /braceleft /bar /braceright /asciitilde /space 
+    /space /space /space /space /space /space /space /space 
+    /space /space /space /space /space /space /space /space 
+    /dotlessi /grave /acute /circumflex /tilde /macron /breve /dotaccent 
+    /dieresis /space /ring /cedilla /space /hungarumlaut /ogonek /caron 
+    /space /exclamdown /cent /sterling /currency /yen /brokenbar /section 
+    /dieresis /copyright /ordfeminine /guillemotleft /logicalnot /hyphen 
+    /registered /macron 
+    /degree /plusminus /twosuperior /threesuperior /acute /mu /paragraph 
+    /periodcentered 
+    /cedillar /onesuperior /ordmasculine /guillemotright /onequarter 
+    /onehalf /threequarters /questiondown 
+    /Agrave /Aacute /Acircumflex /Atilde /Adieresis /Aring /AE /Ccedilla 
+    /Egrave /Eacute /Ecircumflex /Edieresis /Igrave /Iacute /Icircumflex 
+    /Idieresis 
+    /Eth /Ntilde /Ograve /Oacute /Ocircumflex /Otilde /Odieresis /multiply 
+    /Oslash /Ugrave /Uacute /Ucircumflex /Udieresis /Yacute /Thorn 
+    /germandbls 
+    /agrave /aacute /acircumflex /atilde /adieresis /aring /ae /ccedilla 
+    /egrave /eacute /ecircumflex /edieresis /igrave /iacute /icircumflex 
+    /idieresis 
+    /eth /ntilde /ograve /oacute /ocircumflex /otilde /odieresis /divide 
+    /oslash /ugrave /uacute /ucircumflex /udieresis /yacute /thorn 
+    /ydieresis 
+  ] def 
+} if 
+
+% font ISOEncode font 
+% This procedure changes the encoding of a font from the default 
+% Postscript encoding to ISOLatin1.  It is typically invoked just 
+% before invoking "setfont".  The body of this procedure comes from 
+% Section 5.6.1 of the Postscript book. 
+
+/ISOEncode { 
+  dup length dict
+  begin 
+    {1 index /FID ne {def} {pop pop} ifelse} forall 
+    /Encoding ISOLatin1Encoding def 
+    currentdict 
+  end 
+
+  % I'm not sure why it's necessary to use "definefont" on this new 
+  % font, but it seems to be important; just use the name "Temporary" 
+  % for the font. 
+
+  /Temporary exch definefont 
+} bind def 
+
+/Stroke {
+  gsave
+    stroke
+  grestore
+} def
+
+/Fill {
+  gsave
+    fill
+  grestore
+} def
+
+/SetFont { 	
+  % Stack: pointSize fontName
+  findfont exch scalefont ISOEncode setfont
+} def
+
+/Box {
+  % Stack: x y width height
+  newpath
+  exch 4 2 roll moveto
+  dup 0 rlineto
+  exch 0 exch rlineto
+  neg 0 rlineto
+  closepath
+} def
+
+/SetFgColor {
+  % Stack: red green blue
+  CL 0 eq { 
+    pop pop pop 0 0 0 
+  } if
+  setrgbcolor
+  CL 1 eq { 
+    currentgray setgray 
+  } if
+} def
+
+/SetBgColor {
+  % Stack: red green blue
+  CL 0 eq { 
+    pop pop pop 1 1 1 
+  } if
+  setrgbcolor
+  CL 1 eq { 
+    currentgray setgray 
+  } if
+} def
+
+% The next two definitions are taken from "$tk_library/prolog.ps"
+
+% desiredSize EvenPixels closestSize
+%
+% The procedure below is used for stippling.  Given the optimal size
+% of a dot in a stipple pattern in the current user coordinate system,
+% compute the closest size that is an exact multiple of the device's
+% pixel size.  This allows stipple patterns to be displayed without
+% aliasing effects.
+
+/EvenPixels {
+  % Compute exact number of device pixels per stipple dot.
+  dup 0 matrix currentmatrix dtransform
+  dup mul exch dup mul add sqrt
+
+  % Round to an integer, make sure the number is at least 1, and compute
+  % user coord distance corresponding to this.
+  dup round dup 1 lt {pop 1} if
+  exch div mul
+} bind def
+
+% width height string filled StippleFill --
+%
+% Given a path and other graphics information already set up, this
+% procedure will fill the current path in a stippled fashion.  "String"
+% contains a proper image description of the stipple pattern and
+% "width" and "height" give its dimensions.  If "filled" is true then
+% it means that the area to be stippled is gotten by filling the
+% current path (e.g. the interior of a polygon); if it's false, the
+% area is gotten by stroking the current path (e.g. a wide line).
+% Each stipple dot is assumed to be about one unit across in the
+% current user coordinate system.
+
+% width height string StippleFill --
+%
+% Given a path already set up and a clipping region generated from
+% it, this procedure will fill the clipping region with a stipple
+% pattern.  "String" contains a proper image description of the
+% stipple pattern and "width" and "height" give its dimensions.  Each
+% stipple dot is assumed to be about one unit across in the current
+% user coordinate system.  This procedure trashes the graphics state.
+
+/StippleFill {
+    % The following code is needed to work around a NeWSprint bug.
+
+    /tmpstip 1 index def
+
+    % Change the scaling so that one user unit in user coordinates
+    % corresponds to the size of one stipple dot.
+    1 EvenPixels dup scale
+
+    % Compute the bounding box occupied by the path (which is now
+    % the clipping region), and round the lower coordinates down
+    % to the nearest starting point for the stipple pattern.  Be
+    % careful about negative numbers, since the rounding works
+    % differently on them.
+
+    pathbbox
+    4 2 roll
+    5 index div dup 0 lt {1 sub} if cvi 5 index mul 4 1 roll
+    6 index div dup 0 lt {1 sub} if cvi 6 index mul 3 2 roll
+
+    % Stack now: width height string y1 y2 x1 x2
+    % Below is a doubly-nested for loop to iterate across this area
+    % in units of the stipple pattern size, going up columns then
+    % across rows, blasting out a stipple-pattern-sized rectangle at
+    % each position
+
+    6 index exch {
+	2 index 5 index 3 index {
+	    % Stack now: width height string y1 y2 x y
+
+	    gsave
+	    1 index exch translate
+	    5 index 5 index true matrix tmpstip imagemask
+	    grestore
+	} for
+	pop
+    } for
+    pop pop pop pop pop
+} bind def
+
+
+/LS {	% Stack: x1 y1 x2 y2
+  newpath 4 2 roll moveto lineto stroke
+} def
+
+/EndText {
+  %Stack :
+  grestore
+} def
+
+/BeginText {
+  %Stack :  w h theta centerX centerY
+  gsave
+    % Translate the origin to the center of bounding box and rotate
+    translate neg rotate
+    % Translate back to the origin of the text region
+    -0.5 mul exch -0.5 mul exch translate
+} def
+
+/DrawAdjText {
+  %Stack : str strWidth x y
+  moveto				% Go to the text position
+  exch dup dup 4 2 roll
+
+  % Adjust character widths to get desired overall string width
+  % adjust X = (desired width - real width)/#chars
+
+  stringwidth pop sub exch
+  length div
+  0 3 -1 roll
+
+  % Flip back the scale so that the string is not drawn in reverse
+
+  gsave
+    1 -1 scale
+    ashow
+  grestore
+} def
+
+/DrawBitmap {
+  % Stack: ?bgColorProc? boolean centerX centerY width height theta imageStr
+  gsave
+    6 -2 roll translate			% Translate to center of bounding box
+    4 1 roll neg rotate			% Rotate by theta
+    
+    % Find upperleft corner of bounding box
+    
+    2 copy -.5 mul exch -.5 mul exch translate
+    2 copy scale			% Make pixel unit scale
+    newpath
+    0 0 moveto 0 1 lineto 1 1 lineto 1 0 lineto
+    closepath
+    
+    % Fill rectangle with background color
+    
+    4 -1 roll { 
+      gsave 
+	4 -1 roll exec fill 
+      grestore 
+    } if
+    
+    % Paint the image string into the unit rectangle
+    
+    2 copy true 3 -1 roll 0 0 5 -1 roll 0 0 6 array astore 5 -1 roll
+    imagemask
+  grestore
+} def
+
+% Symbols:
+
+% Skinny-cross
+/Sc {
+  % Stack: x y symbolSize
+  gsave
+    3 -2 roll translate 45 rotate
+    0 0 3 -1 roll Sp
+  grestore
+} def
+
+% Skinny-plus
+/Sp {
+  % Stack: x y symbolSize
+  gsave
+    3 -2 roll translate
+    2 idiv
+    dup 2 copy
+    newpath neg 0 moveto 0 lineto
+    DrawSymbolProc
+    newpath neg 0 exch moveto 0 exch lineto
+    DrawSymbolProc
+  grestore
+} def
+
+% Cross
+/Cr {
+  % Stack: x y symbolSize
+  gsave
+    3 -2 roll translate 45 rotate
+    0 0 3 -1 roll Pl
+  grestore
+} def
+
+% Plus
+/Pl {
+  % Stack: x y symbolSize
+  gsave
+    3 -2 roll translate
+    dup 2 idiv
+    exch 6 idiv
+
+    %
+    %          2   3		The plus/cross symbol is a
+    %				closed polygon of 12 points.
+    %      0   1   4    5	The diagram to the left
+    %           x,y		represents the positions of
+    %     11  10   7    6	the points which are computed
+    %				below.
+    %          9   8
+    %
+
+    newpath
+    2 copy exch neg exch neg moveto dup neg dup lineto
+    2 copy neg exch neg lineto 2 copy exch neg lineto
+    dup dup neg lineto 2 copy neg lineto 2 copy lineto
+    dup dup lineto 2 copy exch lineto 2 copy neg exch lineto
+    dup dup neg exch lineto exch neg exch lineto
+    closepath
+    DrawSymbolProc
+  grestore
+} def
+
+% Circle
+/Ci {
+  % Stack: x y symbolSize
+  gsave
+    3 copy pop
+    moveto newpath
+    2 div 0 360 arc
+    closepath DrawSymbolProc
+  grestore
+} def
+
+% Square
+/Sq {
+  % Stack: x y symbolSize
+  gsave
+    dup dup 2 div dup
+    6 -1 roll exch sub exch
+    5 -1 roll exch sub 4 -2 roll Box
+    DrawSymbolProc
+  grestore
+} def
+
+% Line
+/Li {
+  % Stack: x y symbolSize
+  gsave
+    3 1 roll exch 3 -1 roll 2 div 3 copy
+    newpath
+    sub exch moveto add exch lineto
+    stroke
+  grestore
+} def
+
+% Diamond
+/Di {
+  % Stack: x y symbolSize
+  gsave
+    3 1 roll translate 45 rotate 0 0 3 -1 roll Sq
+  grestore
+} def
+    
+% Triangle
+/Tr {
+  % Stack: x y symbolSize
+  gsave
+    3 -2 roll translate
+    BaseRatio mul 0.5 mul		% Calculate 1/2 base
+    dup 0 exch 30 cos mul		% h1 = height above center point
+    neg					% b2 0 -h1
+    newpath moveto			% point 1;  b2
+    dup 30 sin 30 cos div mul		% h2 = height below center point
+    2 copy lineto			% point 2;  b2 h2
+    exch neg exch lineto		% 
+    closepath
+    DrawSymbolProc
+  grestore
+} def
+
+% Arrow
+/Ar {
+  % Stack: x y symbolSize
+  gsave
+    3 -2 roll translate
+    BaseRatio mul 0.5 mul		% Calculate 1/2 base
+    dup 0 exch 30 cos mul		% h1 = height above center point
+					% b2 0 h1
+    newpath moveto			% point 1;  b2
+    dup 30 sin 30 cos div mul		% h2 = height below center point
+    neg					% -h2 b2
+    2 copy lineto			% point 2;  b2 h2
+    exch neg exch lineto		% 
+    closepath
+    DrawSymbolProc
+  grestore
+} def
+
+% Bitmap
+/Bm {
+  % Stack: x y symbolSize
+  gsave
+    3 1 roll translate pop DrawSymbolProc
+  grestore
+} def
+
+%%EndProlog
+
+%%BeginSetup
+gsave					% Save the graphics state
+
+% Default line/text style parameters
+
+1 setlinewidth				% width
+1 setlinejoin				% join
+0 setlinecap				% cap
+[] 0 setdash				% dashes
+
+/CL 0 def				% Set color level mode
+0 0 0 setrgbcolor			% color
+
+% Transform coordinate system to use X11 coordinates
+
+% 1. Flip y-axis over by reversing the scale,
+% 2. Translate the origin to the other side of the page,
+%    making the origin the upper left corner
+0.845965 -0.866449 scale
+0 -936 translate
+
+% User defined page layout
+
+% Set color level
+/CL 2 def
+
+% Set origin
+0 0 translate
+
+
+% Setting graph scale factor
+ 0.90375 0.90375 scale
+
+%%EndSetup
+
+12 /Helvetica SetFont
+93 23 565 555 Box
+
+ 1.0 1.0 1.0 SetBgColor
+Fill
+gsave clip
+
+
+% Marker "MAXEXPMARKERA5" is a PolygonMarker marker
+newpath 123.696 437.5 moveto
+123.696 437.5 lineto
+154.157 437.5 lineto
+154.157 529.167 lineto
+183.896 529.167 lineto
+183.896 437.5 lineto
+214.817 437.5 lineto
+214.817 437.5 lineto
+261.59 437.5 lineto
+261.59 162.5 lineto
+214.817 162.5 lineto
+214.817 437.5 lineto
+183.896 437.5 lineto
+183.896 529.167 lineto
+154.157 529.167 lineto
+154.157 437.5 lineto
+123.696 437.5 lineto
+123.696 162.5 lineto
+95 162.5 lineto
+95 437.5 lineto
+123.696 437.5 lineto
+closepath
+0 0 0 SetFgColor
+gsave
+  clip
+  162 162
+	<808080808080808080808080808080808080808000404040404040404040
+	404040404040404040404000202020202020202020202020202020202020
+	202000101010101010101010101010101010101010101000080808080808
+	080808080808080808080808080800040404040404040404040404040404
+	040404040400020202020202020202020202020202020202020200010101
+	010101010101010101010101010101010100808080808080808080808080
+	80808080808080808040404040404040404040404040404040404040404020
+	202020202020202020202020202020202020200010101010101010101010
+	101010101010101010100008080808080808080808080808080808080808
+	080004040404040404040404040404040404040404040002020202020202
+	020202020202020202020202020001010101010101010101010101010101
+	010101010080808080808080808080808080808080808080808040404040
+	404040404040404040404040404040404020202020202020202020202020
+	202020202020200010101010101010101010101010101010101010100008
+	080808080808080808080808080808080808080004040404040404040404
+	040404040404040404040002020202020202020202020202020202020202
+	020001010101010101010101010101010101010101010080808080808080
+	808080808080808080808080808040404040404040404040404040404040
+	404040404020202020202020202020202020202020202020200010101010
+	101010101010101010101010101010100008080808080808080808080808
+	080808080808080004040404040404040404040404040404040404040002
+	020202020202020202020202020202020202020001010101010101010101
+	010101010101010101010080808080808080808080808080808080808080
+	808040404040404040404040404040404040404040404020202020202020
+	202020202020202020202020200010101010101010101010101010101010
+	101010100008080808080808080808080808080808080808080004040404
+	040404040404040404040404040404040002020202020202020202020202
+	020202020202020001010101010101010101010101010101010101010080
+	808080808080808080808080808080808080808040404040404040404040
+	404040404040404040404020202020202020202020202020202020202020
+	200010101010101010101010101010101010101010100008080808080808
+	080808080808080808080808080004040404040404040404040404040404
+	040404040002020202020202020202020202020202020202020001010101
+	010101010101010101010101010101010080808080808080808080808080
+	808080808080808040404040404040404040404040404040404040404020
+	202020202020202020202020202020202020200010101010101010101010
+	101010101010101010100008080808080808080808080808080808080808
+	080004040404040404040404040404040404040404040002020202020202
+	020202020202020202020202020001010101010101010101010101010101
+	010101010080808080808080808080808080808080808080808040404040
+	404040404040404040404040404040404020202020202020202020202020
+	202020202020200010101010101010101010101010101010101010100008
+	080808080808080808080808080808080808080004040404040404040404
+	040404040404040404040002020202020202020202020202020202020202
+	020001010101010101010101010101010101010101010080808080808080
+	808080808080808080808080808040404040404040404040404040404040
+	404040404020202020202020202020202020202020202020200010101010
+	101010101010101010101010101010100008080808080808080808080808
+	080808080808080004040404040404040404040404040404040404040002
+	020202020202020202020202020202020202020001010101010101010101
+	010101010101010101010080808080808080808080808080808080808080
+	808040404040404040404040404040404040404040404020202020202020
+	202020202020202020202020200010101010101010101010101010101010
+	101010100008080808080808080808080808080808080808080004040404
+	040404040404040404040404040404040002020202020202020202020202
+	020202020202020001010101010101010101010101010101010101010080
+	808080808080808080808080808080808080808040404040404040404040
+	404040404040404040404020202020202020202020202020202020202020
+	200010101010101010101010101010101010101010100008080808080808
+	080808080808080808080808080004040404040404040404040404040404
+	040404040002020202020202020202020202020202020202020001010101
+	010101010101010101010101010101010080808080808080808080808080
+	808080808080808040404040404040404040404040404040404040404020
+	202020202020202020202020202020202020200010101010101010101010
+	101010101010101010100008080808080808080808080808080808080808
+	080004040404040404040404040404040404040404040002020202020202
+	020202020202020202020202020001010101010101010101010101010101
+	010101010080808080808080808080808080808080808080808040404040
+	404040404040404040404040404040404020202020202020202020202020
+	202020202020200010101010101010101010101010101010101010100008
+	080808080808080808080808080808080808080004040404040404040404
+	040404040404040404040002020202020202020202020202020202020202
+	020001010101010101010101010101010101010101010080808080808080
+	808080808080808080808080808040404040404040404040404040404040
+	404040404020202020202020202020202020202020202020200010101010
+	101010101010101010101010101010100008080808080808080808080808
+	080808080808080004040404040404040404040404040404040404040002
+	020202020202020202020202020202020202020001010101010101010101
+	010101010101010101010080808080808080808080808080808080808080
+	808040404040404040404040404040404040404040404020202020202020
+	202020202020202020202020200010101010101010101010101010101010
+	101010100008080808080808080808080808080808080808080004040404
+	040404040404040404040404040404040002020202020202020202020202
+	020202020202020001010101010101010101010101010101010101010080
+	808080808080808080808080808080808080808040404040404040404040
+	404040404040404040404020202020202020202020202020202020202020
+	200010101010101010101010101010101010101010100008080808080808
+	080808080808080808080808080004040404040404040404040404040404
+	040404040002020202020202020202020202020202020202020001010101
+	010101010101010101010101010101010080808080808080808080808080
+	808080808080808040404040404040404040404040404040404040404020
+	202020202020202020202020202020202020200010101010101010101010
+	101010101010101010100008080808080808080808080808080808080808
+	080004040404040404040404040404040404040404040002020202020202
+	020202020202020202020202020001010101010101010101010101010101
+	010101010080808080808080808080808080808080808080808040404040
+	404040404040404040404040404040404020202020202020202020202020
+	202020202020200010101010101010101010101010101010101010100008
+	080808080808080808080808080808080808080004040404040404040404
+	040404040404040404040002020202020202020202020202020202020202
+	020001010101010101010101010101010101010101010080808080808080
+	808080808080808080808080808040404040404040404040404040404040
+	404040404020202020202020202020202020202020202020200010101010
+	101010101010101010101010101010100008080808080808080808080808
+	080808080808080004040404040404040404040404040404040404040002
+	020202020202020202020202020202020202020001010101010101010101
+	010101010101010101010080808080808080808080808080808080808080
+	808040404040404040404040404040404040404040404020202020202020
+	202020202020202020202020200010101010101010101010101010101010
+	101010100008080808080808080808080808080808080808080004040404
+	040404040404040404040404040404040002020202020202020202020202
+	020202020202020001010101010101010101010101010101010101010000
+	808080808080808080808080808080808080808080404040404040404040
+	4040404040404040404040>
+  StippleFill
+grestore
+0 setlinejoin
+0 setlinecap
+0 0 0 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+95 437.5 moveto
+ 123.696 437.5 lineto
+DashesProc stroke
+123.696 437.5 moveto
+ 123.696 437.5 lineto
+DashesProc stroke
+123.696 437.5 moveto
+ 154.157 437.5 lineto
+DashesProc stroke
+154.157 437.5 moveto
+ 154.157 529.167 lineto
+DashesProc stroke
+154.157 529.167 moveto
+ 183.896 529.167 lineto
+DashesProc stroke
+183.896 529.167 moveto
+ 183.896 437.5 lineto
+DashesProc stroke
+183.896 437.5 moveto
+ 214.817 437.5 lineto
+DashesProc stroke
+214.817 437.5 moveto
+ 214.817 437.5 lineto
+DashesProc stroke
+214.817 437.5 moveto
+ 261.59 437.5 lineto
+DashesProc stroke
+261.59 437.5 moveto
+ 261.59 162.5 lineto
+DashesProc stroke
+261.59 162.5 moveto
+ 214.817 162.5 lineto
+DashesProc stroke
+214.817 162.5 moveto
+ 214.817 437.5 lineto
+DashesProc stroke
+214.817 437.5 moveto
+ 183.896 437.5 lineto
+DashesProc stroke
+183.896 437.5 moveto
+ 183.896 529.167 lineto
+DashesProc stroke
+183.896 529.167 moveto
+ 154.157 529.167 lineto
+DashesProc stroke
+154.157 529.167 moveto
+ 154.157 437.5 lineto
+DashesProc stroke
+154.157 437.5 moveto
+ 123.696 437.5 lineto
+DashesProc stroke
+123.696 437.5 moveto
+ 123.696 162.5 lineto
+DashesProc stroke
+123.696 162.5 moveto
+ 95 162.5 lineto
+DashesProc stroke
+95 162.5 moveto
+ 95 437.5 lineto
+DashesProc stroke
+
+% Marker "MAXEXPMARKERA6" is a PolygonMarker marker
+newpath 655 437.5 moveto
+655 162.5 lineto
+638.933 162.5 lineto
+638.933 437.5 lineto
+655 437.5 lineto
+closepath
+0 0 0 SetFgColor
+gsave
+  clip
+  162 162
+	<808080808080808080808080808080808080808000404040404040404040
+	404040404040404040404000202020202020202020202020202020202020
+	202000101010101010101010101010101010101010101000080808080808
+	080808080808080808080808080800040404040404040404040404040404
+	040404040400020202020202020202020202020202020202020200010101
+	010101010101010101010101010101010100808080808080808080808080
+	80808080808080808040404040404040404040404040404040404040404020
+	202020202020202020202020202020202020200010101010101010101010
+	101010101010101010100008080808080808080808080808080808080808
+	080004040404040404040404040404040404040404040002020202020202
+	020202020202020202020202020001010101010101010101010101010101
+	010101010080808080808080808080808080808080808080808040404040
+	404040404040404040404040404040404020202020202020202020202020
+	202020202020200010101010101010101010101010101010101010100008
+	080808080808080808080808080808080808080004040404040404040404
+	040404040404040404040002020202020202020202020202020202020202
+	020001010101010101010101010101010101010101010080808080808080
+	808080808080808080808080808040404040404040404040404040404040
+	404040404020202020202020202020202020202020202020200010101010
+	101010101010101010101010101010100008080808080808080808080808
+	080808080808080004040404040404040404040404040404040404040002
+	020202020202020202020202020202020202020001010101010101010101
+	010101010101010101010080808080808080808080808080808080808080
+	808040404040404040404040404040404040404040404020202020202020
+	202020202020202020202020200010101010101010101010101010101010
+	101010100008080808080808080808080808080808080808080004040404
+	040404040404040404040404040404040002020202020202020202020202
+	020202020202020001010101010101010101010101010101010101010080
+	808080808080808080808080808080808080808040404040404040404040
+	404040404040404040404020202020202020202020202020202020202020
+	200010101010101010101010101010101010101010100008080808080808
+	080808080808080808080808080004040404040404040404040404040404
+	040404040002020202020202020202020202020202020202020001010101
+	010101010101010101010101010101010080808080808080808080808080
+	808080808080808040404040404040404040404040404040404040404020
+	202020202020202020202020202020202020200010101010101010101010
+	101010101010101010100008080808080808080808080808080808080808
+	080004040404040404040404040404040404040404040002020202020202
+	020202020202020202020202020001010101010101010101010101010101
+	010101010080808080808080808080808080808080808080808040404040
+	404040404040404040404040404040404020202020202020202020202020
+	202020202020200010101010101010101010101010101010101010100008
+	080808080808080808080808080808080808080004040404040404040404
+	040404040404040404040002020202020202020202020202020202020202
+	020001010101010101010101010101010101010101010080808080808080
+	808080808080808080808080808040404040404040404040404040404040
+	404040404020202020202020202020202020202020202020200010101010
+	101010101010101010101010101010100008080808080808080808080808
+	080808080808080004040404040404040404040404040404040404040002
+	020202020202020202020202020202020202020001010101010101010101
+	010101010101010101010080808080808080808080808080808080808080
+	808040404040404040404040404040404040404040404020202020202020
+	202020202020202020202020200010101010101010101010101010101010
+	101010100008080808080808080808080808080808080808080004040404
+	040404040404040404040404040404040002020202020202020202020202
+	020202020202020001010101010101010101010101010101010101010080
+	808080808080808080808080808080808080808040404040404040404040
+	404040404040404040404020202020202020202020202020202020202020
+	200010101010101010101010101010101010101010100008080808080808
+	080808080808080808080808080004040404040404040404040404040404
+	040404040002020202020202020202020202020202020202020001010101
+	010101010101010101010101010101010080808080808080808080808080
+	808080808080808040404040404040404040404040404040404040404020
+	202020202020202020202020202020202020200010101010101010101010
+	101010101010101010100008080808080808080808080808080808080808
+	080004040404040404040404040404040404040404040002020202020202
+	020202020202020202020202020001010101010101010101010101010101
+	010101010080808080808080808080808080808080808080808040404040
+	404040404040404040404040404040404020202020202020202020202020
+	202020202020200010101010101010101010101010101010101010100008
+	080808080808080808080808080808080808080004040404040404040404
+	040404040404040404040002020202020202020202020202020202020202
+	020001010101010101010101010101010101010101010080808080808080
+	808080808080808080808080808040404040404040404040404040404040
+	404040404020202020202020202020202020202020202020200010101010
+	101010101010101010101010101010100008080808080808080808080808
+	080808080808080004040404040404040404040404040404040404040002
+	020202020202020202020202020202020202020001010101010101010101
+	010101010101010101010080808080808080808080808080808080808080
+	808040404040404040404040404040404040404040404020202020202020
+	202020202020202020202020200010101010101010101010101010101010
+	101010100008080808080808080808080808080808080808080004040404
+	040404040404040404040404040404040002020202020202020202020202
+	020202020202020001010101010101010101010101010101010101010080
+	808080808080808080808080808080808080808040404040404040404040
+	404040404040404040404020202020202020202020202020202020202020
+	200010101010101010101010101010101010101010100008080808080808
+	080808080808080808080808080004040404040404040404040404040404
+	040404040002020202020202020202020202020202020202020001010101
+	010101010101010101010101010101010080808080808080808080808080
+	808080808080808040404040404040404040404040404040404040404020
+	202020202020202020202020202020202020200010101010101010101010
+	101010101010101010100008080808080808080808080808080808080808
+	080004040404040404040404040404040404040404040002020202020202
+	020202020202020202020202020001010101010101010101010101010101
+	010101010080808080808080808080808080808080808080808040404040
+	404040404040404040404040404040404020202020202020202020202020
+	202020202020200010101010101010101010101010101010101010100008
+	080808080808080808080808080808080808080004040404040404040404
+	040404040404040404040002020202020202020202020202020202020202
+	020001010101010101010101010101010101010101010080808080808080
+	808080808080808080808080808040404040404040404040404040404040
+	404040404020202020202020202020202020202020202020200010101010
+	101010101010101010101010101010100008080808080808080808080808
+	080808080808080004040404040404040404040404040404040404040002
+	020202020202020202020202020202020202020001010101010101010101
+	010101010101010101010080808080808080808080808080808080808080
+	808040404040404040404040404040404040404040404020202020202020
+	202020202020202020202020200010101010101010101010101010101010
+	101010100008080808080808080808080808080808080808080004040404
+	040404040404040404040404040404040002020202020202020202020202
+	020202020202020001010101010101010101010101010101010101010000
+	808080808080808080808080808080808080808080404040404040404040
+	4040404040404040404040>
+  StippleFill
+grestore
+0 setlinejoin
+0 setlinecap
+0 0 0 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+/DashesProc {} def
+638.933 437.5 moveto
+ 655 437.5 lineto
+DashesProc stroke
+655 437.5 moveto
+ 655 162.5 lineto
+DashesProc stroke
+655 162.5 moveto
+ 638.933 162.5 lineto
+DashesProc stroke
+638.933 162.5 moveto
+ 638.933 437.5 lineto
+DashesProc stroke
+
+% Unset clipping
+grestore
+
+ 1.0 1.0 1.0 SetBgColor
+0 0 800 25 Box fill
+
+0 25 95 550 Box fill
+
+655 25 145 550 Box fill
+
+0 575 800 75 Box fill
+
+210 14 0 375 631 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(Date \(days since JD 2400000.5\)) 210 0 12 DrawAdjText
+EndText
+81 28 0 201.006 606 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(54900) 35 23 12 DrawAdjText
+(2009-Mar-10) 77 2 26 DrawAdjText
+EndText
+81 28 0 354.46 606 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(55000) 35 23 12 DrawAdjText
+(2009-Jun-18) 77 2 26 DrawAdjText
+EndText
+81 28 0 507.914 606 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(55100) 35 23 12 DrawAdjText
+(2009-Sep-26) 77 2 26 DrawAdjText
+EndText
+0 setlinejoin
+0 setlinecap
+0 0 0 SetFgColor
+2 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+95 580 moveto
+ 655 580 lineto
+DashesProc stroke
+108.934 580 moveto
+ 108.934 586 lineto
+DashesProc stroke
+124.279 580 moveto
+ 124.279 586 lineto
+DashesProc stroke
+139.624 580 moveto
+ 139.624 586 lineto
+DashesProc stroke
+154.97 580 moveto
+ 154.97 586 lineto
+DashesProc stroke
+170.315 580 moveto
+ 170.315 586 lineto
+DashesProc stroke
+185.661 580 moveto
+ 185.661 586 lineto
+DashesProc stroke
+216.351 580 moveto
+ 216.351 586 lineto
+DashesProc stroke
+231.697 580 moveto
+ 231.697 586 lineto
+DashesProc stroke
+247.042 580 moveto
+ 247.042 586 lineto
+DashesProc stroke
+262.388 580 moveto
+ 262.388 586 lineto
+DashesProc stroke
+277.733 580 moveto
+ 277.733 586 lineto
+DashesProc stroke
+293.079 580 moveto
+ 293.079 586 lineto
+DashesProc stroke
+308.424 580 moveto
+ 308.424 586 lineto
+DashesProc stroke
+323.769 580 moveto
+ 323.769 586 lineto
+DashesProc stroke
+339.115 580 moveto
+ 339.115 586 lineto
+DashesProc stroke
+201.006 580 moveto
+ 201.006 589 lineto
+DashesProc stroke
+369.806 580 moveto
+ 369.806 586 lineto
+DashesProc stroke
+385.151 580 moveto
+ 385.151 586 lineto
+DashesProc stroke
+400.496 580 moveto
+ 400.496 586 lineto
+DashesProc stroke
+415.842 580 moveto
+ 415.842 586 lineto
+DashesProc stroke
+431.187 580 moveto
+ 431.187 586 lineto
+DashesProc stroke
+446.533 580 moveto
+ 446.533 586 lineto
+DashesProc stroke
+461.878 580 moveto
+ 461.878 586 lineto
+DashesProc stroke
+477.223 580 moveto
+ 477.223 586 lineto
+DashesProc stroke
+492.569 580 moveto
+ 492.569 586 lineto
+DashesProc stroke
+354.46 580 moveto
+ 354.46 589 lineto
+DashesProc stroke
+523.26 580 moveto
+ 523.26 586 lineto
+DashesProc stroke
+538.605 580 moveto
+ 538.605 586 lineto
+DashesProc stroke
+553.95 580 moveto
+ 553.95 586 lineto
+DashesProc stroke
+569.296 580 moveto
+ 569.296 586 lineto
+DashesProc stroke
+584.641 580 moveto
+ 584.641 586 lineto
+DashesProc stroke
+599.987 580 moveto
+ 599.987 586 lineto
+DashesProc stroke
+615.332 580 moveto
+ 615.332 586 lineto
+DashesProc stroke
+630.678 580 moveto
+ 630.678 586 lineto
+DashesProc stroke
+646.023 580 moveto
+ 646.023 586 lineto
+DashesProc stroke
+507.914 580 moveto
+ 507.914 589 lineto
+DashesProc stroke
+126 28 90 35 300 BeginText
+12 /Helvetica-Bold SetFont
+0 1 0 SetFgColor
+(Nominal Roll Angle) 126 0 26 DrawAdjText
+EndText
+11 14 0 72.5 575 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(0) 7 2 12 DrawAdjText
+EndText
+18 14 0 69 490.385 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(60) 14 2 12 DrawAdjText
+EndText
+25 14 0 65.5 405.769 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(120) 21 2 12 DrawAdjText
+EndText
+25 14 0 65.5 321.154 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(180) 21 2 12 DrawAdjText
+EndText
+25 14 0 65.5 236.538 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(240) 21 2 12 DrawAdjText
+EndText
+25 14 0 65.5 151.923 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(300) 21 2 12 DrawAdjText
+EndText
+25 14 0 65.5 67.3077 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(360) 21 2 12 DrawAdjText
+EndText
+0 setlinejoin
+0 setlinecap
+0 0 0 SetFgColor
+2 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+88 575 moveto
+ 88 25 lineto
+DashesProc stroke
+88 560.897 moveto
+ 84 560.897 lineto
+DashesProc stroke
+88 546.795 moveto
+ 84 546.795 lineto
+DashesProc stroke
+88 532.692 moveto
+ 84 532.692 lineto
+DashesProc stroke
+88 518.59 moveto
+ 84 518.59 lineto
+DashesProc stroke
+88 504.487 moveto
+ 84 504.487 lineto
+DashesProc stroke
+88 575 moveto
+ 81 575 lineto
+DashesProc stroke
+88 476.282 moveto
+ 84 476.282 lineto
+DashesProc stroke
+88 462.179 moveto
+ 84 462.179 lineto
+DashesProc stroke
+88 448.077 moveto
+ 84 448.077 lineto
+DashesProc stroke
+88 433.974 moveto
+ 84 433.974 lineto
+DashesProc stroke
+88 419.872 moveto
+ 84 419.872 lineto
+DashesProc stroke
+88 490.385 moveto
+ 81 490.385 lineto
+DashesProc stroke
+88 391.667 moveto
+ 84 391.667 lineto
+DashesProc stroke
+88 377.564 moveto
+ 84 377.564 lineto
+DashesProc stroke
+88 363.462 moveto
+ 84 363.462 lineto
+DashesProc stroke
+88 349.359 moveto
+ 84 349.359 lineto
+DashesProc stroke
+88 335.256 moveto
+ 84 335.256 lineto
+DashesProc stroke
+88 405.769 moveto
+ 81 405.769 lineto
+DashesProc stroke
+88 307.051 moveto
+ 84 307.051 lineto
+DashesProc stroke
+88 292.949 moveto
+ 84 292.949 lineto
+DashesProc stroke
+88 278.846 moveto
+ 84 278.846 lineto
+DashesProc stroke
+88 264.744 moveto
+ 84 264.744 lineto
+DashesProc stroke
+88 250.641 moveto
+ 84 250.641 lineto
+DashesProc stroke
+88 321.154 moveto
+ 81 321.154 lineto
+DashesProc stroke
+88 222.436 moveto
+ 84 222.436 lineto
+DashesProc stroke
+88 208.333 moveto
+ 84 208.333 lineto
+DashesProc stroke
+88 194.231 moveto
+ 84 194.231 lineto
+DashesProc stroke
+88 180.128 moveto
+ 84 180.128 lineto
+DashesProc stroke
+88 166.026 moveto
+ 84 166.026 lineto
+DashesProc stroke
+88 236.538 moveto
+ 81 236.538 lineto
+DashesProc stroke
+88 137.821 moveto
+ 84 137.821 lineto
+DashesProc stroke
+88 123.718 moveto
+ 84 123.718 lineto
+DashesProc stroke
+88 109.615 moveto
+ 84 109.615 lineto
+DashesProc stroke
+88 95.5128 moveto
+ 84 95.5128 lineto
+DashesProc stroke
+88 81.4103 moveto
+ 84 81.4103 lineto
+DashesProc stroke
+88 151.923 moveto
+ 81 151.923 lineto
+DashesProc stroke
+88 53.2051 moveto
+ 84 53.2051 lineto
+DashesProc stroke
+88 39.1026 moveto
+ 84 39.1026 lineto
+DashesProc stroke
+88 25 moveto
+ 84 25 lineto
+DashesProc stroke
+88 67.3077 moveto
+ 81 67.3077 lineto
+DashesProc stroke
+77 14 90 12 300 BeginText
+12 /Helvetica-Bold SetFont
+1 0 0 SetFgColor
+(Pitch Angle) 77 0 12 DrawAdjText
+EndText
+168 28 270 715 300 BeginText
+12 /Helvetica-Bold SetFont
+0 0 1 SetFgColor
+(Average Visibility/Orbit) 168 0 26 DrawAdjText
+EndText
+11 14 0 677.5 575 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(0) 7 2 12 DrawAdjText
+EndText
+25 14 0 684.5 520 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(0.1) 21 2 12 DrawAdjText
+EndText
+25 14 0 684.5 465 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(0.2) 21 2 12 DrawAdjText
+EndText
+25 14 0 684.5 410 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(0.3) 21 2 12 DrawAdjText
+EndText
+25 14 0 684.5 355 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(0.4) 21 2 12 DrawAdjText
+EndText
+25 14 0 684.5 300 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(0.5) 21 2 12 DrawAdjText
+EndText
+25 14 0 684.5 245 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(0.6) 21 2 12 DrawAdjText
+EndText
+25 14 0 684.5 190 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(0.7) 21 2 12 DrawAdjText
+EndText
+25 14 0 684.5 135 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(0.8) 21 2 12 DrawAdjText
+EndText
+25 14 0 684.5 80 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(0.9) 21 2 12 DrawAdjText
+EndText
+11 14 0 677.5 25 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(1) 7 2 12 DrawAdjText
+EndText
+0 setlinejoin
+0 setlinecap
+0 0 0 SetFgColor
+2 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+660 575 moveto
+ 660 25 lineto
+DashesProc stroke
+660 564 moveto
+ 666 564 lineto
+DashesProc stroke
+660 553 moveto
+ 666 553 lineto
+DashesProc stroke
+660 542 moveto
+ 666 542 lineto
+DashesProc stroke
+660 531 moveto
+ 666 531 lineto
+DashesProc stroke
+660 575 moveto
+ 669 575 lineto
+DashesProc stroke
+660 509 moveto
+ 666 509 lineto
+DashesProc stroke
+660 498 moveto
+ 666 498 lineto
+DashesProc stroke
+660 487 moveto
+ 666 487 lineto
+DashesProc stroke
+660 476 moveto
+ 666 476 lineto
+DashesProc stroke
+660 520 moveto
+ 669 520 lineto
+DashesProc stroke
+660 454 moveto
+ 666 454 lineto
+DashesProc stroke
+660 443 moveto
+ 666 443 lineto
+DashesProc stroke
+660 432 moveto
+ 666 432 lineto
+DashesProc stroke
+660 421 moveto
+ 666 421 lineto
+DashesProc stroke
+660 465 moveto
+ 669 465 lineto
+DashesProc stroke
+660 399 moveto
+ 666 399 lineto
+DashesProc stroke
+660 388 moveto
+ 666 388 lineto
+DashesProc stroke
+660 377 moveto
+ 666 377 lineto
+DashesProc stroke
+660 366 moveto
+ 666 366 lineto
+DashesProc stroke
+660 410 moveto
+ 669 410 lineto
+DashesProc stroke
+660 344 moveto
+ 666 344 lineto
+DashesProc stroke
+660 333 moveto
+ 666 333 lineto
+DashesProc stroke
+660 322 moveto
+ 666 322 lineto
+DashesProc stroke
+660 311 moveto
+ 666 311 lineto
+DashesProc stroke
+660 355 moveto
+ 669 355 lineto
+DashesProc stroke
+660 289 moveto
+ 666 289 lineto
+DashesProc stroke
+660 278 moveto
+ 666 278 lineto
+DashesProc stroke
+660 267 moveto
+ 666 267 lineto
+DashesProc stroke
+660 256 moveto
+ 666 256 lineto
+DashesProc stroke
+660 300 moveto
+ 669 300 lineto
+DashesProc stroke
+660 234 moveto
+ 666 234 lineto
+DashesProc stroke
+660 223 moveto
+ 666 223 lineto
+DashesProc stroke
+660 212 moveto
+ 666 212 lineto
+DashesProc stroke
+660 201 moveto
+ 666 201 lineto
+DashesProc stroke
+660 245 moveto
+ 669 245 lineto
+DashesProc stroke
+660 179 moveto
+ 666 179 lineto
+DashesProc stroke
+660 168 moveto
+ 666 168 lineto
+DashesProc stroke
+660 157 moveto
+ 666 157 lineto
+DashesProc stroke
+660 146 moveto
+ 666 146 lineto
+DashesProc stroke
+660 190 moveto
+ 669 190 lineto
+DashesProc stroke
+660 124 moveto
+ 666 124 lineto
+DashesProc stroke
+660 113 moveto
+ 666 113 lineto
+DashesProc stroke
+660 102 moveto
+ 666 102 lineto
+DashesProc stroke
+660 91 moveto
+ 666 91 lineto
+DashesProc stroke
+660 135 moveto
+ 669 135 lineto
+DashesProc stroke
+660 69 moveto
+ 666 69 lineto
+DashesProc stroke
+660 58 moveto
+ 666 58 lineto
+DashesProc stroke
+660 47 moveto
+ 666 47 lineto
+DashesProc stroke
+660 36 moveto
+ 666 36 lineto
+DashesProc stroke
+660 80 moveto
+ 669 80 lineto
+DashesProc stroke
+660 25 moveto
+ 669 25 lineto
+DashesProc stroke
+147 14 270 780 300 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(Maximum Exposure Time) 147 0 12 DrawAdjText
+EndText
+11 14 0 749.5 575 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(0) 7 2 12 DrawAdjText
+EndText
+18 14 0 753 437.5 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(30) 14 2 12 DrawAdjText
+EndText
+18 14 0 753 300 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(60) 14 2 12 DrawAdjText
+EndText
+18 14 0 753 162.5 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(90) 14 2 12 DrawAdjText
+EndText
+25 14 0 756.5 25 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(120) 21 2 12 DrawAdjText
+EndText
+0 setlinejoin
+0 setlinecap
+0 0 0 SetFgColor
+2 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+732 575 moveto
+ 732 25 lineto
+DashesProc stroke
+732 552.083 moveto
+ 738 552.083 lineto
+DashesProc stroke
+732 529.167 moveto
+ 738 529.167 lineto
+DashesProc stroke
+732 506.25 moveto
+ 738 506.25 lineto
+DashesProc stroke
+732 483.333 moveto
+ 738 483.333 lineto
+DashesProc stroke
+732 460.417 moveto
+ 738 460.417 lineto
+DashesProc stroke
+732 575 moveto
+ 741 575 lineto
+DashesProc stroke
+732 414.583 moveto
+ 738 414.583 lineto
+DashesProc stroke
+732 391.667 moveto
+ 738 391.667 lineto
+DashesProc stroke
+732 368.75 moveto
+ 738 368.75 lineto
+DashesProc stroke
+732 345.833 moveto
+ 738 345.833 lineto
+DashesProc stroke
+732 322.917 moveto
+ 738 322.917 lineto
+DashesProc stroke
+732 437.5 moveto
+ 741 437.5 lineto
+DashesProc stroke
+732 277.083 moveto
+ 738 277.083 lineto
+DashesProc stroke
+732 254.167 moveto
+ 738 254.167 lineto
+DashesProc stroke
+732 231.25 moveto
+ 738 231.25 lineto
+DashesProc stroke
+732 208.333 moveto
+ 738 208.333 lineto
+DashesProc stroke
+732 185.417 moveto
+ 738 185.417 lineto
+DashesProc stroke
+732 300 moveto
+ 741 300 lineto
+DashesProc stroke
+732 139.583 moveto
+ 738 139.583 lineto
+DashesProc stroke
+732 116.667 moveto
+ 738 116.667 lineto
+DashesProc stroke
+732 93.75 moveto
+ 738 93.75 lineto
+DashesProc stroke
+732 70.8333 moveto
+ 738 70.8333 lineto
+DashesProc stroke
+732 47.9167 moveto
+ 738 47.9167 lineto
+DashesProc stroke
+732 162.5 moveto
+ 741 162.5 lineto
+DashesProc stroke
+732 25 moveto
+ 741 25 lineto
+DashesProc stroke
+showpage
+%Trailer
+grestore
+end
+%EOF
+

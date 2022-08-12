@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE cxchelptopics SYSTEM "CXCHelp.dtd">
+<cxchelptopics>
+   <ENTRY context="proposaltools" key="dates" refkeywords="prop_dates date conversion" seealsogroups="prop-tools">
+
+   <SYNOPSIS>
+ DATES is an interactive calendar and time conversion tool.
+   </SYNOPSIS>
+
+<ADDRESS><URL>dates.html</URL></ADDRESS>
+<ADDRESS><URL>http://cxc.harvard.edu/ciao/ahelp/dates.html</URL></ADDRESS>
+   
+<DESC>
+
+<PARA>
+  DATES can be run over the web using a browser or
+run locally using the command-line interface (CLI).  The CLI version will
+accept a text file with a list of dates as input.  The CLI version has
+an expanded list of supported date formats, and also allows timescale
+conversions (e.g. EST to GMT.)
+</PARA><PARA>
+DATES is part of the Proposal toolkit. The toolkit is distributed with
+CIAO. 
+</PARA>  
+<PARA>
+For details about available coordinate and time systems, please see
+the <HREF link="http://cxc.harvard.edu/ciao/ahelp/prop-time.html">prop-time</HREF> and <HREF link="http://cxc.harvard.edu/ciao/ahelp/prop-coords.html">prop-coords</HREF> ahelp documents.
+</PARA>
+<PARA title="Running DATES Online">
+
+DATES can be accessed via the URL
+</PARA>
+
+<PARA>
+<HREF link="http://cxc.harvard.edu/toolkit/dates.jsp">http://cxc.harvard.edu/toolkit/dates.jsp</HREF>
+</PARA>
+
+<PARA>
+Supported date formats include Calendar, Julian, Modified Julian, Day of
+Year, Chandra Time. A general help file for the Proposal Planning Toolkit is available by
+clicking the 'HELP' button. 
+</PARA>
+<PARA title="Running DATES Using the Command-line Interface">
+
+To run DATES in CLI mode, type 'prop_dates' at the UNIX prompt. To see a list of
+available commands, type '?' or 'help'.  The command-line interface has supported date and time
+formats in addition to those listed above for the web version.  For a complete listing, type 'list/cal' (or 'l/cal') for the list of
+available calendars and 'list/ts' (or 'l/ts') for available timescales.
+</PARA><PARA>
+The syntax for processing a file of coordinates is:
+ </PARA>
+<PARA>
+prop_dates commands:infile:outfile
+</PARA>
+<PARA>
+It is also possible with the CLI to set the printing level for the
+results, set the zero for a date format and to run a loop conversion.
+More detail about these features can be found later in this file.
+
+</PARA>
+
+<PARA>
+The setup prompt is where the date format is set. For example: 'from
+JD to ROMAN' (or 'f JD t ROMAN') sets up DATES to convert from Julian
+Day to the Roman Calendar format. Note that the command is not case-sensitive: 
+'FROM jD to RomaN' is equally valid. 
+
+</PARA>
+<PARA>
+ To perform individual conversions, enter conversion mode by typing
+'convert' (or 'c') at the setup prompt. At the conversion prompt, enter
+the date to be converted, the result will be displayed according to
+the printing level selected. Type 'quit' (or 'q') to exit conversion
+mode.  Alternately, typing 'eval' (or 'e') at the setup prompt instead
+of 'convert' will perform a conversion and return to the ciao
+prompt in one step. The command 'do' (or 'd') will perform loop
+conversion with the syntax:
+</PARA><PARA /><PARA>
+ do date1;date2;step   
+</PARA>
+
+<PARA title="Printing Modes">
+
+P2 is the default for interactive mode. Each conversion outputs four lines:
+a leading banner of dashes, the 'from' info (to check the program has
+parsed your input correctly), the 'to' info (the result), and a
+trailing banner of dashes. Each gives the calendar followed by
+the value. 
+</PARA>
+<PARA>
+P1 is the default for batch mode. A single line
+gives the from and to values side by side, and  a header
+ line is issued on entry to convert mode 
+giving the from and to calendars.
+</PARA>
+<PARA>
+P0 is a concise mode which gives only the output value.</PARA>
+</DESC>
+
+   <QEXAMPLELIST>
+   <QEXAMPLE>
+
+      <SYNTAX>
+         <LINE>
+          Dates[Setup]&gt;: to TAI
+         </LINE>
+<LINE />	<LINE>
+	Dates[Setup]&gt;: convert
+	</LINE>
+<LINE />	<LINE>
+	Dates [Conversion mode]</LINE>
+<LINE>Enter "q" to return to setup mode</LINE>
+<LINE>UTC:1994 Jan 01 14:30:02</LINE>
+<LINE>-----------------------------------------------------------------------</LINE>
+<LINE>UTC                     Sat AD 1994 Jan  1  14:30:02    UTC (Gregorian)</LINE>
+<LINE>TAI                     Sat AD 1994 Jan  1  14:30:30.00 TAI (Gregorian)</LINE>
+<LINE>-----------------------------------------------------------------------</LINE>
+<LINE /><LINE>UTC:q</LINE>
+      </SYNTAX>
+      <DESC>
+<PARA>This series of commands enters the Gregorian date in UTC timescale 1994 Jan 01
+14:30:02 and converts it to the TAI timescale 1994 Jan 01 14:30:30.00. 
+         </PARA>
+      </DESC>
+ </QEXAMPLE> 
+
+<QEXAMPLE>
+
+<SYNTAX>
+<LINE />
+
+<LINE>Dates [Setup]&gt;: from greg to time(1994 Jan 0.0)</LINE>
+<LINE>Dates [Setup]&gt;: c</LINE>
+<LINE>Dates [Conversion mode]</LINE>
+<LINE>Enter "q" to return to setup mode</LINE>
+<LINE>Gregorian date (UTC): 2002 Aug 15 06:11</LINE>
+<LINE>--------------------------------------------------------------------------------</LINE>
+<LINE>Gregorian date (UTC)     Thu AD 2002 Aug 15  06:11       UTC (Gregorian)</LINE>
+<LINE>Time(since JD 2449352.5 UTC, 1993 Dec 31 ) 272095864</LINE>
+<LINE>--------------------------------------------------------------------------------</LINE>
+
+
+</SYNTAX>
+<DESC>
+<PARA>This example sets the zero point in GREG to 1994 Jan 0.0 and
+then converts the GREG date 2002 AUG 15 06:11 to the TIME 272095864
+(versus 145779061 without the zero point change).</PARA></DESC>
+
+</QEXAMPLE> 
+
+<QEXAMPLE>
+
+<SYNTAX>
+<LINE>Dates [Setup]&gt;: p0</LINE>
+<LINE>Dates [Setup]&gt;: f mst</LINE>
+<LINE>Dates [Setup]&gt;: t pdt</LINE>
+<LINE>Dates [Setup]&gt;: e 2002 Jan 14 23:08.2</LINE>
+<LINE>Mon AD 2002 Jan 14  23:08:12.00 PDT (Gregorian)</LINE>
+</SYNTAX>
+
+<DESC>
+<PARA>This example sets the print mode to 0 and converts a MST timescale (Gregorian date) to a
+PDT timescale, exiting DATES upon completion.
+</PARA>
+</DESC>
+ </QEXAMPLE>
+
+
+<QEXAMPLE>
+<DESC>
+<PARA>
+If an infile is present, DATES enters batch mode and reads a
+series of dates from infile, converting each one and printing the
+output in outfile (which defaults to the terminal). If there are any arguments (such as print level) they would be placed before the first ':' character after the from and to scales are defined.
+</PARA>
+
+
+
+<PARA>'prop_dates from EST to TAI :date_list.in:date_list.out'
+where date_list.in contains: </PARA>
+
+
+<VERBATIM>	
+	1993 Jun 30 06:00 
+	1993 Jun 30 23:30 
+	1993 Jul  1 00:30 
+	1993 Jun 30 18:59:59 
+	1993 Jun 30 18:59:60 
+	1993 Jun 30 19:00:00 
+	1993 Jun 30 23:59:59 
+</VERBATIM>
+
+<PARA>Then date_list.out will contain the same dates converted
+from Eastern Standard Time (EST) to International Atomic Time
+(TAI).</PARA>
+
+<VERBATIM>
+EST                                     TAI
+Wed AD 1993 Jun 30  06:00       EST (Gregorian)   Wed AD 1993 Jun 30  11:00:27.00 TAI (Gregorian)
+Wed AD 1993 Jun 30  23:30       EST (Gregorian)   Thu AD 1993 Jul  1  04:30:28.00 TAI (Gregorian)
+Thu AD 1993 Jul  1  00:30       EST (Gregorian)   Thu AD 1993 Jul  1  05:30:28.00 TAI (Gregorian)
+Wed AD 1993 Jun 30  18:59:59    EST (Gregorian)   Thu AD 1993 Jul  1  00:00:26.00 TAI (Gregorian)
+Wed AD 1993 Jun 30  18:59:60    EST (Gregorian)   Thu AD 1993 Jul  1  00:00:27.00 TAI (Gregorian)
+Wed AD 1993 Jun 30  19:00:00    EST (Gregorian)   Thu AD 1993 Jul  1  00:00:28.00 TAI (Gregorian)
+Wed AD 1993 Jun 30  23:59:59    EST (Gregorian)   Thu AD 1993 Jul  1  05:00:27.00 TAI (Gregorian)
+</VERBATIM>
+</DESC>
+</QEXAMPLE>
+
+<QEXAMPLE>
+
+<SYNTAX>
+<LINE>Dates [Setup]&gt;: to time</LINE>
+<LINE>Dates [Setup]&gt;: convert</LINE>
+<LINE>Dates [Conversion mode]</LINE>
+<LINE>Enter "q" to return to setup mode</LINE>
+<LINE>Gregorian date (UTC): 2002 Jul 25</LINE>
+<LINE>-------------------------------------------------------------</LINE>
+<LINE>Gregorian date (UTC)     Thu AD 2002 Jul 25   UTC (Gregorian)</LINE>
+<LINE>Time(since JD 2450814.5 UTC, 1998 Jan  1 ) 143942401</LINE>
+<LINE>-------------------------------------------------------------</LINE>
+</SYNTAX>
+<DESC>
+<PARA>Convert July 25, 2002 to Chandra Time</PARA>
+
+
+</DESC>
+</QEXAMPLE>
+
+</QEXAMPLELIST>
+
+
+<VERSION>CIAO 4.5</VERSION>
+<LASTMODIFIED>December 2012</LASTMODIFIED>
+
+</ENTRY>
+
+</cxchelptopics>

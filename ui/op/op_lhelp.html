@@ -1,0 +1,94 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<!--#include virtual="op_header.html"-->
+<div id="tophdr" class="tophdr">
+<div id="imghdr" class="imghdr">
+<img src="/soft/include/header_left.gif" alt=" " border="0" >
+</div>
+<div id="titlehdr" class="titlehdr">
+Chandra Status List Help Page
+</div>
+</div>
+
+<p>
+<p>
+The status list displays observations that match the criteria of the specified
+report type.
+
+<p>
+<table class="plain">
+<tr class="header"><td>Report Type</td><td>Description</td></tr>
+<tr><td valign=top>Scheduled</td><td>Observations with status scheduled but no processing information received yet.</td></tr>
+<tr><td valign=top>AP/no L2</td><td>Observations with status scheduled but no level 2 product has been processed yet</td></tr>
+<tr><td valign=top>Awaiting Ingest</td><td>Level 2 products that have incomplete archive ingest </td></tr>
+<tr><td valign=top>Awaiting V&amp;V</td><td>Level 2 product has no completed V&amp;V report.  
+If a later level 2 product has a V&amp;V report,
+then the observation is not considered awaiting V&amp;V.</td></tr>
+<tr><td valign=top>Awaiting CDO Review</td><td>V&amp;V has requested a CDO review which has not yet been completed </td></tr>
+<tr><td valign=top>Awaiting Aspect Review</td><td>V&amp;V has requested an Aspect review which has not yet been completed </td></tr>
+<tr><td valign=top>Awaiting Distribution</td><td>Level 2 product with V&amp;V state of <i>OK</i> or <i>Repr+DD</i>, but has no distribution date.</td></tr>
+<tr><td valign=top>SAP</td><td>Observations awaiting, or in, Special Automated Processing (SAP); highest revision of 
+a Level 2 product and V&amp;V state of <i>Repr+DD</i> or <i>ReprNoDD</i></td></tr>
+</table>
+<p><p><hr><p>
+Not all fields are displayed for all reports.
+<table class="plain">
+<tr class="header"><td>Field Name</td><td>Description</td></tr
+>
+<tr> <td><a NAME="ObsId"></a>ObsId</td>
+<td>Observation Id number (assigned by CXCDS)</td>
+</tr>
+<tr>
+<td><a NAME="Obs_Date"></a>Obs Date</td>
+<td>Start date and time of observation</td>
+</tr>
+<tr>
+<td><a NAME="Version"></a>L2 Version</td>
+<td>Level 2 version of processing of observation</td>
+</tr>
+<tr>
+<td><a NAME="Processing_Date"></a>L2 AP Date</td>
+<td>Date of level 2 processing operation</td>
+</tr>
+
+
+<tr>
+<td><a NAME="Good_Time"></a>Good Time</td>
+<td>Good data exposure time (ks)</td>
+</tr>
+<tr>
+<td><a NAME="Charge_Time"></a>Charge Time</td>
+<td>Time charged against allocation</td>
+</tr>
+<tr>
+<td><a NAME="VV_Status"></a>V&amp;V State</td>
+<td><a href="/soft/op/op_olist.html#VV_Status">Verification &amp; Validation state</a> of Automated Processing data products:
+<dl>
+<dt><b>NULL:</b> No V&amp;V Report available yet
+<dt><b>OK:</b> Approved for distribution
+<dt><b>Hold:</b> Internal DS hold
+<dt><b>Problem:</b> Referred to CDO
+<dt><b>Repr+DD:</b> Reprocessing required but distribution approved
+<dt><b>ReprNoDD:</b>Reprocessing required; do not distribute
+</dl>
+</td>
+</tr>
+<tr>
+<td><a NAME="VV_Version"></a>V&amp;V Version</td>
+<td>Version of Verification &amp; Validation of processing</td>
+</tr>
+<tr>
+<td><a NAME="VV_Date"></a>V&amp;V Date</td>
+<td>Date of Verification &amp; Validation. Creation date for those awaiting V&amp;V, CDO review or Aspect Review.  Completion date for those awaiting data distribution or SAP.</td>
+</tr>
+<tr>
+<td><a NAME="DD_Date"></a>Data Distr Date</td>
+<td>Data delivery date: Date PI was notified of data being available </td>
+</tr>
+</table>
+
+</div>
+
+</body>
+</html>
+

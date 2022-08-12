@@ -1,0 +1,35 @@
+
+body {
+        background-color: #eaeaea;
+        width: 99%;
+        font-family: Tahoma, Arial, Helvetica, sans-serif;
+}
+
+.lblclass {
+  color: black;
+  font-weight: normal;
+}
+.fshelp {
+  margin-bottom:10px;
+}
+
+.elehelp{
+  padding-bottom:10px;
+}
+.lblhelp {
+  font-weight:bold;
+}
+ 
+.warnmsg {
+  color:#ad0000;
+}
+
+
+a {
+color:navy;
+text-decoration:none;
+}
+a:hover {
+text-decoration:underline;
+}
+

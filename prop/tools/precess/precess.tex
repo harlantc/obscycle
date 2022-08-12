@@ -1,0 +1,291 @@
+\documentstyle[12pt]{article}
+\hoffset -0.5truein
+\voffset -0.5truein
+\textheight 8.0truein
+\textwidth  7.0truein
+\newcommand{\pr}{{\it precess}~}
+\newcommand{\prompt}{Precess$>$:~}
+\begin{document}
+
+\title {The \pr program}
+
+\author{Jonathan McDowell}
+
+\date{1989 Feb 27}
+
+
+\maketitle
+
+
+
+
+\section{Introduction}
+
+\pr is an interactive astronomical coordinate conversion
+program. It allows not only precession of equatorial coordinates
+but conversion between equatorial, ecliptic, galactic and supergalactic
+coordinates.
+
+\section{ Using \pr interactively}
+
+Type \pr to run the program in interactive mode.
+You will enter the \pr {\bf command level} which allows you to set the
+program parameters. You know you are at the command level when you see the
+prompt
+\begin{quote}
+\prompt
+\end{quote}
+
+To see a list of available commands, type {\bf ?} or {\bf help}. The most
+usual command sequence is to use {\bf from, to}, and {\bf convert},
+ which may be abbreviated
+{\bf f},{\bf t}, and {\bf c}. {\bf from} and {\bf to} 
+define the input and output coordinate systems,
+and {\bf c} enters the {\bf processing level}. 
+Example 1: Precess equatorial coordinates from 1950 to 1986. \begin{quote}
+\prompt f B1950 t B1986
+
+\prompt c \end{quote}
+
+Example 2: Convert galactic coords to J2000 equatorial coordinates \begin{quote}
+\prompt f g t j;c
+
+or alternatively and equivalently,
+
+\prompt from galactic to J2000
+
+\prompt convert \end{quote}
+
+
+Once you type {\bf c} or {\bf convert}, you will be 
+in the processing level, and you will see a message explaining the coordinate
+input format and then the processing level prompt. The processing level
+prompt is the name of the input system's `x-coordinate'. You then 
+type in the coordinates in the appropriate format, either both coordinates
+on the same line or x-coordinate on one line and y-coordinate on the next.
+In the latter case you will be prompted with the name of the y-coordinate
+at the beginning of the second line.
+
+
+Example 1: entering a pair of equatorial coordinates\begin{quote}
+RA (B1950): 02 20 20.1 -00 00 23.3
+\end{quote}
+Example 2: entering a pair of galactic coordinates\begin{quote}
+L: 97.74 -60.18
+\end{quote}
+
+RA and Dec are assumed by default to be in the format of Example 1,
+i.e. hh mm ss.ss dd mm ss.ss, while other coordinate systems
+are assumed by default to be in the format of Example 2, i.e.
+in decimal degrees.
+
+The program then writes out the input coordinates and corresponding
+output coordinates. You are recommended to check the input coordinates
+against the ones you typed in to verify that they were correctly read.
+
+To leave the processing level and return to the command level, type
+{\bf q} or {\bf quit} in response to the processing level prompt.
+{\bf q} or {\bf quit} issued at the command 
+level will leave the program entirely.
+
+
+There is one other command; {\bf list} or {\bf l} displays the
+current settings of the program.
+
+\section{Available coordinate systems}
+
+\subsection{Equatorial coordinates}
+
+Equatorial coordinates consist of a longitudinal Right Ascension (RA,$\alpha$) and 
+a latitudinal Declination
+(Dec, $\delta$). The plane of zero declination is the projection of 
+Earth's equator onto the celestial sphere, and the zero of RA is marked
+by the intersection of the ecliptic (Earth orbital) plane with the equatorial
+plane. This definition depends on epoch because of precession; its practical 
+implementation also depends on the set of fundamental reference stars used
+to measure coordinates. There are two fundamental frames of reference
+currently in use; the FK4 and FK5 systems. The FK4 system is tied
+to the equatorial coordinate system for Besselian epoch B1950.0, while
+the more accurate FK5 system currently
+being introduced is tied to the equatorial system for Julian epoch J2000.0.
+While the coordinate system in most widespread use among astronomers is the B1950.0 system
+of equatorial coordinates, the IAU have recommended that J2000.0 coordinates be used
+from now on. For example, Space Telescope proposals are required in J2000 coordinates.
+
+Note that since the FK4 and FK5 reference frames rotate relative to one another,
+the transformation from B1950 to J2000 affects not only the coordinates but
+the proper motions of stars. An object with zero proper motion in B1950 will
+have a nonzero proper motion in J2000 and vice versa. Since this program does not deal with 
+proper motions, coordinate conversions have been adopted which assume that
+the object in question has zero proper motion in the J2000 system.  (Since
+it was designed with extragalactic objects in mind which have effectively
+zero proper motion in the real world, and J2000 is meant to be a better approx
+to the real world than B1950, this is the sensible thing to do.) If you want to
+deal with proper motions and need to do proper positions (eg for pulsar
+astrometry or something), there are FORTRAN routines which can do this, available
+from this author (mail to mcdowell@cfa). 
+
+Note further, however, that the difference between J2000 and B2000 is typically
+less than one arc second. High Energy astrophysicists, therefore, need not worry
+about the difference. But we might as well use the Right Thing, which IAU deems
+to be J2000.
+
+The default FROM and TO systems for \pr are B1950 and J2000 respectively.
+Precession from an arbitrary B epoch to and arbitrary J epoch is done 
+in three stages, Bxxxx to B1950 to J2000 to Jyyyy, but this is transparent to
+the user. Precession from Bxxxx to Byyyy is done directly.
+
+To select a coordinate system, give the name of the epoch, e.g.
+{\bf FROM B1979.0} or {\bf FROM J1990.0}. The format of the 
+numerical epoch is unimportant (i.e. B1979=B1979.0=b1979.00) but there
+must not be any spaces between the B or J and the number. 
+
+B and J are provided
+as synonyms for B1950 and J2000. C is provided as a further synonym for B1950
+for people who think of this system as 'celestial' coordinates.
+
+\subsection{Galactic coordinates}
+
+Defined conceptually by the Galactic plane and the Galactic centre,
+galactic longitude $l$ and galactic latitude $b$ are the IAU 1958 system, formerly
+called $l_{II}$ and $b_{II}$. Noone should be using the old ones by now so I have ignored
+them. The system is defined in terms of B1950 equatorial coordinates as
+RA of (l=0) = 192.25 degrees, inclination of galactic equator to B1950 equator = 62.6 
+degrees, longitude of ascending node 33 degrees. 
+
+\begin{center}
+\begin{tabular}{rrrrrr}
+\multicolumn{2}{c}{Galactic l,b}
+&\multicolumn{2}{c}{ B1950 RA,Dec }
+&\multicolumn{2}{c}{ J2000 RA,Dec }\\
+\hline
+0&0& 17 42 26.58 &-28 55 00.43 &17 45 37.20&-28 56 10.22\\
+0&+90& 12 49 00.00 &+27 24 00.00 &12 51 26.28 &+27 07 41.70\\
+33.0&0&18 49 00.00&00 00 00.00&18 51 33.73& +00 03 38.13\\
+123.0&+27.4&00 00.00 00&+90 00 00.00&12 01 16.85&+89 43 17.74\\
+\end{tabular}
+\end{center}
+
+The J2000 north celestial pole is at l=122.932, b=27.128.
+
+To select galactic coordinates, use from/to option {\bf G} or {\bf Galactic}.
+
+\subsection{Supergalactic coordinates}
+
+With the advent of large scale structure studies, the supergalactic
+coordinate system introduced by de Vaucouleurs is coming into more
+widespread use. The supergalactic equator is conceptually defined
+by the plane of the local (Virgo-Hydra-Centaurus) supercluster, and the
+origin of supergalactic longitude is at the intersection of the 
+supergalactic and galactic planes.
+Supergalactic longitude and latitude SGL,SGB are
+defined by
+\begin{quote}
+SGL=0 at l=137.37
+
+SGB=90 at l=47.37 b=6.32
+\end{quote}
+so
+\begin{center}
+\begin{tabular}{rrrrrr}
+\multicolumn{2}{c}{  SGL,SGB}
+&\multicolumn{2}{c}{Galactic l,b}
+&\multicolumn{2}{c}{ J2000 RA,Dec }\\
+ \hline
+0&0& 137.37& 0 & 02 49 14.43&+59 31 42.05\\
+0&+90& 47.37& +6.32& 18 55 00.98 & +15 42 32.17\\
+90.0&6.32 & 0& +90&12 51 26.28&+27 07 41.70\\
+\end{tabular}
+\end{center}
+
+To select supergalactic coordinates, use from/to option {\bf SG}.
+
+
+\subsection{Ecliptic coordinates}
+
+Ecliptic coordinates are defined by the earth's orbital plane.
+The B1950 north ecliptic pole is at B1950 RA 18 00 00, Dec +66 33 15
+The zeroes of ecliptic longitude and B1950 RA coincide.
+
+To select ecliptic coordinates, use from/to option {\bf EC}.
+
+Ecliptic coordinates are weakly epoch dependent, so you may wish
+to use a specific epoch to define the orbital plane rather than 
+the default B1950.0. To select Besselian epoch Bxxxx, use
+the from/to option ECxxxx. Julian epochs are not provided.
+EC is equivalent to EC1950.
+
+\subsection{Constellations}
+
+You can get the constellation in which a position lies.
+For example: 
+precess f b t con
+will prompt you for B1950 positions. They are precessed
+to B1875.0 and compared with the Delporte (1935) constellation
+definitions which are read in from a library file, \$JCMLIBDATA/Constellations
+and \$JCMLIBDATA/Constellation.parallels.
+
+\subsection{Changing the output format}
+
+Coordinates can be read an written either in 
+sexagesimal (``Shh mm ss.ss'') or decimal degree (``Sddd.ddd'')
+formats. Each coordinate system adopts one format as default
+(sexagesimal for equatorial coordinates, decimal degree for
+galactic coordinates, etc.) To override the default, specify
+`/DEG' or `/HMS' appended to the coordinate system, for instance 
+{\bf FROM B1979.0/DEG} or {\bf TO G/HMS}.
+
+\section{Using \pr on a file}
+
+You can convert a file of coordinates if it is in a format
+that \pr can read. Here is an example file format when
+the input system uses ``hh mm ss.ss'' format:
+
+\begin{verbatim}
+00 01 12.3 -00 02 23.4
+02 59 59.9  23 12 22.1
+02 23 0  11 23 12
+23 48 48.23 -2 11 14.123
+\end{verbatim}
+
+To transform this file from B1950 to galactic coordinates,
+type \begin{quote} \pr {\it t g:bfile:gfile}\end{quote}
+where {\it bfile} is the file and {\it gfile} is the output file,
+which will contain:
+
+\begin{verbatim}
+RA  (B1950)         Dec (B1950)         L                   B
+00 01 12.30   -00 02 23.40               98.275        -60.331
+02 59 59.90    23 12 22.10              158.172        -30.327
+02 23 00.00    11 23 12.00              156.571        -45.016
+23 48 48.23   -02 11 14.12               90.687        -60.963
+23 48 48.23   -02 11 14.12               90.687        -60.963
+\end{verbatim}
+
+The general syntax is 
+\begin{quote} \pr  commands:infile:outfile \end{quote}
+where {\it commands} is a string of \pr commands separated
+by spaces, and the input and output files default to 
+standard input and output. The {\bf c} command is assumed automatically,
+as are {\bf q} commands at the end, so {\it commands} usually
+consists of a {\bf from/to} specification. The default is B1950 to J2000,
+so to convert the above file to J2000 would require
+\begin{quote} \pr {\it :bfile:jfile}\end{quote}
+Note the colons separating the absent first
+argument from the second (input file) argument.
+To go from B1979.0 to B1950.0, you might use
+\begin{quote} \pr {\it f B1979 t B1950:bfile:newfile}\end{quote}
+
+
+This syntax is also useful for interactive mode, to go directly into
+the processing level. For example:
+\begin{quote} \pr {\it from g to b list}\end{quote}
+where the {\bf list} command makes the program echo
+the choice of input and output system to the terminal prior to
+the start of processing.
+
+\section{Bugs}
+
+Please report all bugs to me, preferably by email (jmcdowell@cfa.harvard.edu).
+Comments on the documentation are also welcome.
+\end{document}

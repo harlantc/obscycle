@@ -1,0 +1,113 @@
+===============================================================================
+
+	            HELP FILE for prop_read_prelim
+
+===============================================================================
+
+
+General
+-------
+
+The prop_read_prelim application reads all files in the specified
+(-in) directory. It reads the formatted files and stores the preliminary
+grades for each proposal.
+After all the files are read, it calculates the average and standard deviation
+of the grades for each proposal and writes this data to a panel##.prg file.
+In addition a panel##.gra file is written which displays all the
+grades received for every proposal on the panel.
+
+
+PARAMETERS
+----------
+
+Use proposals that match the following criteria:
+-in  <input directory>  REQUIRED - input directory path for preliminary
+                                   grades files.
+-out <output directory> OPTIONAL - output directory path for preliminary
+                                   grades results.
+                                   Default is current directory.
+-panel <integer>        OPTIONAL - maximum number of panels, default is 15
+-prop  <integer>        OPTIONAL - maximum number of proposals per panel,
+                                   default is 100
+
+
+-U [user]       REQUIRED  - proposal database user name
+-S [server]     OPTIONAL  - proposal database server 
+                            default is ASCDS_SQLOC_SERVER
+-p              OPTIONAL  - print parameters
+
+
+
+INPUT/OUTPUT
+-------------
+
+1) STDIN:  
+
+   >Enter Password:  User must enter password for access to the database.
+
+2) Input Files: 
+
+   Files containing formatted Preliminary Grades data.
+   The format should match the email version as described in the 
+   prop_email_forms.hlp file.
+
+   Required key words are:
+     Review: Preliminary Grades
+     Panel
+
+   Format:
+     Proposal#  P.I.              Grade
+     ---------  ---------------   -----
+
+
+
+3) Output Files:  None
+
+   panel##.prg file is a formatted file which can be imported into the
+   Excel spreadsheet.  It is a tab delimitered file with the following
+   columns: proposal number, #grades received, average, standard deviation.
+
+
+   panel##.gra file is a formatted file which can be imported into the
+   Excel spreadsheet.  It is a tab delimitered file with the following
+   columns: proposal number, #grades, all grades separated by spaces.
+
+
+4) Output Files for Archive: 
+
+   N/A
+
+
+SETUP AND USAGE
+---------------
+
+prop_read_prelim uses the environment variables that are set in the file 
+'ascds_setup_prop' and 'ascds_setup_db'.  These proposal environment 
+variables include :
+
+        ASCDS_PROP_DIR       - top level proposal directory
+        ASCDS_PROP_AO        - current open proposal cycle number
+        ASCDS_SQLOC_SERVER   - database sybase server.
+
+The user should not ordinarily change their values. 
+
+Only those users having permissions to read proposals should have access to
+the proposal database and any files that contain proposal data.
+All files created should belong to the group 'prop'.  Permission should
+be set so that only the owner and group have permissions to access these
+files.  If you need access, contact the system administrator.
+
+
+
+
+DETAILED DESCRIPTION - GENERAL INSTRUCTIONS
+-------------------------------------------------------------------
+
+RESTRICTIONS
+------------
+
+REFERENCES
+----------
+
+See the Proposal section of the Data System Software Design Document 
+(DS01) for more detail about the proposal submission cycle. 

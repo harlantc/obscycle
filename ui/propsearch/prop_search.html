@@ -1,0 +1,137 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+<head>
+  <title>Chandra Proposals</title>
+<!--#include virtual="/soft/include/cxcds_meta.html"-->
+<meta name="title" content="Chandra Proposal Search"> 
+  <link rel="stylesheet" href="/soft/include/cxcds.css" type="text/css" media="screen">
+  <link rel="stylesheet" href="/soft/propsearch/prop_search.css" type="text/css">
+  <script type="text/javascript" language="javascript" src="/soft/propsearch/prop_search.js"></script>
+</head>
+<body onload="addYears();">
+<div class="topDiv">
+<div id="cxcheader">
+  <div class="propheaderleft">
+       <a href="/index.html"> <img id="spacecraft" src="/soft/include/cxcheaderlogo.png"  alt="Chandra X-Ray Observatory (CXC)"></a>
+  </div>
+  <div class="propheadercenter"> Chandra Accepted Proposal Search 
+  </div>
+<!--
+  <div class="propheaderright" >
+     <a class="hdrlink" href="/soft/propsearch/prop_help.html">Help</a>
+  </div>
+-->
+</div>
+  
+<div class="formDiv">
+<form name="atsearch" method=post action="/cgi-bin/propsearch/prop_search.cgi">
+<p>
+<p>
+<fieldset class="fieldset">
+<legend class="legend">Search Criteria</legend>
+<table cellspacing="0" cellpadding="5">
+<tr>
+<td><b><a href="prop_help.html#cycle">Cycle</a></b>: </td><td><select id="cycle" name="cycle" multiple size=4>
+</select>
+</td>
+</tr>
+<tr>
+<td><b><a href="prop_help.html#type">Proposal Type</a></b>: </td>
+<td> 
+<table class="tableopt" >
+<tr>
+<td><input type="checkbox" name="GO">GO</td>
+<td><input type="checkbox" name="LP">LP</td>
+<td><input type="checkbox" name="VLP">VLP</td>
+<td><input type="checkbox" name="XVP">XVP</td>
+<td><input type="checkbox" name="TOO">TOO</td>
+<td><input type="checkbox" name="DDT">DDT</td>
+</tr><tr>
+<td><input type="checkbox" name="GTO">GTO</td>
+<td><input type="checkbox" name="CCT">CCT</td>
+<td><input type="checkbox" name="CAL">CAL</td>
+<td><input type="checkbox" name="ARC">Archive</td>
+<td><input type="checkbox" name="THE">Theory</td>
+<td><input type="checkbox" name="CECS">CECS</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td><b><a href="prop_help.html#propnum">Proposal Number</a></b>: </td><td><input type="text" name="propnum" size=15 maxlength=15></td>
+</tr>
+<tr>
+<td><b><a href="prop_help.html#last">P.I. Last Name</a></b>: </td><td><input type="text" name="pilast" size=15 maxlength=30> </td>
+</tr>
+<tr>
+<td><b><a href="prop_help.html#joint">Joint</a></b>: </td><td>
+<table class="tableopt" >
+<tr>
+<td><input type="checkbox" name="None">None</td>
+<td><input type="checkbox" name="HST">HST</td>
+<td><input type="checkbox" name="NOAO">NOAO</td>
+<td><input type="checkbox" name="NRAO">NRAO</td>
+<td><input type="checkbox" name="NuSTAR">NuSTAR</td>
+</tr><tr>
+<td><input type="checkbox" name="RXTE">RXTE</td>
+<td><input type="checkbox" name="Spitzer">Spitzer</td>
+<td><input type="checkbox" name="Suzaku">Suzaku</td>
+<td><input type="checkbox" name="Swift">Swift</td>
+<td><input type="checkbox" name="XMM">XMM</td>
+</tr></table>
+</td></tr>
+</table>
+</fieldset>
+<p>
+<b><a href="prop_help.html#sort">Sort by</a>: </b>&nbsp;&nbsp;&nbsp;
+<select name="order_one">
+<option value="ocat_propid">None
+<option value="ao_str">Cycle
+<option value="joint">Joint
+<option value="last">Last Name
+<option value="prop_num" selected>Proposal Number
+<option value="proposal_type">Type
+</select>
+&nbsp;
+<select name="order_two">
+<option value="ocat_propid" selected>None
+<option value="ao_str">Cycle
+<option value="joint">Joint
+<option value="last">Last Name
+<option value="prop_num" >Proposal Number
+<option value="proposal_type">Type
+</select>
+<input type="radio" name="sort_type" value="asc">ascending
+<input type="radio" name="sort_type" value="desc" checked>descending
+<p>
+<b><a href="prop_help.html#display">Display</a>: </b>&nbsp;&nbsp;&nbsp;
+Format:
+<select name="output_format" >
+<option value="html">HTML
+<option value="text">Text
+</select> &nbsp;&nbsp;&nbsp;
+Row Limit: 
+<select name="row_limit" >
+<option value="25">25
+<option value="50">50
+<option value="100" selected>100
+<option value="200">200
+<option value="500">500
+</select>
+<p>
+<div class="btnDiv">
+<input class="submitBtn" type=submit value="Search" name="Submit" >
+&nbsp;&nbsp;&nbsp;&nbsp;
+<input  class="submitBtn"type=reset value="Clear" name="Reset" >
+</div>
+</form>
+<p>
+</div>
+</div>
+<div class="footerDiv">
+
+<!--#include virtual="/soft/include/cxcfooter.html"-->
+
+</div>
+</body>
+</html>

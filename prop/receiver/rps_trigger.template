@@ -1,0 +1,27 @@
+%s: Peer-reviewed TOO Trigger request from %s; Paging urgency %s.
+
+Status for tag number: %d
+
+Observation Sequence Number: %s 
+
+%s 
+%s 
+
+%s
+
+[x] First Notification
+[] Acknowledged, Pending
+[] Approved 
+[] NOT Approved
+[] Request Withdrawn
+
+
+%s
+
+
+POC: %s
+OCC PPOC: 1-617-496-7245
+
+%s
+
+%s

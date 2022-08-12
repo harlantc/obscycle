@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE table SYSTEM "table.dtd">
+
+<table name="soe" key="row_id">
+  <column name="row_id">
+    <type>INTEGER</type>
+    <tooltip>Row Identifier</tooltip>
+  </column>
+  <column name="obsid">
+    <type>INTEGER</type>
+    <tooltip>Observation Identifier</tooltip>
+  </column>
+  <column name="counter">
+    <type>INTEGER</type>
+    <tooltip>Counter</tooltip>
+  </column>
+  <column name="seq_nbr">
+    <type>STRING</type>
+    <tooltip>Sequence Number</tooltip>
+  </column>
+  <column name="obi">
+    <type>INTEGER</type>
+    <tooltip>Assigned observation interval</tooltip>
+  </column>
+  <column name="st_sched_date">
+    <type>DATE</type>
+    <tooltip>Scheduled Start Time</tooltip>
+  </column>
+  <column name="end_sched_date">
+    <type>DATE</type>
+    <tooltip>Scheduled End Time</tooltip>
+  </column>
+  <column name="sched_exp_time">
+    <type>DOUBLE</type>
+    <tooltip>Scheduled Exposure Time</tooltip>
+  </column>
+  <column name="soe_roll">
+    <type>DOUBLE</type>
+    <tooltip>Scheduled Roll Angle</tooltip>
+  </column>
+  <column name="quat0">
+    <type>DOUBLE</type>
+    <tooltip>Quaternion 0</tooltip>
+    <number>
+      <format>0.000000</format>
+    </number>
+  </column>
+  <column name="quat1">
+    <type>DOUBLE</type>
+    <tooltip>Quaternion 1</tooltip>
+    <number>
+      <format>0.000000</format>
+    </number>
+  </column>
+  <column name="quat2">
+    <type>DOUBLE</type>
+    <tooltip>Quaternion 2</tooltip>
+    <number>
+      <format>0.000000</format>
+    </number>
+  </column>
+  <column name="quat3">
+    <type>DOUBLE</type>
+    <tooltip>Quaternion 3</tooltip>
+    <number>
+      <format>0.000000</format>
+    </number>
+  </column>
+  <column name="rec_id">
+    <type>STRING</type>
+    <tooltip>Record Type</tooltip>
+  </column>
+  <column name="req_id">
+    <type>STRING</type>
+    <tooltip>Request ID</tooltip>
+  </column>
+</table>
+

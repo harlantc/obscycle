@@ -1,0 +1,248 @@
+#!@PERLDB@ 
+# 
+#*H****************************************************************************
+#* Copyright (c) 1995, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_panel_stats.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#	This script executes the panel statistics stored procedure and
+#	displays the output.
+#
+#* NOTES:
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use vars qw ($dbh %param @reqfiles $reqfile
+	);
+
+use Getopt::Long;
+use DBI;
+use strict;
+use lib $ENV{'ASCDS_BIN'};
+
+@reqfiles = (
+        "prop_routines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+
+# -------------------------- MAIN ----------------------------------
+{
+  my($dsn,$stmp,$idx,@row,$sth,$sql);
+
+  &parse_input;
+
+
+  #database connection
+  $dbh = dbProposalConnection($param{U}, $param{S}, $param{q});
+
+  $stmp = get_date();
+
+
+  open OFILE,">$param{o}";
+  printf OFILE "%-50.50s          $stmp\n\n",
+	"Chandra Cycle $param{a} Panel Statistics";
+  printf OFILE "                Constr  TOO Response Type                                        Unassigned\n";
+  if (int($param{a}) > 16) {
+    printf OFILE "Panel #Prop #Tgt  #Tgt #Alt  0-5 5-15 15-30 >=30  Joint GO GTO  LP VLP ARC THE    #Pri #Sec\n";
+  } elsif (int($param{a}) > 12 && int($param{a}) < 17) {
+    printf OFILE "Panel #Prop #Tgt  #Tgt #Alt  0-4 4-15 15-30 >30  Joint GO GTO  LP XVP ARC THE    #Pri #Sec\n";
+  } else {
+    printf OFILE "Panel #Prop #Tgt  #Tgt #Alt  0-4 4-12 12-30 >30  Joint GO GTO  LP VLP ARC THE    #Pri #Sec\n";
+  }
+  printf OFILE "----------------------------------------------------------------------------------------------\n";
+
+  $sql = qq(select panel_name,panel_id from panel,ao where 
+		panel.ao = ao.ao_id and
+	        panel_name != "BPP" and 
+		ao_str = "$param{a}");
+
+  $sth = $dbh->prepare($sql);
+  #print STDERR "$sql\n";
+  $sth->execute();
+  while (@row = $sth->fetchrow_array()) {
+     do_stats (@row);
+  }
+
+  &do_alternates();
+
+  close OFILE;
+
+}
+
+sub do_stats {
+  my($panelName,$panelId) = @_;
+  my($sth2,@row,$sql);
+
+ $sql = qq(exec pub_panel_statistics $panelId);
+ #print STDERR "$sql\n";
+ $sth2 = $dbh->prepare($sql);
+ $sth2->execute() or die ($sth2->errstr());
+ while (@row = $sth2->fetchrow_array) {
+ printf OFILE  "%-5s %4d %4d %6d  %3d  %3d  %3d   %3d %3d  %3d  %3d %3d %3d %3d %3d %3d      %2d   %2d\n",
+	$panelName,$row[0], $row[1], $row[2], $row[16],
+	$row[3], $row[4], $row[5], $row[6], 
+	$row[7], $row[11], $row[12], $row[8], $row[13], $row[9], $row[10],
+	$row[14], $row[15],
+ }
+$sth2->finish;
+}
+
+sub do_alternates() 
+{
+  my($sql,$sth,@row);
+  my(%tvf,%tfast,%tmed,%tslow,$pkey);
+
+  $sql = qq(select proposal_number,group_name,too.type,count(target.targid) "#Targets" 
+	from target,proposal,alternate_target_group alt,too
+	where proposal.proposal_id = target.proposal_id
+	and target.alternate_id = alt.alternate_id
+	and target.targid = too.targid
+	and ao_str="$param{a}"
+	group by proposal_number,group_name,too.type);
+  $sth = $dbh->prepare($sql);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+     $pkey = $row[0] . $row[1];
+     if ($row[2] =~ /-4/) {
+        $tvf{$pkey} = $row[3];
+     } elsif ($row[2] =~ /-5/) {
+        $tvf{$pkey} = $row[3];
+     } elsif ($row[2] =~ /-12/) {
+        $tfast{$pkey} = $row[3];
+     } elsif ($row[2] =~ /-15/) {
+        $tfast{$pkey} = $row[3];
+     } elsif ($row[2] =~ /-30/) {
+        $tmed{$pkey} = $row[3];
+     } else {
+        $tslow{$pkey} = $row[3];
+     }
+  }
+     
+
+    
+
+  print OFILE "\n\nAlternate Target Information:\n";
+  if (int($param{a}) > 16) {
+    printf OFILE ("%5.5s  %8.8s  %-30.30s  %8s  %5s  %3s %4s %5s %3s\n",
+	"Panel","Proposal","Alt. Group Name","#Targets","#Trig",
+	"0-5","5-15","15-30",">=30");
+  } elsif (int($param{a}) > 12) {
+    printf OFILE ("%5.5s  %8.8s  %-30.30s  %8s  %5s  %3s %4s %5s %3s\n",
+	"Panel","Proposal","Alt. Group Name","#Targets","#Trig",
+	"0-4","4-15","15-30",">30");
+  } else {
+    printf OFILE ("%5.5s  %8.8s  %-30.30s  %8s  %5s  %3s %4s %5s %3s\n",
+	"Panel","Proposal","Alt. Group Name","#Targets","#Trig",
+	"0-4","4-12","12-30",">30");
+  }
+  printf OFILE ("%5.5s  %8.8s  %-30.30s  %8s  %5s  %3s %4s %5s %3s\n",
+	"-----", "--------","------------------------------","--------","-----",
+	"---","----","-----","---");
+
+
+  $sql = qq(select panel_name,proposal_number,group_name,
+	count(targid),
+	requested_count
+	from target,proposal,alternate_target_group alt,
+	panel_proposal pp, panel
+	where proposal.proposal_id = target.proposal_id
+	and target.alternate_id = alt.alternate_id
+	and proposal.proposal_id = pp.proposal_id
+	and pp.panel_id = panel.panel_id
+	and ao_str="$param{a}"
+	group by panel_name,proposal_number,group_name,requested_count
+	order by panel_name,proposal_number,group_name);
+  $sth = $dbh->prepare($sql);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+     $pkey = $row[1] . $row[2];
+     printf OFILE "%5.5s  %8.8s  %-30.30s  %8d  %4d   %3.3s %4.4s %5.5s %3.3s\n",@row,
+	$tvf{$pkey},$tfast{$pkey},$tmed{$pkey},$tslow{$pkey};
+  }
+
+
+}
+
+
+
+
+# ----------------------------------------------------------
+# parse input parameters
+# ----------------------------------------------------------
+sub parse_input
+{
+  my ($pwd);
+  my $err = 0;
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+	     o=> undef,
+             a=> "$ENV{ASCDS_PROP_AO}",
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "a=s",
+          "q=s",
+          "o=s",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter '$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+  $param{q} = $pwd;
+
+}
+
+sub usage
+{
+    print STDERR "\nUSAGE: prop_panel_stats.pl -U -o [ -S -a ]\n";
+    print STDERR "       -U database user name\n";
+    print STDERR "       -o output filename \n";
+    print STDERR "       -S database server, default is DB_PROP_SQLSRV\n";
+    print STDERR "       -a AO , default is ASCDS_PROP_AO\n";
+}
+

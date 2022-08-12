@@ -1,0 +1,381 @@
+===============================================================================
+
+		            HELP FILE for obscat_editor
+
+===============================================================================
+
+obscat_editor
+-------------
+
+The obscat_editor addresses SE03 requirement 5.2.2.1 [Mission Planning
+Functional Requirements, Manage Observations, item #10].  The text of
+the requirement is "The ASCDS shall accept ASC staff input of, and
+modifications to, any of the parameters of an observation in the ObsCat."
+The requirement is met by the ObsCat Editor, which supports the creation,
+editing, and deletion of ObsCat entries, and is governed by the database
+permissions.  
+
+The obscat_editor was not fully conceived at the time of the Data System 
+Software Design Document (DS01) writing, although some of the functionality 
+included in the application is described in Appendix C, on the page 
+containing Figure C-55.
+
+
+PARAMETERS
+----------
+
+For standard usage, the command line syntax is:
+
+  obscat_editor
+    or
+  obscat_editor -U <username> -S <servername>
+    where the default servername is ocatsqlsrv
+
+For more advanced usage, the command line syntax is:
+
+  obscat_editor [-h] [-d] [-j vm-path] [-s servlet-engine-url]
+                [-c class-path] [-o obsed-jar-url]
+                [-U username] [-S servername]
+
+   -h                 help - display this message
+   -d                 debug - provide debugging support
+   -j vm-path         Use the given path to the Java VM
+    default = /soft/jdk1.2.2/jre/bin/java
+   -s servlet-engine  Use the given URL for the servlet engine
+    default = http://asc.harvard.edu
+   -c class-path      The class path
+    default = /home/ascds/DS.release/www/htdocs/soft/java_class:{JCONNECT}:{XML}
+   -o obsed-jar-url   The url for the ObsCat Editor jar file
+    default = http://asc.harvard.edu/soft/obsed.jar
+   -U username        The DB user name
+   -S servername      The DB server name
+
+
+There is no parameter file (.par) associated with the obscat_editor.
+
+
+INPUT/OUTPUT
+-------------
+
+1) Input Data Files: 
+
+None; all user input is received through the GUI.  
+
+
+2) Output Data Files:
+
+None; all user output is currently displayed through the GUI.
+Printing may be supported in a future release.
+
+
+3) Output Data Files for Archive:
+
+None; the GUI writes directly to the database.
+  
+
+SETUP AND USAGE
+---------------
+
+Prerequisites:
+The prerequisite is to establish authorization at the database level.
+
+Obtain a personal database account and password from the archive scientist
+on the appropriate SQL server for access to the axafocat.  The account
+must have "editor_role" as a Configured Authorization.  [The dsql command
+"sp_displaylogin;" can be used to determine the Configured Authorization.
+First invoke dsql as follows: dsql -U <username> -S <SQL servername
+such as ocatsqlsrv>.  Then enter the "sp_displaylogin;" command.]
+
+In addition, copies of axafocat (i.e. on SQL test servers other than the 
+production server) must be kept up-to-date with the release.  This means
+that the database structure, stored procedures, etc. must reflect the 
+latest release.  The data itself does not need to be consistent, and
+may vary from copy to copy.
+
+For developers and testers (already taken care of for users):
+There is also a fonts package which is suggested to be patched into your
+machine's operating system - it is one file which can be done upon request
+to syshelp (ask that "SUNWilof" be installed on your machine).
+It is called the Latin 1 optional fonts package, named "SUNWi1of", and
+is suggested but not required for users of the ObsCat Editor.  The editor 
+works fine without it, but the optional package enhances the look of the 
+text.  If font messages appear in the startup window, then the patch is 
+suggested.
+
+
+Standard CXCDS Release Setup:
+The user only needs to set up for the standard CXCDS release.  The 
+obscat_editor is located in the /bin directory of the release.
+
+The obscat_editor is run as an application to avoid set up conflicts with
+other Java applications.  Users no longer need to point to the shared
+Java plug-in.  
+
+Note:	Do not run the obscat_editor from DS.daily because the databases are
+	updated with the new stored procedures, etc. at release time, not on a 
+	daily basis.
+
+
+Supported Platforms:
+The obscat_editor is supported solely on Sun Workstations, Solaris 2.6.
+Later versions of Solaris will be tested and supported as time permits.
+
+
+Environment Variables:
+The obscat_editor does not use any CXCDS environment variables.
+
+
+Execute the obscat_editor application:
+
+	obscat_editor 
+
+See the PARAMETER section above for more details on the usage syntax.
+
+
+DETAILED obscat_editor DESCRIPTION - GENERAL INSTRUCTIONS
+--------------------------------------------------------
+
+After you type "obscat_editor", the "DB Login Controls" will pop up, 
+prompting for Username, Password, and Server.  If you already specified your 
+username and server on the command line (using the -U and -S options), those 
+values will be preloaded in their popup fields.  You will always need to 
+supply your password.  Click "OK" when the three fields are filled correctly.
+
+The ObsCat Editor applet will popup. 
+
+The currently available menu functions are described below.
+
+  File:
+	Button		Description				
+	------		-----------				
+
+	Exit		Exits the obscat_editor application
+
+
+  View: 
+	Button		Description				
+	------		-----------				
+        Obs Forms >	Provides display of observation data in
+                        Form View format
+
+        Instrument      Provides display of instrument data in
+        Forms >	        Form View format
+
+        History         Provides history for changes to database records
+
+        Refresh View    Provides user with option to re-extract if desired,
+                        and automatically queries database and displays
+                        retrieved database field values
+
+        Rename View	Allows user to rename tab to help keep track of
+                        different views
+
+        Remove View     Removes view from display
+
+
+  Preferences:
+ 
+	Button		Description				
+	------		-----------				
+        Look and Feel >	Sets the GUI Look and Feel to mimic familiar choices
+
+        Tab Placement >	Sets the location of the tabs for the displays
+
+        Font Size >	Sets the size of the font
+
+
+  Security:
+ 
+	Button		Description				
+	------		-----------				
+        Login...	Provides a popup window to change username and/or 
+                        server
+
+  Help:
+
+	Button		Description
+	------		-----------
+	Help...		Displays this help file
+
+	About...	Displays basic development information
+
+
+The GUI layout for a generic Form-type View is described below:
+
+
+ Labels
+ ------
+ The current Database User, Database Server, and Database Name will be 
+ echoed on the display just under the menu headings.
+
+ When a form is displayed, it will have a tab at the bottom labeled 
+ "<description> Form" so that you can easily return to this view. 
+
+ The labels for the fields in the display will be either dark blue or red. 
+ Dark blue is the default indicating an editable field.  Red indicates that 
+ the field cannot be edited.  A field may be red for any or all of the 
+ following reasons: 
+  a) blocked field -
+     the field is updated automatically by the software and is not user 
+     selectable
+  b) locked record -
+     the record is locked because scheduling has already begun and the 
+     parameters can no longer be changed
+  c) inadequate permissions -
+     the given user does not have permissions to Update the table.column 
+     on the selected database
+
+
+ Navigation
+ ----------
+ The top portion of the form is a Navigator which allows you to scroll 
+ through (a view of) each entry.  You may either enter the key number
+ (such as ObsId) or navigate through the list.  A component in the middle
+ allows you to select the parameter which will serve as the index.
+
+ If the index is changed, the display will update so that the scrollable 
+ list of choices contains the values for the new index.
+
+ The entries are sorted by the parameter which has been selected as the index.
+
+ The << selection displays the first entry.
+ The <  selection decreases the index by one entry.
+ The middle box allows the selection of the exact Sequence Number or Obs ID.
+ The >  selection increases the index by one entry.
+ The >> selection displays the last entry.
+
+ To the right of the navigator is a lock icon.  The lock will appear closed
+ and red in color if the record has an entry in the "locked" table of the
+ database.  This means that all fields for the record are not editable.
+ The lock will appear open and dark blue in color if the record does not
+ have an entry in the locked table of the database.  In this case, some
+ fields will be editable and others will not, as described above in the
+ Labels section.  Also see the "Controls for Editing - delete" section
+ below for more information on prohibited actions.
+ 
+ 
+ Help
+ ----
+ ToolTip help text is available for each field by positioning the
+ mouse cursor over the text box or combo box.  The ToolTip help text, 
+ which includes a field description and format/unit information, will 
+ display for several seconds.
+
+
+ History
+ -------
+ A history of changes is available for each field by clicking the right
+ mouse button over the text box or combo box.  A popup then appears with
+ the text "View History", which can be selected by clicking the left 
+ mouse button.  The History Viewer popup then appears and displays 
+ the previous changes in a table format.  For each change, the table 
+ contains an entry indicating the username responsible for the change, 
+ the old value, the new value, and the date the change was made.
+
+
+ Controls Overview 
+ -----------------
+ The "Controls" section is located at the bottom of the Form.
+
+ The options are divided into sections for currently displayed records,
+ all previously and currently displayed records, and for new records.
+
+
+ Controls for Editing
+ --------------------
+
+ The options Save, Cancel, and Delete apply to changes made to the
+ currently displayed record.  The options Save All, Cancel All
+ apply to changes made to records in all of the views.
+
+ Save and Cancel:
+ Unsaved changes are indicated by a blue border around the field.
+ If the changes are canceled, the original values are restored from
+ the database and the blue outline disappears.  If the changes are 
+ saved to the database, the new values become part of the entry and 
+ the blue outline disappears.
+
+ Delete:
+ The delete function is executed upon command unless entries exist in 
+ the "mp" and "lookup" database tables for the given record.  A message
+ will be provided to the user, either to indicate successful deletion
+ or the blocking of the deletion.
+
+
+ Controls for Creating New entries
+ ---------------------------------
+
+ The "Clone this" option is a way to create a New Record.  Another option
+ is to start with a blank or "Null" form.
+
+ If the entry is an observation, then an observation will be created with a 
+ new sequence number.  It will be in the same subject category as the 
+ observation from which it was created.  This new observation is now 
+ displayed within the form.
+
+ {If you obtain an error "Stored procedure failure: -9999", it is most likely
+ because there is a problem with the parameters for the observation which you
+ are attempting to clone.  i.e. You may have found an observation with
+ conflicting parameter definitions which need to be resolved first.} 
+
+ If the entry is an instrument entry, then a new instrument entry with
+ the next highest available hrcid/acisid will be created.
+
+ A detailed description for creating Observation-type entries
+ (Obs Form -> Clone this) follows:
+
+ This view is used to create a new target record and, optionally, a new
+ prop_info record.
+
+ Note:	This clone process does not clone the content of the
+	"secondary tables": dither, rollreq, phasereq, etc.
+	Separate "New View" forms are provided for entering values into
+	these tables for newly created observations.
+
+ The "Target Table Fields" section of the form is used to select values for 
+ the new target record.
+
+ The "Ancillary Target Table Fields" section is not currently enabled.
+
+ The "Prop Info Table Fields" section is used to select values for
+ a new prop_info record.  To create a new record, select "NEW" in 
+ the Prop Info Id combo box.
+
+ Note:	The values in the "Prop Info Table Fields" section are only
+	editable when the Prop Info ID combo box is set to "NEW".
+
+ The response to pressing "Apply" in a NewView consists of one of the
+ following:
+
+   1) An error popup indicating a constraint violation, which must be
+      fixed before a new record can be created, or
+
+   2) An error popup indicating a database problem, or
+
+   3) A success popup indicating the new target table record ID, or
+
+   4) A success popup indicating both the new target table record ID and
+     the result from the attempt to create a new prop_info record.  If a
+     new prop_info record was, in fact, created, the new record ID is
+     indicated, otherwise the record ID which matched the selections in the
+     "Prop Info Table Fields" is displayed.  The displayed value replaces
+     the "NEW" in the Prop Info Id combo box.
+
+
+SIDE EFFECTS AND RESTRICTIONS
+-----------------------------
+
+At this time there are no major restrictions or usage caveats.
+Please see the Unit Development Folder indicated in the References
+section below to review the design details and list of planned
+updates.
+
+
+REFERENCES
+----------
+
+The ObsCat Editor Unit Development folder is available through
+a Web browser at
+ file:/proj/ascds/staff/UDF/ObsCycle/ObsEd/UDF.html
+
+<end>

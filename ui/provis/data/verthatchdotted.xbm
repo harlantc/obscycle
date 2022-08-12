@@ -1,0 +1,4 @@
+#define verthatchdotted_width 7
+#define verthatchdotted_height 6
+static unsigned char verthatchdotted_bits[] = {
+   0x00, 0x00, 0x00, 0x00, 0x00, 0x08 };

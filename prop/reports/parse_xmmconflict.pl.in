@@ -1,0 +1,141 @@
+#!@PERLDB@ 
+# 
+#*H****************************************************************************
+#* Copyright (c) 1995, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: parse_xmmconflict.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script reads the output from the 'propconflict -f peer' option
+#     and creates a table of xmm conflicts. 
+#     The report output is written to STDOUT.
+#
+#
+#     Sample line from propconflict -f peer:
+#---------------------------------------------------------------------------
+#
+#CONFLICTS FOR PROPOSAL 02100120
+#JANE S. SMITH, TEST TITLE FOR CHANDRA CYCLE 2 MULTIPLE TARGETS
+#---------------------------------------------------------------------------
+#
+#----------
+#Target 001 BIG STAR, 50.2 ks, ACIS-S(TE)/HETG,  02:08:56.3 -45:14:4.2
+#----------
+#
+#
+#XMM: NGC 2362, pri C, ao 0, 50000.00 ks, AO-1, 07:18:42.5 -24:57:15.8
+#
+#
+#---------------------------------------------------------------------------
+#
+#
+#  This routine will create output with the 
+#
+#  proposal#,target#,conflict info  
+#  where conflict info is the XMM line
+#
+#
+#* NOTES:
+#
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+use Getopt::Std;
+use strict;
+
+use vars qw( $opt_i $opt_a $infile @PNOtable @xx @jj
+	$theconflict @sort_PNOtable
+	$oldpno $pno $type $tname $tno
+	$ii $ll $jj $tt $xx
+	);
+
+# -------------------------------------------------------
+# MAIN
+# -------------------------------------------------------
+
+# this variable controls creation of the panel_conflicts.list file
+# used by prop_panel_create
+
+  getopts('i:a');
+  if (!$opt_i) {
+    print STDERR "Invalid number of arguments.\n";
+    &print_usage();
+    exit 0;
+  }
+
+
+  $infile = $opt_i;
+
+
+  open(INFILE,"< $infile") ||
+     die("Error: Unable to open $infile for reading: $!\n");
+
+  print STDOUT "                                   XMM Approved Observations\n";
+  print STDOUT "Proposal Tgt  Target Name          at or near the proposal coordinates\n";
+  print STDOUT "-----------------------------------------------------------------------------\n";
+
+  @PNOtable;
+  $oldpno = "";
+  while (<INFILE>) {
+    if ($_ =~ /CONFLICTS FOR PROPOSAL/ ) {
+       @xx = split;
+       $pno = $xx[3];
+    }
+    if ($_ =~ /Target/ ) {
+       @xx = split;
+       $tno = $xx[1];
+       $tname = "";
+       for ($ii=2;$ii<$#xx-4;$ii++) {
+         $tname .= " $xx[$ii]";
+       }
+       chop $tname;
+       @xx = split(/,/);
+       if ($#xx > 3) {
+         for ($ii=1;$ii < ($#xx-2);$ii++) {
+           $tname .= ",$xx[$ii]";
+         }
+       }
+    }
+    if ($_ =~ /XMM\: / && $_ !~ /no conflict/i && $_ !~ /Conflicts in/i) {
+       $theconflict = $_;
+       $theconflict =~ s/XMM\: //;
+       $tt = "$pno^$tno^$tname^$theconflict";
+       push @PNOtable,$tt;
+    }
+  }
+  close INFILE;
+
+  @sort_PNOtable = sort @PNOtable;
+  $oldpno="";
+  foreach $xx (@sort_PNOtable) {
+    @jj = split(/\^/,$xx);
+    if ($oldpno != $jj[0]) {
+      print STDOUT "\n";
+    }
+    printf STDOUT ("%-8.8s %-3.3s %-20.20s  %-s",
+	$jj[0],$jj[1],$jj[2],$jj[3]);
+    $oldpno = $jj[0];
+  }
+
+  
+    
+
+
+
+sub print_usage {
+
+
+  print STDERR "\nUSAGE: parse_xmmconflict.pl  -i filename  \n";
+  print STDERR "         -i  filename   output from -peer option of propconflict\n";
+  print STDERR "       Output is written to STDOUT.\n";
+}
+
+

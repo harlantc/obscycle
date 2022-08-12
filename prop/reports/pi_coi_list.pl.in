@@ -1,0 +1,199 @@
+#!@PERLDB@
+#*H************************************************************************
+#* Copyright (c) 2017, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: pi_coi_list.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script retrieve PI/COI info for a given list of proposals.  This 
+#     was mainly written to provide Harvey with the PI/CoIs for all proposals
+#     that would be in the BPP panel.  It is usually run before this panel
+#     is created.
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H************************************************************************
+
+
+BEGIN 
+{
+   $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use vars qw ($dbh  %param
+        );
+
+use DBI;
+use Getopt::Long;
+
+sub catch_warn {
+  my ($estr);
+  my($signame);
+
+  while ( $signame = shift) {
+     print "$signame\n";
+  }
+}
+# -------------------------- MAIN ----------------------------------
+{
+  my($dsn,$stmp,$idx,$str);
+
+  $SIG{__WARN__} = \&catch_warn;
+
+
+  &parse_input;
+
+  open OFILE,"> $param{o}" or die "Unable to open $param{o} for writing.\n";
+
+
+  #database connection
+  $stmp = "server=$param{S};database=proposal";
+  $dsn = "DBI:Sybase:$stmp";
+  $dbh = DBI->connect($dsn, $param{U}, $param{q}, {
+        AutoCommit => 1,
+        PrintError => 1,
+       RaiseError => 0});
+  if ( !defined $dbh) {
+    exit 1;
+  }
+
+  # read in all the proposal numbers to use
+  my $pnos = "";
+  open PFILE,"< $param{p}";
+  while ($str = <PFILE>) {
+    while ($str =~ s/ //g) {;}
+    chomp($str);
+    $pnos .= '"' . $str . '",';
+  }
+  chop($pnos);
+
+  # get all the CoIs for the proposals
+  %COIS;
+  $str = qq(select proposal_number,(last  + "," + convert(char(1),first)),
+	institution from
+        proposal , axafusers..person_short ps,coin
+        where proposal.proposal_id = coin.proposal_id
+        and coin.pers_id = ps.pers_id
+	and proposal_number in ($pnos)
+	order by coin_number);
+  if ($param{v}) { print STDERR "$str\n"; }
+  $sth = $dbh->prepare($str);
+  $sth->execute() or die ($sth->errstr());
+  while (@row = $sth->fetchrow_array) {
+    $str = sprintf("     %-30.30s %s\n",$row[1],$row[2]);
+    $COIS{$row[0]} .= $str;
+  }
+
+  # now get the Proposal info and PIs
+  $str = qq( select proposal_number,title,(last + "," + convert(char(1),first)),institution
+	from proposal , axafusers..person_short
+        where piid = pers_id
+	and proposal_number in ($pnos)
+        order by proposal_number);
+
+  if ($param{v}) { print STDERR "$str\n"; }
+  $sth = $dbh->prepare($str);
+  $pno = 0;
+  $sth->execute() or die ($sth->errstr());
+  while (@row = $sth->fetchrow_array) {
+    if ($pno !~ /$row[0]/ ) {
+	printf OFILE "\n$row[0]: PI=$row[2]  $row[3]\n";
+	printf OFILE   "CoIs: \n%s\n\n",$COIS{$row[0]};
+        $pno = $row[0];
+    }
+  }
+  $sth->finish;
+  close OFILE;
+  chmod (0660,"$param{o}");
+  
+}
+
+
+# ----------------------------------------------------------
+# parse input parameters
+# ----------------------------------------------------------
+sub parse_input
+{
+  my ($pwd);
+  my $err = 0;
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+             p=> undef,
+             o=> undef,
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "o=s",
+          "p=s",
+          "q=s",
+          "v",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter `$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+
+  if(!$param{q}) {
+    use Term::ReadKey;
+     {
+       ReadMode 'noecho';
+       print "Enter password for $param{U} on $param{S}: ";
+       $pwd = ReadLine( 0 );
+       chomp $pwd;
+       ReadMode 'restore';
+       print "\n";
+     }
+  }
+  else {
+    open PFILE,"< $param{q}";
+    while ( <PFILE> ){
+      chomp;
+      $pwd = $_;
+    }
+  }
+  $param{q} = $pwd;
+
+}
+
+sub usage
+{
+    print STDERR "\nUSAGE: pi_coi_list.pl -USpo\n";
+    print STDERR "       -U database user name\n";
+    print STDERR "       -S database server\n";
+    print STDERR "       -p file containing proposal numbers \n";
+    print STDERR "       -o output file \n";
+}
+
+
+
+

@@ -1,0 +1,163 @@
+<HTML>
+<HEAD>
+<TITLE>RELEASE NOTES for AXAF PROPOSAL PLANNING TOOLKIT</TITLE>
+</HEAD>
+<BODY bgcolor="fffff2"  TEXT="0000bf" LINK="ff0000" VLINK="ba0006">
+<h1>
+<CENTER>
+RELEASE NOTES for AXAF PROPOSAL PLANNING TOOLKIT
+</CENTER>
+</h1>
+These are the release notes for all releases of the AXAF Proposal Planning 
+Toolkit.  To space quickly to a specific release, select that release here:
+<ul>
+ <li><a href="#rel_R3A12">Release R3A12</a>
+ <li><a href="#rel_R3A12.1">Release R3A12.1</a>
+ <li><a href="#rel_R3A12.2">Release R3A12.2</a>
+ <li><a href="#rel_R3A12.3">Release R3A12.3</a>
+ <li><a href="#rel_R3A12.4">Release R3A12.4</a>
+</ul>
+<HR>
+<h3><a name="rel_R3A12">Release R3A12</a></h3>
+<h4><i>Alpha Test version residing on HEAD server; released for internal 
+review on 04/02/97</i></h4>
+<HR>
+<h3><a name="rel_R3A12.1">Release R3A12.1</a></h3>
+<h4><i>Beta Test version residing on ASCDS server; released for internal 
+review on 05/02/97</i></h4>
+Upgrades provided in Release R3A12.1 are summarized below for each application.
+<h4>PRECESS GUI</h4>
+<ul>
+ <li>fixed +/- parsing error
+ <li>added description of acceptable format to error message
+ <li>added access to a quick help file
+</ul>
+<h4>COLDEN GUI</h4>
+<ul>
+ <li>fixed warning that environment variable NH base was not set
+ <li>added description of acceptable format to error message
+</ul>
+<h4>PIMMS GUI</h4>
+<ul>
+ <li>fixed use of input and output energy range values
+ <li>added default energy range button to provide user with default ranges for 
+selected instrument
+ <li>formatted output and added button to allow viewing of verbose output
+ <li>coded and added pileup calculation
+ <li>added formula indicating how photon index is defined
+ <li>added list of acceptable AXAF instrument/grating/filter combinations
+ <li>added support for new heg1meg1 case
+ <li>added support for new hesf case
+ <li>removed support for 3 "all" cases
+</ul>
+<h4>PIMMS ALGORITHM</h4>
+<ul>
+ <li>extensively revised effective area curves (Belinda Wilkes); latest 
+version is in /data/UserSupport1/master_cal/pimms_data_new; note that only 
+cases supported in GUI are approved for use
+</ul>
+<h4>DATES GUI</h4>
+<ul>
+ <li>improved description of acceptable formats
+ <li>added access to a quick help file
+</ul>
+<HR>
+<h3><a name="rel_R3A12.2">Release R3A12.2</a></h3>
+<h4><i>Revised Beta Test version residing on ASCDS server; released for 
+review on 05/15/97</i></h4>
+Upgrades provided in Release R3A12.2 are summarized below for each application.
+<h4>PIMMS GUI</h4>
+<ul>
+ <li>revised default energy ranges for all mission instruments
+ <li>clarified GUI text
+ <li>added new PIMMS data files (axaf_letg-acis-s_order0, 
+axaf_letg-acis-s_order1)
+</ul>
+<h4>PRECESS & COLDEN GUIs</h4>
+<ul>
+ <li>revised GUI to allow omission of seconds (defaults to zero if only hrs 
+and mins are specified)
+ <li>clarified GUI text
+</ul>
+<h4>DATES GUI</h4>
+<ul>
+ <li>clarified GUI text
+ <li>added code to truncate inputs to 9 decimal places because 10 decimal 
+places is not supported
+</ul>
+<HR>
+<h3><a name="rel_R3A12.3">Release R3A12.3</a></h3>
+<h4><i>Revised Beta Test/GTO version residing on ASCDS server; released for 
+review on 05/30/97</i></h4>
+Upgrades provided in Release R3A12.3 are summarized below for each application.
+<h4>OVERALL TOOLKIT</h4>
+<ul>
+ <li>refined layout and added new links
+</ul>
+<h4>PRECESS & COLDEN GUIs</h4>
+<ul>
+ <li>reintroduced support for conversions to/from Ecliptic coordinate system
+</ul>
+<h4>PIMMS GUI</h4>
+<ul>
+ <li>created an Effective Area Data Viewer to display effective area curves 
+and associated data
+ <li>added support for "Unabsorbed Flux" option in PIMMS
+</ul>
+<h4>DATES GUI & ALGORITHM</h4>
+<ul>
+ <li>added support for Modified Julian Date
+ <li>changed input truncation to support 10 decimal places
+</ul>
+<HR>
+<h3><a name="rel_R3A12.4">Release R3A12.4</a></h3>
+<h4><i>Alpha Test of GO version residing on **TBD**; released for review on **TBD** </i></h4>
+Upgrades provided in Release R3A12.4 are summarized below for each application.
+<h4>OVERALL TOOLKIT</h4>
+<ul>
+ <li>Toolkit GUI was redesigned and placed in a separate, resizable
+frame launched from the Toolkit Web Page. This allows users to resize
+the application to account for the different font styles and sizes
+found on different machines.
+ <li>A Toolkit Control Panel was added to the Toolkit Web Page. The
+Control Panel can launch a Toolkit window as a separate process or
+thread from the Web browser window. This improves run time
+efficiency and also allows users to view other Web pages while
+using the toolkit. When not in use, the user can quit 
+the Toolkit window to minimize CPU load on their machine. A 
+new Toolkit can be launched by returning to the Toolkit Web Page
+and selecting "Start New Toolkit" on the Control Panel. The Control
+Panel will only allow one Toolkit window at a time.
+ <li>A status bar on each tool provides the user with status while the tool
+is communicating with the server.
+ <li>added additional text directing user to other documents
+ <li>made all help files available from top of Toolkit (top of Java Applet 
+ Window frame)
+ <li>changed references from "Science Instrument Notebook" to "Observatory 
+     Guide"
+</ul>
+<h4>COLDEN GUI & ALGORITHM</h4>
+<ul>
+ <li>upgraded to new version of Colden algorithm, which has been alpha tested
+     on a PC w/LINUX for increased portability
+ <li>now provides choice of Bell (Stark et al.) velocity-resolved data 
+     covering northern sky to 40 degrees south, or NRAO (Dickey & Lockman) 
+     data, not velocity-resolved, giving all-sky coverage
+ <li>now uses FITS data files, clearing the way for increased portability
+</ul>
+<h4>PIMMS GUI</h4>
+<ul>
+ <li>for Raymond-Smith model, added display of actual "kT" value used (gridded 
+value nearest to requested value is used)
+</ul>
+<h4>PIMMS ALGORITHM</h4>
+<ul>
+ <li>officially incorporated revised effective area curve for acis-i
+ <li>upgraded to PIMMS v2.4; includes fix to problem preventing long 
+     path/file names, clearing the way for simplifying data directory 
+     organization
+</ul>
+<HR>
+
+</BODY>
+</HTML>

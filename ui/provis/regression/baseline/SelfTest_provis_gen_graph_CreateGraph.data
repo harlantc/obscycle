@@ -1,0 +1,1140 @@
+%!PS-Adobe-3.0 EPSF-3.0
+%%Pages: 0
+%%Creator: (BLT 2.4 Graph)
+%%Title: (.g)
+%%DocumentData: Clean7Bit
+%%Orientation: Portrait
+%%DocumentNeededResources: font Helvetica Courier
+%%EndComments
+
+
+
+%%BeginProlog
+%
+% PostScript prolog file of the BLT graph widget.
+%
+% Copyright 1989-1992 Regents of the University of California.
+% Permission to use, copy, modify, and distribute this
+% software and its documentation for any purpose and without
+% fee is hereby granted, provided that the above copyright
+% notice appear in all copies.  The University of California
+% makes no representations about the suitability of this
+% software for any purpose.  It is provided "as is" without
+% express or implied warranty.
+%
+% Copyright 1991-1997 Bell Labs Innovations for Lucent Technologies.
+%
+% Permission to use, copy, modify, and distribute this software and its
+% documentation for any purpose and without fee is hereby granted, provided
+% that the above copyright notice appear in all copies and that both that the
+% copyright notice and warranty disclaimer appear in supporting documentation,
+% and that the names of Lucent Technologies any of their entities not be used
+% in advertising or publicity pertaining to distribution of the software
+% without specific, written prior permission.
+%
+% Lucent Technologies disclaims all warranties with regard to this software,
+% including all implied warranties of merchantability and fitness.  In no event
+% shall Lucent Technologies be liable for any special, indirect or
+% consequential damages or any damages whatsoever resulting from loss of use,
+% data or profits, whether in an action of contract, negligence or other
+% tortuous action, arising out of or in connection with the use or performance
+% of this software.
+%
+
+200 dict begin
+
+/BaseRatio 1.3467736870885982 def	% Ratio triangle base / symbol size
+/BgColorProc 0 def			% Background color routine (symbols)
+/DrawSymbolProc 0 def			% Routine to draw symbol outline/fill
+/StippleProc 0 def			% Stipple routine (bar segments)
+/DashesProc 0 def			% Dashes routine (line segments)
+  
+% Define the array ISOLatin1Encoding (which specifies how characters are 
+% encoded for ISO-8859-1 fonts), if it isn't already present (Postscript 
+% level 2 is supposed to define it, but level 1 doesn't). 
+ 
+systemdict /ISOLatin1Encoding known not { 
+  /ISOLatin1Encoding [ 
+    /space /space /space /space /space /space /space /space 
+    /space /space /space /space /space /space /space /space 
+    /space /space /space /space /space /space /space /space 
+    /space /space /space /space /space /space /space /space 
+    /space /exclam /quotedbl /numbersign /dollar /percent /ampersand 
+    /quoteright 
+    /parenleft /parenright /asterisk /plus /comma /minus /period /slash 
+    /zero /one /two /three /four /five /six /seven 
+    /eight /nine /colon /semicolon /less /equal /greater /question 
+    /at /A /B /C /D /E /F /G 
+    /H /I /J /K /L /M /N /O 
+    /P /Q /R /S /T /U /V /W 
+    /X /Y /Z /bracketleft /backslash /bracketright /asciicircum /underscore 
+    /quoteleft /a /b /c /d /e /f /g 
+    /h /i /j /k /l /m /n /o 
+    /p /q /r /s /t /u /v /w 
+    /x /y /z /braceleft /bar /braceright /asciitilde /space 
+    /space /space /space /space /space /space /space /space 
+    /space /space /space /space /space /space /space /space 
+    /dotlessi /grave /acute /circumflex /tilde /macron /breve /dotaccent 
+    /dieresis /space /ring /cedilla /space /hungarumlaut /ogonek /caron 
+    /space /exclamdown /cent /sterling /currency /yen /brokenbar /section 
+    /dieresis /copyright /ordfeminine /guillemotleft /logicalnot /hyphen 
+    /registered /macron 
+    /degree /plusminus /twosuperior /threesuperior /acute /mu /paragraph 
+    /periodcentered 
+    /cedillar /onesuperior /ordmasculine /guillemotright /onequarter 
+    /onehalf /threequarters /questiondown 
+    /Agrave /Aacute /Acircumflex /Atilde /Adieresis /Aring /AE /Ccedilla 
+    /Egrave /Eacute /Ecircumflex /Edieresis /Igrave /Iacute /Icircumflex 
+    /Idieresis 
+    /Eth /Ntilde /Ograve /Oacute /Ocircumflex /Otilde /Odieresis /multiply 
+    /Oslash /Ugrave /Uacute /Ucircumflex /Udieresis /Yacute /Thorn 
+    /germandbls 
+    /agrave /aacute /acircumflex /atilde /adieresis /aring /ae /ccedilla 
+    /egrave /eacute /ecircumflex /edieresis /igrave /iacute /icircumflex 
+    /idieresis 
+    /eth /ntilde /ograve /oacute /ocircumflex /otilde /odieresis /divide 
+    /oslash /ugrave /uacute /ucircumflex /udieresis /yacute /thorn 
+    /ydieresis 
+  ] def 
+} if 
+
+% font ISOEncode font 
+% This procedure changes the encoding of a font from the default 
+% Postscript encoding to ISOLatin1.  It is typically invoked just 
+% before invoking "setfont".  The body of this procedure comes from 
+% Section 5.6.1 of the Postscript book. 
+
+/ISOEncode { 
+  dup length dict
+  begin 
+    {1 index /FID ne {def} {pop pop} ifelse} forall 
+    /Encoding ISOLatin1Encoding def 
+    currentdict 
+  end 
+
+  % I'm not sure why it's necessary to use "definefont" on this new 
+  % font, but it seems to be important; just use the name "Temporary" 
+  % for the font. 
+
+  /Temporary exch definefont 
+} bind def 
+
+/Stroke {
+  gsave
+    stroke
+  grestore
+} def
+
+/Fill {
+  gsave
+    fill
+  grestore
+} def
+
+/SetFont { 	
+  % Stack: pointSize fontName
+  findfont exch scalefont ISOEncode setfont
+} def
+
+/Box {
+  % Stack: x y width height
+  newpath
+  exch 4 2 roll moveto
+  dup 0 rlineto
+  exch 0 exch rlineto
+  neg 0 rlineto
+  closepath
+} def
+
+/SetFgColor {
+  % Stack: red green blue
+  CL 0 eq { 
+    pop pop pop 0 0 0 
+  } if
+  setrgbcolor
+  CL 1 eq { 
+    currentgray setgray 
+  } if
+} def
+
+/SetBgColor {
+  % Stack: red green blue
+  CL 0 eq { 
+    pop pop pop 1 1 1 
+  } if
+  setrgbcolor
+  CL 1 eq { 
+    currentgray setgray 
+  } if
+} def
+
+% The next two definitions are taken from "$tk_library/prolog.ps"
+
+% desiredSize EvenPixels closestSize
+%
+% The procedure below is used for stippling.  Given the optimal size
+% of a dot in a stipple pattern in the current user coordinate system,
+% compute the closest size that is an exact multiple of the device's
+% pixel size.  This allows stipple patterns to be displayed without
+% aliasing effects.
+
+/EvenPixels {
+  % Compute exact number of device pixels per stipple dot.
+  dup 0 matrix currentmatrix dtransform
+  dup mul exch dup mul add sqrt
+
+  % Round to an integer, make sure the number is at least 1, and compute
+  % user coord distance corresponding to this.
+  dup round dup 1 lt {pop 1} if
+  exch div mul
+} bind def
+
+% width height string filled StippleFill --
+%
+% Given a path and other graphics information already set up, this
+% procedure will fill the current path in a stippled fashion.  "String"
+% contains a proper image description of the stipple pattern and
+% "width" and "height" give its dimensions.  If "filled" is true then
+% it means that the area to be stippled is gotten by filling the
+% current path (e.g. the interior of a polygon); if it's false, the
+% area is gotten by stroking the current path (e.g. a wide line).
+% Each stipple dot is assumed to be about one unit across in the
+% current user coordinate system.
+
+% width height string StippleFill --
+%
+% Given a path already set up and a clipping region generated from
+% it, this procedure will fill the clipping region with a stipple
+% pattern.  "String" contains a proper image description of the
+% stipple pattern and "width" and "height" give its dimensions.  Each
+% stipple dot is assumed to be about one unit across in the current
+% user coordinate system.  This procedure trashes the graphics state.
+
+/StippleFill {
+    % The following code is needed to work around a NeWSprint bug.
+
+    /tmpstip 1 index def
+
+    % Change the scaling so that one user unit in user coordinates
+    % corresponds to the size of one stipple dot.
+    1 EvenPixels dup scale
+
+    % Compute the bounding box occupied by the path (which is now
+    % the clipping region), and round the lower coordinates down
+    % to the nearest starting point for the stipple pattern.  Be
+    % careful about negative numbers, since the rounding works
+    % differently on them.
+
+    pathbbox
+    4 2 roll
+    5 index div dup 0 lt {1 sub} if cvi 5 index mul 4 1 roll
+    6 index div dup 0 lt {1 sub} if cvi 6 index mul 3 2 roll
+
+    % Stack now: width height string y1 y2 x1 x2
+    % Below is a doubly-nested for loop to iterate across this area
+    % in units of the stipple pattern size, going up columns then
+    % across rows, blasting out a stipple-pattern-sized rectangle at
+    % each position
+
+    6 index exch {
+	2 index 5 index 3 index {
+	    % Stack now: width height string y1 y2 x y
+
+	    gsave
+	    1 index exch translate
+	    5 index 5 index true matrix tmpstip imagemask
+	    grestore
+	} for
+	pop
+    } for
+    pop pop pop pop pop
+} bind def
+
+
+/LS {	% Stack: x1 y1 x2 y2
+  newpath 4 2 roll moveto lineto stroke
+} def
+
+/EndText {
+  %Stack :
+  grestore
+} def
+
+/BeginText {
+  %Stack :  w h theta centerX centerY
+  gsave
+    % Translate the origin to the center of bounding box and rotate
+    translate neg rotate
+    % Translate back to the origin of the text region
+    -0.5 mul exch -0.5 mul exch translate
+} def
+
+/DrawAdjText {
+  %Stack : str strWidth x y
+  moveto				% Go to the text position
+  exch dup dup 4 2 roll
+
+  % Adjust character widths to get desired overall string width
+  % adjust X = (desired width - real width)/#chars
+
+  stringwidth pop sub exch
+  length div
+  0 3 -1 roll
+
+  % Flip back the scale so that the string is not drawn in reverse
+
+  gsave
+    1 -1 scale
+    ashow
+  grestore
+} def
+
+/DrawBitmap {
+  % Stack: ?bgColorProc? boolean centerX centerY width height theta imageStr
+  gsave
+    6 -2 roll translate			% Translate to center of bounding box
+    4 1 roll neg rotate			% Rotate by theta
+    
+    % Find upperleft corner of bounding box
+    
+    2 copy -.5 mul exch -.5 mul exch translate
+    2 copy scale			% Make pixel unit scale
+    newpath
+    0 0 moveto 0 1 lineto 1 1 lineto 1 0 lineto
+    closepath
+    
+    % Fill rectangle with background color
+    
+    4 -1 roll { 
+      gsave 
+	4 -1 roll exec fill 
+      grestore 
+    } if
+    
+    % Paint the image string into the unit rectangle
+    
+    2 copy true 3 -1 roll 0 0 5 -1 roll 0 0 6 array astore 5 -1 roll
+    imagemask
+  grestore
+} def
+
+% Symbols:
+
+% Skinny-cross
+/Sc {
+  % Stack: x y symbolSize
+  gsave
+    3 -2 roll translate 45 rotate
+    0 0 3 -1 roll Sp
+  grestore
+} def
+
+% Skinny-plus
+/Sp {
+  % Stack: x y symbolSize
+  gsave
+    3 -2 roll translate
+    2 idiv
+    dup 2 copy
+    newpath neg 0 moveto 0 lineto
+    DrawSymbolProc
+    newpath neg 0 exch moveto 0 exch lineto
+    DrawSymbolProc
+  grestore
+} def
+
+% Cross
+/Cr {
+  % Stack: x y symbolSize
+  gsave
+    3 -2 roll translate 45 rotate
+    0 0 3 -1 roll Pl
+  grestore
+} def
+
+% Plus
+/Pl {
+  % Stack: x y symbolSize
+  gsave
+    3 -2 roll translate
+    dup 2 idiv
+    exch 6 idiv
+
+    %
+    %          2   3		The plus/cross symbol is a
+    %				closed polygon of 12 points.
+    %      0   1   4    5	The diagram to the left
+    %           x,y		represents the positions of
+    %     11  10   7    6	the points which are computed
+    %				below.
+    %          9   8
+    %
+
+    newpath
+    2 copy exch neg exch neg moveto dup neg dup lineto
+    2 copy neg exch neg lineto 2 copy exch neg lineto
+    dup dup neg lineto 2 copy neg lineto 2 copy lineto
+    dup dup lineto 2 copy exch lineto 2 copy neg exch lineto
+    dup dup neg exch lineto exch neg exch lineto
+    closepath
+    DrawSymbolProc
+  grestore
+} def
+
+% Circle
+/Ci {
+  % Stack: x y symbolSize
+  gsave
+    3 copy pop
+    moveto newpath
+    2 div 0 360 arc
+    closepath DrawSymbolProc
+  grestore
+} def
+
+% Square
+/Sq {
+  % Stack: x y symbolSize
+  gsave
+    dup dup 2 div dup
+    6 -1 roll exch sub exch
+    5 -1 roll exch sub 4 -2 roll Box
+    DrawSymbolProc
+  grestore
+} def
+
+% Line
+/Li {
+  % Stack: x y symbolSize
+  gsave
+    3 1 roll exch 3 -1 roll 2 div 3 copy
+    newpath
+    sub exch moveto add exch lineto
+    stroke
+  grestore
+} def
+
+% Diamond
+/Di {
+  % Stack: x y symbolSize
+  gsave
+    3 1 roll translate 45 rotate 0 0 3 -1 roll Sq
+  grestore
+} def
+    
+% Triangle
+/Tr {
+  % Stack: x y symbolSize
+  gsave
+    3 -2 roll translate
+    BaseRatio mul 0.5 mul		% Calculate 1/2 base
+    dup 0 exch 30 cos mul		% h1 = height above center point
+    neg					% b2 0 -h1
+    newpath moveto			% point 1;  b2
+    dup 30 sin 30 cos div mul		% h2 = height below center point
+    2 copy lineto			% point 2;  b2 h2
+    exch neg exch lineto		% 
+    closepath
+    DrawSymbolProc
+  grestore
+} def
+
+% Arrow
+/Ar {
+  % Stack: x y symbolSize
+  gsave
+    3 -2 roll translate
+    BaseRatio mul 0.5 mul		% Calculate 1/2 base
+    dup 0 exch 30 cos mul		% h1 = height above center point
+					% b2 0 h1
+    newpath moveto			% point 1;  b2
+    dup 30 sin 30 cos div mul		% h2 = height below center point
+    neg					% -h2 b2
+    2 copy lineto			% point 2;  b2 h2
+    exch neg exch lineto		% 
+    closepath
+    DrawSymbolProc
+  grestore
+} def
+
+% Bitmap
+/Bm {
+  % Stack: x y symbolSize
+  gsave
+    3 1 roll translate pop DrawSymbolProc
+  grestore
+} def
+
+%%EndProlog
+
+%%BeginSetup
+gsave					% Save the graphics state
+
+% Default line/text style parameters
+
+1 setlinewidth				% width
+1 setlinejoin				% join
+0 setlinecap				% cap
+[] 0 setdash				% dashes
+
+/CL 0 def				% Set color level mode
+0 0 0 setrgbcolor			% color
+
+% Transform coordinate system to use X11 coordinates
+
+% 1. Flip y-axis over by reversing the scale,
+% 2. Translate the origin to the other side of the page,
+%    making the origin the upper left corner
+0.845965 -0.866449 scale
+0 -650 translate
+
+% User defined page layout
+
+% Set color level
+/CL 2 def
+
+% Set origin
+0 0 translate
+
+
+%%EndSetup
+
+12 /Helvetica SetFont
+153 23 585 545 Box
+
+0.996078 0.996078 0.996078 SetBgColor
+Fill
+gsave clip
+
+
+% Unset clipping
+grestore
+
+0.796078 0.796078 0.796078 SetBgColor
+0 0 800 23 Box fill
+
+0 23 153 544 Box fill
+
+737 23 63 544 Box fill
+
+0 567 800 83 Box fill
+
+180 10 0 445 610 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(Date \(days since JD 2400000.5\)) 180 0 8 DrawAdjText
+EndText
+70 20 0 263.549 589 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(54900) 30 20 8 DrawAdjText
+(2009-Mar-10) 66 2 18 DrawAdjText
+EndText
+70 20 0 423.58 589 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(55000) 30 20 8 DrawAdjText
+(2009-Jun-18) 66 2 18 DrawAdjText
+EndText
+70 20 0 583.611 589 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(55100) 30 20 8 DrawAdjText
+(2009-Sep-26) 66 2 18 DrawAdjText
+EndText
+0 setlinejoin
+0 setlinecap
+0 0 0 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+153 569 moveto
+ 737 569 lineto
+DashesProc stroke
+167.531 569 moveto
+ 167.531 574 lineto
+DashesProc stroke
+183.534 569 moveto
+ 183.534 574 lineto
+DashesProc stroke
+199.537 569 moveto
+ 199.537 574 lineto
+DashesProc stroke
+215.54 569 moveto
+ 215.54 574 lineto
+DashesProc stroke
+231.543 569 moveto
+ 231.543 574 lineto
+DashesProc stroke
+247.546 569 moveto
+ 247.546 574 lineto
+DashesProc stroke
+279.552 569 moveto
+ 279.552 574 lineto
+DashesProc stroke
+295.555 569 moveto
+ 295.555 574 lineto
+DashesProc stroke
+311.558 569 moveto
+ 311.558 574 lineto
+DashesProc stroke
+327.561 569 moveto
+ 327.561 574 lineto
+DashesProc stroke
+343.565 569 moveto
+ 343.565 574 lineto
+DashesProc stroke
+359.568 569 moveto
+ 359.568 574 lineto
+DashesProc stroke
+375.571 569 moveto
+ 375.571 574 lineto
+DashesProc stroke
+391.574 569 moveto
+ 391.574 574 lineto
+DashesProc stroke
+407.577 569 moveto
+ 407.577 574 lineto
+DashesProc stroke
+263.549 569 moveto
+ 263.549 577 lineto
+DashesProc stroke
+439.583 569 moveto
+ 439.583 574 lineto
+DashesProc stroke
+455.586 569 moveto
+ 455.586 574 lineto
+DashesProc stroke
+471.589 569 moveto
+ 471.589 574 lineto
+DashesProc stroke
+487.592 569 moveto
+ 487.592 574 lineto
+DashesProc stroke
+503.595 569 moveto
+ 503.595 574 lineto
+DashesProc stroke
+519.598 569 moveto
+ 519.598 574 lineto
+DashesProc stroke
+535.601 569 moveto
+ 535.601 574 lineto
+DashesProc stroke
+551.604 569 moveto
+ 551.604 574 lineto
+DashesProc stroke
+567.608 569 moveto
+ 567.608 574 lineto
+DashesProc stroke
+423.58 569 moveto
+ 423.58 577 lineto
+DashesProc stroke
+599.614 569 moveto
+ 599.614 574 lineto
+DashesProc stroke
+615.617 569 moveto
+ 615.617 574 lineto
+DashesProc stroke
+631.62 569 moveto
+ 631.62 574 lineto
+DashesProc stroke
+647.623 569 moveto
+ 647.623 574 lineto
+DashesProc stroke
+663.626 569 moveto
+ 663.626 574 lineto
+DashesProc stroke
+679.629 569 moveto
+ 679.629 574 lineto
+DashesProc stroke
+695.632 569 moveto
+ 695.632 574 lineto
+DashesProc stroke
+711.635 569 moveto
+ 711.635 574 lineto
+DashesProc stroke
+727.638 569 moveto
+ 727.638 574 lineto
+DashesProc stroke
+583.611 569 moveto
+ 583.611 577 lineto
+DashesProc stroke
+108 20 90 105 295 BeginText
+12 /Helvetica-Bold SetFont
+0.0352941 1 0.054902 SetFgColor
+(Nominal Roll Angle) 108 0 18 DrawAdjText
+EndText
+10 10 0 136 567 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(0) 6 2 8 DrawAdjText
+EndText
+16 10 0 133 476.333 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(60) 12 2 8 DrawAdjText
+EndText
+22 10 0 130 385.667 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(120) 18 2 8 DrawAdjText
+EndText
+22 10 0 130 295 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(180) 18 2 8 DrawAdjText
+EndText
+22 10 0 130 204.333 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(240) 18 2 8 DrawAdjText
+EndText
+22 10 0 130 113.667 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(300) 18 2 8 DrawAdjText
+EndText
+22 10 0 130 23 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(360) 18 2 8 DrawAdjText
+EndText
+0 setlinejoin
+0 setlinecap
+0 0 0 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+151 567 moveto
+ 151 23 lineto
+DashesProc stroke
+151 551.889 moveto
+ 146 551.889 lineto
+DashesProc stroke
+151 536.778 moveto
+ 146 536.778 lineto
+DashesProc stroke
+151 521.667 moveto
+ 146 521.667 lineto
+DashesProc stroke
+151 506.556 moveto
+ 146 506.556 lineto
+DashesProc stroke
+151 491.444 moveto
+ 146 491.444 lineto
+DashesProc stroke
+151 567 moveto
+ 143 567 lineto
+DashesProc stroke
+151 461.222 moveto
+ 146 461.222 lineto
+DashesProc stroke
+151 446.111 moveto
+ 146 446.111 lineto
+DashesProc stroke
+151 431 moveto
+ 146 431 lineto
+DashesProc stroke
+151 415.889 moveto
+ 146 415.889 lineto
+DashesProc stroke
+151 400.778 moveto
+ 146 400.778 lineto
+DashesProc stroke
+151 476.333 moveto
+ 143 476.333 lineto
+DashesProc stroke
+151 370.556 moveto
+ 146 370.556 lineto
+DashesProc stroke
+151 355.444 moveto
+ 146 355.444 lineto
+DashesProc stroke
+151 340.333 moveto
+ 146 340.333 lineto
+DashesProc stroke
+151 325.222 moveto
+ 146 325.222 lineto
+DashesProc stroke
+151 310.111 moveto
+ 146 310.111 lineto
+DashesProc stroke
+151 385.667 moveto
+ 143 385.667 lineto
+DashesProc stroke
+151 279.889 moveto
+ 146 279.889 lineto
+DashesProc stroke
+151 264.778 moveto
+ 146 264.778 lineto
+DashesProc stroke
+151 249.667 moveto
+ 146 249.667 lineto
+DashesProc stroke
+151 234.556 moveto
+ 146 234.556 lineto
+DashesProc stroke
+151 219.444 moveto
+ 146 219.444 lineto
+DashesProc stroke
+151 295 moveto
+ 143 295 lineto
+DashesProc stroke
+151 189.222 moveto
+ 146 189.222 lineto
+DashesProc stroke
+151 174.111 moveto
+ 146 174.111 lineto
+DashesProc stroke
+151 159 moveto
+ 146 159 lineto
+DashesProc stroke
+151 143.889 moveto
+ 146 143.889 lineto
+DashesProc stroke
+151 128.778 moveto
+ 146 128.778 lineto
+DashesProc stroke
+151 204.333 moveto
+ 143 204.333 lineto
+DashesProc stroke
+151 98.5556 moveto
+ 146 98.5556 lineto
+DashesProc stroke
+151 83.4444 moveto
+ 146 83.4444 lineto
+DashesProc stroke
+151 68.3333 moveto
+ 146 68.3333 lineto
+DashesProc stroke
+151 53.2222 moveto
+ 146 53.2222 lineto
+DashesProc stroke
+151 38.1111 moveto
+ 146 38.1111 lineto
+DashesProc stroke
+151 113.667 moveto
+ 143 113.667 lineto
+DashesProc stroke
+151 23 moveto
+ 143 23 lineto
+DashesProc stroke
+66 10 90 52 295 BeginText
+12 /Helvetica-Bold SetFont
+1 0 0 SetFgColor
+(Pitch Angle) 66 0 8 DrawAdjText
+EndText
+10 10 0 78 567 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(0) 6 2 8 DrawAdjText
+EndText
+16 10 0 75 385.667 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(60) 12 2 8 DrawAdjText
+EndText
+22 10 0 72 204.333 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(120) 18 2 8 DrawAdjText
+EndText
+22 10 0 72 23 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(180) 18 2 8 DrawAdjText
+EndText
+0 setlinejoin
+0 setlinecap
+0 0 0 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+93 567 moveto
+ 93 23 lineto
+DashesProc stroke
+93 536.778 moveto
+ 88 536.778 lineto
+DashesProc stroke
+93 506.556 moveto
+ 88 506.556 lineto
+DashesProc stroke
+93 476.333 moveto
+ 88 476.333 lineto
+DashesProc stroke
+93 446.111 moveto
+ 88 446.111 lineto
+DashesProc stroke
+93 415.889 moveto
+ 88 415.889 lineto
+DashesProc stroke
+93 567 moveto
+ 85 567 lineto
+DashesProc stroke
+93 355.444 moveto
+ 88 355.444 lineto
+DashesProc stroke
+93 325.222 moveto
+ 88 325.222 lineto
+DashesProc stroke
+93 295 moveto
+ 88 295 lineto
+DashesProc stroke
+93 264.778 moveto
+ 88 264.778 lineto
+DashesProc stroke
+93 234.556 moveto
+ 88 234.556 lineto
+DashesProc stroke
+93 385.667 moveto
+ 85 385.667 lineto
+DashesProc stroke
+93 174.111 moveto
+ 88 174.111 lineto
+DashesProc stroke
+93 143.889 moveto
+ 88 143.889 lineto
+DashesProc stroke
+93 113.667 moveto
+ 88 113.667 lineto
+DashesProc stroke
+93 83.4444 moveto
+ 88 83.4444 lineto
+DashesProc stroke
+93 53.2222 moveto
+ 88 53.2222 lineto
+DashesProc stroke
+93 204.333 moveto
+ 85 204.333 lineto
+DashesProc stroke
+93 23 moveto
+ 85 23 lineto
+DashesProc stroke
+144 20 270 787 295 BeginText
+12 /Helvetica-Bold SetFont
+0 0.0745098 1 SetFgColor
+(Average Visibility/Orbit) 144 0 18 DrawAdjText
+EndText
+10 10 0 754 567 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(0) 6 2 8 DrawAdjText
+EndText
+22 10 0 760 512.6 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(0.1) 18 2 8 DrawAdjText
+EndText
+22 10 0 760 458.2 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(0.2) 18 2 8 DrawAdjText
+EndText
+22 10 0 760 403.8 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(0.3) 18 2 8 DrawAdjText
+EndText
+22 10 0 760 349.4 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(0.4) 18 2 8 DrawAdjText
+EndText
+22 10 0 760 295 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(0.5) 18 2 8 DrawAdjText
+EndText
+22 10 0 760 240.6 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(0.6) 18 2 8 DrawAdjText
+EndText
+22 10 0 760 186.2 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(0.7) 18 2 8 DrawAdjText
+EndText
+22 10 0 760 131.8 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(0.8) 18 2 8 DrawAdjText
+EndText
+22 10 0 760 77.4 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(0.9) 18 2 8 DrawAdjText
+EndText
+10 10 0 754 23 BeginText
+12 /Helvetica-Bold SetFont
+0 0 0 SetFgColor
+(1) 6 2 8 DrawAdjText
+EndText
+0 setlinejoin
+0 setlinecap
+0 0 0 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+739 567 moveto
+ 739 23 lineto
+DashesProc stroke
+739 556.12 moveto
+ 744 556.12 lineto
+DashesProc stroke
+739 545.24 moveto
+ 744 545.24 lineto
+DashesProc stroke
+739 534.36 moveto
+ 744 534.36 lineto
+DashesProc stroke
+739 523.48 moveto
+ 744 523.48 lineto
+DashesProc stroke
+739 567 moveto
+ 747 567 lineto
+DashesProc stroke
+739 501.72 moveto
+ 744 501.72 lineto
+DashesProc stroke
+739 490.84 moveto
+ 744 490.84 lineto
+DashesProc stroke
+739 479.96 moveto
+ 744 479.96 lineto
+DashesProc stroke
+739 469.08 moveto
+ 744 469.08 lineto
+DashesProc stroke
+739 512.6 moveto
+ 747 512.6 lineto
+DashesProc stroke
+739 447.32 moveto
+ 744 447.32 lineto
+DashesProc stroke
+739 436.44 moveto
+ 744 436.44 lineto
+DashesProc stroke
+739 425.56 moveto
+ 744 425.56 lineto
+DashesProc stroke
+739 414.68 moveto
+ 744 414.68 lineto
+DashesProc stroke
+739 458.2 moveto
+ 747 458.2 lineto
+DashesProc stroke
+739 392.92 moveto
+ 744 392.92 lineto
+DashesProc stroke
+739 382.04 moveto
+ 744 382.04 lineto
+DashesProc stroke
+739 371.16 moveto
+ 744 371.16 lineto
+DashesProc stroke
+739 360.28 moveto
+ 744 360.28 lineto
+DashesProc stroke
+739 403.8 moveto
+ 747 403.8 lineto
+DashesProc stroke
+739 338.52 moveto
+ 744 338.52 lineto
+DashesProc stroke
+739 327.64 moveto
+ 744 327.64 lineto
+DashesProc stroke
+739 316.76 moveto
+ 744 316.76 lineto
+DashesProc stroke
+739 305.88 moveto
+ 744 305.88 lineto
+DashesProc stroke
+739 349.4 moveto
+ 747 349.4 lineto
+DashesProc stroke
+739 284.12 moveto
+ 744 284.12 lineto
+DashesProc stroke
+739 273.24 moveto
+ 744 273.24 lineto
+DashesProc stroke
+739 262.36 moveto
+ 744 262.36 lineto
+DashesProc stroke
+739 251.48 moveto
+ 744 251.48 lineto
+DashesProc stroke
+739 295 moveto
+ 747 295 lineto
+DashesProc stroke
+739 229.72 moveto
+ 744 229.72 lineto
+DashesProc stroke
+739 218.84 moveto
+ 744 218.84 lineto
+DashesProc stroke
+739 207.96 moveto
+ 744 207.96 lineto
+DashesProc stroke
+739 197.08 moveto
+ 744 197.08 lineto
+DashesProc stroke
+739 240.6 moveto
+ 747 240.6 lineto
+DashesProc stroke
+739 175.32 moveto
+ 744 175.32 lineto
+DashesProc stroke
+739 164.44 moveto
+ 744 164.44 lineto
+DashesProc stroke
+739 153.56 moveto
+ 744 153.56 lineto
+DashesProc stroke
+739 142.68 moveto
+ 744 142.68 lineto
+DashesProc stroke
+739 186.2 moveto
+ 747 186.2 lineto
+DashesProc stroke
+739 120.92 moveto
+ 744 120.92 lineto
+DashesProc stroke
+739 110.04 moveto
+ 744 110.04 lineto
+DashesProc stroke
+739 99.16 moveto
+ 744 99.16 lineto
+DashesProc stroke
+739 88.28 moveto
+ 744 88.28 lineto
+DashesProc stroke
+739 131.8 moveto
+ 747 131.8 lineto
+DashesProc stroke
+739 66.52 moveto
+ 744 66.52 lineto
+DashesProc stroke
+739 55.64 moveto
+ 744 55.64 lineto
+DashesProc stroke
+739 44.76 moveto
+ 744 44.76 lineto
+DashesProc stroke
+739 33.88 moveto
+ 744 33.88 lineto
+DashesProc stroke
+739 77.4 moveto
+ 747 77.4 lineto
+DashesProc stroke
+739 23 moveto
+ 747 23 lineto
+DashesProc stroke
+showpage
+%Trailer
+grestore
+end
+%EOF
+

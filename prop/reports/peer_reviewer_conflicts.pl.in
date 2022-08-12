@@ -1,0 +1,379 @@
+#!@PERLDB@
+#*H****************************************************************************
+#* Copyright (c) 2013,2020 Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: peer_reviewer_conflicts.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+BEGIN
+{
+   $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use vars qw ($dbh %param @reqfiles $reqfile @theprops @ofilearr
+	);
+
+use strict;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+
+@reqfiles = (
+        "prop_routines.pl",
+        "modify_institute.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+
+
+# -------------------------- MAIN ----------------------------------
+{
+  my($dsn,$stmp,$idx,$cmd);
+  &parse_input;
+
+
+  #database connection
+  $dbh = dbProposalConnection($param{U}, $param{S}, $param{q});
+
+
+  my ($pquery)= qq( and available="Y" );
+  if ($param{r} && $param{r} !~ /^ALL/i && $param{r} !~ /^pan/i) {
+    
+    $pquery .= " and " . read_reviewers();
+  }
+  elsif ($param{c}) {
+    $pquery .= " and " . get_chairs();
+   
+  } 
+
+  #print STDERR "PQUERY: $pquery\n";
+
+  my(@parr) = split(',',$param{p});
+  my($pstr,$pname);
+  foreach $pstr (@parr) {
+    if ($pstr !~ /XVP|LP|VLP|BPP/) {
+      $pname = sprintf("%02.2d",$pstr);
+    } else {
+      $pname = $pstr;
+    }
+    if ($param{r} && $param{r} =~ /^pan/i) {
+      $pquery = " and " . get_panel_reviewers($pname);
+    }
+    my($oname) = $param{o};
+    if ($param{d}) {
+      $oname = $param{d};
+    } else {
+      $oname .= "_" . $pname . ".txt";
+    }
+    open(OFILE,"> $oname")  ||
+      die "Unable to open $oname for writing!\n";
+    printf OFILE "\n%s     Reviewer Conflicts for Cycle $param{a}       \n\n",get_date();
+    @ofilearr=();
+    &do_proposals($pname);
+    &do_conflicts($pquery);
+    &do_personal($pname,$pquery);
+    print OFILE sort @ofilearr;
+   
+
+    close OFILE;
+
+    #if ($param{d}) {
+      #$cmd = "sort " . $oname . " > " . $param{d};
+      ##print STDERR "$cmd\n";
+      #system($cmd);
+      #$oname = $param{d};
+    #}
+    chmod 0660,$oname;
+    chgroup($oname);
+  }
+
+
+}
+
+
+
+# ----------------------------------------------------------
+# ----------------------------------------------------------
+sub do_conflicts
+{
+  my($qstr) = @_;
+  my($sql,$didit,@prop);
+  my($sth,@row,$ii,$str);
+
+  $sql = qq(select distinct ps.pers_id,last,first,lower(institution),
+	(last + ',' + first),email
+        from axafusers..panel_status p,axafusers..person_short ps
+        where p.pers_id = ps.pers_id
+        and ao_str like "$param{a}" 
+        $qstr
+        order by lower(last));
+  #print STDERR "$sql\n";
+
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+
+  while (@row = $sth->fetchrow_array) {
+     $row[3] = modify_institute($row[3]);
+     while ($row[1] =~ s/ //) {;}
+     while ($row[2] =~ s/ //) {;}
+     #print STDERR "processing $row[4]\n";
+     $didit="";
+     for ($ii=0;$ii<=$#theprops;$ii++) {
+       @prop = split(/\^/,$theprops[$ii]);
+       if ($row[1] =~ /$prop[1]/i && 
+           lc(substr($row[2],0,1)) =~ lc(substr($prop[2],0,1))) {
+         my $tmpstr = sprintf("%-30.30s   %-10.10s   %-s\n",$row[4],$prop[0],$prop[4]);
+         push(@ofilearr,$tmpstr);
+       }
+       elsif ($row[5] =~ /$prop[5]/i ) {
+         my $tmpstr = sprintf("%-30.30s   %-10.10s   %-s (email)\n",$row[4],$prop[0],$prop[4]);
+         push(@ofilearr,$tmpstr);
+       }
+       if ($row[3] =~ /$prop[3]/ ) {
+         if ($didit !~ /$prop[0]:$prop[4]/) { 
+           my $tmpstr = sprintf("%-30.30s   %-10.10s   %-s:inst\n",$row[4],$prop[0],$prop[4]);
+           push(@ofilearr,$tmpstr);
+           $didit .= "$prop[0]:$prop[4] ";
+         }
+       }
+    }
+
+  }
+}
+# ----------------------------------------------------------
+sub do_proposals
+{
+  my($pname) = @_;
+  my($sql);
+  my($sth,@row,$ii,$str);
+  
+
+  $sql = qq(select proposal_number,last,first,lower(institution), "PI" xx,email
+ 	from proposal p, panel_proposal pp,axafusers..person_short ps,panel
+	where p.proposal_id = pp.proposal_id
+	and pp.panel_id = panel.panel_id
+	and piid = ps.pers_id
+        and ao_str like "$param{a}"
+        and panel_name like "$pname"
+        UNION 
+        select proposal_number,last,first,lower(institution), "CoI" xx,email
+ 	from proposal p, panel_proposal pp,axafusers..person_short ps,
+	coin,panel
+	where p.proposal_id = pp.proposal_id
+	and p.proposal_id = coin.proposal_id
+	and pp.panel_id = panel.panel_id
+	and coin.pers_id = ps.pers_id
+        and ao_str like "$param{a}"
+        and panel_name like "$pname"
+	order by proposal_number
+        );
+  #print STDERR "$sql\n\n";
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  @theprops = ();
+  while (@row = $sth->fetchrow_array) {
+     $row[3] = modify_institute($row[3]);
+     while ($row[1] =~ s/ //) {;}
+     while ($row[2] =~ s/ //) {;}
+     $str = join('^',@row);
+     push(@theprops,$str);
+  }
+
+}
+
+sub do_personal
+{
+  my($pname,$qstr) = @_;
+  my($sql,$didit,@prop);
+  my($sth,@row,$ii,$str);
+
+  $sql = qq(select distinct ps.pers_id,last,first,rc.type,
+	(last + ',' + first),proposal_number
+        from axafusers..person_short ps,axafusers..panel_status p,
+	panel,panel_proposal pp,proposal,
+	reviewer_conflicts rc
+        where ps.pers_id = rc.pers_id and rc.inactive != 'Y'
+	and p.pers_id = ps.pers_id 
+	and panel_name like "$pname" 
+	and panel.panel_id = pp.panel_id
+	and pp.proposal_id= proposal.proposal_id
+	and pp.proposal_id= rc.proposal_id
+        and proposal.ao_str like "$param{a}" 
+        $qstr
+        order by lower(last));
+  #print STDERR "$sql\n";
+
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+
+  while (@row = $sth->fetchrow_array) {
+       my $tmpstr = sprintf("%-30.30s   %-10.10s   %-s\n",$row[4],$row[5],$row[3]);
+       push(@ofilearr,$tmpstr);
+  }
+}
+  
+
+
+sub read_reviewers {
+  my($str);
+  my($lname,$other);
+
+  open IFILE,"<$param{r}" or die "Unable to open $param{r} for reading.";
+  my($plist) = "(";
+  while ($str = <IFILE>) {
+     chomp($str);
+     while ($str =~ s/^ //) {; }
+     if ($str =~ /	/) {
+       ($lname,$other) = split(/	/,$str,2);
+     } else {
+       ($lname,$other) = split(/   /,$str,2);
+     }
+     #print STDERR "---$lname---$other\n";
+     if ($lname ne "") {
+       if ($plist =~ /like/) {
+         $plist .= " or ";
+       }
+       $plist .= qq( lower(last) like "%) . lc($lname) . qq(%"  );
+    }
+  }
+  $plist .= ") ";
+
+  return $plist;
+}
+sub get_chairs {
+  my($sql, $sth,@row,$ii,$str);
+  my($plist);
+
+  my($plist) = " last in (";
+  $sql = qq(select last from axafusers..person_short ps,panel_member pm,
+	panel,ao 
+	where panel.ao = ao.ao_id and ao.ao_str = "$param{a}"
+	and panel.panel_id = pm.panel_id
+	and pm.pers_id = ps.pers_id
+	and (member_type like "%Pundit%" or member_type = "Chair"));
+
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  while (@row = $sth->fetchrow_array) {
+    $plist .= qq( "$row[0]",);
+  }
+  chop($plist);
+  $plist .= ") ";
+  return $plist;
+}
+
+sub get_panel_reviewers {
+  my($panel_name) = @_;
+  my($sql, $sth,@row,$ii,$str);
+  my($plist);
+
+  my($plist) = " last in (";
+  $sql = qq(select last from axafusers..person_short ps,panel_member pm,
+	panel,ao 
+	where panel.ao = ao.ao_id and ao.ao_str = "$param{a}"
+	and panel.panel_id = pm.panel_id
+	and pm.pers_id = ps.pers_id
+        and panel_name like "$panel_name");
+
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  while (@row = $sth->fetchrow_array) {
+    $plist .= qq( "$row[0]",);
+  }
+  chop($plist);
+  $plist .= ") ";
+  return $plist;
+}
+
+
+# ----------------------------------------------------------
+# parse input parameters
+# ----------------------------------------------------------
+sub parse_input
+{
+  my ($pwd);
+  my $err = 0;
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+             o=> undef,
+             p=> undef,
+             r=> "ALL",
+             a=> "$ENV{ASCDS_PROP_AO}",
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "o=s",
+          "p=s",
+          "a=s",
+          "d=s",
+          "r=s",
+          "q=s",
+          "c",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter '$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+  $param{q} = $pwd;
+
+}
+
+sub usage
+{
+    print STDERR "\nUSAGE: peer_reviewer_conflicts.pl -Uop [Sar]\n";
+    print STDERR "       -U database user name\n";
+    print STDERR "       -S database server, default is DB_PROP_SQLSRV\n";
+    print STDERR "       -a AO , default is ASCDS_PROP_AO\n";
+    print STDERR "       -o output filename \n";
+    print STDERR "       -p panel\n";
+    print STDERR "       -r filename of reviewers (must not begin with pan|all)\n";
+    print STDERR "          or 'pan' to only use reviewers from the specified panel\n";
+    print STDERR "          DEFAULT is 'all' available reviewers\n";
+    print STDERR "       -c if present, only check chairs and pundits\n";
+}
+

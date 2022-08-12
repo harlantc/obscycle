@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE formView SYSTEM "formView.dtd">
+
+<formView>
+
+  <title>ACISWIN Form</title>
+
+  <info>
+    <supportsNew>clone null</supportsNew>
+  </info>
+
+  <key>
+    <tableName>aciswin</tableName>
+    <columnName>aciswin_id</columnName>
+  </key>
+
+  <navigation>
+    <display>
+      <name>ACISWIN Identifier</name>
+      <tableName>aciswin</tableName>
+      <columnName>aciswin_id</columnName>
+    </display>
+    <display>
+      <name>ObsId+Chip+Order</name>
+      <tableName>aciswin</tableName>
+      <columnName>(convert(char(8),obsid)+convert(char(4),chip)+convert(char(8),ordr))</columnName>
+    </display>
+
+  </navigation>
+
+  <GUI>
+    <label tag="11">
+      <labelText>ACISWIN</labelText>
+      <row>
+        <number>0</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+    </label>
+
+    <textfield tag="12">
+      <labelText>Id</labelText>
+      <size>6</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>aciswin</tableName>
+        <columnName>aciswin_id</columnName>
+      </database>
+    </textfield>
+
+
+    <textfield tag="13">
+      <labelText>Obs Id</labelText>
+      <size>6</size>
+      <database>
+        <tableName>aciswin</tableName>
+        <columnName>obsid</columnName>
+      </database>
+    </textfield>
+    
+    <textfield tag="21" >
+      <labelText>Order</labelText>
+      <size>2</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>aciswin</tableName>
+        <columnName>ordr</columnName>
+      </database>
+    </textfield>
+    
+    <combobox tag="22" none="false">
+      <labelText>Chip</labelText>
+      <size>6</size>
+      <database>
+        <tableName>aciswin</tableName>
+	<columnName>chip</columnName>
+      </database>
+    </combobox>
+
+    <combobox tag="23" none="false">
+      <labelText>Include Flag</labelText>
+      <database>
+        <tableName>aciswin</tableName>
+	<columnName>include_flag</columnName>
+      </database>
+    </combobox>
+
+    <textfield tag="31" >
+      <labelText>Start Row</labelText>
+      <size>5</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>aciswin</tableName>
+	<columnName>start_row</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="32">
+      <labelText>Start Column</labelText>
+      <size>5</size>
+      <database>
+        <tableName>aciswin</tableName>
+	<columnName>start_column</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="41">
+      <labelText>Height</labelText>
+      <size>10</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>aciswin</tableName>
+	<columnName>height</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="42">
+      <labelText>Width</labelText>
+      <size>10</size>
+      <database>
+        <tableName>aciswin</tableName>
+	<columnName>width</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="51">
+      <labelText>Lower Energy</labelText>
+      <size>8</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>aciswin</tableName>
+	<columnName>lower_threshold</columnName>
+      </database>
+    </textfield>
+    
+    <textfield tag="52">
+      <labelText>Energy Range</labelText>
+      <size>8</size>
+      <database>
+        <tableName>aciswin</tableName>
+	<columnName>pha_range</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="53">
+      <labelText>Sample Rate</labelText>
+      <size>10</size>
+      <database>
+        <tableName>aciswin</tableName>
+	<columnName>sample</columnName>
+      </database>
+    </textfield>
+
+ </GUI>
+
+</formView>
+

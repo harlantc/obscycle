@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE formView SYSTEM "formView.dtd">
+
+<formView>
+
+  <title>TIMEREQ Form</title>
+
+  <info>
+    <supportsNew>clone null</supportsNew>
+  </info>
+
+  <key>
+    <tableName>timereq</tableName>
+    <columnName>timereq_id</columnName>
+  </key>
+
+  <navigation>
+    <display>
+      <name>TIMEREQ Identifier</name>
+      <tableName>timereq</tableName>
+      <columnName>timereq_id</columnName>
+    </display>
+    <display>
+      <name>ObsId+Order</name>
+      <tableName>timereq</tableName>
+      <columnName>(convert(char(8),obsid) + convert(char(4),ordr))</columnName>
+    </display>
+  </navigation>
+
+  <GUI>
+    <label tag="11">
+      <labelText>TIMEREQ</labelText>
+      <row>
+        <number>0</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+    </label>
+
+    <textfield tag="12">
+      <labelText>Id</labelText>
+      <size>6</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>timereq</tableName>
+        <columnName>timereq_id</columnName>
+      </database>
+    </textfield>
+
+
+
+    <textfield tag="12">
+      <labelText>Obs Id</labelText>
+      <size>6</size>
+      <database>
+        <tableName>timereq</tableName>
+        <columnName>obsid</columnName>
+      </database>
+    </textfield>
+
+
+    <textfield tag="13">
+      <labelText>Order</labelText>
+      <size>6</size>
+      <database>
+        <tableName>timereq</tableName>
+        <columnName>ordr</columnName>
+      </database>
+    </textfield>
+    
+   <combobox tag="21" none="false">
+      <labelText>Window Constraint</labelText>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <size>1</size>
+      <database>
+        <tableName>timereq</tableName>
+        <columnName>window_constraint</columnName>
+      </database>
+    </combobox>
+
+    <timestampbutton tag="322">
+      <labelText>Window Start</labelText>
+      <size>22</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>timereq</tableName>
+        <columnName>tstart</columnName>
+      </database>
+    </timestampbutton>
+
+    <timestampbutton tag="323">
+      <labelText>Window Stop</labelText>
+      <size>22</size>
+      <database>
+        <tableName>timereq</tableName>
+        <columnName>tstop</columnName>
+      </database>
+    </timestampbutton>
+
+
+ </GUI>
+
+</formView>
+

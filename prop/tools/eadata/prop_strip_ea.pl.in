@@ -1,0 +1,100 @@
+#!@PERL@ 
+
+#   ***********************************************************
+#   Copyright (c) 2001  Smithsonian  Astrophysical  Observatory
+#   The contents of this file are protected under the copyright
+#   notice  contained in the file  COPYRIGHT_SAO located in the
+#   root directory of this distribution.
+#   ***********************************************************
+#
+#* FILE NAME: prop_strip_ea.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#
+#
+#* NOTES:
+#
+#
+#
+#* REVISION HISTORY:
+#
+#
+#   ***********************************************************
+#
+use Getopt::Std;
+
+
+  &parse_input;
+
+  $startit = 0;
+
+  open(INFILE,"< $infile");
+  open(OFILE,"> $infile.strip");
+
+  print STDERR "Stripping : $infile\n";
+
+  while ($myline = <INFILE>) {
+    if ($myline =~ /\#  /) {
+      next;
+    }
+    chomp($myline);
+    @tmp = split(' ',$myline);
+    if ($#tmp > 0) {
+      if (!$startit) {
+        if ($tmp[1] ne "0.00000000"  &&
+            $tmp[1] ne "0" &&
+            $tmp[1] ne "0.0000000E+00"  ) {
+          $startit = 1;
+          if ($oline) {
+            printf OFILE "$oline\n";
+          }
+          printf OFILE "$myline\n";
+        }
+        $oline = $myline;
+      }
+      else {
+        print OFILE "$myline\n";
+      }
+    }
+  }
+  close INFILE;
+  close OFILE;
+
+  `cp $infile.strip $infile`;
+  unlink ("$infile.strip");
+
+    
+
+
+# -------------------------------------------------------
+# parse the command line arguments
+# -------------------------------------------------------
+sub parse_input {
+
+  getopts('i:');
+  if (!$opt_i) {
+    &print_usage;
+    exit 1;
+  }
+
+  $infile = $opt_i;
+
+}
+
+# -------------------------------------------------------
+# print command usage
+# -------------------------------------------------------
+
+sub print_usage {
+
+  print STDERR "\nUSAGE: prop_strip_ea.pl -i input_filename\n";
+  print STDERR "WHERE:\n";
+  print STDERR "       -i  input filename for pimms ea files\n";
+ 
+}
+
+
+

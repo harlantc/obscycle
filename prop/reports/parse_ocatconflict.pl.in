@@ -1,0 +1,215 @@
+#!@PERLDB@ 
+# 
+#*H****************************************************************************
+#* Copyright (c) 1995-2016, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: parse_ocatconflict.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script reads the output from the 'propconflict -f peer' option
+#     and creates a table of ocat conflicts. 
+#     The report output is written to STDOUT.
+#
+#
+#     Sample line from propconflict -f peer:
+#---------------------------------------------------------------------------
+#
+#CONFLICTS FOR PROPOSAL 02100120
+#JANE S. SMITH, TEST TITLE FOR CHANDRA CYCLE 2 MULTIPLE TARGETS
+#---------------------------------------------------------------------------
+#
+#----------
+#Target 001 BIG STAR, 50.2 ks, ACIS-S(TE)/HETG,  02:08:56.3 -45:14:4.2
+#----------
+#
+#
+#Hard Conflicts in ObsCat                
+#**Sequence number 100017, GORDON GARMIRE, GRB, 80.0 ks, ACIS-I/NONE,  00:00:0.0 +00:00:0.0, separation=0.0'
+#
+#
+#Soft Conflicts in Proposal DB           no conflicts
+#
+#Soft Conflicts in ObsCat                no conflicts
+#
+#---------------------------------------------------------------------------
+#
+#
+#  This routine will create output with the 
+#
+#  proposal#,target#,conflict info  
+#  where conflict info is:
+#    seq##,target name,exp. time,instrument,separation
+#
+#
+#* NOTES:
+#
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+use Getopt::Long;
+use strict;
+
+use vars qw( %param );
+
+# -------------------------------------------------------
+# MAIN
+# -------------------------------------------------------
+
+{
+  my($infile, @PNOtable, @xx,@jj);
+  my(@PanelTable,@theconflict,@sort_PNOtable);
+  my($oldpno,$pno,$type,$tname,$tno);
+  my($ii,$ll,$jj,$tt,$xx,$seqnbr,$oldline);
+
+  &parse_input;
+
+  $infile = $param{i};
+
+  open(INFILE,"< $infile") ||
+     die("Error: Unable to open $infile for reading: $!\n");
+
+  if ($param{f} !~ /,/) {
+    printf STDOUT ("%-8s$param{f}%-20s$param{f}%s\n",
+      " "," ","Catalog Chandra Observations at or near the proposal coordinates");
+  }
+  printf STDOUT ("%-8s$param{f}%-20s$param{f}%-6s$param{f}%-8s$param{f}%-16.16s$param{f}%-8s$param{f}%-10.10s$param{f}%-4.4s$param{f}%s",
+    "Proposal","Target Name","Seq#","Exp.Time","Instrument","Conflict","Separation","AO","Type");
+  
+
+  @PNOtable;
+  $oldpno = "";
+  while (<INFILE>) {
+    if ($_ =~ /CONFLICTS FOR PROPOSAL/ ) {
+       @xx = split;
+       $pno = $xx[3];
+    }
+    if ($_ =~ /Hard Conflict/ ) {
+       $type = "Hard"; 
+    }
+    if ($_ =~ /Soft Conflict/ ) {
+       $type = "Soft"; 
+    }
+    if ($_ =~ /Target/ && $_ !~ /\*\*Seq/i && $_ !~ /\*\*Prop/) {
+       @xx = split;
+       $tno = $xx[1];
+       $tname = "";
+       for ($ii=2;$ii<$#xx-4;$ii++) {
+         $tname .= " $xx[$ii]";
+       }
+       chop $tname;
+       @xx = split(/,/);
+       if ($#xx > 3) {
+         for ($ii=1;$ii < ($#xx-2);$ii++) {
+           $tname .= ",$xx[$ii]";
+         }
+       }
+    }
+    if ($_ =~ /\*\*Sequ/ ) {
+       $ll = $_;
+       while ($ll =~ s/  / /) {;}
+       @theconflict = split(/,/);
+       @xx = split(/ /,$theconflict[0]);
+       $seqnbr =$xx[2];
+
+       if ($pno != $seqnbr) {
+         push @PanelTable,"$pno $seqnbr";
+         $jj = $#theconflict;
+         $tt = "$pno^$tno^$tname^$seqnbr^";
+         $tt .= "$theconflict[$jj-5]^$theconflict[$jj-4]^";
+         $tt .= "$type^$theconflict[$jj-2]^$theconflict[$jj-1]^$theconflict[$jj]";
+       
+         if ($pno != $oldpno && $oldpno != "") {
+            $ii = $#PNOtable;
+            if ($ii >= 0) {
+              chomp($PNOtable[$ii]);
+              $PNOtable[$ii] .= "\n";
+            }
+         }
+         $oldpno = $pno;
+         push @PNOtable,$tt;
+      }
+    }
+  }
+  close INFILE;
+
+  @sort_PNOtable = sort @PNOtable;
+  $oldpno="";
+  $oldline="";
+  foreach $xx (@sort_PNOtable) {
+    if ($xx ne $oldline) {
+      $oldline = $xx;
+      @jj = split(/\^/,$xx);
+      if ($oldpno != $jj[0]) {
+        print STDOUT "\n";
+      }
+      $jj[4] =~ s/ ks//g;
+      while ($jj[5] =~ s/^ //) {;}
+      $jj[7] =~ s/separation/sep/;
+      $jj[8] =~ s/AO =//;
+      while ($jj[8] =~ s/^ //) {;}
+      if ($param{f} =~ /,/) {
+        $jj[2] = qq("$jj[2]");
+      }
+      printf STDOUT ("%-8s$param{f}%-20s$param{f}%-6s$param{f}%-8s$param{f}%-16.16s$param{f}%8s$param{f}%-10.10s$param{f}%-4.4s$param{f}%s",
+	  $jj[0],$jj[2],$jj[3],$jj[4],$jj[5],$jj[6],$jj[7],$jj[8],$jj[9]);
+      $oldpno = $jj[0];
+    }
+  }
+
+}
+  
+
+sub parse_input
+{
+  my ($pwd);
+  my $err = 0;
+  %param = (
+             i=> undef,
+             f=> "  ",
+        );
+
+  GetOptions( \%param,
+          "i=s",
+          "f=s",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter '$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+
+}
+
+
+sub usage {
+
+
+  print STDERR "\nUSAGE: parse_ocatconflict.pl  -i [f]  \n";
+  print STDERR "         -i  filename   output from -peer option of propconflict\n";
+  print STDERR "         -f  delimiter, default is spaces\n";
+  print STDERR "       Output is written to STDOUT.\n";
+}
+
+

@@ -1,0 +1,4 @@
+#define lefthatchdotted_width 6
+#define lefthatchdotted_height 6
+static unsigned char lefthatchdotted_bits[] = {
+   0x00, 0x02, 0x00, 0x08, 0x00, 0x20 };

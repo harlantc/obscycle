@@ -1,0 +1,405 @@
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 1995, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: peer_constraints_ingest.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#  At the end of the peer review, 2 files will be created with the results
+#  from the peer review.  For each proposal/target, the script will delete
+#  any existing information and insert the new information using the database
+#  stored procedures.  I expect this script will be run several times as CDO 
+#  updates the results in the weeks after the peer review.
+#
+#
+# Format of tab-delimited file from peer review (Sherry)
+# - Comment lines should begin with #
+# - If you're changing results for a proposal or target, you must supply
+#   all the information because previous info will be deleted for that
+#   proposal and/or target.
+#
+#
+#
+#TARGET FILE
+#------------
+#prop_id
+#targ_id
+#tc_req         float #pointings requested for TC
+#tc             float #pointings approved for TC
+#tc_grade_req   char - e,a,d
+#tc_grade_app   char - e,a,d
+#tax_req        float - slew tax
+#tax            float - slew tax
+#tc_coor        float  /* default to requested=approved */
+#tc_roll        float  /* default to requested=approved */
+#tc_phase       float  /* default to requested=approved */
+#tc_const_rem   float  /* default to requested=approved */
+#tc_time        float  /* default to requested=approved */
+#tc_override    float  /* default to requested=approved */
+#tc_mon_req     float 
+#tc_mon_app     float 
+#tc_too_req     float
+#tc_too_app     float
+#tc_group_req   float
+#tc_group_app   float
+#tc_unint_req   float 
+#tc_unint_app   float
+#
+#
+#
+#PROPOSAL FILE 
+#-------------
+#prop_id
+#tax_req        float - slew tax
+#tax_tot        float - slew tax
+#tc_e_req       float - #pointings easy requested
+#tc_e_app       float - #pointings easy approved
+#tc_a_req       float - #pointings average requested
+#tc_a_app       float - #pointings average approved
+#tc_d_req       float - #pointings difficult requested
+#tc_d_app       float - #pointings difficult approved
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use vars qw ($dbh %param @reqfiles $reqfile
+	$T_PROP $T_TARGID $TR_PNT $TA_PNT $TR_GRADE $TA_GRADE 
+	$TR_SLEW $TA_SLEW $T_TC
+	$P_PROP $PR_SLEW  $PA_SLEW
+	);
+
+use strict;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+
+@reqfiles = (
+        "prop_routines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+
+$T_PROP   = 0;
+$T_TARGID = 1;
+$TR_PNT   = 2;
+$TA_PNT   = 3;
+$TR_GRADE = 4;
+$TA_GRADE = 5;
+$TR_SLEW  = 6;
+$TA_SLEW  = 7;
+$T_TC     = 8; # start of time critical grade/score/flag
+
+$P_PROP   = 0;
+$PR_SLEW  = 1;
+$PA_SLEW  = 2;
+# -------------------------- MAIN ----------------------------------
+{
+
+  &parse_input;
+
+  #database connection
+  $dbh = dbProposalConnection($param{U}, $param{S}, $param{q});
+
+  open (DFILE,"> $param{f}") or
+     die "Unable to open $param{f} for writing!\n";
+  print DFILE "use proposal\ngo\n";
+
+  if ($param{p}) {
+    open(IFILE,"< $param{p}") or 
+	die "Unable to open $param{p} for reading!\n";
+    &do_proposals;
+  }
+  else {
+    open(IFILE,"< $param{t}") or 
+	die "Unable to open $param{t} for reading!\n";
+    &do_targets;
+  }
+  
+  close IFILE;
+  close DFILE;
+  $dbh->disconnect();
+}
+
+sub do_targets
+{
+  my($sql,@row,$istr,$tcgradeR,$tcgradeA,$ii);
+  my($sth,@tmp,$tidx,$tgrade);
+
+  # this needs to match the columns in the input file
+  # these types are used for the peer_constraint_type.type database field
+  my(@types) = ("Coordinated","Roll","Phase","Remarks","Time","Override",
+		"Monitor" ,"Monitor","TOO" ,"TOO","Group","Group",
+		"Uninterrupted","Uninterrupted");
+  my(@reqflg) = ("B","B","B","B","B","B",
+		"R" ,"A","R" ,"A","R","A","R","A");
+
+  while ($istr = <IFILE> ) {
+    # ignore comment lines 
+    if ($istr !~ /^#/) {
+      @row = split("\t",$istr);
+      if ($#row <= 0) {
+        last;
+      }
+      chomp($row[$#row]);
+
+      # get grade for requested and approved
+      ($tcgradeR)= get_grade_info($row[$TR_GRADE]);
+      ($tcgradeA)= get_grade_info($row[$TA_GRADE]);
+
+      # use null instead of blanks for database 
+      for ($ii=0;$ii<= $#row;$ii++) {
+        while ($row[$ii] =~ s/ //) {;}
+        if (length($row[$ii]) <= 0) {
+          $row[$ii] = "null";
+        }
+      }
+
+      #delete all supporting target scores for given targid
+      $sql = qq(exec constraint_type_delete $row[$T_TARGID]);
+      print DFILE "$sql\ngo\n";
+      if (!$param{d}) {
+        $dbh->do($sql);
+      }
+  
+      # ingest info for this target,  any existing entry is deleted
+      $sql = qq(exec constraint_target_ingest
+    		$row[$T_TARGID] , $row[$TR_PNT], $row[$TA_PNT], 
+       	 	$tcgradeR, $tcgradeA,
+		$row[$TR_SLEW], $row[$TA_SLEW]);
+      print DFILE "$sql\ngo\n";
+      if (!$param{d}) {
+        $dbh->do($sql);
+      }
+         
+      # Sherry wants all info recorded regardless of approved,unapproved
+      # and required/preferred.  Then scores are available if MP
+      # checks a preferred constraint????
+      # we would use the target fields to determine required vs. preferred
+
+      # process the scores for the different time critical types.
+      # some types only have 1 score, others have sets of requested/approved
+      # grade,score,flag
+      $tidx=0;
+      for ($ii=$T_TC; $ii<= $#row; $ii+=3,$tidx++) {
+        if ($row[$ii] !~  /null/i) {
+          ($tgrade)= get_grade_info($row[$ii]);
+          $sql = qq(exec constraint_type_ingest 
+		$row[$T_TARGID],"$types[$tidx]","$reqflg[$tidx]",
+		$tgrade,$row[$ii+1], "$row[$ii+2]");
+          print DFILE "$sql\ngo\n";
+          if (!$param{d}) {
+            $dbh->do($sql);
+          }
+        }
+      }
+    }
+  }
+
+}
+
+
+sub do_proposals
+{
+  my($str,$sql,$sth,@tmp);
+  my(@fields,$ii,$pid,$grade);
+
+
+  while ($str = <IFILE> ) {
+    if ($str !~ /^#/) {
+      @fields = split("\t",$str);
+      if ($#fields <= 0) {
+        last;
+      }
+      chomp($fields[$#fields]);
+
+      # first get the correct proposal id because the prop_id at peer review
+      # is really the proposal_number
+      $pid = 0;
+      $sql = qq(select proposal_id from proposal 
+                where proposal_number = "$fields[$P_PROP]");
+      $sth= $dbh->prepare($sql);
+      $sth->execute;
+      while (@tmp = $sth->fetchrow_array) {
+        $pid = $tmp[0];
+      }
+      if ($pid == 0) {
+         print STDERR "ERROR:  Unable to determine proposal_id for $fields[0]\n";
+         print STDERR "        Processing has STOPPED!\n";
+         print STDERR "        Please fix the input file and rerun this program.\n";
+         print DFILE "ERROR:  Unable to determine proposal_id for $fields[0]\n";
+         print DFILE "        Processing has STOPPED!\n";
+         print DFILE "        Please fix the input file and rerun this program.\n";
+         exit (1);
+      }
+
+      # ingest the slew tax info
+      # propid, tax_req, tax_app
+      $str = join(',',($pid,$fields[$PR_SLEW],$fields[$PA_SLEW]));
+      $sql = qq(exec slewtax_proposal_ingest $str);
+      while ($sql =~ s/,,/,null,/) {;}
+      while ($sql =~ s/,$/,null/) {;}
+      print DFILE "$sql\ngo\n";
+      if (!$param{d}) {
+        $dbh->do($sql);
+      }
+
+      #delete any existing constraints for this proposal
+      $sql = qq(exec constraint_proposal_delete	$pid);
+      print DFILE "$sql\ngo\n";
+      if (!$param{d}) {
+        $dbh->do($sql);
+      }
+
+
+      # ingest the overall grade and pointings entries
+      # the grades come in pairs of requested/approved
+      # column 3,4 -> easy       column 5,6 -> average
+      # column 7,8 -> difficult
+      for ($ii=3; $ii <= $#fields; $ii+=2) {
+        $grade = "";
+        if ($ii == 3) { $grade="Easy"; }
+        elsif ($ii == 5) { $grade="Average"; }
+        elsif ($ii == 7) { $grade="Difficult"; }
+
+        if (length($grade) > 1 && ($fields[$ii] >0 || $fields[$ii+1] > 0)) {
+          $str = join(',',("$grade",$fields[$ii],$fields[$ii+1]));
+          $sql = qq(exec constraint_proposal_ingest	$pid,$str);
+          while ($sql =~ s/,,/,null,/) {;}
+          while ($sql =~ s/,$/,null/) {;}
+          print DFILE "$sql\ngo\n";
+          if (!$param{d}) {
+            $dbh->do($sql);
+          }
+        }
+      }
+    }
+  }
+}
+    
+ 
+
+# -----------------------------------------------------------
+# convert single character grade to full grade
+# e -> Easy   a->Average  d->Difficult
+#
+# Return: grade  or 0 if no match
+# ----------------------------------------------------------
+sub get_grade_info
+{
+  my($grade) = @_;
+  my($tcgrade);
+
+  $tcgrade = "null";
+  if ($grade ) {
+    if ($grade =~ /e/i) {
+      $tcgrade = qq("Easy");
+    }  
+    elsif ($grade =~ /a/i) {
+      $tcgrade = qq("Average");
+    }  
+    elsif ($grade =~ /d/i) {
+      $tcgrade = qq("Difficult");
+    }  
+  }
+  return ($tcgrade);
+}
+
+# ----------------------------------------------------------
+# parse input parameters
+# ----------------------------------------------------------
+sub parse_input
+{
+  my ($pwd);
+  my $err = 0;
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "f=s",
+          "q=s",
+          "t=s",
+          "p=s",
+          "d",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter `$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+  if (!$param{p} && !$param{t} ) {
+    warn ("parameter -p or -t must be specified\n");
+    $err++;
+  }
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+  if (!$param{f} ) {
+    $param{f} = $ENV{"ASCDS_PROP_DIR"}; 
+    if (!$param{f}) {
+      $param{f} .= ".";
+    }
+    $param{f} .= "/reports/peer_constraint_ingest.dbg";
+    
+  }
+
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+  $param{q} = $pwd;
+
+}
+
+sub usage
+{
+    print STDERR "\nUSAGE: peer_constraint_ingest.pl -U [p | t] [ Sfd ]\n";
+    print STDERR "       -U database user name\n";
+    print STDERR "       -t filename of target constraint info \n";
+    print STDERR "       -p filename of proposal constraint info \n";
+    print STDERR "       -S database server, default is DB_PROP_SQLSRV\n";
+    print STDERR "       -f debug filename , default is ASCDS_PROP_DIR/reports\n";
+    print STDERR "          Note: it always write the commands it executes to this file\n";
+                            
+    print STDERR "       -d debug mode, don't update database,just produce debug file.\n";
+
+}
+

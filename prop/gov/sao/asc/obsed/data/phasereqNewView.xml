@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE formView SYSTEM "formView.dtd">
+
+<formView>
+  <title>New Phasreq</title>
+
+  <info>
+    <supportsNew>true</supportsNew>
+  </info>
+
+  <key>
+    <tableName>phasereq</tableName>
+    <columnName>obsid</columnName>
+  </key>
+
+  <navigation>
+    <display>
+      <name>Observation ID</name>
+      <tableName>phasereq</tableName>
+      <columnName>obsid</columnName>
+    </display>
+  </navigation>
+
+  <GUI>
+    <obsidcombobox tag="11">
+      <labelText>Obs ID</labelText>
+      <size>6</size>
+      <row>
+        <number>0</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>phasereq</tableName>
+        <columnName>obsid</columnName>
+	<queryString>SELECT target.obsid FROM target WHERE NOT EXISTS (SELECT 1 FROM locked WHERE locked.obsid = target.obsid) AND NOT EXISTS (SELECT 1 FROM phasereq WHERE phasereq.obsid = target.obsid)</queryString>
+      </database>
+    </obsidcombobox>
+    
+    <textfield tag="21">
+      <labelText>Phase Period</labelText>
+      <size>8</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>phasereq</tableName>
+        <columnName>phase_period</columnName>
+      </database>
+    </textfield>
+    
+    <textfield tag="22">
+      <labelText>Phase Epoch</labelText>
+      <size>8</size>
+      <database>
+        <tableName>phasereq</tableName>
+        <columnName>phase_epoch</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="31">
+      <labelText>Phase Start</labelText>
+      <size>8</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>phasereq</tableName>
+        <columnName>phase_start</columnName>
+      </database>
+    </textfield>
+    
+    <textfield tag="32">
+      <labelText>Phase End</labelText>
+      <size>8</size>
+      <database>
+        <tableName>phasereq</tableName>
+        <columnName>phase_end</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="41">
+      <labelText>Phase Start Margin</labelText>
+      <size>8</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>phasereq</tableName>
+        <columnName>phase_start_margin</columnName>
+      </database>
+    </textfield>
+    
+    <textfield tag="42">
+      <labelText>Phase End</labelText>
+      <size>8</size>
+      <database>
+        <tableName>phasereq</tableName>
+        <columnName>phase_end_margin</columnName>
+      </database>
+    </textfield>
+
+    <combobox tag="51" none="false">
+      <labelText>Phase Unique</labelText>
+      <size>1</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>phasereq</tableName>
+        <columnName>phase_unique</columnName>
+      </database>
+    </combobox>
+
+  </GUI>
+</formView>

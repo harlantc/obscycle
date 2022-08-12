@@ -1,0 +1,451 @@
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 1995, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_too_lists.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script provides list of TOO proposals
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use vars qw (%param $dbh @reqfiles $reqfile $alttab
+        );
+
+use strict;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+
+@reqfiles = (
+        "prop_routines.pl",
+        "prop_dbroutines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+
+{
+  my ($dsn,$stmp);
+
+  &parse_input;
+
+  #database connection
+  $dbh = dbProposalConnection($param{U}, $param{S}, $param{q});
+
+
+  # normal targets
+  if ($param{t} =~ /gto/i) {
+    my($gstr) = qq( and proposal.status not in ("INCOMPLETE","WITHDRAWN") and proposal.type like "GTO%" );
+    &do_proposal($gstr)
+    &do_too($gstr);
+  } elsif ($param{t} =~ /peer/i) {
+    &do_proposal(" and (proposal.rank is not null or proposal.status =\"PROPOSED\") ");
+    &do_too(" and (proposal.rank is not null or proposal.status =\"PROPOSED\") ");
+  } else {
+    &do_proposal( qq(and proposal.status not in ("INCOMPLETE","WITHDRAWN"))); 
+    &do_too( qq(and proposal.status not in ("INCOMPLETE","WITHDRAWN"))); 
+  }
+
+
+  $dbh->disconnect();
+}
+    
+sub do_proposal
+{
+  my($squery) = @_;
+  my($sql_stmt,$sth,@row,$stmp,$fname);
+    
+  if ($param{w}) {
+    $alttab = "#dappalt";
+    $sql_stmt = qq(select distinct
+	proposal_number,last,title,sum(approved_exposure_time),
+	count(distinct target.targid),
+	count(target.targid)
+	from proposal,target,axafusers..person_short ps,too
+	where proposal.ao_str = "$param{a}" 
+	and piid = pers_id
+	$squery 
+	and proposal.type like "%TOO%" 
+        and target.status = "accepted"	
+	and target.targid = too.targid
+	and trigger_target = "Y"
+        and proposal.proposal_id = target.proposal_id
+	and target.targid not in (select tid from #dappalt)
+	group by proposal_number,last,title
+	order by proposal_number);
+    $stmp="Cycle $param{a} Approved TOO Proposals - $param{t}";
+    $fname = "$param{o}/cycle$param{a}_approved_too_proposals_$param{t}.txt";
+
+
+  } else {
+    $alttab = "#dreqalt";
+    $sql_stmt = qq(select distinct
+	proposal_number,last,title,sum(prop_exposure_time),
+	count(target.targid)
+	from proposal,target,axafusers..person_short ps,too
+	where proposal.ao_str = "$param{a}" 
+	and piid = pers_id
+	$squery 
+	and proposal.type like "%TOO%" 
+	and target.targid = too.targid
+	and trigger_target = "Y"
+        and proposal.proposal_id = target.proposal_id
+	and target.targid not in (select tid from #dreqalt)
+	group by proposal_number,last,title
+	order by proposal_number);
+    $stmp="Cycle $param{a} Requested TOO Proposals - $param{t}";
+    $fname = "$param{o}/cycle$param{a}_requested_too_proposals_$param{t}.txt";
+  }
+
+  # exclude alternates 
+  $param{s} = qq( proposal.type like "%TOO%" );
+  dbexclude_alternates($dbh);
+
+
+  open (OFILE,"> $fname");
+  print STDERR "Creating file: $fname\n";
+  print OFILE proposal_header(0);
+
+  $fname =~ s/\.txt/\.html/;
+  open (HFILE,"> $fname");
+  print STDERR "Creating file: $fname\n";
+  print HFILE proposal_header(1,$stmp);
+    
+ 
+  #print STDERR "$sql_stmt\n";
+
+  $sth = $dbh->prepare($sql_stmt);
+  $sth->execute;
+  #print STDERR "\n\n";
+  while (@row = $sth->fetchrow_array) {
+          &proposal_data(1,@row);
+  }
+
+    
+  close(OFILE);
+  print HFILE html_trailer();
+  close(HFILE);
+  chmod 0660,$fname;
+  $fname =~ s/\.html/\.txt/;
+  chmod 0660,$fname;
+
+}
+
+
+sub do_too
+{    
+  my($squery) = @_;
+  my($sql_stmt,$sth,@row,$stmp,$fname);
+    
+  if ($param{w}) {
+    $sql_stmt = qq(select distinct 
+	proposal_number,last,targname,ra,dec,instrument_name,
+	grating_name, approved_exposure_time,
+	approved_count,group_name,
+	probability,ss_object
+	from target,proposal,axafusers..person_short,instrument,grating,
+	alternate_target_group ag, too
+	where target.proposal_id = proposal.proposal_id 
+	and proposal.ao_str = "$param{a}" 
+	and target.status = "accepted" 
+	and target.alternate_id *= ag.alternate_id
+	and target.targid *= too.targid
+        $squery  
+	and proposal.type like "%TOO%" 
+	and use_instrument_id=instrument.instrument_id 
+	and use_grating_id = grating.grating_id 
+	and proposal.piid = axafusers..person_short.pers_id 
+	order by proposal_number,targ_num);
+    $stmp="Cycle $param{a} Approved TOO Targets - $param{t}";
+    $fname = "$param{o}/cycle$param{a}_approved_too_targets_$param{t}.txt";
+  } 
+  else {
+    $sql_stmt = qq(select distinct 
+	proposal_number,last,targname,ra,dec,instrument_name,
+	grating_name, prop_exposure_time,
+	requested_count,group_name,
+	probability,ss_object
+	from target,proposal,axafusers..person_short,instrument,grating,
+	alternate_target_group ag,too
+	where target.proposal_id = proposal.proposal_id 
+	and proposal.ao_str = "$param{a}" 
+	and target.alternate_id *= ag.alternate_id
+	and target.targid *= too.targid
+        $squery  
+	and proposal.type like "%TOO%" 
+	and use_instrument_id=instrument.instrument_id 
+	and use_grating_id = grating.grating_id 
+	and proposal.piid = axafusers..person_short.pers_id 
+	order by proposal_number,targ_num);
+    $stmp="Cycle $param{a} Requested TOO Targets - $param{t}";
+    $fname = "$param{o}/cycle$param{a}_requested_too_targets_$param{t}.txt";
+  } 
+
+  open (OFILE,"> $fname");
+  print STDERR "Creating file: $fname\n";
+  print OFILE target_header(0);
+
+  $fname =~ s/\.txt/\.html/;
+  open (HFILE,"> $fname");
+  print STDERR "Creating file: $fname\n";
+  print HFILE target_header(1,$stmp);
+    
+ 
+  #print STDERR "$sql_stmt\n";
+
+  $sth = $dbh->prepare($sql_stmt);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+          &target_data(1,@row);
+  }
+
+    
+  close(OFILE);
+  print HFILE html_trailer();
+  close(HFILE);
+  chmod 0660,$fname;
+  $fname =~ s/\.html/\.txt/;
+  chmod 0660,$fname;
+
+}
+
+
+# ---------------------------------------------------------------------
+# print headers
+# ---------------------------------------------------------------------
+#
+# ---------------------------------------------------------------------
+sub html_trailer()
+{
+  my($str);
+  $str = "</pre></body></html>"; 
+  return $str;
+}
+
+# ---------------------------------------------------------------------
+sub html_hdr()
+{
+  my($hdr) = @_;
+  my($stmp);
+
+  $stmp = <<endHtml;
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <title>$hdr</title>
+</head>
+<body>
+<!--#include virtual="/incl/header.html"-->
+<center> 
+<h1>$hdr</h1>
+</center>
+<p>
+<pre>
+endHtml
+
+  return($stmp);
+}
+# ---------------------------------------------------------------------
+sub proposal_header()
+{
+  my($dohtml,$ihdr)=@_;
+  my($stmp,$str,$tstr);
+
+  if ($param{w}) {
+    $tstr="AppTime";
+  } else { 
+    $tstr="ReqTime";
+  }
+  if ($dohtml) {
+    $str  = &html_hdr($ihdr);
+  }
+  $str .= sprintf ("%-9.9s  %-15.15s %-7.7s  %-5.5s  %s\n",
+	"Proposal","P.I.","$tstr","#Trig","Title");
+
+  $str .= "------------------------------------------------------------------------------------------------------------------------\n";
+  
+  return $str;
+}
+# ---------------------------------------------------------------------
+# print data for proposals
+# ---------------------------------------------------------------------
+sub proposal_data()
+{
+  my($dohtml,@row) = @_;
+
+
+  if ($dohtml) {
+    printf HFILE qq(<a name="$row[0]">);
+    printf HFILE 
+       ("%-9.9s  %-15.15s %7.2f  %5d  %s\n",
+       $row[0],$row[1],$row[3],$row[4],$row[2]);
+  }
+  printf OFILE 
+       ("%-9.9s  %-15.15s %7.2f  %5d  %s\n",
+       $row[0],$row[1],$row[3],$row[4],$row[2]);
+}
+
+# ---------------------------------------------------------------------
+sub target_header()
+{
+  my($dohtml,$ihdr)=@_;
+  my($stmp,$str,$tstr);
+
+  if ($param{w}) {
+    $tstr="App.";
+  } else { 
+    $tstr="Req.";
+  }
+  if ($dohtml) {
+    $str  = &html_hdr($ihdr);
+  }
+  $str .= sprintf ("%-9.9s  %-15.15s %-30.30s  %-10.10s  %-11.11s %-6.6s %4.4s  %6.6s  %6.6s  %5.5s %-20.20s\n",
+	"  ","  ","  "," "," ","De-","Grat-",$tstr," ",$tstr,"Alternate");
+  $str .= sprintf ("%-9.9s  %-15.15s %-30.30s  %-10.10s  %-11.11s %-6.6s %4.4s  %6.6s  %6.6s  %5.5s %-20.20s\n",
+	"Proposal","P.I.","Target Name","RA","Dec","tector","ing","Time","Prob.","Alt.","Group");
+
+  $str .= "-------------------------------------------------------------------------------------------------------------------------------\n";
+  
+  return $str;
+}
+
+
+# ---------------------------------------------------------------------
+# print data for main targets
+# ---------------------------------------------------------------------
+sub target_data()
+{
+  my($dohtml,@row) = @_;
+  my ($rastr,$decstr,$tname);
+
+  ($rastr,$decstr) = convert_coord($row[3],$row[4]);
+
+  $tname = $row[2];
+  if (length($tname) < 2) {
+     $tname = $row[$#row];
+  }
+      
+  if ($dohtml) {
+    printf HFILE qq(<a name="$row[0]">);
+    printf HFILE 
+       ("%-9.9s  %-15.15s %-30.30s  %-10.10s %-11.11s  %6.6s %4.4s  %6.2f  %6.2f  %5.5s %-20.20s\n",
+       $row[0],$row[1],$tname,$rastr,$decstr,
+       $row[5],$row[6],$row[7],$row[10],$row[8],$row[9]);
+  }
+  printf OFILE 
+    ("%-9.9s  %-15.15s %-30.30s  %-10.10s %-11.11s  %6.6s %4.4s  %6.2f  %6.2f  %5.5s %-20.20s\n",
+    $row[0],$row[1],$tname,$rastr,$decstr,
+    $row[5],$row[6],$row[7],$row[10],$row[8],$row[9]);
+
+}
+
+
+# parse input parameters
+# ----------------------------------------------------------
+sub parse_input
+{
+  my ($pwd);
+  my $err = 0;
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+             o=> "$ENV{ASCDS_PROP_DIR}/reports",
+             a=> "$ENV{ASCDS_PROP_AO}",
+             t=> "All",
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "o=s",
+          "a=s",
+          "t=s",
+          "q=s",
+          "d",
+          "w",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter '$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+  if (!-d $param{o} ) {
+    mkdir("$param{o}",02770);
+  }
+  if (!-d $param{o} ) {
+     print STDERR "Unable to create output directory for $param{o}\n";
+     exit(1);
+  }
+
+  if ($param{t} =~ /peer/i) {
+    $param{t} = "Peer";
+  }
+  elsif ($param{t} =~ /gto/i) {
+    $param{t} = "GTO";
+  }
+  else {
+    $param{t} = "All";
+  }
+
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+  $param{q} = $pwd;
+
+}
+
+sub usage
+{
+    print STDERR "\nUSAGE: prop_too_lists.pl -Uo [ Satw]\n";
+    print STDERR "       -U database user name\n";
+    print STDERR "       -o output directory \n";
+    print STDERR "       -S database server, default is DB_PROP_SQLSRV\n";
+    print STDERR "       -a AO , default is ASCDS_PROP_AO\n";
+    print STDERR "       -t type=gto|peer|all,  default is all\n";
+    print STDERR "       -w flag indicating only approved proposals,targets\n";
+
+
+}
+
+

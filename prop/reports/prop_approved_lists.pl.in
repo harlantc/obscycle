@@ -1,0 +1,1035 @@
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 1995, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_approved_lists.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script provides list of winners for posting on WWW.
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use vars qw (%param $dbh @reqfiles $reqfile 
+    	@facility @reqtime @apptime
+        );
+
+use strict;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+
+@reqfiles = (
+        "prop_build_joint.pl",
+        "prop_routines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+
+{
+  my ($dsn,$stmp);
+
+  &parse_input;
+
+  #database connection
+  $dbh = dbProposalConnection($param{U}, $param{S}, $param{q});
+
+  # normal targets
+  &do_targets(" order by ra,dec,proposal_number,targ_num","radec"," and rank is not null ");
+  &do_targets(" order by proposal_number,targ_num","propnum","and rank is not null");
+  &do_targets(" order by ra,dec,proposal_number,targ_num","radec");
+  &do_targets(" order by proposal_number,targ_num","propnum");
+  &do_peer_proposals;
+  &do_gto;
+  &do_bpp;
+
+  # archive/theory 
+  &do_archive_theory();
+  &do_archive_theory("ARCHIVE");
+  &do_archive_theory("THEORY");
+
+  #joint 
+  &do_joint;
+  
+  #rank ordered list by panel
+  &do_rank;
+
+  # cal targets
+  &do_cal;
+
+  # approved alternates
+  &do_alternates;
+  &do_alternate_triggers;
+
+  # approved grids
+  &do_grids;
+
+  # multicycle
+  &do_multicycle;
+
+  # epo lists
+  if ($param{e}) {
+    &do_epo;
+  }
+
+  chmod 0660,"$param{o}/approved*txt";
+  chmod 0660,"$param{o}/approved*html";
+
+  $dbh->disconnect();
+}
+    
+
+sub do_peer_proposals
+{    
+  my($sql_stmt,$sth,@row);
+  my($stmp,$fname);
+    
+  $sql_stmt = qq(create table #myview  (proposal_number varchar(8),
+	last varchar(30), institution varchar(255), 
+	approved_exposure_time float NULL,
+	title varchar (255)));
+  $dbh->do($sql_stmt);
+        # changed in 2011 (cycle 13)
+        #type not like "GTO%" and type not like "CAL%" and
+  $sql_stmt = qq(insert #myview  
+	select proposal_number,last,institution,
+	approved_exposure_time,title
+	from target,proposal,axafusers..person_short
+	where target.proposal_id = proposal.proposal_id and
+	proposal.ao_str = "$param{a}" and
+	target.status = "accepted" and
+        type not like "CAL%" and
+        rank > 3.49 and 
+	joint not like "%CXO-%" and
+	proposal.piid = axafusers..person_short.pers_id );
+  $dbh->do($sql_stmt);
+
+  $sql_stmt = qq(select distinct proposal_number,last,sum(approved_exposure_time),
+	count(proposal_number),institution from #myview
+	group by proposal_number
+	order by proposal_number);
+ 
+  $stmp = "Cycle $param{a} Approved Peer-Reviewed Targets";
+  $fname = "$param{o}/cycle$param{a}_approved_proposals.txt";
+  open (OFILE,"> $fname");
+  print STDERR "Creating file: $fname\n";
+  print OFILE proposal_header(0,$stmp);
+
+  $fname =~ s/\.txt/\.html/;
+  open (HFILE,"> $fname");
+  print STDERR "Creating file: $fname\n";
+  print HFILE proposal_header(1,$stmp);
+ 
+  $sth = $dbh->prepare($sql_stmt);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+    proposal_data(1,@row);
+  }
+    
+  close(OFILE);
+  print HFILE html_trailer();
+  close(HFILE);
+  chmod 0660,$fname;
+  $fname =~ s/\.html/\.txt/;
+  chmod 0660,$fname;
+}
+
+sub do_targets
+{    
+  my($order_clause,$ordername,$squery) = @_;
+  my($sql_stmt,$sth,@row,$stmp,$fname);
+    
+  $sql_stmt = qq(select targname,ra,dec,instrument_name,
+	grating_name, approved_exposure_time,proposal_number,last,institution,
+	ss_object,alternate_id
+	from target,proposal,axafusers..person_short,instrument,grating
+	where target.proposal_id = proposal.proposal_id 
+	and proposal.ao_str = "$param{a}" 
+	and target.status = "accepted" 
+        $squery  
+	and type not like "CAL%" and type not like "DDT" 
+	and joint not like "%CXO-%" 
+	and use_instrument_id=instrument.instrument_id 
+	and use_grating_id = grating.grating_id 
+	and proposal.piid = axafusers..person_short.pers_id );
+   $sql_stmt .= $order_clause;
+
+ 
+    if ($squery) {
+      $stmp="Cycle $param{a} Approved Peer-Reviewed Targets";
+      $fname = "$param{o}/cycle$param{a}_approved_peer_targets_by_$ordername.txt";
+    }
+    else {
+      $stmp="Cycle $param{a} All Approved Targets";
+      $fname = "$param{o}/cycle$param{a}_approved_all_targets_by_$ordername.txt";
+    }
+    open (OFILE,"> $fname");
+    print STDERR "Creating file: $fname\n";
+    print OFILE target_header(0);
+
+    $fname =~ s/\.txt/\.html/;
+    open (HFILE,"> $fname");
+    print STDERR "Creating file: $fname\n";
+    print HFILE target_header(1,$stmp);
+    
+ 
+
+    $sth = $dbh->prepare($sql_stmt);
+    $sth->execute;
+    while (@row = $sth->fetchrow_array) {
+          &target_data(1,@row);
+    }
+    
+    close(OFILE);
+    print HFILE html_trailer();
+    close(HFILE);
+    chmod 0660,$fname;
+    $fname =~ s/\.html/\.txt/;
+    chmod 0660,$fname;
+
+}
+
+sub do_gto
+{    
+  my($sql_stmt,$sth,@row,$stmp,$fname);
+    
+  $sql_stmt = qq(select targname,ra,dec,instrument_name,
+	grating_name, approved_exposure_time,proposal_number,last,institution,
+	ss_object
+	from target,proposal,axafusers..person_short,instrument,grating
+	where target.proposal_id = proposal.proposal_id and
+	proposal.ao_str = "$param{a}" and
+	target.status = "accepted" and
+        type like "GTO%" and
+	use_instrument_id=instrument.instrument_id and
+	use_grating_id = grating.grating_id and
+	proposal.piid = axafusers..person_short.pers_id 
+	order by ra,dec,proposal_number,targ_num);
+
+ 
+    $stmp="Cycle $param{a} Approved GTO Targets";
+    $fname = "$param{o}/cycle$param{a}_approved_gto_targets.txt";
+    open (OFILE,"> $fname");
+    print STDERR "Creating file: $fname\n";
+    print OFILE target_header(0);
+
+    $fname =~ s/\.txt/\.html/;
+    open (HFILE,"> $fname");
+    print STDERR "Creating file: $fname\n";
+    print HFILE target_header(1,$stmp);
+
+    $sth = $dbh->prepare($sql_stmt);
+    $sth->execute;
+    while (@row = $sth->fetchrow_array) {
+          &target_data(1,@row);
+    }
+    
+    close(OFILE);
+    print HFILE html_trailer();
+    close(HFILE);
+    chmod 0660,$fname;
+    $fname =~ s/\.html/\.txt/;
+    chmod 0660,$fname;
+
+}
+sub do_cal
+{    
+  my($sql_stmt,$sth,@row,$fname);
+    
+  $sql_stmt = qq(select targname,ra,dec,instrument_name,
+	grating_name, approved_exposure_time,proposal_number,last,institution,
+	ss_object
+	from target,proposal,axafusers..person_short,instrument,grating
+	where target.proposal_id = proposal.proposal_id and
+	proposal.ao_str = "$param{a}" and
+	target.status = "accepted" and
+        type like "CAL%" and
+	use_instrument_id=instrument.instrument_id and
+	use_grating_id = grating.grating_id and
+	proposal.piid = axafusers..person_short.pers_id 
+	order by ra,dec,proposal_number);
+
+ 
+    $fname = "$param{o}/cycle$param{a}_approved_cal_targets.txt";
+    open (OFILE,"> $fname");
+    print STDERR "Creating file: $fname\n";
+    print OFILE target_header(0);
+
+    $sth = $dbh->prepare($sql_stmt);
+    $sth->execute;
+    while (@row = $sth->fetchrow_array) {
+          &target_data(0,@row);
+    }
+    
+    close(OFILE);
+    chmod 0660,$fname;
+
+}
+
+
+
+
+sub do_archive_theory
+{    
+  my($type) = @_;
+  my($sql_stmt,$sth,@row);
+  my($stmp,$fname,$title);
+    
+  if ($type ) {
+    $stmp = "and proposal.type like \"" . $type . "%\"";
+    $title = $type;
+  }
+  else {
+    $stmp = qq(and (proposal.type like "ARCH%" or proposal.type like "THE%") );
+    $type = "archive_theory";
+    $title = "Archive/Theory";
+  }
+
+  $sql_stmt = qq(select proposal_number,last,type,institution
+	from proposal,axafusers..person_short
+	where 
+	proposal.ao_str = "$param{a}" 
+        and rank >= 3.5 
+	$stmp
+	and proposal.piid = axafusers..person_short.pers_id 
+	order by last);
+	#order by proposal_number);
+
+   #print "$sql_stmt\n";
+ 
+    $stmp="Cycle $param{a} Approved $title Proposals";
+    $fname =  "$param{o}/cycle$param{a}_approved_$type.txt";
+    open (OFILE,"> $fname");
+    print STDERR "Creating file: $fname\n";
+
+    $fname =~ s/\.txt/\.html/;
+    open (HFILE,"> $fname");
+    print STDERR "Creating file: $fname\n";
+    print HFILE html_hdr($stmp);
+
+    printf OFILE ("Proposal   P.I.             Type      Institution\n");
+    printf OFILE ("--------------------------------------------------------------\n");
+
+    printf HFILE ("Proposal   P.I.             Type      Institution\n");
+    printf HFILE ("--------------------------------------------------------------\n");
+ 
+
+    $sth = $dbh->prepare($sql_stmt);
+    $sth->execute;
+    while (@row = $sth->fetchrow_array) {
+       printf OFILE ("%-8.8s   %-15.15s  %-8.8s  %s\n",@row);
+       printf HFILE ("%-8.8s   %-15.15s  %-8.8s  %s\n",@row);
+    }
+    close OFILE;
+    print HFILE html_trailer();
+    close HFILE;
+    chmod 0660,$fname;
+    $fname =~ s/\.html/\.txt/;
+    chmod 0660,$fname;
+
+}
+sub do_rank
+{    
+  my($sql_stmt,$sth,@row,$fname);
+
+  $sql_stmt = qq(select panel_name,proposal_number,normalized_rank,
+	targname,targ_num,
+	approved_exposure_time,last
+	from target,proposal,axafusers..person_short,panel,
+	panel_proposal
+	where target.proposal_id = proposal.proposal_id and
+        proposal.proposal_id = panel_proposal.proposal_id and
+	panel_proposal.panel_id = panel.panel_id and
+	proposal.ao_str = "$param{a}" and
+	target.status = "accepted" and
+	proposal.piid = axafusers..person_short.pers_id 
+	order by panel_name,normalized_rank);
+
+ 
+    $fname= "$param{o}/cycle$param{a}_approved_targets_by_rank.txt";
+    open (OFILE,"> $fname");
+    print STDERR "Creating file: $fname\n";
+    printf OFILE ("%3s  %-8.8s  %4s  %-20.20s  %3s %-8.8s  %s\n",
+       "Pnl","Proposal","Rank","Target","TNO","App.Time","P.I.");
+    print OFILE "--------------------------------------------------------------------\n";
+
+    $sth = $dbh->prepare($sql_stmt);
+    $sth->execute;
+    while (@row = $sth->fetchrow_array) {
+         printf OFILE ("%3.3d  %-8.8s  %4.2f  %-20.20s  %2d    %6.2f  %s\n",
+	@row);
+    }
+    
+    &do_the_rest;
+    close(OFILE);
+    chmod 0660,$fname;
+
+}
+sub do_the_rest
+{    
+  my($sql_stmt,$sth,@row);
+    
+  $sql_stmt = qq(select "",proposal_number," ",
+	targname,targ_num,
+	approved_exposure_time,last
+	from target,proposal,axafusers..person_short
+	where target.proposal_id = proposal.proposal_id 
+	and proposal.ao_str = "$param{a}" 
+	and rank is null
+	and type != "DDT" 
+	and target.status = "accepted" 
+	and proposal.piid = axafusers..person_short.pers_id 
+	order by proposal_number);
+
+ 
+    $sth = $dbh->prepare($sql_stmt);
+    $sth->execute;
+    while (@row = $sth->fetchrow_array) {
+         printf OFILE ("%3.3d  %-8.8s  %4.2f  %-20.20s  %2d    %6.2f  %s\n",
+	@row);
+    }
+    
+
+}
+
+sub do_joint (){
+  my($idx) = @_;
+  my($sql);
+  my($sth,@row,$ii,$str);
+  my($mystat,$stmp,$fname);
+  my($fmt);
+
+  $stmp="Cycle $param{a} Approved Joint Proposals";
+  $fname = "$param{o}/cycle$param{a}_approved_joint.txt";
+  open (OFILE,"> $fname");
+  print STDERR "Creating file: $fname\n";
+
+  $fname =~ s/\.txt/\.html/;
+  open (HFILE,"> $fname");
+  print STDERR "Creating file: $fname\n";
+  print HFILE html_hdr($stmp);
+
+  my($jflds) = "";
+  my(@tots) = ();
+
+  build_joint_params();
+  $jflds = join(",",@apptime);
+    
+  printf OFILE ("%8.8s  %-20.20s  %7.7s  %-8.8s  %-17.17s  ",
+       "Proposal","P.I.","Type","Status","Joint");
+  printf HFILE ("%8.8s  %-20.20s  %7.7s  %-8.8s  %-17.17s  ",
+       "Proposal","P.I.","Type","Status","Joint");
+  foreach $str (@facility) {
+    printf OFILE ("%7.7s ",$str);
+    printf HFILE ("%7.7s ",$str);
+    push(@tots,0);
+  }
+  printf OFILE ("\n---------------------------------------------------------------------");
+  printf HFILE ("\n---------------------------------------------------------------------");
+  foreach $str (@facility) {
+     print OFILE "--------";
+     print HFILE "--------";
+  }
+  print OFILE "\n";
+  print HFILE "\n";
+
+ 
+  $sql = qq(select distinct proposal_number,last,type,
+        proposal.status, joint, $jflds
+        from proposal,joint,axafusers..person_short ps
+        where proposal.proposal_id = joint.proposal_id
+        and proposal.piid = ps.pers_id
+        and proposal.ao_str like "$param{a}" and
+        joint != "None" and joint not like "%CXO-%" and
+	(joint.hst_approved_time  > 0 or
+	 joint.xmm_approved_time > 0 or
+	 joint.rxte_approved_time > 0 or
+	 joint.spitzer_approved_time > 0 or
+	 joint.suzaku_approved_time > 0 or
+	 joint.swift_approved_time > 0 or
+	 joint.nustar_approved_time > 0 or
+	 joint.nrao_approved_time > 0 or
+	 joint.noao_approved_time > 0 ) and
+        (proposal.status = "APPROVED" or rank >= 3.5)
+        order by proposal_number);
+  #print STDERR "$sql\n";
+
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  
+  while (@row = $sth->fetchrow_array) {
+    $mystat = " ";
+    my($jj,$ii);
+
+    for ($ii=0,$jj=5;$jj<= $#row;$jj++,$ii++) {
+       $tots[$ii] += $row[$jj];
+    }
+    $row[3]="APPROVED";
+
+    $fmt = "%8.8s  %-20.20s  %7.7s  %-8.8s  %-17.17s  ";
+    foreach $str (@facility) {
+       $fmt .= "%7.2f ";
+    }
+    $fmt .= "\n";
+    printf OFILE ("$fmt",@row);
+    printf HFILE ("$fmt",@row);
+  }
+
+  printf OFILE ("\n%8.8s  %-20.20s  %7.7s  %-8.8s  %-17.17s  ", " "," "," "," "," ");
+  printf HFILE ("\n%8.8s  %-20.20s  %7.7s  %-8.8s  %-17.17s  ", " "," "," "," "," ");
+  foreach $str (@facility) {
+     print OFILE "------- ";
+     print HFILE "------- ";
+  }
+  printf OFILE ("\n%8.8s  %-20.20s  %7.7s  %-8.8s  %-17.17s  ", " "," "," "," "," ");
+  printf HFILE ("\n%8.8s  %-20.20s  %7.7s  %-8.8s  %-17.17s  ", " "," "," "," "," ");
+  foreach $str (@tots) {
+    printf OFILE "%7.2f ",$str;
+  }
+  printf OFILE "\n";
+  printf HFILE "\n";
+
+  print HFILE html_trailer();
+  close(HFILE);
+  close(OFILE);
+  chmod 0660,$fname;
+  $fname =~ s/\.html/\.txt/;
+  chmod 0660,$fname;
+}
+
+
+
+sub do_bpp (){
+  my($idx) = @_;
+  my($sql);
+  my($sth,@row,$ii,$str);
+  my($mystat,$stmp,$fname);
+
+  my($title_str) = "LP/VLP";
+  if (int($param{a}) > 12 && int($param{a}) < 17) {
+    $title_str = "LP/XVP";
+  }
+
+  $stmp="Cycle $param{a} Approved $title_str Proposals";
+  $fname = "$param{o}/cycle$param{a}_approved_bpp.txt";
+  open (OFILE,"> $fname");
+  print STDERR "Creating file: $fname\n";
+
+  $fname =~ s/\.txt/\.html/;
+  open (HFILE,"> $fname");
+  print STDERR "Creating file: $fname\n";
+  print HFILE html_hdr($stmp);
+
+  printf OFILE ("%8.8s  %-20.20s  %7.7s  %-8.8s  %-s\n",
+       "Proposal","P.I.","Type","App.Time","Title");
+  printf OFILE ("--------------------------------------------------------------------------------------------------------\n");
+
+  printf HFILE ("%8.8s  %-20.20s  %7.7s  %-8.8s  %-s\n",
+       "Proposal","P.I.","Type","App.Time","Title");
+  printf HFILE ("--------------------------------------------------------------------------------------------------------\n");
+ 
+  $sql = qq(create table #dtmp (pid int, apptime float NULL));
+  $dbh->do($sql);
+  $sql = qq(insert #dtmp 
+	select target.proposal_id,sum(approved_exposure_time) from
+	target,proposal where
+	proposal.proposal_id = target.proposal_id 
+	and target.status="accepted" 
+	and (type like "%LP%" or type like "%XVP%")
+	and ao_str="$param{a}"
+	group by target.proposal_id);
+  $dbh->do($sql);
+
+  $sql = qq(select distinct proposal_number,last,type,
+        apptime, title
+        from proposal,#dtmp,axafusers..person_short ps
+        where proposal.proposal_id = #dtmp.pid
+        and proposal.piid = ps.pers_id
+        and proposal.ao_str like "$param{a}" 
+        and (proposal.status = "APPROVED" or rank >= 3.5)
+	and (proposal.type like "%LP%" or proposal.type like "%XVP%")
+	and proposal.type not like "GTO%"
+        order by proposal_number);
+#print STDERR "$sql\n";
+
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  while (@row = $sth->fetchrow_array) {
+    printf HFILE ("%8.8s  %-20.20s  %7.7s  %8.2f  %s\n",@row);
+    printf OFILE ("%8.8s  %-20.20s  %7.7s  %8.2f  %s\n",@row);
+  }
+
+  $dbh->do("drop table #dtmp");
+  print HFILE html_trailer();
+  close(HFILE);
+  close(OFILE);
+  chmod 0660,$fname;
+  $fname =~ s/\.html/\.txt/;
+  chmod 0660,$fname;
+
+}
+
+sub do_alternate_triggers
+{    
+  my($sql_stmt,$sth,@row);
+  my($stmp,$fname,$title);
+    
+
+  $sql_stmt = qq(select proposal_number,last,
+	group_name,approved_count
+	from proposal,axafusers..person_short,
+	alternate_target_group atg
+	where 
+	proposal.ao_str = "$param{a}" 
+        and rank >= 3.5 
+	$stmp
+	and proposal.piid = axafusers..person_short.pers_id 
+	and proposal.proposal_id = atg.proposal_id
+	order by proposal_number);
+
+   #print "$sql_stmt\n";
+ 
+    $stmp="Cycle $param{a} Approved Triggers for Proposals with Alternate Target Lists";
+    $fname =  "$param{o}/cycle$param{a}_approved_alternate_triggers.txt";
+    open (OFILE,"> $fname");
+    print STDERR "Creating file: $fname\n";
+
+    $fname =~ s/\.txt/\.html/;
+    open (HFILE,"> $fname");
+    print STDERR "Creating file: $fname\n";
+    print HFILE html_hdr($stmp);
+
+    printf OFILE ("Proposal   P.I.             Alt.Group Name      #Triggers\n");
+    printf OFILE ("-------------------------------------------------------------\n");
+    printf HFILE ("Proposal   P.I.             Alt.Group Name      #Triggers\n");
+    printf HFILE ("-------------------------------------------------------------\n");
+
+ 
+
+    $sth = $dbh->prepare($sql_stmt);
+    $sth->execute;
+    while (@row = $sth->fetchrow_array) {
+       printf OFILE ("%-8.8s   %-15.15s  %-20.20s  %d\n",@row);
+       printf HFILE ("%-8.8s   %-15.15s  %-20.20s  %d\n",@row);
+    }
+    close OFILE;
+    print HFILE html_trailer();
+    close HFILE;
+    chmod 0660,$fname;
+    $fname =~ s/\.html/\.txt/;
+    chmod 0660,$fname;
+
+}
+
+# -----------------------------------------------------------------
+# provide email and coi information for approved proposal for USA 
+# -----------------------------------------------------------------
+sub do_epo {
+  my($sql,$sth,@row);
+  my($stmp,$fname);
+
+  $stmp="Cycle $param{a} Approved USA Proposals";
+  $fname = "$param{o}/cycle$param{a}_usa_pi.txt";
+  open (OFILE,"> $fname");
+  print STDERR "Creating file: $fname\n";
+
+  printf OFILE ("$stmp\n\n%-27.27s  %-17.17s  %-s\n",
+       "Last","First","Email");
+  printf OFILE ("-------------------------------------------------------------------------------\n");
+  $sql = qq( select distinct last,convert(char(1),first),email from
+	proposal p,  axafusers..person_short ps
+	where p.piid = ps.pers_id 
+	and p.ao_str = "$param{a}" 
+	and (p.rank >= 3.5 or p.status="APPROVED") 
+	and upper(country) = "USA"
+	order by upper(last));
+
+  #print STDERR "$sql\n";
+
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  while (@row = $sth->fetchrow_array) {
+    printf OFILE ("%-27.27s  %-17.17s  %-s\n",@row);
+  }
+  close(OFILE);
+  chmod 0660,$fname;
+
+  # now do US cois of foreign proposals
+  $stmp="Cycle $param{a} US CoIs of non-USA Proposals";
+  $fname = "$param{o}/cycle$param{a}_usa_cois.txt";
+  open (OFILE,"> $fname");
+  print STDERR "Creating file: $fname\n";
+
+  printf OFILE ("$stmp\n\n%-8.8s  %-27.27s  %-s\n    %s\n    %-27.27s  %s\n",
+    "Proposal","Co-I","Institution","Email","P.I.","Country");
+  printf OFILE ("-------------------------------------------------------------------------------\n");
+  $sql = qq(select distinct proposal_number,
+	(p2.last + "," + convert(char(1),p2.first)), p2.institution,p2.email,
+        (p1.last + "," + convert(char(1),p1.first)),p1.country
+	from proposal,axafusers..person_short p1,
+	axafusers..person_short p2,coin where
+	(proposal.normalized_rank >= 3.5 or proposal.status="APPROVED")
+	and proposal.ao_str = "$param{a}"
+	and proposal.piid = p1.pers_id 
+	and proposal.proposal_id = coin.proposal_id 
+	and coin.pers_id = p2.pers_id 
+	and p2.country = "USA" 
+	and p1.country != "USA" 
+	order by proposal_number);
+
+
+  #print STDERR "$sql\n";
+
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  while (@row = $sth->fetchrow_array) {
+    printf OFILE ("%-8.8s  %-27.27s  %-s\n    %s\n    %-27.27s  %s\n",@row);
+  }
+  close(OFILE);
+  chmod 0660,$fname;
+
+}
+# ---------------------------------------------------------------------
+# print headers
+# ---------------------------------------------------------------------
+#
+# ---------------------------------------------------------------------
+sub html_trailer()
+{
+  my($str);
+  $str = qq(</pre>
+<p>
+<!--#include virtual="/soft/include/cxcfooter.html"-->
+</body></html>); 
+  return $str;
+}
+
+# ---------------------------------------------------------------------
+sub html_hdr()
+{
+  my($hdr) = @_;
+  my($stmp);
+
+  $stmp = <<endHtml;
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <title>$hdr</title>
+   <link rel="stylesheet" href="/soft/include/cxcds.css" type="text/css" media="screen">
+</head>
+<body>
+<!--#include virtual="/soft/include/cxcheader.html"-->
+<center> 
+<h1>$hdr</h1>
+</center>
+<p>
+<pre>
+endHtml
+
+  return($stmp);
+}
+
+# ---------------------------------------------------------------------
+sub target_header()
+{
+  my($dohtml,$ihdr)=@_;
+  my($stmp,$str);
+
+  if ($dohtml) {
+    $str  = &html_hdr($ihdr);
+  }
+  $str .= sprintf ("%-10.10s %-11.11s %-20.20s  %-6.6s %-5.5s %-6.6s  %-5.5s\n",
+	"","","","De-","Grat-","Exp","Alt.");
+  $str .= sprintf ("%-10.10s %-11.11s %-20.20s  %-6.6s %-5.5s %-6.6s  %-5.5s  %-8.8s  %-27.27s  %s\n",
+     	"RA"," Dec","Target Name","tector","ing","Time","Tgt","Proposal","P.I","Institution");
+  $str .= "-------------------------------------------------------------------------------------------------------------------------------\n";
+  
+  return $str;
+}
+
+# ---------------------------------------------------------------------
+sub proposal_header()
+{
+  my($dohtml,$ihdr)=@_;
+  my($stmp,$str);
+
+  if ($dohtml) {
+    $str = &html_hdr($ihdr);
+  }
+  $str .= sprintf "%-8.8s %-27.27s %-8.8s  %5.5s  %s\n",
+	"","","Approved","Appr.","";
+  $str .= sprintf "%-8.8s %-27.27s %8.8s  %5.5s  %s\n",
+	"Proposal","P.I.","Time","#Tgts","Institution";
+  $str .= "---------------------------------------------------------------------------------------------\n";
+
+  return $str;
+}
+
+# ---------------------------------------------------------------------
+# print data for main targets
+# ---------------------------------------------------------------------
+sub target_data()
+{
+  my($dohtml,@row) = @_;
+  my ($xx,$alt);
+  my ($rastr,$decstr,$tname);
+  my ($rah,$ram,$ras,$dad,$dam,$das,$sign);
+
+  ($rastr,$decstr) = convert_coord($row[1],$row[2]);
+
+  $alt = "";
+  if ($row[$#row] > 0) {
+    $alt = "Alt";
+  }
+  $tname = $row[0];
+  if (length($tname) < 2) {
+     $tname = $row[$#row - 1];
+  }
+      
+  if ($dohtml) {
+    printf HFILE qq(<a name="$row[6]">);
+    printf HFILE ("%s %s %-20.20s  %-6.6s %-5.5s %6.2f  %-5.5s  %-8.8s  %-27.27s  %s\n",
+       $rastr,$decstr,$tname,
+       $row[3],$row[4],
+       $row[5],$alt,
+       $row[6],$row[7],$row[8]);
+  }
+  printf OFILE ("%s %s %-20.20s  %-6.6s %-5.5s %6.2f  %-5.5s  %-8.8s  %-27.27s  %s\n",
+       $rastr,$decstr,$tname,
+       $row[3],$row[4],
+       $row[5],$alt,
+       $row[6],$row[7],$row[8]);
+
+}
+
+sub proposal_data
+{
+  my($dohtml,@row) = @_;
+
+  printf OFILE "%-8.8s %-27.27s  %7.2f  %3.3d    %s\n",@row;
+  if ($dohtml) {
+      printf HFILE qq(<a href="cycle$param{a}_approved_peer_targets_by_propnum.html#$row[0]">%-8.8s</a>),$row[0];
+      shift(@row);
+      printf HFILE " %-27.27s  %7.2f  %3.3d    %s\n",@row;
+  }
+}
+
+sub do_alternates
+{
+  my($sth,@row,$sql,$ii);
+  my($fname);
+
+  $fname = "$param{o}/cycle$param{a}_approved_alternates.txt";
+  print STDERR "Creating file: $fname\n";
+  open(AFILE,"> $fname")  or die "Unable to open $fname for writing.\n";
+  $sql = qq(select proposal_number, group_name,approved_count,
+        targname,approved_exposure_time
+        from proposal p,alternate_target_group ag,target t
+        where p.proposal_id = ag.proposal_id
+        and t.alternate_id = ag.alternate_id
+        and t.status = "accepted"
+        and (rank >= 3.5 or p.status="APPROVED")
+        and ao_str="$param{a}"
+        order by proposal_number,group_name);
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  printf AFILE ("%-8.8s %-20.20s %-4.4s %-25.25s %-9.9s\n",
+	"Proposal","Group ID","#App","Target Name","App.Time");
+  print AFILE "--------------------------------------------------------------------\n";
+  while (@row = $sth->fetchrow_array()) {
+     printf AFILE ("%08.8d %-20.20s   %02.2d %-25.25s %-9.4f\n",
+        @row);
+  }
+  close AFILE;
+}
+
+sub do_grids
+{
+  my($sth,@row,$sql,$ii);
+  my($fname);
+
+  $fname = "$param{o}/cycle$param{a}_approved_grids.txt";
+  print STDERR "Creating file: $fname\n";
+  open(AFILE,"> $fname")  or die "Unable to open $fname for writing.\n";
+  $sql = qq(select proposal_number, grid_name,approved_num_pointings,
+        max_radius,
+        targname,approved_exposure_time
+        from proposal p,grid g,target t
+        where p.proposal_id = t.proposal_id
+        and t.targid = g.targid
+        and t.status = "accepted"
+        and (rank >= 3.5 or p.status="APPROVED")
+        and ao_str="$param{a}"
+        order by proposal_number,grid_name);
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  printf AFILE ("%-8.8s %-20.20s %-4.4s %-10.10s %-25.25s  %9.9s\n",
+	"Proposal","Group ID","#App","Max.Radius","Target Name","App.Time");
+  print AFILE "-----------------------------------------------------------------------------------\n";
+  while (@row = $sth->fetchrow_array()) {
+     printf AFILE ("%08.8d %-20.20s   %02.2d  %9.4f %-25.25s %9.4f\n",
+        @row);
+  }
+  close AFILE;
+}
+
+# ----------------------------------------------------------
+sub do_multicycle
+{
+  my($sth,@row,$sql,$ii);
+  my($fname);
+  my($t0,$t1,$t2) = 0;
+
+  $fname = "$param{o}/cycle$param{a}_approved_multicycle.txt";
+  print STDERR "Creating file: $fname\n";
+  open(AFILE,"> $fname")  or die "Unable to open $fname for writing.\n";
+  $sql = qq(select proposal_number,last,targ_num,targname,
+	approved_exposure_time - app_time_cycle_n1-app_time_cycle_n2, 
+	app_time_cycle_n1,app_time_cycle_n2
+        from proposal p,target t,axafusers..person_short
+        where p.proposal_id = t.proposal_id
+	and piid = pers_id
+        and t.status = "accepted"
+	and multi_cycle="Y"
+        and (app_time_cycle_n1 > 0 or app_time_cycle_n2 > 0)
+        and (rank >= 3.5 or p.status="APPROVED")
+        and ao_str="$param{a}"
+        order by proposal_number,targ_num);
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  printf AFILE ("%-8.8s %-27.27s %3.3s %-25.25s  %-7.7s  %-7.7s  %7.7s\n",
+	"Proposal","P.I.","Tgt","Target Name","AppTime","Cycle+1","Cycle+2");
+  print AFILE "----------------------------------------------------------------------------------------------------\n";
+  while (@row = $sth->fetchrow_array()) {
+     $t0 += $row[4];
+     $t1 += $row[5];
+     $t2 += $row[6];
+     printf AFILE ("%08.8d %-27.27s %3d %-25.25s  %7.2f  %7.2f  %7.2f\n",
+        @row);
+  }
+ printf AFILE ("%8.8s %-27.27s %3s %-25.25s  %7s  %7s  %7s\n",
+    " "," "," "," ","-------","-------","-------");
+ printf AFILE ("%8.8s %-27.27s %3s %-25.25s  %7.2f  %7.2f  %7.2f\n",
+    " "," "," "," ",$t0,$t1,$t2);
+  close AFILE;
+}
+
+
+# ----------------------------------------------------------
+# parse input parameters
+# ----------------------------------------------------------
+sub parse_input
+{
+  my ($pwd);
+  my $err = 0;
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+             o=> "$ENV{ASCDS_PROP_DIR}/reports",
+             a=> "$ENV{ASCDS_PROP_AO}",
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "o=s",
+          "a=s",
+          "q=s",
+          "e",
+          "all",
+          "hst",
+          "noao",
+          "xmm",
+          "nrao",
+          "spitzer",
+          "suzaku",
+          "swift",
+          "nustar",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter '$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+  $param{q} = $pwd;
+
+}
+
+sub usage
+{
+    print STDERR "\nUSAGE: prop_approved_lists.pl -U -o [ -S -ae ]\n";
+    print STDERR "       -U database user name\n";
+    print STDERR "       -o output directory \n";
+    print STDERR "       -S database server, default is DB_PROP_SQLSRV\n";
+    print STDERR "       -a AO , default is ASCDS_PROP_AO\n";
+    print STDERR "       -e if present, create USA lists of proposals(PI or CoI)\n";
+    print STDERR "\nLists excluding CAL,GTO and Joint from another peer review:\n";
+    print STDERR "  cyclenn_approved_peer_targets_by_propnum.html,.txt\n";
+    print STDERR "  cyclenn_approved_peer_targets_by_radec.html,.txt\n";
+    print STDERR "  cyclenn_approved_proposals.html,.txt\n";
+    print STDERR "  cyclenn_approved_targets_by_rank.txt\n";
+
+    print STDERR "\nLists excluding CAL and Joint from another peer review (includes all GTO):\n";
+    print STDERR "  cyclenn_approved_all_targets_by_propnum.html,.txt\n";
+    print STDERR "  cyclenn_approved_all_targets_by_radec.html,.txt\n";
+
+    print STDERR "\nLists by type:\n";
+    print STDERR "  cyclenn_approved_archive_theory.html,.txt\n";
+    print STDERR "  cyclenn_approved_bpp.html,.txt\n";
+    print STDERR "  cyclenn_approved_gto_targets.html,.txt\n";
+    print STDERR "  cyclenn_approved_joint.html,.txt\n";
+    print STDERR "  cyclenn_approved_cal_targets.txt\n";
+    print STDERR "  cyclenn_approved_alternates.txt\n";
+    print STDERR "  cyclenn_approved_grids.txt\n";
+
+    #print STDERR "\nLists for E/PO staff:\n";
+    #print STDERR "  cyclenn_epo_cois.txt\n";
+    #print STDERR "  cyclenn_epo_pi.txt\n";
+
+
+}
+
+

@@ -1,0 +1,213 @@
+
+===============================================================================
+
+		            HELP FILE for prop_manager_gui
+
+===============================================================================
+
+prop_manager_gui
+------------
+
+The proposal manager displays a list of proposals or targets based on
+user specfied retrieve criteria.  It provides a GUI access for sending
+email forms and/or printing specified formats.  It also provides the
+ability for the authorized user to edit the peer review and technical
+evaluation data for a selected proposal.
+
+PARAMETERS
+----------
+
+Application specific command line arguments:
+-U [user]       REQUIRED  - proposal database user name
+-S [server]     OPTIONAL  - proposal database server 
+                            default is DB_PROP_SQLSRV
+-p              OPTIONAL  - print parameters
+
+
+INPUT/OUTPUT
+-------------
+
+1) Input Data Files:  N/A
+
+
+2) Output Data Files: N/A
+
+
+3) Output Data Files for Archive: N/A
+
+
+SETUP AND USAGE
+---------------
+
+prop_manager_gui uses the environment variables that are set in the file
+'ascds_setup_prop' and 'ascds_setup_db'.  These mission planning
+environment variables include :
+
+        ASCDS_PROP_DIR       - top level proposal directory
+        ASCDS_PROP_AO        - current open proposal cycle number
+        DB_PROP_ARCSRV       - database archive server.
+        DB_PROP_SQLSRV       - database sybase server.
+
+
+The user should not ordinarily change their values. 
+
+Only those users having permissions to read proposals should have access to
+the proposal database and any files that contain proposal data.
+All files created should belong to the group 'prop'.  Permission should
+be set so that only the owner and group have permissions to access these
+files.  If you need access, contact the system administrator.
+
+
+Execute the proposal manager application:
+   prop_manager_gui -U <database user> &
+  
+
+DETAILED prop_manager_gui DESCRIPTION - GENERAL INSTRUCTIONS
+--------------------------------------------------------
+
+After initiating the proposal manager application, the user is presented 
+with a screen containing the main menubar.  From the main menubar, the user 
+can select pulldown menus for the following headings: file, edit, and view.
+The options available for each of these headings are described below.
+
+  File:
+	Button		Description				
+	------		-----------				
+	Retrieve        Displays the proposal screen which accepts filters for
+                        retrieving proposal data from the database. 
+
+	Retrieve by File Displays the file selection box which will read a
+			selected file and retrieve proposal data for the
+			specified sequence numbers.
+
+	Print  		Print the selected proposals in a specified format.
+
+	Exit		Exit the application. 
+
+
+
+  Edit:
+	Button		Description				
+	------		-----------				
+	Layout By       Switches the display between a proposal list or
+        Target          target list.
+
+        Refresh         Uses the same parameters from the 'Retrieve' command
+        Proposal List 	and retrieves the data again and refreshes the display.
+
+	Sort Proposals	Sort the proposal entries in user specified order.
+
+	Sort Targets	Sort the target entries in user specified order.
+
+        Select All      Select all entries in the displayed list.
+
+        Deselect All    Deselect all entries in the displayed list.
+
+   	Remove          Remove an entry from the displayed list.
+
+	Find		Find and highlight(select) a character string in the 
+			list.
+
+	Find Next	Find highlight(select) the next tool which matches 
+			the search criteria. 
+
+
+  View: 
+	Button		Description				
+	------		-----------				
+	Proposal        View the proposal in the proposal confirmation format.
+
+        Co-Investigators View co-investigators for all proposals in the 
+                        current proposal list.
+
+        Primary Review  View the primary review data for the selected proposal.
+
+        Secondary       View the secondary review data for the selected 
+        Review          proposal.
+  
+        Peer Review     View/Edit the peer review data for the selected
+                        proposal.
+
+        Final Review    View/Edit the final review data for the selected
+                        proposal.
+
+  Statistics:
+	Button		Description				
+	------		-----------				
+        Proposed        statistics for proposal with status=PROPOSED
+                        for the current cycle.
+
+        Peer Review     statistics for results of the Peer Review
+
+        Approved Stats  statistics for approved proposals for the current
+                        cycle excluding CAL proposals
+
+        Approved Stats  statistics for approved proposals for the current
+        w/CAL           cycle including CAL proposals
+
+        Joint            Joint statistics for the current cycle
+
+        LP/VLP           LP/VLP statistics for the current cycle
+
+        GTO              GTO statistics for the current cycle
+
+        Final Proposal   perform various final checks on proposals for
+        Checks           the current cycle
+
+
+
+
+The user may retrieve proposals/targets by selecting an option from the
+'File->Retrieve' screen or selecting the 'File->Retrieve by File'. 
+File retrieve options are: 
+	All, Proposal Type, Panel Name, Proposal Number,
+	P.I. Last Name, CoI Last Name, Target Name,
+        P.I. Institute, CoI Institute, Subject Category
+These proposals may be further filtered by AO and Status.
+
+The user may print formats for all proposals or only those selected in the 
+list by selecting the 'File', 'Print' option from the main menubar.
+The user may send the output to the printer or a specified file.
+Most of the options use the background prop_reports or prop_target_reports 
+applications. More information can be found in the prop_reports.hlp and 
+prop_target_reports.hlp files.
+The formats are:
+
+ Accept/Reject Letters   prop_reports -letter
+ Final Review Format     prop_reports -final
+ NASA Form w/ Abstract   prop_reports -abstract
+ Proposal List           print of display view of proposal list
+ Proposal w/Titles       prop_reports -titles
+ Peer Review             prop_reports -peer
+ Primary Review          prop_reports -pri
+ Secondary Review        prop_reports -sec
+ Technical Evaluation    prop_reports -tech
+ Targets w/PI            prop_target_reports
+
+
+The proposal sort options available for the 'Edit','Sort Proposals' function
+are:  Approved Exposure Time, Normalized Rank, Panel, P.I., Peer Rank,
+Primary Reviewer, Proposal Number, Observer Type, Requeste Exposure Time,
+Secondary Reviewer, Subject Category, Technical Evaluator, number of technical
+evaluations, technical problems (flag = "Y"), or Title.
+
+The target sort options available for the 'Edit','Sort Targets' function
+are: Detector, Exposure Time, P.I., Proposal Number, RA/DEC, and 
+Target Name.
+
+SIDE EFFECTS AND RESTRICTIONS
+-----------------------------
+
+
+
+REFERENCES
+----------
+
+See the Proposal section of the Data System Software Design Document 
+(DS01) for more detail about the proposal submission cycle. 
+
+
+
+
+
+

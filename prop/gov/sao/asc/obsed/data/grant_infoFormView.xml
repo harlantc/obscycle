@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE formView SYSTEM "formView.dtd">
+
+<formView>
+
+  <title>Grant Info Form</title>
+
+  <info>
+    <supportsNew>nil</supportsNew>
+  </info>
+
+  <key>
+    <tableName>grant_info</tableName>
+    <columnName>grant_id</columnName>
+  </key>
+
+  <navigation>
+    <display>
+      <name>Grant Info Id</name>
+      <tableName>grant_info</tableName>
+      <columnName>grant_id</columnName>
+    </display>
+    <display>
+      <name>Grant Number</name>
+      <tableName>grant_info</tableName>
+      <columnName>grant_number</columnName>
+    </display>
+  </navigation>
+
+  <GUI>
+    <textfield tag="11">
+      <labelText>Grant Id</labelText>
+      <size>8</size>
+      <row>
+        <number>0</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>grant_info</tableName>
+        <columnName>grant_id</columnName>
+      </database>
+    </textfield>
+    
+    <textfield tag="12">
+      <labelText>Grant Number</labelText>
+      <size>20</size>
+      <database>
+        <tableName>grant_info</tableName>
+        <columnName>grant_number</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="22">
+      <labelText>AO</labelText>
+      <size>10</size>
+      <database>
+        <tableName>grant_info</tableName>
+        <columnName>grant_ao</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="32">
+      <labelText>Grant Amount</labelText>
+      <size>12</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>grant_info</tableName>
+        <columnName>grant_amount</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="31">
+      <labelText>Grantor</labelText>
+      <size>20</size>
+      <database>
+        <tableName>grant_info</tableName>
+        <columnName>grantor</columnName>
+      </database>
+    </textfield>
+    
+    <textfield tag="21">
+      <labelText>Type</labelText>
+      <size>25</size>
+      <database>
+        <tableName>grant_info</tableName>
+        <columnName>grant_type</columnName>
+      </database>
+    </textfield>
+
+
+
+
+    <keycombobox tag="33">
+      <labelText>Ocat Prop Id</labelText>
+      <size>8</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>grant_info</tableName>
+	<columnName>ocat_propid</columnName>
+      </database>
+      <keyinfo>
+	<keyTableName>prop_info</keyTableName>
+	<keyColumnName>ocat_propid</keyColumnName>
+      </keyinfo>
+    </keycombobox>
+
+    <textfield tag="13">
+      <labelText>Proposal Number</labelText>
+      <size>8</size>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>prop_num</columnName>
+        <joinTableName>grant_info</joinTableName>
+        <joinColumnName>ocat_propid</joinColumnName>
+      </database>
+    </textfield>
+
+    
+
+    <textarea tag="22">
+      <labelText>Proposal Title</labelText>
+      <size>60</size>
+      <row>
+        <number>+</number>
+	<height>2</height>
+      </row>
+      <column>
+        <number>0</number>
+        <width>></width>
+      </column>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>title</columnName>
+        <joinTableName>grant_info</joinTableName>
+        <joinColumnName>ocat_propid</joinColumnName>
+      </database>
+    </textarea>
+
+   <textarea tag="71">
+      <labelText>Abstract</labelText>
+      <size>60</size>
+      <row>
+        <number>+</number>
+	<height>8</height>
+      </row>
+      <column>
+        <number>0</number>
+        <width>></width>
+      </column>
+      <database>
+        <tableName>prop_info</tableName>
+        <columnName>abstract</columnName>
+        <joinTableName>grant_info</joinTableName>
+        <joinColumnName>ocat_propid</joinColumnName>
+      </database>
+    </textarea>
+
+    
+  </GUI>
+
+</formView>

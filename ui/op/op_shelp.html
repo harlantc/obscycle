@@ -1,0 +1,109 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<!--#include virtual="op_header.html"-->
+<div id="tophdr" class="tophdr">
+<div id="imghdr" class="imghdr">
+<img src="/soft/include/header_left.gif" alt=" " border="0" >
+</div>
+<div id="titlehdr" class="titlehdr">
+Chandra Single Observation Thread Help Page
+</div>
+</div>
+<h2><a name="ObiInformation">Obi Information</a></h2>
+The Obi  information for all <i>Default</i> entries are displayed for the
+current observation.  If no default data is available for an Obi, 
+then the latest revision is displayed for that obi. Good time is only displayed
+for <b>D</b>efault entries.
+<p>
+<table class="plain" >
+<tr class="header"><td>Field Name</td><td>Description</td></tr>
+<tr><td>Exp Cycle</td><td>Exposure cycle (ACIS alternating exposure mode):
+<br><b>P</b>=Primary, <b>S</b>=Secondary</td>
+</tr>
+<tr><td>Obi</td><td>Observation interval number</td></tr>
+<tr><td>Start Time</td><td>Start date and time of observation interval (Obi)</td></tr>
+<tr><td>Stop Time</td><td>End date and time of observation interval (Obi)</td></tr>
+<tr><td>Good Time</td><td>Good data exposure time (ks) (Default entries only.)</td></tr>
+<tr><td>Issues </td><td> Issues that apply to processing of observation 
+interval(obi).Issues displayed in parentheses() have been closed.
+</td></tr>
+</table>
+<p>
+<h2><a name="L2Information">Processing Information</a></h2>
+All Science L2 information is displayed for all Obi's for the current 
+observation ordered by <i>Version</i>.
+In addition, all completed <i>Custom Processing</i> and the latest 
+uncompleted thread, if any, is displayed. The current default is 
+highlighted.
+<p>
+<table class="plain" >
+<tr class="header"><td>Field Name</td><td>Description</td></tr>
+<tr><td>Exp Cycle</td><td>Exposure cycle (ACIS alternating exposure mode)</td>
+<tr>
+<td><a NAME="Version"></a>Proc Version</td>
+<td>Version of processing of observation (highest level, usually L2)</td> </tr>
+<tr>
+<td><a NAME="AP/CP"></a>Proc Type</td>
+<td>Processing Type: Automated processing, custom processing, reprocessing</td></tr>
+<tr>
+<td><a NAME="Processing_Date"></a>Proc Date</td>
+<td>Date of processing operation (highest level, usually L2)</td>
+</tr><tr>
+<td><a NAME="Processing_Status"></a>Proc Status</td>
+<td><a href="/soft/op/op_olist.html#Processing_Status">Processing status</a>/uncompleted thread</td>
+</tr>
+<tr>
+<td><a NAME="Charge_Time"></a>Charge Time</td>
+<td>Time charged against allocation (ks)</td>
+</tr><tr>
+<td><a NAME="Good_Time"></a>Good Time</td>
+<td>Good data exposure time (ks)</td>
+</tr>
+<tr>
+<td><a NAME="Release"></a>Release</td>
+<td>Version of CXCDS software release used for processing (highest level, usually L2) </td>
+</tr><tr>
+<td><a NAME="VV_Date"></a>V&amp;V Date</td>
+<td>Date of Verification &amp; Validation</td>
+</tr>
+
+<tr>
+<td><a NAME="VV_Status"></a>V&amp;V Status</td>
+<td><a href="/soft/op/op_olist.html#VV_Status">Verification &amp; Validation status</a> of Automated Processing data products. 
+<dl>
+<dt><b>NULL:</b> No V&amp;V Report available yet
+<dt><b>OK:</b> Approved for distribution
+<dt><b>Hold:</b> Internal DS hold
+<dt><b>Problem:</b> Referred to CDO
+<dt><b>Repro+DD:</b> Reprocessing required but distribution approved
+<dt><b>ReprNoDD:</b> Reprocessing required; do not distribute
+</dl>
+</td>
+</tr>
+<tr>
+<td><a NAME="CDO_Review"></a>Review</td>
+<td>Review by Chandra Director's Office or Aspect team required</td>
+</tr>
+<tr>
+<td><a NAME="VV_Version"></a>V&amp;V Version</td>
+<td>Version of Verification &amp; Validation of processing</td>
+</tr>
+
+<tr>
+<td><a NAME="DD_Date"></a>Data Distr Date</td>
+<td>Data delivery date: Date PI was notified of data being available </td>
+
+</tr>
+
+<tr>
+<td><a NAME="Mail_Date"></a>Data Mail Date</td>
+<td>Date hard medium was mailed</td>
+</tr>
+
+
+
+</table>
+</div>
+</body>
+</html>
+

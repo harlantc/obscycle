@@ -1,0 +1,240 @@
+#!@PERLDB@ 
+#----------------------------------
+# Copyright (c) 1995, Smithsonian Astrophysical Observatory
+# You may not do anything you like with this file. 
+#
+# FILE NAME:  op_status_table.cgi
+# DEVELOPMENT:
+#
+# NOTES:       
+#             
+#
+# INPUT:       user input
+#
+# REVISION HISTORY:
+#
+# Date: 
+#---------------------------------------------------------
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use CGI ':standard';
+use File::Basename;
+use strict;
+use DBI;
+use DBD::Sybase;
+
+unless (eval {require "op_config.pl"}) {
+    print "Unable to find op_config.pl\n"; exit(1);
+}
+unless (eval {require "op_status_columns.inc"}) {
+    print "Unable to find op_status_columns.inc\n"; exit(1);
+}
+unless (eval {require "op_subroutines.pl"}) {
+    print "Unable to find op_subroutines.pl\n"; exit(1);
+}
+unless (eval {require "op_status_routines.pl"}) {
+    print "Unable to find op_status_routines.pl\n"; exit(1);
+}
+unless (eval {require "op_issue_routines.pl"}) {
+    print "Unable to find op_issue_routines.pl\n"; exit(1);
+}
+
+use vars qw($dsn $dbh $quality_where $MAX_IN
+	$db $srv $pwd  $dlm $uid $rdbrepair 
+	$stmp $ii  $sepline $s1 $s2 $s3 $CGI_BIN $soft_dir $soft_url
+	$open_obsid_list $resolved_obsid_list $issue_list @obs_issue_list
+	$obs_list @display_order %dbresults %basicresults
+	@the_results @the_results_link @work_list $sp_char
+	$sql_date_fmt $sql_time_fmt
+	$footer $note $host $title $db_dlm 
+	$where $order $report_fmt $report_type
+	$tmp_file $tmp_dir $tmp_host $tmp_date $tmp_err
+	@hdr @fields @fields_link $fmt @fmt_tab 
+	@long_hdr @short_hdr @dates_hdr @summary_hdr 
+	@long_fmt  @short_fmt @dates_fmt @summary_fmt 
+        $obsid $alt_exp $seqnbr $object $version $ap_cp $ap_date $ap_status
+	$charge_time $good_time $release $caldb 
+	$vv_date $vv_status $vv_version
+	$dd_date $mail_date $ocat_status $ingested $pipe_config $vvid
+	$tgt_ra $tgt_dec $nom_roll $fp_detect  $bibcode
+	$readout $grating $datamode $readmode $sim_z
+	$app_time $type $rights $pub_date 
+	$ap_dir $cp_comment $cp_dist $ap_dist $obsdate 
+	$sched_time $ontime $obs_interval $delta
+	$propno $pifirst $pilast $quality $issues $sci_2_id @sci_2_ids
+        $obsid_fmt $alt_exp_fmt $seqnbr_fmt $object_fmt $version_fmt $ap_cp_fmt
+ 	$ap_date_fmt $ap_stat_fmt $sim_z_fmt
+	$charge_time_fmt $good_time_fmt $release_fmt $caldb_fmt $vv_date_fmt 
+	$vv_status_fmt $vv_version_fmt
+	$dd_date_fmt $mail_date_fmt $ocat_status_fmt 
+	$ingested_fmt $pipe_config_fmt 
+	$tgt_ra_fmt $tgt_dec_fmt $nom_roll_fmt $readout_fmt 
+	$grating_fmt $datamode_fmt $readmode_fmt
+	$app_time_fmt $type_fmt $rights_fmt $pub_date_fmt 
+	$ap_dir_fmt $cp_comment_fmt $cp_dist_fmt $ap_dist_fmt $obsdate_fmt 
+	$sched_time_fmt $ontime_fmt $obs_interval_fmt $delta_fmt
+	$pifirst_fmt $pilast_fmt $propno_fmt $issues_fmt
+	$dbg
+	);
+
+
+
+
+# *********************************************************************
+# *                  M A I N
+# *********************************************************************
+{
+
+
+  $SIG{__WARN__} = \&catch_warn;
+  &clean_up;
+
+ 
+  $db_dlm = "\t";
+  $note = "";
+
+  &build_where_clause(1);
+  if ($where eq "") {
+     &error("Please refine your search query. ");
+     display_file($tmp_err,1);
+     exit 0;
+  }
+  logit("op_status_icxc: $where\n");
+
+  &build_order_clause;
+
+  $stmp = "server=$srv;database=$db";
+  $dsn = "DBI:Sybase:$stmp";
+  $dbh = DBI->connect($dsn, $uid, $pwd, {
+        PrintError => 1,
+        RaiseError => 0});
+  if ( !defined $dbh) {
+     display_file($tmp_err,1);
+     exit 1;
+  }
+
+  $report_fmt = param("tab_del");
+  if (!$report_fmt) {
+    $report_fmt = "HTML";
+  }
+  $report_type = param("out");
+  if ($report_type =~ /eds/) {
+    $sql_date_fmt = "111";
+  }
+
+
+
+  # go get the data 
+  &retrieve_data;
+
+  $dbh->disconnect;
+
+  # setup the output formats
+  &setup_output_formats;
+  &build_results_table;
+
+  &display_output_results(0);
+
+}
+
+
+#---------------------------------------------
+# setup output display fields
+#---------------------------------------------
+sub setup_output_formats
+{
+  # get the formats and headers
+  if ($report_type =~ /short/) {
+    @fmt_tab = @short_fmt;
+    @hdr = @short_hdr;
+    $title = "Short";
+  }
+  elsif($report_type =~ /eds/) {
+    @fmt_tab = @dates_fmt;
+    @hdr = @dates_hdr;
+    $title = "Dates";
+  }
+  elsif($report_type =~ /fred/) {
+    @fmt_tab = @summary_fmt;
+    @hdr = @summary_hdr;
+    $title = "Summary";
+
+  }
+  else {
+    @fmt_tab = @long_fmt;
+    @hdr = @long_hdr;
+    $title = "Long";
+
+  }
+}
+
+
+#---------------------------------------------
+sub build_results_table
+{
+  my($ii);
+  my(@myarr) = () ;
+  my($rastr,$decstr);
+ 
+  $ii = $#display_order + 1;
+  &debug("building the results  $ii\n") if $dbg;
+  @the_results=();
+  for ($ii=0;$ii <= $#display_order;$ii++) {
+    &get_obsid_entry("$display_order[$ii]",1);
+
+    if ($obsid !~ / /) {
+      ($rastr) = sexages($tgt_ra/15.0);
+      ($decstr) = sexages($tgt_dec);
+
+      $issues = &get_issueids_for_obsid($obsid);
+      if (!$issues) {
+        $issues = " ";
+      }
+
+      if($report_type =~ /short/) {
+        @myarr = ($obsid,$seqnbr, $object, $rastr,$decstr,
+		$type, $readout,$grating,
+ 		$ap_cp,$ap_status,$vv_status, $ocat_status,
+		$obsdate,
+		$vv_date, $dd_date, $pub_date,
+		$issues);
+      }
+      elsif($report_type =~ /eds/) {
+        @myarr = ($obsid,$object,$type,$ap_cp,$ap_status,$ap_date,
+                $version,$obsdate,
+                $app_time,$sched_time,$ontime, $good_time,$charge_time,
+                $vv_status,$vv_date,$vv_version,$dd_date,
+                $mail_date,$issues);
+      }
+      elsif($report_type =~ /fred/) {
+        @myarr = ($pifirst,$pilast,$propno,$object,$obsid,$seqnbr,
+                $app_time,$good_time,$type,$obsdate,$dd_date,$pub_date,$issues);
+      }
+      else {
+        @myarr = ($obsid,$seqnbr,$object,
+		$rastr,$decstr,$nom_roll,$sim_z,
+		$ocat_status,$ap_status,$vv_status,
+		$readout,$grating,$readmode,$datamode,
+		$pipe_config, $ap_cp, 
+		$ap_date, $vv_date, $dd_date,
+		$type, $app_time, $good_time,$charge_time,
+                $rights,$pub_date, $release, $caldb,
+		$version, $vv_version, $mail_date,
+		$issues);
+      }
+
+    $stmp = join($db_dlm,@myarr);
+    push(@the_results,$stmp);
+    # This will pick up additional fields needed to support the vv status
+    # in future -- maybe we should split all at once but do each line as
+    # we are ready to display(see how the_results is used)
+    @myarr = ($obsid,$version,$vv_version,$ocat_status,$type,$report_type,$bibcode);
+    $stmp = join($db_dlm,@myarr);
+    push(@the_results_link,$stmp);
+   }
+  }
+}
+

@@ -1,0 +1,87 @@
+#!@PERL@ 
+
+
+#######################################################################
+# deploy_prop_viewer.pl
+#
+# This script should be used after the prop_viewer has been installed
+# in the DS release, to install the files in the correct /proj/web-cxc
+# cgi-bin sub-directory.
+#
+# Usage: deploy_prop_viewer.pl <from dir> <to dir>
+#######################################################################
+
+@propViewerFiles = ("prop_viewer_create_menu.cgi",
+		    "prop_viewer_create_plot.cgi",
+		    "build_viewer.cgi",
+		    "prop_viewer_create_table.cgi",
+		    "prop_ea_ao.pl",
+		    "prop_viewer_create_title.cgi",
+		    "prop_ea_menu.cgi",
+		    "prop_viewer_footer.cgi",
+		    "prop_psf_menu.cgi");
+
+# Process the input parameters
+$argvIndex = 0;
+$numArgs = @ARGV;
+$copyFiles = 0;
+
+if($numArgs == 0) {
+  print "Error: deploy_prop_viewer.pl script requires at least 1 argument.\n\n";
+  exit;
+} elsif($numArgs == 1) {
+  $fromDirectory = "./";
+  $toDirectory = $ARGV[0];
+} elsif($numArgs == 2) {
+  $fromDirectory = $ARGV[0];
+  $toDirectory = $ARGV[1];
+} else {
+  print "Error: deploy_prop_viewer.pl script only takes a max of 2 arguments.\n\n";
+  exit;
+}
+
+print "\nThe files necessary for the proposal viewer tool will be copied \n";
+print "from: $fromDirectory \n";
+print "to: $toDirectory. \n";
+print "Type 'y' if these are correct, or any other key to stop the deployment\n";
+
+$userResponse = <STDIN>;
+chop($userResponse); #Remove newline
+if($userResponse ne 'y' && $userResponse ne 'Y') {
+  print "Stopping deployment of proposal viewer.\n\n";
+  exit;
+}
+
+
+if(! -e $toDirectory) {
+  print "Creating directory $toDirectory\n";
+  mkdir($toDirectory, 0777);
+}
+
+# If something goes wrong, success won't be true.
+$success = 1;
+
+foreach $currentFile (@propViewerFiles) {
+  $fromDirPath = "$fromDirectory/$currentFile";
+  $toDirPath = "$toDirectory/$currentFile";
+
+  if(! -e $fromDirPath) {
+    print "Error: $fromDirPath does not exist.\n";
+    $success = 0;
+    next;
+  }
+
+  if(-e $toDirPath) {
+    print "Removing old file in output directory: $toDirPath\n";
+    system("rm -f $toDirPath");
+  }
+
+  system("cp $fromDirPath $toDirectory");
+  print "Copying $fromDirPath to $toDirPath\n";
+}
+
+if($success == 1) {
+  print "Completed deployment of prop_viewer\n";
+} else {
+  print "Error: prop_viewer deployment encountered an error.\n\n";
+}

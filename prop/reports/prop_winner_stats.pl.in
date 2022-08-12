@@ -1,0 +1,861 @@
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 1995, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_winner_stats.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script provides peer review statistics for submitted vs approved .
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use vars qw ($dbh %param @qtable @reqfiles $reqfile $dbdelim
+	$query  $alttab $cyclen $cyclen1 $cyclen2
+	$reqcolor $appcolor
+	);
+
+use strict;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+
+@reqfiles = (
+        "prop_routines.pl",
+        "prop_dbroutines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+# -------------------------- MAIN ----------------------------------
+{
+  my($dsn,$stmp,$title,$gto);
+  my($idx,$ii,@row);
+  my(@types,@subcats,@detector,@tgtrange,@proprange,@pis,@country);
+  my(@atypes,@asubcats,@adetector,@atgtrange,@aproprange,@apis,@acountry);
+  my(@multicycle_types, @multicycle_atypes);
+  my(@multicycle_subcats, @multicycle_asubcats);
+
+
+  &parse_input();
+
+  $reqcolor = "#eeeeee";
+  $appcolor = "#eef2ff";
+  #database connection
+  $dbh = dbProposalConnection($param{U}, $param{S}, $param{q});
+  $cyclen = $param{a};
+  $cyclen1 = $param{a} + 1;
+  $cyclen2 = $param{a} + 2;
+
+
+  if ($param{g}) {
+     $gto = qq (and proposal.type not like "%GTO%");
+  } else {
+     $gto = " ";
+  }
+
+  $param{s} = qq((proposal.status like "PROPOSED" or proposal.rank is not null)
+	and proposal.joint not like "%CXO-%" 
+	and proposal.type != "CAL" 
+	and proposal.type != "DDT" $gto);
+  $alttab ="#dreqalt";
+  $param{f} = "prop_exposure_time";
+  $param{n1} = "est_time_cycle_n1";
+  $param{n2} = "est_time_cycle_n2";
+
+  dbexclude_alternates($dbh);
+  dbbuild_probability($dbh);
+
+  @types = dbby_type($dbh);
+  @multicycle_types = db_multicycle_type($dbh);
+  @subcats = dbby_subcat($dbh);
+  @multicycle_subcats = db_multicycle_category($dbh);
+  @detector = dbby_detector($dbh);
+  @tgtrange = dbby_target_time($dbh);
+  @proprange = dbby_proposal_time($dbh);
+  @pis = dbby_pi_cnt($dbh);
+  @country = dbby_country($dbh);
+
+  $dbh->do("drop table #dtgt");
+  $dbh->do("drop table #dprob");
+
+  $param{s} = qq(proposal.rank >= 3.5 and proposal.type not in ("CAL","DDT")  $gto);
+  $alttab ="#dappalt";
+  $param{f} = "approved_exposure_time";
+  $param{n1} = "app_time_cycle_n1";
+  $param{n2} = "app_time_cycle_n2";
+
+  dbbuild_probability($dbh);
+  @atypes = dbby_type($dbh);
+  @multicycle_atypes = db_multicycle_type($dbh);
+  @asubcats = dbby_subcat($dbh);
+  @multicycle_asubcats = db_multicycle_category($dbh);
+  @adetector = dbby_detector($dbh);
+  @atgtrange = dbby_target_time($dbh);
+  @aproprange = dbby_proposal_time($dbh);
+  @apis = dbby_pi_cnt($dbh);
+  @acountry = dbby_country($dbh);
+
+  open(OFILE,"> $param{o}")  ||
+    die "Unable to open $param{o} for writing!\n";
+
+
+  $stmp = <<endHtml;
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <link rel="stylesheet" href="/soft/include/cxcds.css" type="text/css" media="screen">
+   <title>$title</title>
+</head>
+<body>
+<!--#include virtual="/soft/include/cxcheader.html"-->
+<center> 
+<h1>Cycle $param{a} Recommended Targets: Statistics</h1>
+</center>
+Statistics for all proposals submitted to the peer review, including 
+the GTO proposals which were competed.
+This does NOT include GTO time which was uncompeted or Calibration observations.
+Units for time are given in kiloseconds.
+<p>
+endHtml
+  print OFILE "$stmp\n";
+
+  #now print the stuff already retrieved
+  $idx=1;
+  if ($param{d}) { print STDERR "type\n"; }
+  print OFILE "<h2>$idx. Proposals by Type</h2>\n";
+  print OFILE "<table><tr><td>\n";
+  &by_type("Requested",$reqcolor,@types);
+  print OFILE "</td><td>";
+  &by_type("Approved",$appcolor,@atypes);
+  print OFILE "</td></tr></table><p>\n";
+  print OFILE "<table><caption><b>Multicycle Proposals</b></caption><tr><td>\n";
+  &by_multicycle_type("Requested",$reqcolor,@multicycle_types);
+  print OFILE "</td><td>";
+  &by_multicycle_type("Approved",$appcolor,@multicycle_atypes);
+  print OFILE "</td></tr></table><p>\n";
+  $idx++;
+
+
+
+  if ($param{d}) { print STDERR "subcat\n"; }
+  print OFILE qq(<h2>$idx. Proposals by Subject Category<br>
+<font style="font-size:small; font-weight:normal">#Props includes Archive/Theory proposals.</font></h2>\n);
+  print OFILE "<table><tr><td>\n";
+  &by_subcat("Requested",$reqcolor,@subcats);
+  print OFILE "</td><td>";
+  &by_subcat("Approved",$appcolor,@asubcats);
+  print OFILE "</td></tr></table><p>\n";
+  print OFILE "<table><caption><b>Multicycle Proposals</b></caption><tr><td>\n";
+  &by_multicycle_subcat("Requested",$reqcolor,@multicycle_subcats);
+  print OFILE "</td><td>";
+  &by_multicycle_subcat("Approved",$appcolor,@multicycle_asubcats);
+  print OFILE "</td></tr></table><p>\n";
+  $idx++;
+
+  if ($param{d}) { print STDERR "detector\n" ; }
+  print OFILE "<h2>$idx. Targets,Exposure Time by Detector</h2>\n";
+  print OFILE "<table><tr><td>\n";
+  &by_detector("Requested",$reqcolor,@detector);
+  print OFILE "</td><td>";
+  &by_detector("Approved",$appcolor,@adetector);
+  print OFILE "</td></tr></table><p>\n";
+  $idx++;
+
+  if ($param{d}) { print STDERR "target time range\n"; }
+  print OFILE "<h2>$idx. Targets by Exposure Time Range</h2>\n";
+  print OFILE "<table><tr><td>\n";
+  &by_target_time("Requested",$reqcolor,@tgtrange);
+  print OFILE "</td><td>";
+  &by_target_time("Approved",$appcolor,@atgtrange);
+  print OFILE "</td></tr></table><p>\n";
+  $idx++;
+
+  if ($param{d}) { print STDERR "proposal time range\n"; }
+  print OFILE "<h2>$idx. Proposals by Exposure Time Range</h2>\n";
+  print OFILE "<table><tr><td>\n";
+  &by_proposal_time("Requested",$reqcolor,@proprange);
+  print OFILE "</td><td>";
+  &by_proposal_time("Approved",$appcolor,@aproprange);
+  print OFILE "</td></tr></table><p>\n";
+  $idx++;
+
+  @qtable= ();
+  for ($ii=0; $ii <= $#pis; $ii++) {
+     @row = split($dbdelim,$pis[$ii]);
+     push(@qtable,$row[0]);
+  }
+  for ($ii=0; $ii <= $#apis; $ii++) {
+     @row = split($dbdelim,$apis[$ii]);
+     push(@qtable,$row[0]);
+  }
+  @qtable = sort{$a - $b} @qtable;
+    
+  print OFILE "<h2>$idx. Number of Proposals per P.I.</h2>\n";
+  print OFILE "<table><tr><td>\n";
+  &by_pi_cnt("Requested",$reqcolor,@pis);
+  print OFILE "</td><td>";
+  &by_pi_cnt("Approved",$appcolor,@apis);
+  print OFILE "</td></tr></table><p>\n";
+  $idx++;
+
+  if ($param{d}) { print STDERR "country\n"; }
+  @qtable= ();
+  print OFILE "<h2>$idx. Proposals by Country</h2>\n";
+  print OFILE "<table><tr><td>\n";
+  &by_country("Requested",$reqcolor,@country);
+  print OFILE "</td><td>";
+  &by_country("Approved",$appcolor,@acountry);
+  print OFILE "</td></tr></table><p>\n";
+  $idx++;
+
+print OFILE qq(
+<!--#include virtual="/soft/include/cxcfooter.html"-->
+</body>
+</html>
+);
+
+  close OFILE;
+  chgroup($param{o});
+  chmod 0660,$param{o};
+
+}
+
+# ------------- END MAIN ----------------------------------------------
+
+
+# -------------------------------------------------------------
+sub by_type
+{
+  my($thdr,$bgcolor,@iarr) = @_;
+  my($sth,@row,$stmp,@types,$typeidx,$str);
+  my($totp,$tott,$totc,$tota,$totb,$totap);
+ 
+  
+  print OFILE "<table bgcolor=\"$bgcolor\"><tr><td><pre>\n";
+  if ($thdr =~ /req/i) {
+    print OFILE "                                <b>$thdr</b>  \n";
+    printf OFILE "Type           #Prop   #Tgts  #TC=Y    %-3.3sTime    w/Prob\n",$thdr;
+    print OFILE "--------------------------------------------------------\n";
+  }
+  else {
+    print OFILE "                 <b>$thdr</b> \n";
+    printf OFILE "#Prop   #Tgts  #TC=Y    %-3.3sTime    w/Prob Units\n",$thdr;
+    print OFILE "-------------------------------------------------\n";
+  }
+
+  @types = ();
+  $stmp = qq( select distinct type from proposal 
+        where type not in ("DDT","CAL") 
+	and type not like "%ARCH%"
+	and type not like "%THEO%"
+        and ao_str = "$param{a}"
+        and (proposal.status = "PROPOSED" or proposal.rank is not NULL) 
+        order by type);
+  $sth = $dbh->prepare($stmp);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+     push @types,$row[0];
+     
+  }
+  push (@types,"ARCHIVE");
+  push (@types,"THEORY");
+
+
+  $typeidx=0;
+  foreach $str (@iarr) {
+    @row = split($dbdelim,$str);
+    while ($types[$typeidx] ne $row[0] && $typeidx <= $#types) {
+       printf OFILE "\n";
+       $typeidx+=1;
+    }
+    $totp += $row[1];
+    if ($row[0] !~ /arch/i && $row[0] !~ /theor/i) {
+      $tott += $row[2];
+      $totc += $row[3];
+      $tota += $row[4];
+      $totap += $row[5];
+    }
+
+    if ($thdr =~ /req/i) {
+      printf OFILE ("%-13.13s   %3d    %4d   %3d     %8.2f  %8.2f\n",
+	@row);
+    } 
+    else {
+      if ($row[0] =~ /ARC/i || $row[0] =~ /Theor/i) {
+        $str = "1000 US dollars";
+      }
+      else {
+        $str = "ksec";
+      }
+      shift(@row);
+      printf OFILE (" %3d    %4d   %3d     %8.2f  %8.2f  $str\n", @row);
+    } 
+    $typeidx += 1;
+  }
+  while ($typeidx <= $#types) {
+       printf OFILE "\n";
+       $typeidx+=1;
+  }
+  if ($thdr =~ /req/i) {
+    printf OFILE ("%-13.13s   %3.3s    %4.4s   %3.3s    %9.9s %9.9s\n",
+ 	" ","---","----","---","---------","---------");
+    printf OFILE ("%-13.13s   %3d    %4d   %3d    %9.2f %9.2f\n",
+	" ", $totp,$tott,$totc,$tota,$totap);
+  }
+  else {
+    printf OFILE (" %3.3s    %4.4s   %3.3s    %9.9s %9.9s\n",
+ 	"---","----","---","----------","----------");
+    printf OFILE (" %3d    %4d   %3d    %9.2f %9.2f\n",
+	$totp,$tott,$totc,$tota,$totap);
+  }
+  print OFILE "</pre></td></tr></table>\n";
+
+
+}
+
+# -------------------------------------------------------------
+sub by_multicycle_type
+{
+  my($thdr,$bgcolor,@iarr) = @_;
+  my($sth,@row,$stmp,@types,$typeidx,$str);
+  my($totp,$totn,$totn1,$totn2);
+ 
+  
+  print OFILE "<table bgcolor=\"$bgcolor\"><tr><td><pre>\n";
+  if ($thdr =~ /req/i) {
+     print OFILE "                             <b>$thdr</b>  \n";
+     printf OFILE "%-13.13s ","Type";
+  }
+  else {
+     print OFILE "               <b>$thdr</b>  \n";
+  }
+  printf OFILE " #Prop  %8.8s  %8.8s  %8.8s \n",
+	"Cycle $cyclen","Cycle $cyclen1","Cycle $cyclen2";
+  if ($thdr =~ /req/i) {
+    print OFILE "--------------";
+  }
+
+  print OFILE "------------------------------------\n";
+
+  @types = ();
+  $stmp = qq( select distinct type from proposal 
+        where type not in ("DDT","CAL") 
+	and type not like "%ARCH%"
+	and type not like "%THEO%"
+        and ao_str = "$param{a}"
+	and multi_cycle = "Y"
+        and (proposal.status = "PROPOSED" or proposal.rank is not NULL) 
+        order by type);
+  $sth = $dbh->prepare($stmp);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+     push @types,$row[0];
+     
+  }
+
+  $typeidx=0;
+  foreach $str (@iarr) {
+    @row = split($dbdelim,$str);
+    while ($types[$typeidx] ne $row[0] && $typeidx <= $#types) {
+       printf OFILE "\n";
+       $typeidx+=1;
+    }
+    $totp  += $row[1];
+    $totn  += $row[2];
+    $totn1 += $row[3];
+    $totn2 += $row[4];
+
+    if ($thdr =~ /req/i) {
+      printf OFILE ("%-13.13s %5d  %8.2f  %8.2f  %8.2f\n",
+	@row);
+    } 
+    else {
+      shift(@row);
+      printf OFILE (" %5d  %8.2f  %8.2f  %8.2f\n", @row);
+    } 
+    $typeidx += 1;
+  }
+  while ($typeidx <= $#types) {
+       printf OFILE "\n";
+       $typeidx+=1;
+  }
+  if ($thdr =~ /req/i) {
+    printf OFILE ("%-13.13s %5.5s %9.9s %9.9s %9.9s\n",
+ 	" ","-----","---------","---------","---------");
+    printf OFILE ("%-13.13s %5d %9.2f %9.2f %9.2f \n",
+	" ", $totp,$totn,$totn1,$totn2);
+  }
+  else {
+    printf OFILE (" %5.5s %9.9s %9.9s %9.9s\n",
+ 	"-----","---------","---------","---------");
+    printf OFILE (" %5d %9.2f %9.2f %9.2f\n",
+	$totp,$totn,$totn1,$totn2);
+  }
+  print OFILE "</pre></td></tr></table>\n";
+
+
+}
+
+
+# -------------------------------------------------------------
+sub by_subcat
+{
+  my($thdr,$bgcolor,@iarr) = @_;
+  my(@row,$stmp);
+  my($totp,$tott,$tote,$totep) = 0;
+
+  print OFILE "<table bgcolor=\"$bgcolor\"><tr><td><pre>\n";
+  if ($thdr =~ /req/i) {
+    print OFILE "                                                    <b>$thdr</b> \n";
+    printf OFILE "Category                                   #Prop   #Tgts     %-3.3sTime     w/Prob\n",$thdr;
+    print OFILE "-------------------------------------------------------------------------------\n";
+  }
+  else {
+    print OFILE "           <b>$thdr</b> \n";
+    printf OFILE "  #Prop   #Tgts    %-3.3sTime    w/Prob\n",$thdr;
+    print OFILE "  ----------------------------------\n";
+  }
+
+  foreach $stmp (@iarr) {
+    @row = split($dbdelim,$stmp);
+    $totp += $row[1];
+    $tott += $row[2];
+    $tote += $row[3];
+    $totep += $row[4];
+    if ($thdr =~ /req/i) {
+       printf OFILE ("%-42.42s   %3d    %4d     %8.2f  %8.2f\n", @row);
+    } else {
+       shift(@row); 
+       printf OFILE ("  %3d    %4d     %8.2f  %8.2f\n", @row);
+    }
+  }
+  if ($thdr =~ /req/i) {
+       printf OFILE ("%-42.42s   %-3.3s    %-4.4s    %-9.9s %9.9s\n", 
+	" ","---","----","---------","---------");
+       printf OFILE ("%-42.42s   %3d    %4d    %9.2f %9.2f\n", 
+	" ",$totp,$tott,$tote,$totep);
+  } else {
+       printf OFILE ("  %-3.3s    %-4.4s     %-8.8s  %8.8s\n",
+	"---","----","---------","--------");
+       printf OFILE ("  %3d    %4d     %8.2f  %8.2f\n", $totp,$tott,$tote,$totep);
+  }
+  print OFILE "</pre></td></tr></table>\n";
+}
+
+# -------------------------------------------------------------
+sub by_multicycle_subcat
+{
+  my($thdr,$bgcolor,@iarr) = @_;
+  my($sth,@row,$stmp,@types,$typeidx,$str);
+  my($totp,$totn,$totn1,$totn2);
+ 
+  
+  print OFILE "<table bgcolor=\"$bgcolor\"><tr><td><pre>\n";
+  if ($thdr =~ /req/i) {
+     print OFILE "                                                         <b>$thdr</b>  \n";
+     printf OFILE "%-42.42s ","Category";
+  }
+  else {
+     print OFILE "              <b>$thdr</b>  \n";
+  }
+  printf OFILE "#Prop  %8.8s  %8.8s  %8.8s \n",
+	"Cycle $cyclen","Cycle $cyclen1","Cycle $cyclen2";
+  if ($thdr =~ /req/i) {
+    print OFILE "-------------------------------------------";
+  }
+  print OFILE "-----------------------------------\n";
+
+  @types = ();
+  $stmp = qq( select distinct category_descrip from proposal 
+        where type not in ("DDT","CAL") 
+	and type not like "%ARCH%"
+	and type not like "%THEO%"
+        and ao_str = "$param{a}"
+	and multi_cycle = "Y"
+        and (proposal.status = "PROPOSED" or proposal.rank is not NULL) 
+        order by category_descrip);
+  $sth = $dbh->prepare($stmp);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+     push @types,$row[0];
+     
+  }
+
+  $typeidx=0;
+  foreach $str (@iarr) {
+    @row = split($dbdelim,$str);
+    while ($types[$typeidx] ne $row[0] && $typeidx <= $#types) {
+       printf OFILE "\n";
+       $typeidx+=1;
+    }
+    $totp  += $row[1];
+    $totn  += $row[2];
+    $totn1 += $row[3];
+    $totn2 += $row[4];
+
+    if ($thdr =~ /req/i) {
+      printf OFILE ("%-42.42s %5d  %8.2f  %8.2f  %8.2f\n", @row);
+    } 
+    else {
+      shift(@row);
+      printf OFILE ("%5d  %8.2f  %8.2f  %8.2f \n", @row);
+    } 
+    $typeidx += 1;
+  }
+  while ($typeidx <= $#types) {
+       printf OFILE "\n";
+       $typeidx+=1;
+  }
+  if ($thdr =~ /req/i) {
+    printf OFILE ("%-42.42s %5.5s %9.9s %9.9s %9.9s\n",
+ 	" ","-----","---------","---------","---------");
+    printf OFILE ("%-42.42s %5d %9.2f %9.2f %9.2f \n",
+	" ", $totp,$totn,$totn1,$totn2);
+  }
+  else {
+    printf OFILE ("%5.5s %9.9s %9.9s %9.9s\n",
+ 	"---","---------","---------","---------");
+    printf OFILE ("%5d %9.2f %9.2f %9.2f\n",
+	$totp,$totn,$totn1,$totn2);
+  }
+  print OFILE "</pre></td></tr></table>\n";
+
+
+}
+
+# -------------------------------------------------------------
+sub by_detector
+{
+  my($thdr,$bgcolor,@iarr) = @_;
+  my($sth,@row,$stmp,@detectors,$didx,$str);
+  my($tott,$tote,$totep) = 0;
+
+  print OFILE "<table bgcolor=\"$bgcolor\"><tr><td><pre>\n";
+  if ($thdr =~ /req/i) {
+    print OFILE "                                <b>$thdr</b>\n";
+    print OFILE "Detector  Grating    #Tgts      Time    w/Prob\n";
+    print OFILE "----------------------------------------------\n";
+  }
+  else {
+    print OFILE "            <b>$thdr</b>\n";
+    print OFILE " #Tgts      Time    w/Prob\n";
+    print OFILE "--------------------------\n";
+  }
+
+
+  $stmp = qq(select distinct instrument_name,grating_name 
+        from proposal,target,instrument,grating
+        where type not in ("DDT","CAL")
+        and ao_str = "$param{a}"
+        and (proposal.status = "PROPOSED" or proposal.rank is not NULL) 
+        and proposal.proposal_id = target.proposal_id
+        and use_instrument_id=instrument.instrument_id 
+        and use_grating_id = grating.grating_id 
+        order by instrument_name,grating_name);
+  $sth = $dbh->prepare($stmp);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+     push @detectors,"$row[0]$row[1]";
+  }
+
+  $didx = 0;
+  foreach $stmp (@iarr) {
+    @row = split($dbdelim,$stmp);
+    $tott += $row[2];
+    $tote += $row[3];
+    $totep += $row[4];
+    while ($detectors[$didx] ne "$row[0]$row[1]" && $didx < $#detectors) {
+       printf OFILE "\n";
+       $didx +=1;
+    }
+    if ($thdr =~ /req/i) {
+      printf OFILE ("%-8.8s  %-7.7s     %4d  %8.2f  %8.2f\n", @row);
+    } else {
+      shift(@row);
+      shift(@row);
+      printf OFILE ("  %4d  %8.2f  %8.2f\n", @row);
+    }
+    $didx +=1;
+  }
+  while ($didx <= $#detectors) {
+       printf OFILE "\n";
+       $didx +=1;
+  }
+
+  if ($thdr =~ /req/i) {
+     printf OFILE ("%-8.8s  %-7.7s     %-4.4s %-9.9s %-9.9s\n",
+      " "," ","----","---------","----------");
+     printf OFILE ("%-8.8s  %-7.7s     %4d %9.2f %9.2f\n"," "," ",$tott,$tote,$totep);
+  } else {
+     printf OFILE ("  %-4.4s  %-8.8s  %-8.8s\n", "----","--------","--------");
+     printf OFILE ("  %4d %9.2f %9.2f\n", $tott,$tote,$totep);
+  }
+  print OFILE "</pre></td></tr></table>\n";
+}
+
+
+# -------------------------------------------------------------
+sub by_pi_cnt
+{
+  my($thdr,$bgcolor,@iarr) = @_;
+  my(@row,$stmp,$ii,$qstr);
+
+  print OFILE "<table bgcolor=\"$bgcolor\"><tr><td><pre>\n";
+  if ($thdr =~ /req/i) {
+    print OFILE "   <b>$thdr</b>\n";
+    print OFILE "#Prop   #P.I.\n";
+    print OFILE "-------------\n";
+  }
+  else {
+    print OFILE " <b>$thdr</b>\n";
+    print OFILE "     #P.I.\n"; 
+    print OFILE " ---------\n";
+  }
+
+  $ii=0;
+  foreach $stmp (@iarr) {
+    @row = split($dbdelim,$stmp);
+    while ($ii <= $#qtable && $qtable[$ii] ne $row[0] ) {
+      if ($ii == 0 || $qtable[$ii] ne $qtable[$ii-1]) {
+        if ($thdr =~ /req/i) {
+          printf OFILE "%3d\n",$qtable[$ii];
+        } else {
+          print OFILE "\n";
+        }
+       }
+      $ii++
+    }
+    if ($thdr =~ /req/i) {
+      printf OFILE ("%3d       %3d\n", @row);
+    }
+    else {
+      printf OFILE ("     %3d\n", $row[1]);
+    }
+    $ii++;
+  }
+  while ($ii <= $#qtable ) {
+    if ($ii > 0 && $qtable[$ii] ne $qtable[$ii-1]) {
+        if ($thdr =~ /req/i) {
+          printf OFILE "%3d\n",$qtable[$ii];
+        } else {
+          print OFILE "\n";
+        }
+    }
+    $ii++
+  }
+
+  print OFILE "</pre></td></tr></table>\n";
+
+}
+
+# ----------------------------------------------------------------------
+sub by_country
+{
+
+  my($thdr,$bgcolor,@iarr) = @_;
+  my(@row,$stmp,$ii);
+  my($fcnt,$ftime,$ftimep);
+
+  print OFILE "<table bgcolor=\"$bgcolor\"><tr><td><pre>\n";
+  if ($thdr =~ /req/i) {
+    print OFILE "                       <b>$thdr</b>\n";
+    print OFILE "Country         #Prop       Time    w/Prob\n"; 
+    print OFILE "------------------------------------------\n";
+  }
+  else {
+    print OFILE "             <b>$thdr</b>\n";
+    print OFILE "    #Prop         Time     w/Prob\n"; 
+    print OFILE "    -----------------------------\n";
+  }
+
+
+  $ii=0;
+  foreach $stmp (@iarr) {
+    @row = split($dbdelim,$stmp);
+    if ($row[0] !~ /USA/) {
+      $fcnt += $row[1];
+      $ftime += $row[2];
+      $ftimep += $row[3];
+     }
+
+     if ($thdr =~ /req/i) {
+       printf OFILE ("%-15.15s %3d     %8.2f  %8.2f\n", @row);
+       push @qtable,$row[0];
+     }
+     else  {
+       while ($ii <= $#qtable && $qtable[$ii] !~ /$row[0]/) {
+         print OFILE "\n";
+         $ii++
+       }
+       shift(@row);
+       printf OFILE ("      %3d     %8.2f  %8.2f\n", @row);
+       $ii++;
+    }
+  }
+  while ($thdr !~ /req/i && $ii <= $#qtable ) {
+    print OFILE "\n";
+    $ii++
+  }
+
+  if ($thdr =~/req/i) {
+    print OFILE "\n\n";
+    print OFILE "Total Foreign ";
+  }
+  else {
+    printf OFILE ("\n\n    ");
+  }
+  printf OFILE ("  %3d     %8.2f  %8.2f\n",$fcnt,$ftime,$ftimep);
+  print OFILE "</pre></td></tr></table>\n";
+}
+
+# ----------------------------------------------------------------------
+sub by_target_time  
+{
+  my($thdr,$bgcolor,@iarr) = @_;
+  my(@row,$stmp);
+
+  print OFILE "<table bgcolor=\"$bgcolor\"><tr><td><pre>\n";
+  if ($thdr =~ /req/i) {
+    print OFILE "            <b>$thdr</b>\n";
+    print OFILE "Time            #Tgts\n";
+    print OFILE "---------------------\n";
+  }
+  else {
+    print OFILE "      <b>$thdr</b>\n";
+    print OFILE "         #Tgts\n";
+    print OFILE "         -----\n";
+  }
+
+  foreach $stmp (@iarr) {
+    @row = split($dbdelim,$stmp);
+    if ($thdr =~ /req/i) {
+      printf OFILE ("%s     %4d\n",@row);
+    } else {
+      printf OFILE ("          %4d\n",$row[1]);
+    }
+  }
+  print OFILE "</pre></td></tr></table>\n";
+} 
+
+# ----------------------------------------------------------------------
+sub by_proposal_time  
+{
+  my($thdr,$bgcolor,@iarr) = @_;
+  my(@row,$stmp);
+
+  print OFILE "<table bgcolor=\"$bgcolor\"><tr><td><pre>\n";
+  if ($thdr =~ /req/i) {
+    print OFILE "            <b>$thdr</b>\n";
+    print OFILE "Time            #Prop\n";
+    print OFILE "---------------------\n";
+  }
+  else {
+    print OFILE "      <b>$thdr</b>\n";
+    print OFILE "         #Prop\n";
+    print OFILE "         -----\n";
+  }
+
+  foreach $stmp (@iarr) {
+    @row = split($dbdelim,$stmp);
+    if ($thdr =~ /req/i) {
+      printf OFILE ("%s     %4d\n",@row);
+    } else {
+      printf OFILE ("          %4d\n",$row[1]);
+    }
+  }
+
+  print OFILE "</pre></td></tr></table>\n";
+} 
+
+
+
+
+# ----------------------------------------------------------
+# parse input parameters
+# ----------------------------------------------------------
+sub parse_input
+{
+  my($pwd);
+  my $err = 0;
+
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+             o=> undef,
+             a=> "$ENV{ASCDS_PROP_AO}",
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "o=s",
+          "a=s",
+          "q=s",
+          "d",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter '$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+  $param{q} = $pwd;
+
+
+}
+  
+
+sub usage
+{
+    print STDERR "\nUSAGE: prop_winner_stats.pl -Uo [ -Sa ]\n";
+    print STDERR "       -U database user name\n";
+    print STDERR "       -o output filename \n";
+    print STDERR "       -S database server, default is DB_PROP_SQLSRV\n";
+    print STDERR "       -a AO , default is current ASCDS_PROP_AO\n";
+   
+}
+
+

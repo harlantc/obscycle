@@ -1,0 +1,184 @@
+#!@PERL@ 
+#*H****************************************************************************
+#* Copyright (c) 1995,2019 Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: webapp_deploy.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script will be used by the systems group to install the 3 JSP 
+# web applications to the appropriate Tomcat sub-directory.  
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+use strict;
+use Getopt::Long;
+
+use vars qw( %param @installApps @antApps @webApps @iwebApps
+	);
+
+@iwebApps = ("toomanager-app");
+
+@antApps = ("cps-app");
+@webApps = ("reports-app" , "toolkit-app", "obsed-app", "logger-app", "triggertoo-app");
+
+{
+  my ($warFile,$tomcatWarFile,$userResponse,$webApp,$webAppPath);
+
+  &parse_input;
+
+  print STDERR "\nInstalling FROM : $param{i}\n";
+  print STDERR "                : $param{l}\n";
+  print STDERR "Installing TO   : $param{o}\n";
+  print STDERR "Are these directories correct (y/n)? ";
+  $userResponse = <STDIN>;
+  chomp($userResponse); #Remove newline
+  if($userResponse eq "y" || $userResponse eq "Y") {
+    # Copy the war file 
+    foreach $warFile (@installApps) {
+      $warFile .= ".war";
+      $tomcatWarFile = "$param{o}/";
+      system("cp $warFile $tomcatWarFile");
+      print "Copying $warFile to $tomcatWarFile\n";
+      chmod (0775, $tomcatWarFile);
+    }
+  }
+  else {
+    print STDERR "Application(s) were NOT installed\n";
+  }
+}
+
+
+
+# ----------------------------------------------------------
+sub parse_input
+{
+  my ($ii,$str);
+  my $err = 0;
+  %param = (
+           o => $ENV{'TOMCAT_WEBAPPS_DIR'},
+           i => $ENV{'ASCDS_INSTALL'} . "/www/htdocs/soft/web_apps",
+           l => $ENV{'ASCDS_INSTALL'} . "/lib",
+           a => undef,
+           t => "dmz",
+        );
+
+  GetOptions( \%param,
+          "o=s",
+          "i=s",
+          "a=s",
+          "l=s",
+          "t=s",
+          "h"
+        ) or exit (1);
+
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter `$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+  if (!-e $param{i} ) {
+     print STDERR "Input Directory $param{i} does not exist.\n";
+     $err++;
+  }
+
+
+  if ($param{a} =~ /^all/i) {
+    if ($param{t} =~ /^i/) {
+      $param{t} = "icxc";
+      foreach $str (@iwebApps) {
+        push(@installApps,$param{i} . "/" . $str);
+      }
+    } elsif ($param{t} =~ /^d/) {
+      $param{t} = "dmz";
+      foreach $str (@webApps) {
+        push(@installApps , $param{i} . "/" . $str);
+      }
+      foreach $str (@antApps) {
+        push(@installApps , $param{l} . "/" . $str);
+      }
+    }
+  } else {
+    if ($param{t} =~ /^i/) {
+      $param{t} = "icxc";
+      for ($ii=0; $ii<=$#iwebApps; $ii++ ) {
+        if ($param{a} eq $iwebApps[$ii]) {
+          push (@installApps,$param{i} . "/" . $param{a}) ;
+        }
+      }
+    }
+    elsif ($param{t} =~ /^d/) {
+      $param{t} = "dmz";
+      for ($ii=0; $ii<=$#webApps; $ii++ ) {
+        if ($param{a} eq $webApps[$ii]) {
+          push (@installApps,$param{i} . "/"  . $param{a}) ;
+        }
+      }
+      for ($ii=0; $ii<=$#antApps; $ii++ ) {
+        if ($param{a} eq $antApps[$ii]) {
+          push (@installApps,$param{l} . "/"  . $param{a}) ;
+        }
+      }
+    }
+  }
+  if ($#installApps < 0) {
+     $err++;
+     print STDERR "Application $param{a} is not a valid option for -t $param{t}.\n";
+  }
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+}
+
+sub usage
+{
+  my ($ii);
+
+  print STDERR "\nThis script will install web applications to the Tomcat installation\n";
+  print STDERR "directory defined by the -o parameter. It locates the specified\n";
+  print STDERR "war file (-a parameter) in the directory defined by the -i parameter.\n";
+  print STDERR "\nUSAGE: webapp_install.pl -a [ -io ]\n";
+  print STDERR "       -i input install directory\n";
+  print STDERR "          Default is ASCDS_INSTALL/www/htdocs/soft/web_apps\n";
+  print STDERR "       -l input install directory for ant packages\n";
+  print STDERR "          Default is ASCDS_INSTALL/lib\n";
+  print STDERR "       -o output catalina base directory \n";
+  print STDERR "          Default TOMCAT_WEBAPPS_DIR.\n";
+  print STDERR "       -t type of application to install: \n"; 
+  print STDERR "          dmz - dmz web (currently web-cxc)\n"; 
+  print STDERR "          icxc - internal web (currently web-icxc)\n"; 
+
+  print STDERR "       -a application to install. Options are:\n";
+  print STDERR "          all \n";
+  for ($ii=0; $ii<=$#webApps;$ii++) {
+    print STDERR "          $webApps[$ii] \n";
+  }
+  for ($ii=0; $ii<=$#antApps;$ii++) {
+    print STDERR "          $antApps[$ii] \n";
+  }
+  for ($ii=0; $ii<=$#iwebApps;$ii++) {
+    print STDERR "          $iwebApps[$ii] \n";
+  }
+}
+
+

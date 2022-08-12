@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE table SYSTEM "table.dtd">
+
+<table name="acisparam" key="acisid">
+  <column name="acisid">
+    <type>INTEGER</type>
+    <tooltip>ACIS Identifier</tooltip>
+  </column>
+  <column name="exp_mode">
+    <type>CHOICE</type>
+    <tooltip>Exposure Mode</tooltip>
+    <choices>
+      <item>TE</item>
+      <item>CC</item>
+    </choices>
+  </column>
+  <column name="dropped_chip_count">
+    <type>INTEGER</type>
+    <tooltip>Dropped Chip Count</tooltip>
+  </column>
+  <column name="ccdi0_on">
+    <type>CHOICE</type>
+    <tooltip>CCD I0 Flag (On/Off)</tooltip>
+    <choices>
+      <item>Y</item>
+      <item>N</item>
+      <item>O1</item>
+      <item>O2</item>
+      <item>O3</item>
+      <item>O4</item>
+      <item>O5</item>
+    </choices>
+  </column>
+  <column name="ccdi1_on">
+    <type>CHOICE</type>
+    <tooltip>CCD I1 Flag </tooltip>
+    <choices>
+      <item>Y</item>
+      <item>N</item>
+      <item>O1</item>
+      <item>O2</item>
+      <item>O3</item>
+      <item>O4</item>
+      <item>O5</item>
+    </choices>
+  </column>
+  <column name="ccdi2_on">
+    <type>CHOICE</type>
+    <tooltip>CCD I2 Flag </tooltip>
+    <choices>
+      <item>Y</item>
+      <item>N</item>
+      <item>O1</item>
+      <item>O2</item>
+      <item>O3</item>
+      <item>O4</item>
+      <item>O5</item>
+    </choices>
+  </column>
+  <column name="ccdi3_on">
+    <type>CHOICE</type>
+    <tooltip>CCD I3 Flag </tooltip>
+    <choices>
+      <item>Y</item>
+      <item>N</item>
+      <item>O1</item>
+      <item>O2</item>
+      <item>O3</item>
+      <item>O4</item>
+      <item>O5</item>
+    </choices>
+  </column>
+  <column name="ccds0_on">
+    <type>CHOICE</type>
+    <tooltip>CCD S0 Flag </tooltip>
+    <choices>
+      <item>Y</item>
+      <item>N</item>
+      <item>O1</item>
+      <item>O2</item>
+      <item>O3</item>
+      <item>O4</item>
+      <item>O5</item>
+    </choices>
+  </column>
+  <column name="ccds1_on">
+    <type>CHOICE</type>
+    <tooltip>CCD S1 Flag </tooltip>
+    <choices>
+      <item>Y</item>
+      <item>N</item>
+      <item>O1</item>
+      <item>O2</item>
+      <item>O3</item>
+      <item>O4</item>
+      <item>O5</item>
+    </choices>
+  </column>
+  <column name="ccds2_on">
+    <type>CHOICE</type>
+    <tooltip>CCD S2 Flag </tooltip>
+    <choices>
+      <item>Y</item>
+      <item>N</item>
+      <item>O1</item>
+      <item>O2</item>
+      <item>O3</item>
+      <item>O4</item>
+      <item>O5</item>
+    </choices>
+  </column>
+  <column name="ccds3_on">
+    <type>CHOICE</type>
+    <tooltip>CCD S3 Flag </tooltip>
+    <choices>
+      <item>Y</item>
+      <item>N</item>
+      <item>O1</item>
+      <item>O2</item>
+      <item>O3</item>
+      <item>O4</item>
+      <item>O5</item>
+    </choices>
+  </column>
+  <column name="ccds4_on">
+    <type>CHOICE</type>
+    <tooltip>CCD S4 Flag </tooltip>
+    <choices>
+      <item>Y</item>
+      <item>N</item>
+      <item>O1</item>
+      <item>O2</item>
+      <item>O3</item>
+      <item>O4</item>
+      <item>O5</item>
+    </choices>
+  </column>
+  <column name="ccds5_on">
+    <type>CHOICE</type>
+    <tooltip>CCD S5 Flag </tooltip>
+    <choices>
+      <item>Y</item>
+      <item>N</item>
+      <item>O1</item>
+      <item>O2</item>
+      <item>O3</item>
+      <item>O4</item>
+      <item>O5</item>
+    </choices>
+  </column>
+  <column name="bep_pack">
+    <type>CHOICE</type>
+    <tooltip>Event telemetry format</tooltip>
+    <choices>
+      <item>VF</item>
+      <item>F</item>
+      <item>F+B</item>
+      <item>G</item>
+    </choices>
+  </column>
+  <column name="onchip_sum">
+    <type>BOOLEAN</type>
+    <tooltip>On Chip Summing</tooltip>
+  </column>
+  <column name="onchip_row_count">
+    <type>INTEGER</type>
+    <tooltip>On Chip Row Count</tooltip>
+    <number>
+      <maximum>512</maximum>
+      <minimum>1</minimum>
+    </number>
+  </column>
+  <column name="onchip_column_count">
+    <type>INTEGER</type>
+    <tooltip>On Chip Column Count</tooltip>
+    <number>
+      <maximum>64</maximum>
+      <minimum>1</minimum>
+    </number>
+  </column>
+  <column name="most_efficient">
+    <type>BOOLEAN</type>
+    <tooltip>If true, use most efficient values for frame time</tooltip>
+  </column>
+  <column name="frame_time">
+    <type>DOUBLE</type>
+    <tooltip>Frame Time</tooltip>
+    <number>
+      <maximum>10.0</maximum>
+      <minimum>0.0</minimum>
+    </number>
+  </column>
+  <column name="subarray">
+    <type>CHOICE</type>
+    <tooltip>Sub Array</tooltip>
+    <choices>
+      <item>NONE</item>
+      <item>CUSTOM</item>
+    </choices>
+  </column>
+  <column name="subarray_start_row">
+    <type>INTEGER</type>
+    <tooltip>Sub Array Start Row</tooltip>
+    <number>
+      <maximum>925</maximum>
+      <minimum>1</minimum>
+    </number>
+  </column>
+  <column name="subarray_row_count">
+    <type>INTEGER</type>
+    <tooltip>Sub Array Row Count</tooltip>
+    <number>
+      <maximum>1024</maximum>
+      <minimum>100</minimum>
+    </number>
+  </column>
+  <column name="duty_cycle">
+    <type>BOOLEAN</type>
+    <tooltip>Alternating Exposure Readout</tooltip>
+  </column>
+  <column name="secondary_exp_count">
+    <type>INTEGER</type>
+    <tooltip>Number of secondary exposures</tooltip>
+    <number>
+      <maximum>15</maximum>
+      <minimum>1</minimum>
+    </number>
+  </column>
+  <column name="primary_exp_time">
+    <type>DOUBLE</type>
+    <tooltip>Primary Exposure Time</tooltip>
+    <number>
+      <maximum>10.0</maximum>
+      <minimum>0.1</minimum>
+    </number>
+  </column>
+  <column name="secondary_exp_time">
+    <type>DOUBLE</type>
+    <tooltip>Secondary Exposure Time</tooltip>
+    <number>
+      <maximum>10.0</maximum>
+      <minimum>0.1</minimum>
+    </number>
+  </column>
+  <column name="eventfilter">
+    <type>BOOLEAN</type>
+    <tooltip>Event Filter Flag</tooltip>
+    <constraint>eventfilter</constraint>
+  </column>
+  <column name="eventfilter_lower">
+    <type>DOUBLE</type>
+    <tooltip>Event Filter Lower: minimum ACIS-I=.36, ACIS-S=.24</tooltip>
+    <number>
+      <maximum>15.0</maximum>
+      <minimum>0.08</minimum>
+    </number>
+    <constraint>eventfilter</constraint>
+  </column>
+  <column name="eventfilter_higher">
+    <type>DOUBLE</type>
+    <tooltip>Event Filter Range: Upper Energy Threshold = (Lower Energy Threshold + Energy Filter Range) </tooltip>
+    <number>
+      <maximum>15.0</maximum>
+      <minimum>0.1</minimum>
+    </number>
+    <constraint>eventfilter</constraint>
+  </column>
+  <column name="multiple_spectral_lines">
+    <type>CHOICE</type>
+    <tooltip>Logical value indicating whether or not more than 2 resolved spectral lines are expected in the brightest spectrum to be analyzed from this observation.
+</tooltip>
+  </column>
+  <column name="spectra_max_count">
+    <type>DOUBLE</type>
+    <tooltip>Total maximum expected number of counts for any spectrum to be scientifically analyzed from this observation</tooltip>
+    <number>
+      <maximum>100000.0</maximum>
+      <minimum>1.0</minimum>
+    </number>
+  </column>
+</table>

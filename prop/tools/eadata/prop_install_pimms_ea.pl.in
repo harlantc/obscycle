@@ -1,0 +1,127 @@
+#!@PERL@ 
+
+#   ***********************************************************
+#   Copyright (c) 2001  Smithsonian  Astrophysical  Observatory
+#   The contents of this file are protected under the copyright
+#   notice  contained in the file  COPYRIGHT_SAO located in the
+#   root directory of this distribution.
+#   ***********************************************************
+#
+#   FILE NAME: prop_install_pimms_ea
+#
+#   DEVELOPMENT: ObsCycle
+#
+#   DESCRIPTION:
+#     This script retrieves Chandra Effective Area calibration data
+#     from AO3 through the current AO and installs it for use 
+#     by prop_pimms.
+#
+#   NOTES:
+#     It must be run once for each version of the CALDB.
+#
+#   REVISION HISTORY:
+#     This is a new script for NRA4.
+#
+#   ***********************************************************
+use Getopt::Std;
+use strict;
+
+use vars qw(@pdata $pdir $pfile $ao $ao1 $ao2 $opt_a $opt_s $cmd
+	    $install_dir $startCycle $endCycle
+	);
+
+  #get PIMMS environment 
+  $pdir = $ENV{'ASCDS_PROP_PMS_DATA'};
+  if (!$pdir) {
+     print STDERR "ASCDS_PROP_PMS_DATA environment variable not set.\n";
+     print STDERR "Please source the CXC environment setup script and try again.\n\n";
+     &print_usage;
+     exit 1;
+  }
+  if (! -e $pdir) {
+     print STDERR "Creating directory $pdir.\n";
+     `mkdir -p $pdir`;
+     #if (!(mkdir $pdir,0750)) {
+       #print STDERR "$! \n";
+     #}
+  }
+  if (!-w $pdir) {
+    print STDERR "Error: No write permission for $pdir\n";
+    exit 1;
+  }
+
+  #get install environment 
+  $install_dir = $ENV{'ASCDS_INSTALL'};
+  if (!$install_dir) {
+     print STDERR "ASCDS_INSTALL environment variable not set.\n";
+     print STDERR "Please source the CXC environment setup script and try again.\n\n";
+     &print_usage;
+     exit 1;
+  }
+
+  #parse input arguments
+  &parse_input;
+
+  $install_dir .= "/config/pimms/data";
+  print STDERR "Retrieving Chandra EA data and installing to $pdir.\n";
+
+while($startCycle <= $endCycle) {
+  print STDERR "prop_get_pimms_ea.pl -a $startCycle -d $pdir\n";
+  `prop_get_pimms_ea.pl -a $startCycle -d $pdir`;
+  $startCycle++;
+
+}
+
+
+  if ("$install_dir" ne "$pdir") {
+    `prop_copy_files_pimms_ea.pl`;
+  }
+
+
+
+sub parse_input 
+{
+  getopts('a:s:');
+  if ($opt_a) {
+    $ao = $opt_a;
+  }
+  else {
+    $ao   = $ENV{'ASCDS_PROP_AO'};
+  }
+
+  if($opt_s) {
+    $startCycle = $opt_s;
+  }
+
+  if ($ao) {
+    $ao1 = sprintf("%-d",$ao);
+    $endCycle = $ao1;
+
+    if(!$startCycle) {
+      $startCycle = $endCycle - 1;
+
+    } 
+    $ao2 = $startCycle;    
+
+    #print STDERR "Using AOs $ao1 and $ao2 for CALDB retrieval.\n";
+    print STDERR "Using AOs $startCycle through $endCycle for CALDB retrieval.\n";
+  }
+  else {
+    print STDERR "Error: ASCDS_PROP_AO not specified or optional argument missing.\n";
+    &print_usage;
+    exit 1;
+  }
+}
+
+sub print_usage {
+
+  print STDERR "USAGE: prop_install_pimms_ea [-a cycle] [-s start cycle] \n";
+  print STDERR "       -a  current Announcement of Opportunity cycle \n";
+  print STDERR "           Default is ASCDS_PROP_AO\n";
+  print STDERR "       -s  retrieves all Chandra effective area files from the \n";
+  print STDERR "           current Announcement of Opportunity cycle to the cycle \n";
+  print STDERR "           specified by this argument.\n";
+  print STDERR "           eg. prop_install_pimms_ea -a 7 -s 3 \n";
+  print STDERR "           will retrieve the Chandra ea files from cycles 3 through 7.\n\n";
+
+}

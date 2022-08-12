@@ -1,0 +1,618 @@
+\documentclass{article}
+\usepackage{longtable}
+\usepackage{lscape}
+\setlongtables
+\newenvironment{temp}{\begin{quote}\bf}{\end{quote}}
+\newenvironment{rtlist}[1]{
+\small
+\begin{longtable}{p{5.1in}p{0.8in}}
+\hline
+\multicolumn{2}{c}{#1}\\
+\hline
+\endhead
+\hline
+\endfoot
+}{\end{longtable}}
+\newenvironment{crtlist}[1]{
+\small
+\begin{longtable}{p{3.1in}p{2.8in}}
+\hline
+\multicolumn{2}{c}{#1}\\
+Fortran & C\\
+\hline
+\endhead
+\hline
+\endfoot
+}{\end{longtable}}
+
+\textheight 9.0in
+\textwidth 7.0in
+\hoffset -1.0in
+\voffset 0.0in
+
+\begin{document}
+
+\large
+
+
+\title{The DATES program: version 2.0}
+
+\author{Jonathan McDowell}
+
+\date{2008 Jun 16}
+
+\maketitle
+
+\newpage
+
+\normalsize
+
+
+\tableofcontents
+\section{Introduction}
+
+The DATES program allows you to convert between different 
+calendars and timescales. DATES is one of the JCMUTILS
+family of utility programs, all of which share similar
+interfaces. The default use of DATES is to convert from
+a standard Gregorian calendar date to the Julian Day Number.
+For example, a Gregorian date of 1997 Apr 27 14:03 UTC
+corresponds to JD 2450566.0854167 UTC.
+
+To run dates on the HEAD network, use
+\begin{verbatim}
+setenv JCMPATH /proj/jcm/src/libdata
+alias dates /proj/jcm/src/bin/dates
+\end{verbatim}
+
+DATES has four main command line modes: interactive setup,
+interactive convert,
+single-evaluation convert, and batch.
+
+The syntax for DATES is:
+\begin{quote}
+dates {\it commands : infile : outfile}
+\end{quote}
+
+The colon character is special for JCMUTILS programs, and
+must be escaped if it appears within the {\it commands} text.
+If {\it infile} is present, DATES enters batch mode and
+reads a series of dates from infile, converting each one
+and printing the output in outfile (which defaults to the
+terminal). If {\it commands} are missing, the default
+conversion of Gregorian date UTC to JD(UTC) is used. Example:
+\begin{quote}
+dates from EST to TAI:date\_list.in: date\_list.out
+\end{quote}
+where date\_list.in contains, for example:
+\begin{verbatim}
+1993 Jun 30 06:00
+1993 Jun 30 23:30
+1993 Jul  1 00:30
+1993 Jun 30 18:59:59
+1993 Jun 30 18:59:60
+1993 Jun 30 19:00:00
+1993 Jun 30 23:59:59
+1993 Jul  1 00:00:00
+\end{verbatim}
+Then date\_list.out will contain the same dates converted
+from Eastern Standard Time (EST) to International Atomic Time (TAI):
+\begin{verbatim}
+EST                                              TAI
+Wed AD 1993 Jun 30  06:00       EST (Gregorian)  Wed AD 1993 Jun 30  11:00:27.00 TAI (Gregorian)
+Wed AD 1993 Jun 30  23:30       EST (Gregorian)  Thu AD 1993 Jul  1  04:30:28.00 TAI (Gregorian)
+Thu AD 1993 Jul  1  00:30       EST (Gregorian)  Thu AD 1993 Jul  1  05:30:28.00 TAI (Gregorian)
+Wed AD 1993 Jun 30  18:59:59    EST (Gregorian)  Thu AD 1993 Jul  1  00:00:26.00 TAI (Gregorian)
+Wed AD 1993 Jun 30  18:59:60    EST (Gregorian)  Thu AD 1993 Jul  1  00:00:27.00 TAI (Gregorian)
+Wed AD 1993 Jun 30  19:00:00    EST (Gregorian)  Thu AD 1993 Jul  1  00:00:28.00 TAI (Gregorian)
+Wed AD 1993 Jun 30  23:59:59    EST (Gregorian)  Thu AD 1993 Jul  1  05:00:27.00 TAI (Gregorian)
+Thu AD 1993 Jul  1  00:00:00    EST (Gregorian)  Thu AD 1993 Jul  1  05:00:28.00 TAI (Gregorian)
+\end{verbatim}
+
+
+The special command EVAL forces single-evaluation mode:
+
+\begin{verbatim}
+dates eval 1993 Jul 1 00\\:30 
+dates eval 1993 Jul 1 0030 
+\end{verbatim}
+will both convert the given date to a Julian Day. The first form
+escapes the colon in the time using a double backslash (one for Unix,
+another for JCMUTILS).
+
+With no infile or outfile, we enter interactive convert mode:
+
+\begin{verbatim}
+dates from Greg to JD
+\end{verbatim}
+gives a prompt to which one may enter dates one at a time and
+see the conversion. To leave the program, one types 'q' twice.
+Why twice? Because the first time  you leave interactive
+convert mode to interactive setup mode, which allows you
+to change the conversion parameters.
+If you just enter DATES with no arguments:
+
+\begin{verbatim}
+dates
+\end{verbatim}
+you enter interactive setup mode first. You get the prompt
+\begin{verbatim}
+Dates [Setup]>:
+\end{verbatim}
+Enter ? to get a brief summary of setup commands. The most 
+important one is C, the convert command which pushes you
+into the interactive convert loop.
+
+\section{Setup commands}
+
+The following commands can be used on the command line
+or in setup mode.
+
+\begin{longtable}{llll}
+Command & Short form & Syntax & Action\\
+\hline
+HELP    & H, ?      & H       & Brief summary of commands\\
+LIST    & L         & L/opt   & Display internal program state\\
+PRINT   & P         & Pn      & Set output format type \\
+FROM    & F         & F spec  & Define source calendar and timescale\\
+TO      & T         & T spec  & Define destination calendar and timescale\\
+EVAL    & E         & E date  & Convert once and exit\\
+CONVERT & C         & C       & Enter interactive convert loop\\
+DO      & D         & DO date1;date2;step& Loop convert\\
+QUIT    & Q         & Q       & Exit program\\
+\end{longtable}
+
+\subsection{Display commands}
+
+\begin{itemize}
+
+\item HELP prints a brief command summary like the one above.
+
+\item LIST has several options. With no option, LIST
+displays the current conversion settings (from and to). 
+
+\item LIST/CONV displays the current conversion settings
+in greater detail.
+
+\item LIST/CAL lists the available calendars, which may be
+selected with the FROM and TO commands.
+
+\item LIST/TS lists the available timescales, which also may
+be selected with the FROM and TO commands.
+
+\item LIST/CT and LIST/TT list the internally available calendar
+types and timescale types, useful mainly for debugging.
+
+\item PRINT n or Pn sets the print mode to n, where n is
+one of the integers 0, 1, 2.
+\begin{itemize}
+\item P2 is the default for interactive mode. 
+Each conversion outputs four lines:
+a leading banner of dashes, the 'from' info (to check the
+program has parsed your input correctly), the 'to' info
+(the result), and a trailing banner of dashes. Each 'info'
+gives the calendar followed by the value.
+
+\item P1 is the default for batch mode. A single line
+gives the from and to values side by side, and one extra
+line is issued on entry to convert mode (i.e. a header line)
+giving the from and to calendars.
+
+\item P0 is a concise mode which gives only the output value.
+\end{itemize}
+
+\end{itemize}
+
+\subsection{Specification commands}
+
+The FROM and TO commands set up the conversion. For each end
+of the conversion you can specify a calendar and a timescale,
+although some calendars do not support timescales. Essentially,
+the calendar defines how each date is represented, and the
+timescale defines the precise interpretation of the date
+as an absolute time relative to, say, TAI.
+
+The default input calendar is the Gregorian calendar, which
+is the usual civil calendar in the US and Europe. The default
+output calendar is the Julian Day number. The default input and output
+timescales are both UTC (Coordinated Universal Time), which
+is the usual scientific timescale. Details of calendars and
+timescales are given in a later section.
+
+A spec for FROM or TO consists of:
+\begin{itemize}
+\item The name of a calendar, or
+\item The name of a timescale, or
+\item The name of a calendar followed by the timescale name in
+parentheses.
+\end{itemize}
+
+If only a timescale is given with no calendar, the Gregorian
+calendar is assumed. If a calendar but no timescale is given, the current
+timescale is retained.
+
+The command 
+\begin{verbatim}
+FROM GREG(UTC) TO JD(UTC)
+\end{verbatim}
+restores the default setting.
+The command
+\begin{verbatim}
+TO TAI
+\end{verbatim}
+would change the output system to GREG(TAI).
+If this was followed by the command
+\begin{verbatim}
+TO MJD
+\end{verbatim}
+the output system would change to MJD(TAI).
+
+
+Calendars supported are:
+\begin{longtable}{lp{3.0in}ll}
+Specifier & Calendar   & Type  & Output only?\\
+\hline
+GREG      & Gregorian date  & Gregorian calendar\\
+DATE      & Gregorian date with simplified output & Gregorian calendar\\
+PACK      & Gregorian date in packed format &  Gregorian calendar\\
+DOY       & Gregorian date in packed format, day of year& Gregorian calendar\\
+\\
+JD       & Julian Day Number  & JD \\
+MJD      & Modified Julian Day & JD\\
+DAYS()   & Days since ZERO     & JD\\
+TIME()   & Seconds since ZERO  & Elapsed time\\
+\\
+GSD       & Greenwich Sidereal Date & GSD & Yes\\
+GST       & Greenwich Sidereal Time & GSD & Yes\\
+\\
+OS        & Old Style Julian Calendar & Archaic: Julian proleptic\\
+ROMAN     & Roman calendar (post-Augustan)& Archaic: Roman & Yes\\
+RF        & French Revolutionary calendar& Archaic: French & Yes\\
+\hline
+\end{longtable}
+Note that some calendars may only be used as the output system.
+
+Timescales supported by default are:
+\begin{longtable}{lp{3.0in}}
+Specifier & Timescale   \\
+\hline
+UTC       & Coordinated Universal Time \\
+TT        & Terrestrial Time (Ephemeris)\\
+TDB       & Barycentric Dynamical Time \\
+TAI       & Coordinated Atomic Time    \\
+UT1       & Universal Time (output only) \\
+GMST      & Sidereal Time (output only) \\
+\hline
+\end{longtable}
+as well as local civil time defined as an offset from
+UTC. In addition, if the JCMLIBDATA library data is
+available (the environment variable JCMPATH must be
+set, or the library data must be at the location
+in the source tree which is 
+initialized by compiling the JCMUTILS library), the following
+additional timescales are defined as offsets to UTC:
+
+\begin{verbatim}
+MST         Moscow Summer Time      +0400
+DMV         Moscow Decree Time      +0300
+BST         British Summer Time     +0100
+GMT         Greenwich Mean Time     +0000
+EDT         Eastern Daylight Time   -0400
+EST         Eastern Standard Time   -0500
+CDT         Central Daylight Time   -0500
+CST         Central Standard Time   -0600
+MDT         Mountain Daylight Time  -0600
+MST         Mountain Standard Time  -0700
+PDT         Pacific Daylight Time   -0700
+PST         Pacific Standard Time   -0800
+\end{verbatim}
+
+It would be nice if the software knew when to convert historically
+from summer time to standard time, but the rules have changed over
+the years and from place to place.
+
+The special calendars DAYS and TIME
+give elapsed time since a zero point. The default
+zero point is the origin of MJD, but you can redefine the
+zero point, creating an
+alternate 'pseudo-MJD' by
+\begin{verbatim}
+Dates [Setup]>: FROM GREG TO DAYS(JD 2440000.5); CONVERT
+Gregorian date:1994 Aug 13
+--------------------------------------------------------------------------------
+Gregorian date (UTC)     Sat AD 1994 Aug 13              UTC (Gregorian)
+Days(since JD 2440000.5 UTC, 1968 May 24 )   9577.0000000000
+--------------------------------------------------------------------------------
+\end{verbatim}
+This particular zero point is frequently used among the X-ray binary
+community.
+
+Alternatively, one might define a zero point using a Gregorian date:
+\begin{verbatim}
+Dates [Setup]>: FROM GREG TO TIME(1994 Jan 0.0); CONVERT
+Gregorian date (UTC): 1994 Aug 13 14:20:22.3
+--------------------------------------------------------------------------------
+Gregorian date (UTC)     Sat AD 1994 Aug 13  14:20:22.30 UTC (Gregorian)
+Time(since JD 2449352.5 UTC, 1993 Dec 31 ) 19491623.3
+--------------------------------------------------------------------------------
+\end{verbatim}
+which gives the true elapsed number of seconds since the given zero
+point. (Note that leap seconds are correctly taken into account).
+
+
+\subsection{Conversion commands}
+
+The EVAL command prompts the user for a date in the input
+system, does the conversion, and then exits the program.
+
+The DO command does a 'do loop', listing regularly spaced
+dates between a start and an end date. The step can be expressed
+in YR (years), D (days), H (hours), M (minutes) or S (seconds).
+Example:
+\begin{verbatim}
+FROM UTC TO TAI; P1
+DO 1993 Jun 30 23:59:59;1993 Jul 1 00:00:02; 0.2 s
+DO 1992 Apr 1; 1998 Apr 1; 2 yr
+\end{verbatim}
+This is a little tricky as the `regular' increments are
+not really regular - leap years, leap seconds, etc. make
+things interesting to calculate, but I think most of the
+bugs are out.
+
+The CONVERT command enters the interactive convert loop. The user
+is prompted for a date, the conversion is output, and then
+the user is prompted for another date.
+
+If the input calendar is GREG, in the convert loop the
+user may omit the date on second and subsequent calls,
+just giving the time of day:
+\begin{verbatim}
+Gregorian date:1994 Aug 13 14:20
+--------------------------------------------------------------------------------
+Gregorian date          Sat AD 1994 Aug 13  14:20       UTC (Gregorian)
+Julian Day              JD 2449578.0972222222 UTC
+--------------------------------------------------------------------------------
+Gregorian date:14:22
+--------------------------------------------------------------------------------
+Gregorian date          Sat AD 1994 Aug 13  14:22       UTC (Gregorian)
+Julian Day              JD 2449578.0986111111 UTC
+--------------------------------------------------------------------------------
+\end{verbatim}
+
+In this case, the colon-separated format for the time is mandatory,
+so the code can tell that a time of day and not a year is not being entered.
+
+\section{Input formats}
+
+\subsection{JD}
+
+For the JD, MJD and DAYS calendars, one must simply enter a
+numeric value. However, the internals of JCMCAL split
+off the integer part into a 4 byte integer, so only
+Julian days between about $-2\times10^9$ and $2\times10^9$
+(i.e. 5 million years BC to 5 million years AD) are supported.
+
+\subsection{GREG}
+
+The Gregorian calendar supports a variety of input formats.
+The DATE calendar is identical to Gregorian but suppresses
+the calendar name and the day of the week in its output.
+
+The standard form of the input for GREG is:
+\begin{verbatim}
+AD 1993 Jun 30 23:59:60.234 
+\end{verbatim}
+The words AD or BC, followed by the year, the month name, the
+day, and the time of day with hours, minutes and seconds
+separated by colons.
+
+In addition:
+\begin{itemize}
+\item For BC dates, the BC is mandatory; but for AD dates,
+the AD may be omitted.
+
+\item We use the usual astronomical convention in which
+day 0 of a month is the last day of the preceding month.
+Thus May 0 is Apr 30.
+
+\item Month numbers may be used instead of month names:
+e.g. 1993 06 30 23 59 60.234.
+
+\item Alternate formats for the time are supported:
+colons may be omitted, spaces may be used instead, or the
+letters h,m,s:
+\begin{verbatim}
+23:59:60.234
+235960.234
+23 59 60.234
+23h59m60s.234
+\end{verbatim}
+
+
+\item For imprecise dates, trailing information may be omitted, as for example:
+\begin{verbatim}
+1993 Jun 30 23:59:60
+1993 Jun 30 23:59  or 1993 Jun 30 2359
+1993 Jun 30 23h
+1993 Jun 30 
+1993 Jun
+1993
+\end{verbatim}
+In these cases, the earliest possible date is assumed, so
+1993 Jun means 1993 Jun 0 (i.e. 1993 May 31.0) and 1993 means
+1993 Jan 0 (i.e. 1992 Dec 31.0). The intent is that
+if a GREG to JD conversion is used, and the resulting JDs are
+sorted, they will come out with the imprecise dates first.
+
+\item Further forms of imprecise and uncertain dates are
+supported:
+\begin{longtable}{ll}
+1993 Jun 30 23:59?   & (Centiday)\\
+1993 Jun 30?         & (Approx day)\\
+1993 Jun?            & (Approx month)\\
+1993 Q2              & (2nd quarter of 1993)\\
+1993?                & (Approx year)\\
+c. 1993, ca. 1993    & (Approx year)\\
+1990s                & (Decade)\\
+1990s?               & (Approx decade)\\
+20C, BC 17C          & (Century)\\
+20C?, ca. BC 17C     & (Approx century)\\
+BC 3M                & (Millenium)\\
+\end{longtable}
+
+\item Day of Year format supported on input:
+\begin{verbatim}
+1997 Day 104 14:20:32
+\end{verbatim}
+
+
+\end{itemize}
+
+\subsection{DOY}
+
+The DOY (Day of year) format is a compact numeric format
+representing the year and day of year. The last three digits
+of the integral part of the number are taken to be the day
+of year; earlier digits are then assumed to be the year.
+If the year is less than 100, 1900 is automatically added.
+Examples:
+\begin{longtable}{ll}
+DOY &  GREG \\
+97212.324     & 1997 Jul 31 07:46:33.6\\
+1997212.324   & 1997 Jul 31 07:46:33.6\\
+2002004       & 2002 Jan  4 00:00\\
+02004         & 1902 Jan  4 00:00\\
+102004        &  102 Jan  4 00:00\\
+\end{longtable}
+
+The DOY calendar is the only way to get DOY values on output,
+but on input one may also use the GREG calendar in the form
+1997 Day 212 07:46.
+
+
+\subsection{PACK}
+
+Similar to the DOY calendar, the PACK calendar retains
+the idea of month and day.
+
+Examples:
+\begin{longtable}{ll}
+PACK &  GREG \\
+970731.324     & 1997 Jul 31 07:46:33.6\\
+19970731.324   & 1997 Jul 31 07:46:33.6\\
+20020104       & 2002 Jan  4 00:00\\
+020104         & 1902 Jan  4 00:00\\
+1020104        &  102 Jan  4 00:00\\
+\end{longtable}
+
+
+\subsection{TIME}
+
+The elapsed time calendar TIME gives seconds since
+the zero point.
+A numeric value must be entered.
+
+\subsection{GSD, GST}
+
+The Greenwich Sidereal Date is essentially JD(GMST),
+i.e. the Julian Day number for Greenwich Mean Sidereal
+Time. Calendar GSD outputs the result as a JD and
+fraction of day, while GST outputs the result as
+an integer day number and hh:mm:ss.sss of sidereal
+time.
+
+\subsection{OS}
+
+The Old Style (OS) calendar, or Julian proleptic calendar, 
+was the civil calendar in Italy until the 16th century,
+in England until the 18th century, and in Russia until
+the 1920s. It differs from the Gregorian (New Style) calendar in that
+century years are always leap years, i.e. every year
+divisible by 4 is a leap year.
+
+The Old Style and New Style calendars were in agreement
+from AD 200 Mar 1 (JD 1794167.5) to AD 300 Feb 28 (JD 1830690.5). 
+Input format for OS is the same as for GREG.
+
+\subsection{ROMAN}
+
+The Roman imperial proleptic calendar implemented here
+is based on the Julian proleptic calendar. The Julian calendar
+date is converted to time since the founding of the city of
+Rome ('ab urbe condita', AUC), and the days and months
+are converted to Roman imperial (post-Augustan) days and months. 
+Leap days are handled by the insertion of a bissextile day,
+BIS-KAL. FEB, on Feb 23, between VI KAL MAR and V KAL MAR.
+The eponymous consuls are listed if the appropriate data
+file is in the path.
+
+\subsection{RF}
+
+The calendar of the first Republique Francaise is supported.
+There may be some bugs.
+
+
+\section{XRCF Examples}
+
+Here are some examples for the AXAF calibration data:
+
+IRIG time to calendar date:
+\begin{verbatim}
+% dates to greg p0 eval 1996 Day 356 
+Sat AD 1996 Dec 21  00:00:00.00 UTC (Gregorian)
+\end{verbatim}
+
+IRIG time to local date:
+\begin{verbatim}
+% dates to greg/CST eval 1996 Day 356 042232.21
+--------------------------------------------------------------------------------
+UTC                     Sat AD 1996 Day 356 04:22:32.21 UTC (Gregorian)
+CST                     Fri AD 1996 Dec 20  22:22:32.20 CST (Gregorian)
+--------------------------------------------------------------------------------
+\end{verbatim}
+
+IRIG time to seconds from 1994.0
+\begin{verbatim}
+% dates
+Dates [Setup]>:to time(1994.0)
+Dates [Setup]>:eval 1996 Day 356 04:22:32.212
+--------------------------------------------------------------------------------
+Gregorian date          Sat AD 1996 Day 356 04:22:32.21 UTC (Gregorian)
+Time(since JD 2449352.5 UTC, 1993 Dec 31 ) 93846154.212
+--------------------------------------------------------------------------------
+\end{verbatim}
+
+Seconds from 1994.0 to calendar date
+\begin{verbatim}
+% dates
+Dates [Setup]>:from time(1994.0) to greg
+Dates [Setup]>:eval 93846154.212
+--------------------------------------------------------------------------------
+TIME(JD 2449352.5)      93846154.212
+Gregorian date          Sat AD 1996 Dec 21  04:22:32.21 UTC (Gregorian)
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+\end{verbatim}
+
+Seconds from 1994.0 to IRIG
+\begin{verbatim}
+
+% dates
+Dates [Setup]>:from time(1994.0) to doy
+Dates [Setup]>:eval 93846154.212
+--------------------------------------------------------------------------------
+TIME(JD 2449352.5)      93846154.212
+Day of year              1996356.18231727
+-------------------------------------------------------------------------------
+\end{verbatim}
+
+Calendar date to IRIG
+
+
+\begin{verbatim}
+% dates to doy p0 eval 1996 Dec 21
+  1996356.00000000
+\end{verbatim}
+
+
+\end{document}
+

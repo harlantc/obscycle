@@ -1,0 +1,78 @@
+.body {
+  background-color:#eeeeee;
+}
+a:visited { color:#1f2569; }
+a:link { color:#0000ff; }
+
+##cxcfooter {
+#}
+.grecaptcha-badge {
+     z-index: 99999999999999999;
+}
+
+#cxcfootercenter {
+  width:60%!important;
+}
+
+
+.menudiv {
+     width:98%;
+     height:12%;
+     margin-left: 2px;
+     padding: .2em;
+     clear: both;
+     display: block;
+     position:relative;
+}
+.btnDiv {
+   padding: 10px;
+   background-color: #1f2569;
+   display: inline;
+
+}
+
+.hdr {
+  background-color: #1f2569;
+  color: white;
+  font-weight: bold;
+  padding:5px;
+} 
+.transcript {
+     width:98%;
+     background-color:#ffffff;
+     border: solid 3px #1f2569;
+}
+select {
+  background-color:#ffffff;
+}
+.submitBtn {
+   font-weight:normal;
+}
+
+.unitFont {
+  font-weight: normal;
+}
+
+.hdrleft {
+     width:15%;
+     position:relative;
+     float: left;
+     clear: left;
+}
+.hdrcenter {
+     width:70%;
+     position:relative;
+     margin-top: .4em;
+     padding: 0;
+     float: left;
+     clear: right;
+     text-align:center;
+}
+.hdrright {
+     width:15%;
+     position:relative;
+     float: right;
+     clear: right;
+     padding-top: 10px;
+     padding-right: 0em;
+}

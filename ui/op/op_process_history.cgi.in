@@ -1,0 +1,543 @@
+#!@PERLDB@ 
+#----------------------------------
+# Copyright (c) 1995, Smithsonian Astrophysical Observatory
+# You may not do anything you like with this file. 
+#
+# FILE NAME:  op_process_history.cgi
+# DEVELOPMENT:
+#
+# NOTES:       
+#             
+#
+# INPUT:       user input
+#
+# REVISION HISTORY:
+#
+# Date: 
+#---------------------------------------------------------
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use CGI ':standard';
+use File::Basename;
+use strict;
+use DBI;
+use DBD::Sybase;
+
+
+unless (eval {require "op_config.pl"}) {
+    print "Unable to find op_config.pl\n"; exit(1);
+}
+unless (eval {require "op_subroutines.pl"}) {
+    print "Unable to find op_subroutines.pl\n"; exit(1);
+}
+unless (eval {require "op_status_routines.pl"}) {
+    print "Unable to find op_status_routines.pl\n"; exit(1);
+}
+
+use vars qw($dsn $dbh $db $srv $pwd  $uid 
+	$stmp $report_fmt  @hdr $note  $dbg
+	$tmp_host $tmp_date $tmp_file $dlm $db_dlm $tmp_err
+	@summary_arr 
+	$obidet_s $aspect_s $scil0_5_s $scil1_s $scil1_5_s $scil2_s
+	$obsid $obi $alt_exp_mode $ingested
+        @o0_5 @a1 @s0_5 @s1 @s1_5
+        $S_2_OBI $S_1_5 $S_1 $S_0_5 $A_1 $O_0_5
+ );
+
+# retrieval offsets in summary_arr
+$S_2_OBI = 6;
+$S_1_5   = 7;
+$S_1     = 8; 
+$S_0_5   = 9;
+$A_1     = 10; 
+$O_0_5   = 11;
+
+{
+  $SIG{__WARN__} = \&catch_warn;
+
+
+
+  #this program can be entered several different ways
+  #If QUERY_STRING, it may have come from someone clicking on a 'obsid' link
+  #otherwise, it may be called directly from some other script.
+
+  $stmp = $ENV{'QUERY_STRING'};
+  &debug("QUERY STRING: $stmp\n") if $dbg;
+  if ($stmp && $stmp !~ /tab_del/) {
+    if (($stmp !~ /^\d*$/) || int($stmp)<= 0) {
+      $obsid = -1;
+    } else {
+      $obsid = int($stmp);
+    }
+    &logit("op_process_history: $obsid: QUERY=$stmp \n");
+  }
+  else {
+    $obsid = int($ARGV[0]);
+    &logit("op_process_history: $obsid: arg=$ARGV[0] \n");
+  }
+
+  if (!$obsid  || $obsid <= 0) {
+    &error("Oops: no Obsid found\n");
+    display_file($tmp_err,1);
+    exit 1;
+  }
+    
+  $dlm = '\t';
+  $db_dlm = ',';
+  $stmp = "server=$srv;database=$db";
+  $dsn = "DBI:Sybase:$stmp";
+  $dbh = DBI->connect($dsn, $uid, $pwd, {
+        PrintError => 1,
+        RaiseError => 0});
+  if ( !defined $dbh) {
+     display_file($tmp_err,1);
+     exit 1;
+  }
+
+  # this routine sets up the correct report type and opens the output file!
+  $report_fmt = "HTML";
+  &open_output_file;
+  $note = qq(<i>Fields</i>: Version;Quality;Ingested<br>\n);
+  $note .= qq(<i>Quality</i>: <b>D</b>=Default, <b>P</b>=Pending, <b>Q</b>=Questionable, <b>R</b>=Rejected, <b>S</b>=Superseded&nbsp;&nbsp;\n);
+  $note .= qq(<br><i>Ingested</i>: <b>i</b>=ingested, <b>w</b>=waiting<br>\n);
+  &print_html_header;
+  $note = "";
+
+  &build_summary_hdr;
+
+  # now do the L2 threads
+  &retrieve_l2_threads;
+
+  # now do the unfinished threads
+  &retrieve_unfinished_sciL1_5;
+  &retrieve_unfinished_sciL1;
+  &retrieve_unfinished_aspect;
+  &retrieve_unfinished_sciL0_5;
+  &retrieve_unfinished_obidet;
+
+
+  # now display the results
+  &process_summary_threads;
+  print OFILE "</table>";
+
+  &print_html_footer;
+  close OFILE;
+  chmod(0777,"$tmp_file");
+
+  display_file($tmp_file,1);
+  unlink($tmp_file);
+
+
+
+  $dbh->disconnect;
+
+}
+
+  
+
+
+#--------------------------------------------------------------
+# build the l2 information section
+#--------------------------------------------------------------
+sub build_summary_hdr 
+{
+  my (@summary_hdrs) = ( 
+	"Details","ObsId","Obi","Exp Cycle","Obidet0.5","SciL0.5","Aspect1",
+	"SciL1","SciL1.5", "SciL2");
+
+  my($h );
+
+  print OFILE "<hr><br>\n";
+  print OFILE "<table align=\"center\" border=\"1\" >\n<tr class=\"header\">\n";
+  foreach $h (@summary_hdrs) {
+    print OFILE "<th align=\"center\">$h</th>\n"
+  }
+  print OFILE "</tr>";
+  @hdr = @summary_hdrs;
+}
+
+#-----------------------------------------------------------------------
+# last parameter should be ^ separated list of database ids 
+# 
+#-----------------------------------------------------------------------
+sub display_summary_entry 
+{
+  my(@myarr) = @_;
+  my($ii,$tstr,$str,$the_color);
+ 
+
+  print OFILE "<tr>";
+
+  $tstr = qq(<a href="/cgi-bin/op/op_detailed_history.cgi?$myarr[$#myarr]">
+	<img src="/soft/op/op_ball.gif" alt="o " style="border-width:0;"></a>);
+  print OFILE "<td align=\"center\">$tstr</td>";
+
+  for ($ii=0; $ii<$#myarr;$ii++) {
+    if ($ii > 2) {
+    if ($myarr[$ii] =~ /R/) {
+      $the_color = "r_color"; }
+    elsif ($myarr[$ii] =~ /Q/) {
+      $the_color = "q_color"; }
+    elsif ($myarr[$ii] =~ /D/) {
+      $the_color = "d_color"; }
+    elsif ($myarr[$ii] =~ /P/) {
+      $the_color = "p_color"; }
+    elsif ($myarr[$ii] =~ /S/) {
+      $the_color = "s_color"; }
+    else {
+      $the_color = "bg_color"; }
+    }
+    else {
+      $the_color = "bg_color"; 
+    }
+    $tstr = $myarr[$ii];
+    $tstr =~ s/ /&nbsp;/g;
+    if ($tstr eq '') {
+     $tstr = "&nbsp";
+    }
+    print OFILE ("<td class=\"$the_color\" align=\"center\">$tstr</td>\n");
+  }
+
+  print OFILE "</tr>";
+
+}
+
+#----------------------------------------------------------------------------
+
+#----------------------------------------------------------------------------
+#----------------------------------------------------------------------------
+sub print_html_header
+{
+    my($hstr);
+    $hstr = cxc_header("Summary of Processing History for ObsId $obsid",
+	               "/soft/op/op_phelp.html");
+    print OFILE <<header;
+$hstr
+<center>
+$note
+</center>
+header
+}
+
+
+
+#----------------------------------------------------------------------------
+#----------------------------------------------------------------------------
+sub retrieve_l2_threads
+{
+  my($sth,$sql_stmt,@row,$ii,$max_ap);
+
+  my($long_dbcols) = qq( 
+    science_2.obsid,science_2_obi.alt_exp_mode,
+    science_2_obi.obi,science_2.revision,science_2.quality,science_2.ingested,
+    science_2_obi.science_2_obi_id,
+    science_2_obi.science_1_5_id, science_2_obi.science_1_id,
+    science_0_5_id, aspect_1_id, obidet_0_5_id);
+  
+
+  $sql_stmt = qq(select distinct $long_dbcols 
+    from science_2_obi,science_2,science_1 where
+    science_2.science_2_id = science_2_obi.science_2_id and
+    science_2_obi.science_1_id = science_1.science_1_id and
+    science_2.obsid = $obsid);
+
+  $sql_stmt .= qq( order by science_2.revision,science_2_obi.alt_exp_mode);
+
+  &debug("L2 History : $sql_stmt\n") if $dbg;
+  $sth = $dbh->prepare($sql_stmt);
+  if ($sth->execute) {
+    while (@row = $sth->fetchrow_array) {
+      if ($row[$O_0_5]) { push(@o0_5,$row[$O_0_5]); }
+      if ($row[$A_1]) { push(@a1,$row[$A_1]); }
+      if ($row[$S_0_5]) { push(@s0_5,$row[$S_0_5]); }
+      if ($row[$S_1]) { push(@s1,$row[$S_1]); }
+      if ($row[$S_1_5]) { push(@s1_5,$row[$S_1_5]); }
+      $stmp = join($dlm,@row);
+      push(@summary_arr,$stmp);
+    }
+    $ii = $sth->rows;
+    &debug("L2 History retrieved $ii rows.\n") if $dbg;
+  
+  }
+}
+
+
+# -------------------------------------------------------------------
+# -------------------------------------------------------------------
+sub retrieve_other_threads {
+  my($table_name,$db_id) = @_;
+  my($sql_stmt,$sth,$ingested,$tstr);
+  my(@row,$ii);
+  
+  if ($db_id  && $db_id != ' ') {
+    $sql_stmt = qq(select revision,quality,ingested from $table_name where
+                 $table_name\_id = $db_id);
+
+    &debug ("History: **$db_id**  $sql_stmt\n") if $dbg;
+    $sth = $dbh->prepare($sql_stmt);
+    if ($sth->execute) {
+      while (@row = $sth->fetchrow_array) {
+         $ingested = &get_ingested($row[2]);
+         $tstr = sprintf("%2.2s%-1.1s%-1.1s",
+	  $row[0],$row[1],$ingested);
+          
+      }
+      $ii = $sth->rows;
+      &debug("$table_name: retrieved $ii rows.\n") if $dbg;
+    }
+  }
+
+  return $tstr;
+}
+
+# -----------------------------------------------------------------------
+# -----------------------------------------------------------------------
+sub retrieve_unfinished_sciL1_5 {
+
+  my($sql_stmt,$sth,$ingested,$tstr,@ids);
+  my(@row,$ii);
+  
+  $sql_stmt = qq(select distinct science_1_5.obsid,
+	science_1_5.alt_exp_mode, science_1_5.obi,null,null,null,null,
+        science_1_5_id, science_1_5.science_1_id,science_0_5_id,
+	aspect_1_id,obidet_0_5_id
+	from science_1_5,science_1
+	where science_1_5.obsid = $obsid and
+        science_1_5.science_1_id = science_1.science_1_id );
+  $tstr = join($db_dlm,@s1_5);
+  if ($tstr ) {
+      $sql_stmt .= qq( and science_1_5_id not in ($tstr));
+  } 
+
+  &debug ("SciL1_5: $sql_stmt\n") if $dbg;
+  $sth = $dbh->prepare($sql_stmt);
+  if ($sth->execute) {
+    while (@row = $sth->fetchrow_array) {
+      if ($row[$O_0_5]) { push(@o0_5,$row[$O_0_5]); }
+      if ($row[$A_1]) { push(@a1,$row[$A_1]); }
+      if ($row[$S_0_5]) { push(@s0_5,$row[$S_0_5]); }
+      if ($row[$S_1]) { push(@s1,$row[$S_1]); }
+      if ($row[$S_1_5]) { push(@s1_5,$row[$S_1_5]); }
+      $stmp = join($dlm,@row);
+      push(@summary_arr,$stmp);
+
+    }
+    $ii = $sth->rows;
+    &debug("SciL1_5: retrieved $ii rows.\n") if $dbg;
+  }
+
+}
+# -----------------------------------------------------------------------
+# -----------------------------------------------------------------------
+sub retrieve_unfinished_sciL1 {
+
+  my($sql_stmt,$sth,$tstr);
+  my(@row,$ii);
+  
+  $sql_stmt = qq(select distinct science_1.obsid,
+	science_1.alt_exp_mode, science_1.obi,null,null,null,null,
+        null, science_1.science_1_id,science_0_5_id,
+	aspect_1_id,obidet_0_5_id
+	from science_1
+	where science_1.obsid = $obsid );
+  $tstr = join($db_dlm,@s1);
+  if ($tstr ) {
+      $sql_stmt .= qq( and science_1_id not in ($tstr));
+  } 
+
+  &debug ("SciL1: $sql_stmt\n") if $dbg;
+  $sth = $dbh->prepare($sql_stmt);
+  if ($sth->execute) {
+    while (@row = $sth->fetchrow_array) {
+      if ($row[$O_0_5]) { push(@o0_5,$row[$O_0_5]); }
+      if ($row[$A_1]) { push(@a1,$row[$A_1]); }
+      if ($row[$S_0_5]) { push(@s0_5,$row[$S_0_5]); }
+      if ($row[$S_1]) { push(@s1,$row[$S_1]); }
+      $stmp = join($dlm,@row);
+      push(@summary_arr,$stmp);
+
+    }
+    $ii = $sth->rows;
+    &debug("SciL1: retrieved $ii rows.\n") if $dbg;
+  }
+
+}
+
+# -----------------------------------------------------------------------
+# -----------------------------------------------------------------------
+sub retrieve_unfinished_sciL0_5 {
+
+  my($sql_stmt,$sth,$tstr);
+  my(@row,$ii);
+  
+  $sql_stmt = qq(select distinct science_0_5.obsid,
+	null, science_0_5.obi,null,null,null,null,
+        null, null,science_0_5_id,
+	null,obidet_0_5_id
+	from science_0_5
+	where science_0_5.obsid = $obsid );
+  $tstr = join($db_dlm,@s0_5);
+  if ($tstr ) {
+      $sql_stmt .= qq( and science_0_5_id not in ($tstr));
+  } 
+
+  &debug ("SciL0_5: $sql_stmt\n") if $dbg;
+  $sth = $dbh->prepare($sql_stmt);
+  if ($sth->execute) {
+    while (@row = $sth->fetchrow_array) {
+      if ($row[$O_0_5]) { push(@o0_5,$row[$O_0_5]); }
+      if ($row[$S_0_5]) { push(@s0_5,$row[$S_0_5]); }
+      $stmp = join($dlm,@row);
+      push(@summary_arr,$stmp);
+
+    }
+    $ii = $sth->rows;
+    &debug("SciL0_5: retrieved $ii rows.\n") if $dbg;
+  }
+
+}
+
+# -----------------------------------------------------------------------
+# -----------------------------------------------------------------------
+sub retrieve_unfinished_aspect {
+
+  my($sql_stmt,$sth,$tstr);
+  my(@row,$ii);
+  
+  $sql_stmt = qq(select distinct aspect_1.obsid,
+	null, aspect_1.obi,null,null,null,null,
+        null, null,science_0_5_id,aspect_1_id, obidet_0_5_id
+	from aspect_1
+	where aspect_1.obsid = $obsid );
+  $tstr = join($db_dlm,@a1);
+  if ($tstr ) {
+      $sql_stmt .= qq( and aspect_1_id not in ($tstr));
+  } 
+
+  &debug ("Aspect: $sql_stmt\n") if $dbg;
+  $sth = $dbh->prepare($sql_stmt);
+  if ($sth->execute) {
+    while (@row = $sth->fetchrow_array) {
+      if ($row[$S_0_5]) { push(@s0_5,$row[$S_0_5]); }
+      if ($row[$O_0_5]) { push(@o0_5,$row[$O_0_5]); }
+      if ($row[$A_1]) { push(@a1,$row[$A_1]); }
+      $stmp = join($dlm,@row);
+      push(@summary_arr,$stmp);
+
+    }
+    $ii = $sth->rows;
+    &debug("Aspect: retrieved $ii rows.\n") if $dbg;
+  }
+
+}
+# -----------------------------------------------------------------------
+# -----------------------------------------------------------------------
+sub retrieve_unfinished_obidet {
+
+  my($sql_stmt,$sth,$tstr);
+  my(@row,$ii);
+  
+  $sql_stmt = qq(select distinct obidet_0_5.obsid,
+	null, obidet_0_5.obi,null,null,null,null,
+        null, null,null,null, obidet_0_5_id
+	from obidet_0_5
+	where obidet_0_5.obsid = $obsid );
+  $tstr = join($db_dlm,@o0_5);
+  if ($tstr ) {
+      $sql_stmt .= qq( and obidet_0_5_id not in ($tstr));
+  } 
+
+  &debug ("Obidet: $sql_stmt\n") if $dbg;
+  $sth = $dbh->prepare($sql_stmt);
+  if ($sth->execute) {
+    while (@row = $sth->fetchrow_array) {
+      if ($row[$O_0_5]) { push(@o0_5,$row[$O_0_5]); }
+      $stmp = join($dlm,@row);
+      push(@summary_arr,$stmp);
+
+    }
+    $ii = $sth->rows;
+    &debug("Obidet: retrieved $ii rows.\n") if $dbg;
+  }
+
+}
+
+
+#--------------------------------------------------------------
+# process the l2 threads
+#--------------------------------------------------------------
+  
+sub process_summary_threads {
+  my ($idx,@summ_entry,$id_link);
+
+  for ($idx = 0;$idx<=$#summary_arr;$idx++) {
+      &clear_fields;
+
+      @summ_entry = split($dlm,$summary_arr[$idx]);
+      $obsid = $summ_entry[0];
+      $alt_exp_mode = $summ_entry[1];
+      $obi = $summ_entry[2];
+      if ($summ_entry[$S_2_OBI]) {
+        $ingested = &get_ingested($summ_entry[5]);
+        $scil2_s = sprintf("%2.2s%-1.1s%-1.1s",
+	  $summ_entry[3],$summ_entry[4],$ingested);
+      }
+
+      #go figure out the other threads
+      if ($summ_entry[$O_0_5]) {
+        $obidet_s  = &retrieve_other_threads("obidet_0_5",$summ_entry[$O_0_5]);
+      }
+      if ($summ_entry[$A_1]) {
+        $aspect_s  = &retrieve_other_threads("aspect_1",$summ_entry[$A_1]);
+      }
+      if ($summ_entry[$S_0_5]) {
+        $scil0_5_s = &retrieve_other_threads("science_0_5",$summ_entry[$S_0_5]);
+      }
+      if ($summ_entry[$S_1]) {
+        $scil1_s   = &retrieve_other_threads("science_1",$summ_entry[$S_1]);
+      }
+      if ($summ_entry[$S_1_5]) {
+        $scil1_5_s = &retrieve_other_threads("science_1_5",$summ_entry[$S_1_5]);
+      }
+      
+      #display the results
+      $id_link = "$obsid^$summ_entry[$S_2_OBI]^$summ_entry[$S_1_5]^";
+      $id_link .= "$summ_entry[$S_1]^$summ_entry[$S_0_5]^";
+      $id_link .= "$summ_entry[$A_1]^$summ_entry[$O_0_5]";
+      &display_summary_entry($obsid,$obi,$alt_exp_mode,
+	$obidet_s,$scil0_5_s,$aspect_s,$scil1_s,$scil1_5_s,$scil2_s,$id_link);
+  }
+
+}
+
+
+
+#--------------------------------------------------------------
+#--------------------------------------------------------------
+sub get_ingested {
+
+   my($iflg) = @_;
+
+   if ($iflg =~ /Y/i) {
+     $iflg = "i";
+   }
+   else {
+     $iflg = "w";
+   }
+  
+   return $iflg;
+}
+
+
+sub clear_fields {
+  $scil2_s = "";
+  $scil1_5_s = "";
+  $scil1_s = "";
+  $scil0_5_s = "";
+  $aspect_s = "";
+  $obidet_s = "";
+  $ingested = "";
+}

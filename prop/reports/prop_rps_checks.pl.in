@@ -1,0 +1,296 @@
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 1995, 2020, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_rps_checks.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script runs a few checks on proposals in the database
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+
+use vars qw( $dbh %param @reqfiles $reqfile
+	);
+
+use strict;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+
+@reqfiles = (
+        "prop_routines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+
+# ---------------- MAIN ----------------------------------------------
+{
+  my($dsn,$stmp,$tt);
+
+  &parse_input;
+
+  my($pstatus) = qq(proposal.status not in("INCOMPLETE","WITHDRAWN"));
+  my($pstatus2) = qq(p2.status not in("INCOMPLETE","WITHDRAWN"));
+  #database connection
+  $dbh = dbProposalConnection($param{U}, $param{S}, $param{q});
+
+
+  #open output file
+  open(OFILE,"> $param{o}") || 
+	die "ERROR: Unable to open $param{o} for writing.\n";
+  $tt = get_date();
+  print OFILE "Created:  $tt\n\n";
+
+
+  #first check linked proposals 
+  print OFILE "1. Linked proposal: linked proposal doesn't exist \n";
+  printf OFILE ("\n%-8.8s  %-25.25s %-11.11s  %s\n",
+    "Proposal", "PI", "Type","Linked Proposal");
+  printf OFILE ("-----------------------------------------------------------------------\n");
+  $stmp = qq(select distinct proposal_number,
+	last,type ,linked_propnum
+	from proposal,axafusers..person_short ps where
+        proposal.piid = ps.pers_id and
+	proposal.ao_str = "$param{a}" and $pstatus and
+        ((
+        proposal.linked_proposal ="Y" and
+        ((proposal.linked_propnum is NULL  and
+	 (proposal.proposal_number not in 
+		(select linked_propnum from 
+        	proposal p2 where p2.ao_str = "$param{a}" and  $pstatus2 and
+		p2.linked_propnum is not null))) 
+	or 
+	(proposal.linked_propnum not in (select proposal_number from 
+        proposal p2 where p2.ao_str = "$param{a}" and $pstatus2))))
+	or ((proposal.linked_proposal != 'Y' or 
+	    proposal.linked_proposal is null)  and 
+	    proposal.linked_propnum is not null))
+	order by proposal_number);
+  &do_query($stmp,"Linked");
+
+  print OFILE qq(\n\n\n2. Previous Proposal which has been identified as being replaced by a \nnewer proposal still exists in the database\n);
+  printf OFILE ("\n%-8.8s  %-25.25s %-11.11s  %s\n",
+    "Proposal", "PI", "Type","Previous Proposal");
+  printf OFILE ("-----------------------------------------------------------------------\n");
+  $stmp = qq(select distinct proposal_number,
+	last,type ,previous_propnum
+	from proposal,axafusers..person_short ps where
+        proposal.piid = ps.pers_id and
+	proposal.ao_str = "$param{a}" and $pstatus and
+        proposal.previous_propnum is not null and
+        proposal.previous_propnum in (select substring(proposal_number,2,7) 
+	from proposal p2 where proposal.ao_str = "$param{a}")
+	order by proposal_number);
+  &do_query($stmp,"Resubmit");
+
+  my($tstr) = "VLP";
+  if (int($param{a}) > 12 && int($param{a}) < 17) {
+    $tstr = "XVP";
+  }
+  print OFILE qq(\n\n\n3. Observing time >= 400ks but type is not LP or $tstr\n);
+  printf OFILE ("\n%-8.8s  %-25.25s %-11.11s  %s\n",
+    "Proposal", "PI", "Type","Observing Time >= 400ks ");
+  printf OFILE ("-----------------------------------------------------------------------\n");
+  $stmp = qq(select distinct proposal_number,
+	last,type ,total_time
+	from proposal,axafusers..person_short ps where
+        proposal.piid = ps.pers_id and
+	proposal.ao_str = "$param{a}" and $pstatus and
+        proposal.type not like "%LP%" and
+        proposal.type not like "%XVP%" and
+        proposal.total_time  >= 400.
+	order by proposal_number);
+  &do_query($stmp,"LP");
+
+  print OFILE qq(\n\n\n   Observing time >= 1000ks but type is not VLP \n);
+  printf OFILE ("\n%-8.8s  %-25.25s %-11.11s  %s\n",
+    "Proposal", "PI", "Type","Observing Time >  1000ks ");
+  printf OFILE ("-----------------------------------------------------------------------\n");
+  $stmp = qq(select distinct proposal_number,
+	last,type ,total_time
+	from proposal,axafusers..person_short ps where
+        proposal.piid = ps.pers_id and
+	proposal.ao_str = "$param{a}" and $pstatus and
+        proposal.type not like "%VLP%" and
+        proposal.type not like "%XVP%" and
+        proposal.total_time  >= 1000.
+	order by proposal_number);
+  &do_query($stmp,"VLP");
+
+
+  print OFILE qq(\n\n\n4. LP with < 400ks Observing time or  $tstr with < 1000ks Observing Time\n);
+  printf OFILE ("\n%-8.8s  %-25.25s %-11.11s  %s\n",
+    "Proposal", "PI", "Type","Observing Time < 400ks/1000ks ");
+  printf OFILE ("-----------------------------------------------------------------------\n");
+  $stmp = qq(select distinct proposal_number,
+	last,type ,total_time
+	from proposal,axafusers..person_short ps where
+        proposal.piid = ps.pers_id and
+	proposal.ao_str = "$param{a}" and $pstatus and
+        ( (proposal.type like "%LP%" and proposal.type not like "%VLP%"  and
+           proposal.total_time  < 400.)
+        or
+         (proposal.type in ("VLP","XVP") and proposal.total_time  < 1000.))
+	order by proposal_number);
+  &do_query($stmp,"LP");
+
+
+  print OFILE qq(\n\n\n5. Joint Proposals claiming approved Chandra time from a different review\n);
+  printf OFILE ("\n%-8.8s  %-25.25s %-11.11s  %s\n",
+    "Proposal", "PI", "Status","Joint");
+  printf OFILE ("-----------------------------------------------------------------------\n");
+  $stmp = qq(select distinct proposal_number,
+	last,status ,joint
+	from proposal,axafusers..person_short ps where
+        proposal.piid = ps.pers_id and
+	proposal.ao_str = "$param{a}" and $pstatus and
+        proposal.joint like "%-%" 
+        and (status ="PROPOSED" or rank is not null)
+	order by proposal_number);
+  &do_query($stmp,"Joint");
+
+
+  print OFILE qq(\n\n\n6. Proposals using "Other" for Country\n);
+  printf OFILE ("\n%-8.8s  %-25.25s %-11.11s  %s\n",
+    "Proposal", "Name", "Type","Email");
+  printf OFILE ("-----------------------------------------------------------------------\n");
+  $stmp = qq(select distinct proposal_number,
+	last,"PI" ,email
+	from proposal,axafusers..person_short ps 
+	where proposal.piid = ps.pers_id 
+	and proposal.ao_str = "$param{a}" and $pstatus  
+        and lower(country) like "other" 
+        and (status ="PROPOSED" or rank is not null)
+	UNION
+        select distinct proposal_number,
+	last,"CoI" ,email
+	from proposal,coin,axafusers..person_short ps 
+        where proposal.proposal_id = coin.proposal_id 
+        and coin.pers_id  = ps.pers_id 
+	and proposal.ao_str = "$param{a}" and $pstatus 
+        and lower(country) like "other"
+        and (status ="PROPOSED" or rank is not null)
+	order by proposal_number
+	);
+  &do_query($stmp,"Country");
+
+  print OFILE qq(\n\n\n7. Unsubmitted, incomplete proposals\n);
+  printf OFILE ("\n%-8.8s  %-25.25s %-11.11s  %s\n",
+                "Proposal", "PI", "Status", "Last Change");
+  printf OFILE ("-----------------------------------------------------------------------\n");
+  $stmp = qq(select proposal_number, last, status, max(change_date)
+            from view_proposal_cps p, history h
+            where h.proposal_id = p.proposal_id
+            and ao_str = "$param{a}"
+            and status = "INCOMPLETE"
+            and column = "submission_date"
+            group by proposal_number, status, last
+            order by proposal_number);
+   &do_query($stmp,"Incomplete");
+
+  close OFILE;
+  chmod(0660,"$param{o}");
+}
+
+# ----------------------------------------------------------
+# perform query
+# ----------------------------------------------------------
+sub do_query
+{
+  my($sql,$type) = @_;
+  my($sth,@row,$ii,$str);
+
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  while (@row = $sth->fetchrow_array) {
+    printf OFILE ("%-8.8s  %-25.25s %-11.11s  %-s\n",@row);
+  }
+}
+
+
+# ----------------------------------------------------------
+# parse input parameters
+# ----------------------------------------------------------
+sub parse_input 
+{
+  my($pwd);
+  my $err = 0;
+
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+             o=> undef,
+             a=> "$ENV{ASCDS_PROP_AO}",
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "o=s",
+          "a=s",
+          "q=s",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter `$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+  $param{q} = $pwd;
+
+
+}
+
+
+
+sub usage 
+{
+    print STDERR "\nUSAGE: prop_rps_checks.pl -U -o [ -S -a ]\n";
+    print STDERR "       -U database user name\n";
+    print STDERR "       -o output filename \n";
+    print STDERR "       -S database server, default is DB_PROP_SQLSRV\n";
+    print STDERR "       -a AO , default is ASCDS_PROP_AO\n";
+}

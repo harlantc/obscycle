@@ -1,0 +1,419 @@
+<fieldset class="fshelp" id="Targets"><legend>Targets</legend>
+<a name="Targets"> </a>
+
+<ul>
+<li class="elehelp"><a class="lblhelp" name="AddTarget">Add Target(s)</a>
+<br>
+To add target(s), click the <b>Add Target(s)</b> button. You may then choose to clone an existing target.  This target will be used to populate all target fields in the new target. You may add a specified number of targets or you may <a href='#UploadTarget'>upload</a> a file containing a subset of target parameters.
+<p>
+<li class="elehelp"><a class="lblhelp" name="ModifyTarget">Modify Target</a>
+<br>
+To modify a target, select the row in the table and then click on the <b>Modify Selected</b> button.  You may also double-click on the row.
+<p>
+<li class="elehelp"><a class="lblhelp" name="DeleteTarget">Delete Target</a>
+<br>
+To delete an existing target, select the row in the table and then click on the <b>Delete Selected</b> button.  At least one target must exist in an observing proposal.
+<p>
+<li class="elehelp"><a class="lblhelp" name="RenumberTarget">Reprioritize Targets</a>
+<br>
+Since the Target Number is used to show the Peer Review the observing
+priority of one target relative to another, you may wish to change these
+around.  
+<p>
+To reprioritize your targets,  drag and drop the targets in the table.
+Select the target you wish to move and drag it to the new row.
+
+<p>
+<li class="elehelp"><a class="lblhelp" name="CloneTarget">Clone Target</a>
+<br>
+Specify the target you wish to clone.  This target will be used to set the values of the new target.  If you do not clone a target, the target will be initialized with the detector/grating selected as ACIS-S/None.
+<p>
+<li class="elehelp"><a class="lblhelp" name="CloneTOODetails">Clone TOO Details</a>
+<br>
+For TOO proposals, select <b>Yes</b> to also clone the TOO details and followups of the target. 
+<p>
+<li class="elehelp"><a class="lblhelp" name="NumberTgts">Number of Targets</a>
+<br>
+You may create a maximum of 50 targets at once.  The total number of targets per proposal must be less than 1000 targets.
+<p>
+<li class="elehelp"><a class="lblhelp" name="UploadTarget">Upload Target</a>
+<br>
+You may upload a file with Target Name, RA, Dec, Exposure Time(ksec), and Count Rate.  Your upload file must include comma-separated-values for each additional target.  All other values will be copied from the cloned target.
+All 5 fields must be specified for each target being added.
+<p>
+
+</ul>
+</fieldset>
+<p>
+<fieldset class="fshelp" id="TargetPointing"><legend>Target Pointing</legend>
+<ul>
+
+<li class="elehelp"> <a class="lblhelp" name="TargetName"> Target Name</a>
+<br>
+Targets are frequently searched for in the database by common names, such as
+"NGC 4051" . This is common practice by our archival users. Therefore, these
+common names should be used as the target name.  *Append* any additional 
+target info (e.g., NGC 4051 field 2).
+In the absence of a common name, any other IAU-sanctioned name may be
+used (http://simbad.u-strasbg.fr/simbad/).
+<p>
+You may choose to use the Name Resolver button to fill in the object coordinates from the selected catalog, or you can enter the information manually. 
+In order to ensure that new Chandra observations can be unequivocally identified 
+through both their coordinates and target names during their exclusive use 
+period and when they will become public, we encourage proposers to follow our 
+<a href="https://cxc.cfa.harvard.edu/cda/targetnames.html">guidelines</a> on how 
+to select informative, standard, and resolvable target names.
+<br>Maximum of 30 characters. <I>Required for all except Solar System Object</I>
+
+<li class="elehelp"> <a class="lblhelp" name="SolarSystemObject"> Solar System Object</a>
+<br>
+The name of the Solar System Object to be observed, from the following
+choices: None, Asteroid, Comet, Earth, Jupiter, Mars, Moon, Neptune, Pluto, 
+Saturn, Uranus or Venus. 
+
+<P>The default is 'None'.  Observations of moving solar system objects
+are made with a sequence of pointed observations, with the object
+moving through the field of view during each dwell period.  The sequence
+of pointings will be derived from the object ephemeris to ensure that
+the object remains within 5' of the Chandra line-of-sight.  Most solar
+system objects move slowly enough so that a single pointing will
+suffice.  Should your observation be selected then the CXC will work
+with you to produce an observation that both meets your scientific
+objectives and optimizes the use of Chandra.
+
+
+<li class="elehelp"> <a class="lblhelp" name="TargetPosition"> Is target position known and fixed?</a>
+<br>
+Logical value indicating target position is known for this 
+target.  Modify value to 'N' if target position is unknown for
+this TOO or Solar System Object.
+             
+<li class="elehelp"> <a class="lblhelp" name="R.A."> R.A.</a>
+<br>
+The Right Ascension of the source in mandatory J2000 coordinate system at the current epoch. 
+Offsets from this position may be specified using the Y/Z Detector Offset field.
+The standard format is HH MM SS.S - hours, minutes, seconds, separated by 
+spaces. Alternatively, it may be entered as degrees (DDD.DDDDDD), in 
+which case it will be converted to sexagesimal during verification. The 
+seconds may be entered as a real value with tenths (i.e., SS.S). 
+<br><I>Required</I>, except for Solar System Objects and TOO's of unknown
+position.
+
+<li class="elehelp"> <a class="lblhelp" name="Dec"> Dec.</a>
+<br>
+The declination of the source in mandatory J2000 coordinate system at the current epoch.  Offsets
+from this position may be specified using the Y/Z Detector Offset field. The 
+standard format is +/-DD MM SS.S - sign, degrees, arcminutes, arcseconds, 
+separated by spaces.  Alternatively, it may be entered 
+as degrees (+/-DD.DDDDD), in which case it will be converted to sexagesimal 
+during verification.  If no sign is given it will be assumed to be positive. 
+<br><I>Required</I>, except for Solar System Objects and TOO's of unknown
+position.
+
+<li class="elehelp"> <a class="lblhelp" name="Ecliptic">High Ecliptic Latitude </a>
+Targets at high ecliptic latitude result in heating of the ACA. Times at high eclipitic latitude are limited. 
+You may use the <a href="/toolkit/precess.jsp">Precess</a> tool to check your coordinates.
+
+
+<li class="elehelp"> <a class="lblhelp" name="photometry"> Do you want optical monitor data for your target?</a>
+<br>
+Logical value indicating whether optical data from the aspect camera is
+requested for this observation. The default is 'N'.
+
+<P>The proposer should be aware that the aspect camera is NOT optimized
+for optical monitoring.  Please see the 
+<a href="http://cxc.harvard.edu/proposer/POG/html/">Proposer's Observatory Guide</a> 
+for the limitations on the photometry and the expected signal-to-noise ratios
+(chapter on <a href="http://cxc.harvard.edu/proposer/POG/html/chap5.html">Aspect system </a>).
+
+<P>The use of one of the guide-star channels as an optical monitor will be 
+subject to peer review. The degradation of the aspect solution may lower the
+usefulness of the archive of the field.  This will be weighed with the 
+scientific value of the optical data. 
+
+<li class="elehelp"> <a class="lblhelp" name="VMag"> V Magnitude of Target</a>
+<br>
+Specify the V magnitude of the target if the use of the optical monitor is
+desired. Valid range is -15.0 -  20.0.
+<I>Required if optical monitor flag is set to "Y"</I>
+
+
+
+<li class="elehelp"> <a class="lblhelp" name="TargetOffsets"> Offset Pointing (Y/Z Detector Target Offset )</a>
+<br>
+The user may wish to offset-point the observatory pointing for a
+number of reasons, e.g., to reduce the effects of ACIS pile-up or to
+avoid HRC pore limits by blurring the image. Offset pointing is
+discussed in Chapter 3 of the 
+<a href="http://cxc.harvard.edu/proposer/POG/html/chap3.html">
+Proposer's Observatory Guide(POG)  </a>.
+<p>
+In general however, most observers/proposers should leave BLANK all detector offsets in CPS if they wish their target to be close to the optical axis (best focus position). For a detailed discussion about the position of the optical axis and the default aimpoint please refer to <a href="http://cxc.harvard.edu/proposer/POG/html/chap4.html#sec:hrma_oxap">section 4.5 in the POG</a> .
+<p>
+A positive Z offset moves the target from ACIS-I towards ACIS-S. A
+positive Y offset moves the target from chip S3 towards chip S2. (see
+<a href="http://cxc.harvard.edu/proposer/POG/html/chap3.html">
+POG</a> Figure 3.1). Note the 180 degree difference between the Y/Z
+coordinates and the Delta-Y/Delta-Z coordinates. 
+ 
+<p>
+Note that the RA and Dec of the optical axis will depend upon the
+spacecraft roll angle at the time of the observation. If the observer
+wants the optical axis at a particular RA and Dec with a YZ target
+offset, then the observer must specify a roll constraint.
+<p>
+All units are arcmins. The overall valid range is -50.0 to +50.0 for
+(y,z) offsets. Thus it is possible to specify an offset so large that
+the target is not imaged anywhere on the detector, so exercise
+caution. Furthermore, if the target is offset by more than 15 arcmins,
+then ghost images (see <a href="http://cxc.harvard.edu/proposer/POG/html/chap4.html#sec:hrma_ghost">POG</a> Chapter 4) from the target may be visible.
+<p>
+Finally, offsets are implemented in software by redefining the
+pointing position. This means that roll constraints apply at the new
+position.
+<p>
+
+
+<b><u>Y  Pointing Offset:</u></b>
+<br><b>Sense:</b> negative Y offset moves the target away from the 
+aimpoint in the direction of S4 on ACIS-S (ie. further onto the S3 chip)
+<p>
+<b><u>Z  Pointing Offset:</u></b>
+<br><b>Sense:</b> positive Z offset moves the target towards the readouts in 
+ACIS-S (i.e. away from ACIS-I)
+<p>
+<b>Recommendations:</b> 
+<br>
+Any numeric value entered in the box will override the default values.
+<p>
+Proposers/observers who require specific offsets from the default aimpoint 
+should enter into CPS Y,Z offsets in arcmin relative to the new aimpoint .
+This is most likely to affect gratings observers who wish to 
+optimize the position of chip gaps along the 
+spectrum of their source. 
+<p>
+
+WARNING: It is quite possible to specify an offset so large that the 
+target is not imaged anywhere on the detector, so exercise caution.   To make sure your 
+target is placed as desired, we recommend use of the Observation 
+Visualizer(ObsVis) available in the latest CIAO downloadable package at 
+<a href="http://cxc.harvard.edu/ciao/download">
+http://cxc.harvard.edu/ciao/download</a>.
+Note that CPS software forbids entry of offsets larger than 10/30/20/50arcmin
+for ACIS-I/ACIS-S/HRC-I/HRC-S.
+
+
+<li class="elehelp"> <a class="lblhelp" name="SIMTransOffset"> SIM Translation Offset</a>
+<br>
+Offset from nominal translation position.  
+This is a motion of the SIM and thus the aimpoint away from the
+default position on the detector along the z-axis (which is along the
+axis from ACIS-S to ACIS-I).
+<p>
+Warning: The standard sub-arrays DO NOT take into account these recommended 
+offsets. Thus if you wish to use a sub-array in conjunction with one of these
+offsets, you will need to specify it explicitly as a custom sub-array. For 
+recommended values please see the web pages: 
+<a href="http://cxc.harvard.edu/cal/Letg/ACIS_params/">
+http://cxc.harvard.edu/cal/Letg/ACIS_params</a>
+for recommended offsets for LETG/ACIS-S gratings observations and
+<a href="http://space.mit.edu/ASC/calib/hetgsubarray.html">
+http://space.mit.edu/ASC/calib/hetgsubarray.html</a> 
+for the HETG.
+<p>
+Units are in millimeters.
+	
+<pre>
+Sense: a negative motion moves the aimpoint (and the target) towards the 
+       readouts on ACIS-S (ie. away from ACIS-I)
+
+Units: mm (scale 2.93mm/arcmin)
+
+</pre>
+
+
+<p>Valid values by detector are:
+<pre>
+Detector   Minimum   Maximum
+-----------------------------
+HRC-S     -12.5439   61.3518
+HRC-I     -61.3518   126.621
+ACIS-S    -190.500   22.5685
+ACIS-I    -22.5685   27.4739
+</pre>
+
+
+<li class="elehelp"> <a class="lblhelp" name="OffsetConstraint">Does the offset/pointing need to be adjusted once the observing roll angle is determined?</a>
+<br>
+Value indicating that the final pointing information/offsets need to be modified
+based upon the roll angle.
+If you have answered <b>YES</b> and this proposal is approved, the CXC will request detailed offset and pointing values shortly after results are announced. 
+This <span class="warnmsg">WILL BE COUNTED AS A CONSTRAINT</span>.
+<p>
+<li class="elehelp"> <a class="lblhelp" name="Grid"> Is the observation (part of) a grid?</a>
+<br>
+Logical value indicating whether this target is part of a grid of
+pointings. The default is 'N'. The observer is advised that there will
+be a reduction in the slew tax charged for a series of contiguous or
+nearly contiguous pointings each separated by no more than a degree
+from its nearest neighbor (a grid), provided that there is no
+instrument set-up or observing mode change.  Proposer MUST provide a
+detailed description of the grid positions (preferably a figure) 
+in the science justification. Please refer to the CfP 
+<a href="http://cxc.harvard.edu/proposer/CfP/">
+http://cxc.harvard.edu/proposer/CfP/</a> for details.
+<p>
+Grids may be entered as separate targets.  Alternately, for a
+large number of pointings with identical observing parameters, you may
+specify all pointings by entering the grid center (the average
+coordinates of all grid pointings) in the R.A. and Dec fields above,
+and then also specifying the  3 general grid parameters below.  This
+shortens and simplifies the proposal, but still allows target
+duplication checks and proper accounting of time and targets at peer
+review.  Approved programs will be required to provide exact pointings
+within the grid to the CXC. 
+
+<li class="elehelp"> <a class="lblhelp" name="GridName"> Unique Grid name</a>
+<br> 
+A unique grid name allows the pointings in a grid to be more easily
+associated, scheduled, or searched as an ensemble in the CXC
+database. Required for all pointings intended to be part of a grid.   
+Maximum of 30 characters. 
+
+<li class="elehelp"> <a class="lblhelp" name="GridPointings"> Number of grid pointings</a>
+<br> 
+The total number of grid pointings.
+Input of this datum indicates that the proposer wishes
+to use the parameterized generation of grid pointings for proposal 
+purposes, rather than individual target pages.  Default is blank.
+If grid parameters are used, the minimum value is 2.
+
+<li class="elehelp"> <a class="lblhelp" name="GridRadius"> Distance from center to farthest grid pointing (degrees)</a>
+<br> 	
+Distance in degrees between the center (average) grid coordinates
+entered in the R.A. and Dec fields above, and the intended pointing
+that is farthest from that center.  Maximum value is numerically
+equal to the number of pointings.
+
+
+
+</ul>
+</fieldset>
+<p>
+<fieldset class="fshelp" id="TargetTime"><legend>Target Observing Time</legend>
+<ul>
+<li class="elehelp"> <a class="lblhelp" name="TriggerTarget"> Is this the trigger target for a TOO?</a>
+<br>
+If this target is the trigger target (first observation) for a TOO, 
+please set the value to
+ <b>Y</b>es.
+If this target defines a different instrument configuration for a TOO followup observation, please set the value to <b>N</b>o.  
+<p>
+If a different instrument configuration or offset is required for a
+followup, you must enter that observation as a new target with all
+observational parameters specified, setting the <i>Total Observing Time</i>
+to 0 and <i>Is this the trigger target for a TOO?</i> to 'N'(No).  
+For non-trigger target forms, all other fields in the TOO Details
+section must be blank.  Be sure to enter the correct target number for
+each followup observation in the Followup Summary table of the
+trigger observation. Target Number MUST be specified for every followup.
+<p>
+All followup observations whose ideal spacing is best determined from
+measurements by Chandra or other observatories near the time of the trigger
+will be classified as TOOs in the appropriate time delay category.
+Followup observations which translate into potential fast TOOs and are not
+fully specified and accounted for in the target forms will not be accepted.
+<p>
+
+<li class="elehelp"> <a class="lblhelp" name="TotalObservationTime"> Total Observing Time</a>
+<br>
+The total exposure time in kiloseconds for requested observation(s)
+of this target.  For followups, monitoring observations or grids, this is the sum of 
+all pointings. For example, for two observations of 40 kiloseconds each, 
+specify 80 kiloseconds as the Total Observing Time and 2 for the Number of 
+Observations in the 'Constraints' section.
+<p>Individual exposures may need to be segmented. 
+       If an observation that is uninterrupted (or at worst
+       contiguous across orbits) is required, proposers must set the
+       <a href="#UninterruptedObservation">Uninterrupted constraint flag</a>.
+
+<p> Observations &gt;180 ksec will <b>have</b> to be interrupted due to the
+satellite orbit. If the <i>Uninterrupted Observation Required</i> flag is 
+checked, the pieces will be
+observed as contiguously as possible, and certainly in adjacent
+spacecraft orbits.
+<p>
+Valid range for an observing proposal is 1 - 10000 kiloseconds.
+
+<li class="elehelp"> <a class="lblhelp" name="MultiCycleTgt"> Multi-Cycle Targets: Projected Observing Time for Future Cycles</a>
+<br>
+
+If multi-cycle observations are requested for a given target, the
+proposer must specify the observing constraints that require 
+the observations to extend into future cycles.  Constraints
+must be well-justified scientifically.  The PI must estimate based on 
+these constraints the amount of time required in the subsequent cycles for
+each such target, assuming the earliest feasible start date for
+the first target observations.  
+
+For accounting purposes, the cycles are defined as 01-January through 31-December, where the first available cycle begins the January after the proposal is approved.
+<p>
+The proprietary period for data from multi-cycle targets
+begins when 90% of the data for any given target (as allocated to each
+cycle) has been made available to the observer.
+
+<li class="elehelp"> <a class="lblhelp" name="MonitoringObservation"> Monitoring and Followup Observations</a>
+<br>
+
+A monitoring/followup program is defined as more than 1 observation of the same source. 
+<p>
+If more than 1 observation of this target is required, 
+specify the desired number of observations below.
+Please specify the exposure time and the minimum/maximum interval in days for 
+which each observation should be spaced from its preceding observation.
+Required observations will count as constrained at the Chandra Peer Review
+according to the formula in the <a href="http://cxc.harvard.edu/proposer">
+Call for Proposals</a>.
+<p>If different instrument parameters are required for observations in a 
+monitoring series, 
+please specify the additional instrument configurations in the 'Remarks'
+field.
+<p>For TOO followup observations, please specify the target number to use for each followup observation.
+
+<li class="elehelp"> <a class="lblhelp" name="MonitorFlag"> Do you want more than one observation of this target?</a>
+<br>
+Logical value indicating whether the observation needs to be observed more than 1 time.
+<br>Options are:    
+<pre>
+   No  Constraint 
+   Yes, I want this target to be split
+</pre>
+
+
+<li class="elehelp"> <a class="lblhelp" name="MonitorTime"> Exposure Time allocated for this observation</a>
+<br>
+Exposure time in kiloseconds allocated for each observation.  
+The total of the exposure times must equal the time specified in the 
+<b>Total Observing Time</b> field.
+
+<li class="elehelp"> <a class="lblhelp" name="MonitorMinInterval"> Minimum days since preceding observation</a>
+<br>
+Minimum interval from the end of the preceding observation to
+the beginning of the current observation in days.
+Valid range is 0.0 - 364.0 days except for <a href="#Multicycle">multi-cycle proposals</a>.
+<br><i>Required</i> for all monitor/followup observations.
+
+<li class="elehelp"> <a class="lblhelp" name="MonitorMaxInterval"> Maximum days since preceding observation</a>
+<br>
+Maximum interval from the end of the preceding observation to
+the beginning of the current observation in days.
+Valid range is 0.0 - 364.0 days except for <a href="#Multicycle">multi-cycle proposals</a>.
+<br><i>Required</i> for all monitor/followup observations.
+
+<li class="elehelp"> <a class="lblhelp" name="FupTargetNum"> Target Number defining instrument configuration for followup observations</a>
+<br>
+The target number to use for the instrument configuration for this followup target.
+<br><i>Required</i> for followup observations.
+
+</ul>
+</fieldset>

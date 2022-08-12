@@ -1,0 +1,636 @@
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 1995, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_stats.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script provides statistics for all proposals going to the
+#     peer review (status=PROPOSED).
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use vars qw ($dbh %param $alttab @reqfiles $reqfile $dbdelim
+	$cyclen $cyclen1 $cyclen2
+	);
+
+use strict;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+
+
+@reqfiles = (
+        "prop_routines.pl",
+        "prop_dbroutines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+$dbdelim = "---";
+
+{
+  my($dsn,$stmp,$title,$idx,$aname);
+
+# -------------------------- MAIN ----------------------------------
+  &parse_input;
+  $title = "Statistics for Peer Review Proposals for Cycle $param{a}";
+
+
+
+
+  #database connection
+  $dbh = dbProposalConnection($param{U}, $param{S}, $param{q});
+
+
+  open(OFILE,"> $param{o}")  ||
+    die "Unable to open $param{o} for writing!\n";
+  printf OFILE "\n$title      %s\n\n",get_date();
+  
+  $aname = $param{o};
+  if ($aname =~ /\.txt$/) {
+    $aname  =~ s/\.txt/_alternates.txt/;
+  } 
+  else {
+    $aname  .= ".alternates";
+  }
+  open(AFILE,"> $aname")  ||
+    die "Unable to open $aname for writing!\n";
+  printf AFILE "\nExcluded Alternates for Cycle $param{a}    %s\n\n",get_date();
+
+
+  $idx = 1;
+  # exclude alternates and then build probability table
+  dbexclude_alternates($dbh);
+  write_alternates($dbh);
+
+  dbbuild_probability($dbh);
+
+  $cyclen = $param{a};
+  $cyclen1 = $param{a} + 1;
+  $cyclen2 = $param{a} + 2;
+
+  if ($cyclen > 12) {
+    &get_totals($idx,1,$cyclen);
+    &get_totals($idx,0,$cyclen1);
+    &get_totals($idx,0,$cyclen2);
+    printf OFILE ("      %9.9s  %9.9s  %9.9s %9.9s  ",
+	"---------","---------","---------","---------");
+    if (!$param{g})  {
+      printf OFILE ("%7.7s %7.7s  ","-------","-------");
+    }
+    printf OFILE ("   %3.3s   %4s\n","---","----");
+  }
+  &get_totals($idx,0,0);
+  &get_MinMax();
+
+  $idx++;
+
+  &by_type($idx++);
+  &by_subcat($idx++);
+  &by_detector($idx++);
+  &by_target_time($idx++);
+  &by_proposal_time($idx++);
+  &by_pi_cnt($idx++);
+  &by_tgt_cnt($idx++);
+  &by_country($idx++);
+  &by_inst($idx++);
+
+  close OFILE;
+  chgroup($param{o});
+  chmod 0660,$param{o};
+
+  close AFILE;
+  chgroup($aname);
+  chmod 0660,$aname;
+}
+# ----------------------------------------------------------------------
+sub write_alternates
+{
+  my($sth,@row,$str);
+
+  printf AFILE ("%8s  %5s  %6s  %3s  %8s  %s\n",
+	"Proposal","AltId","Targid","Cnt","ExpTime","Probability");
+  printf AFILE ("%8s  %5s  %6s  %3s  %8s  %s\n",
+	"--------","-----","------","---","--------","-----------");
+  $str = qq(select * from $alttab );
+  $sth = $dbh->prepare($str);
+  $sth->execute();
+  while (@row = $sth->fetchrow_array) {
+    printf AFILE ("%8s  %5d   %5d  %3d  %8.2f  %3.2f\n",@row);
+  }
+}
+  
+ 
+# ----------------------------------------------------------------------
+# ----------------------------------------------------------------------
+sub get_totals 
+{
+
+  my($ii,$init,$aoflg) = @_;
+  my($allcnt,$allp,$allt,$allprob);
+  my($go,$gop,$gto,$gtop,$p1str,$pstr);
+  my($minT,$maxT,$pcnt);
+  my(@results,$stmp,@row,$appflg);
+
+  ($allcnt,$allprob,$go,$gop,$gto,$gtop,$allp,$allt) = dbget_totals($dbh,$aoflg);
+
+  if ($init > 0) {
+    print OFILE "$ii. Totals for Proposals (#Props includes Archive/Theory).\n\n"; 
+    print OFILE "          $param{t} Time(ksec)              \n";
+
+    printf OFILE ("%-5.5s %-9s  %-9s  %-9s %-9s  ","Cycle","  ALL","ALL w/Prob","  GO","GO w/Prob");
+    if (!$param{g})  {
+       printf OFILE ("%-7s%-10s ","GTO","GTO w/Prob");
+    }
+    printf OFILE "%-6s %-5s\n","#Props","#Tgts";
+    
+    if (!$param{g})  {
+      print OFILE "--------------------------------------------------------------------------------\n";
+    }
+    else {
+      print OFILE "----------------------------------------------------------------------\n";
+    }
+  } 
+
+  if ($aoflg <= 0) {
+    printf OFILE ("%-5.5s ","Total");
+  } else {
+    printf OFILE ("%-5.5s ",$aoflg);
+  }
+
+  printf OFILE ("%9.2f  %9.2f  %9.2f %9.2f  ",$allcnt,$allprob,$go,$gop);
+  if (!$param{g})  {
+    printf OFILE ("%7.2f %7.2f  ",$gto,$gtop);
+  }
+
+  if ($aoflg <= 0) {
+    printf OFILE ("   %3.d   %4.d\n",$allp,$allt);
+  } else {
+    printf OFILE "\n";
+  }
+
+}
+
+sub get_MinMax 
+{
+  my($minT,$maxT);
+
+  ($minT,$maxT) = dbby_minmax($dbh);
+  printf OFILE ("\nMinimum $param{t} Time  Maximum $param{t} Time\n");
+  printf OFILE (  "----------------------  ----------------------\n");
+  printf OFILE (  "        %10.2f                %10.2f\n",$minT,$maxT);
+
+}
+
+# -------------------------------------------------------------
+sub by_type
+{
+  my($ii) = @_;
+  my(@row,$stmp,@results);
+  my($totp,$tott,$totc,$tota,$totb);
+ 
+  print OFILE "\n\n$ii. $param{t} Proposals by Type\n\n";
+  print OFILE "                                                 w/Prob.\n";
+  print OFILE "Type           #Prop   #Tgts  #TC=Y   $param{t}  $param{t}  Units\n";
+  print OFILE "-----------------------------------------------------------------\n";
+
+
+  @results = dbby_type($dbh);
+  foreach $stmp (@results) {
+    @row = split($dbdelim,$stmp);
+     $totp += $row[1];
+     if ($row[0] !~ /arch/i && $row[0] !~ /theory/i) {
+       $tott += $row[2];
+       $totc += $row[3];
+       $tota += $row[4];
+       $totb += $row[5];
+       printf OFILE ("%-13.13s   %3d    %4d   %3d     %8.2f  %8.2f   ksec\n", @row);
+     }
+     else {
+       printf OFILE ("%-13.13s   %3d    %4d   %3d     %8.2f             1000 US dollars\n",
+	@row);
+     }
+  }
+
+  printf OFILE ("%-13.13s   %3s    %4s   %3s     %8s  %8s\n",
+	"","---","----","---","--------","-------");
+  printf OFILE ("%-13.13s   %3d    %4d   %3d     %8.2f  %8.2f   ksec\n",
+	"",$totp,$tott,$totc,$tota,$totb);
+	
+
+  if ($cyclen > 12)  {
+    printf OFILE ("\nMulti-cycle Observing Proposals: $param{t} Time (ksec)\n");
+    printf OFILE   ("%-13.13s #Prop  %10.10s  %10.10s  %10.10s\n",
+	"Type","Cycle $cyclen","Cycle $cyclen1","Cycle $cyclen2");
+    printf OFILE ("------------- -----  ----------  ----------  ----------\n");
+    @results = db_multicycle_type($dbh);
+    foreach $stmp(@results) {
+      @row = split($dbdelim,$stmp);
+      printf OFILE (  "%-13.13s  %4d  %10.2f  %10.2f  %10.2f\n",@row);
+    }
+
+    (@results) = db_multicycle($dbh);
+    printf OFILE ("%13.13s  ----   ---------   ---------  ----------\n"," ");
+    printf OFILE ("%13.13s  %4d  %10.2f  %10.2f  %10.2f\n"," ",@results);
+  }
+
+}
+
+# -------------------------------------------------------------
+sub by_subcat
+{
+  my($ii) = @_;
+  my($sth,@row,$stmp,@results);
+  my($totp,$tott,$tote,$totep);
+ 
+  $totp=0;
+  $tott=0;
+  $tote=0;
+  $totep=0;
+  print OFILE "\n\n$ii.  $param{t} Proposals by Subject Category (#Prop includes Archive/Theory).\n\n";
+  printf OFILE ("%-42.42s %5s   %5s    %9s  %9s\n"," "," "," ","(ksec)","w/Prob");
+  printf OFILE ("%-42.42s %5s   %5s    %9s  %9s\n","Category","#Prop","#Tgts",$param{t},$param{t});
+  printf OFILE ("%-42.42s  %4s    %4s    %9s  %9s\n","----------------------------------","----","----","---------","---------");
+
+  @results = dbby_subcat($dbh);
+  foreach $stmp (@results) {
+    @row = split($dbdelim,$stmp);
+     printf OFILE ("%-42.42s   %3d    %4d     %8.2f   %8.2f\n",
+	@row);
+     $totp += $row[1];
+     $tott += $row[2];
+     $tote += $row[3];
+     $totep += $row[4];
+  }
+  printf OFILE ("%-42.42s  %4s    %4s    %9s  %9s\n","","----","----","---------","---------");
+  printf OFILE ("%-42.42s  %4d    %4d    %9.2f  %9.2f\n","",$totp,$tott,$tote,$totep);
+
+  $totp= 0;
+  $tott= 0;
+  $tote= 0;
+  $totep= 0;
+  print OFILE "\n\n";
+
+  if ($cyclen > 12)  {
+    printf OFILE ("\n%-49.49s      $param{t} Time (ksec)\n",
+	"Multi-cycle Observing Proposals: ");
+    printf OFILE   ("%-42.42s #Prop  %10s  %10s  %10s\n",
+	"Category","Cycle $cyclen","Cycle $cyclen1","Cycle $cyclen2");
+    printf OFILE ("------------------------------------------ -----  ----------  ----------  -----------\n");
+    @results = db_multicycle_category($dbh);
+    foreach $stmp(@results) {
+      @row = split($dbdelim,$stmp);
+      printf OFILE (  "%-42.42s %5d  %10.2f  %10.2f  %10.2f\n",@row);
+    }
+    (@results) = db_multicycle($dbh);
+    printf OFILE ("%42.42s -----   ----------  ----------  ----------\n"," ");
+    printf OFILE ("%42.42s %5d  %10.2f  %10.2f  %10.2f\n", " ",@results);
+
+  }
+  print OFILE "\n\n";
+  printf OFILE ("%-2.2s        %-7.7s %4s    %4s    %9s  %9s\n","","","","",
+	"(ksec)","w/Prob");
+  printf OFILE ("%-8.8s  %-7.7s%5s   %5s    %9s  %9s\n",
+  	"Category","Type","#Prop","#Tgts",$param{t},$param{t});
+  printf OFILE ("%-8.8s  %-7.7s %4s    %4s    %9s  %9s\n","--------","----",
+	"----","----","---------","---------");
+
+  @results = dbby_subcat_type($dbh);
+  foreach $stmp (@results) {
+    @row = split($dbdelim,$stmp);
+     printf OFILE ("%-2.2s        %-7.7s  %3d    %4d     %8.2f   %8.2f\n",
+	@row);
+     $totp += $row[2];
+     $tott += $row[3];
+     $tote += $row[4];
+     $totep += $row[5];
+  }
+  printf OFILE ("%-2.2s        %-7.7s %4s    %4s    %9s  %9s\n","","",
+	"----","----","---------","---------");
+  printf OFILE ("%-2.2s        %-7.7s %4d    %4d    %9.2f  %9.2f\n","","",
+	$totp,$tott,$tote,$totep);
+
+}
+
+
+# -------------------------------------------------------------
+sub by_detector
+{
+  my($ii) = @_;
+  my(@results,@row,$stmp,$tcnt,$ttime,$tptime);
+
+  print OFILE "\n\n$ii. $param{t} Targets,Exposure Time by Detector\n\n";
+  print OFILE "                              $param{t}\n";
+  print OFILE "Detector  Grating    #Tgts  Time(ksec)  w/Prob\n";
+  print OFILE "-----------------------------------------------\n";
+
+  @results = dbby_detector($dbh);
+  foreach $stmp (@results) {
+    @row = split($dbdelim,$stmp);
+     printf OFILE ("%-8.8s  %-7.7s     %4d  %8.2f  %8.2f\n",
+	@row);
+     $tcnt += $row[2];
+     $ttime += $row[3];
+     $tptime += $row[4];
+  }
+  printf OFILE ("%-8.8s  %-7.7s     %4s  %8s  %8s\n","","","----","--------","--------");
+  printf OFILE ("%-8.8s  %-7.7s     %4d  %8.2f  %8.2f\n","","",$tcnt,$ttime,$tptime);
+  
+  &prop_by_grating;
+}
+
+# -------------------------------------------------------------
+sub prop_by_grating
+{
+  my($stmp,@results,@row,$tcnt);
+
+
+  print OFILE "\n\n               $param{t}\n";
+  print OFILE "Type           #Proposals with at least 1 Grating Target\n";
+  print OFILE "-------------  -----------------------------------------\n";
+
+  @results = dbprop_by_grating($dbh);
+  foreach $stmp (@results) {
+    @row = split($dbdelim,$stmp);
+
+     printf OFILE ("%-14.14s  %3d\n", @row);
+     $tcnt += $row[1];
+  }
+  print OFILE     "               ----------\n";
+  printf OFILE ("%-14.14s  %3d\n", "",$tcnt);
+
+}
+
+
+
+# -------------------------------------------------------------
+sub by_pi_cnt
+{
+  my($ii) = @_;
+  my(@results,@sorted_results,@row,$stmp);
+
+  print OFILE "\n\n$ii. Number of Proposals $param{t} per P.I.\n\n";
+  print OFILE "#Prop   #P.I.\n";
+  print OFILE "----------------------\n";
+
+  @results = dbby_pi_cnt($dbh);
+  @sorted_results = sort @results;
+  foreach $stmp (@sorted_results) {
+    @row = split($dbdelim,$stmp);
+     printf OFILE ("%3d      %3d\n", $row[0],$row[1]);
+  }
+
+
+}
+
+
+# -------------------------------------------------------------
+sub by_tgt_cnt
+{
+  my($ii) = @_;
+  my(@results,@row,$stmp,@sorted_results);
+
+  print OFILE "\n\n$ii. Number of Targets $param{t} per Proposal.\n\n";
+  print OFILE "#Proposal   #Targets\n";
+  print OFILE "----------------------\n";
+
+
+  @results = dbby_tgt_cnt($dbh);
+  @sorted_results = sort sort_by_int @results;
+  foreach $stmp (@sorted_results) {
+    @row = split($dbdelim,$stmp);
+     printf OFILE ("%3d        %3d\n", $row[1],$row[0]);
+  }
+}
+
+sub sort_by_int
+{
+  my($a1,$a2) = split($dbdelim,$a);
+  my($b1,$b2) = split($dbdelim,$b);
+  $a1 - $b1
+}
+
+
+
+# ----------------------------------------------------------------------
+sub by_country
+{
+
+  my($ii) = @_;
+  my(@results,@row,$stmp,$tcnt,$ttime,$tptime);
+
+  print OFILE "\n\n$ii. Number of $param{t} proposals by Country \n\n";
+  print OFILE "                   $param{t}\n"; 
+  print OFILE "Country         #Prop   Time(ksec)  w/Prob\n"; 
+  print OFILE "------------------------------------------\n";
+
+
+  @results = dbby_usa_foreign($dbh);
+  foreach $stmp (@results) {
+    @row = split($dbdelim,$stmp);
+    printf OFILE ("%-15s %3d     %8.2f  %8.2f\n", @row);
+  }
+
+
+  print OFILE "\n\n                        $param{t}\n"; 
+  print OFILE "Country         #Prop   Time(ksec)  w/Prob\n"; 
+  print OFILE "------------------------------------------\n";
+
+  @results = dbby_country($dbh);
+  foreach $stmp (@results) {
+    @row = split($dbdelim,$stmp);
+     printf OFILE ("%-15.15s %3d     %8.2f  %8.2f\n", @row);
+     $tcnt += $row[1];
+     $ttime += $row[2];
+     $tptime += $row[3];
+  }
+  printf OFILE ("%-15.15s %3s     %8s  %8s\n", "","---","--------","--------");
+  printf OFILE ("%-15.15s %3d     %8.2f  %8.2f\n", "",$tcnt,$ttime,$tptime);
+}
+
+# ----------------------------------------------------------------------
+sub by_inst
+{
+
+  my($ii) = @_;
+  my(@results,@row,$stmp,$tcnt,$ttime,$pttime);
+
+  print OFILE "\n\n$ii. Number of $param{t} Proposals by Institute\n\n";
+  print OFILE "                                                                       $param{t}\n";
+  print OFILE "Country          Institution                                   #Props  Time(ksec) w/Prob\n";
+  print OFILE "----------------------------------------------------------------------------------------\n";
+ 
+  @results = dbby_inst($dbh);
+  foreach $stmp (@results) {
+    @row = split($dbdelim,$stmp);
+     printf OFILE ("%-15.15s  %-45.45s  %3d   %8.2f  %8.2f\n", @row);
+     $tcnt += $row[2];
+     $ttime += $row[3];
+     $pttime += $row[4];
+  }
+  printf OFILE ("%-15.15s  %-45.45s  %3s   %8s  %8s\n", 
+	"","","---","--------","--------");
+  printf OFILE ("%-15.15s  %-45.45s  %3d   %8.2f  %8.2f\n", 
+	"","",$tcnt,$ttime,$pttime);
+}
+
+# ----------------------------------------------------------------------
+sub by_target_time  
+{
+  my($ii) = @_;
+  my(@results,@row,$stmp,$tott);
+
+  print OFILE "\n\n$ii.  Targets by $param{t} Exposure Time Range\n\n";
+  print OFILE "$param{t}\n";
+  print OFILE "Time(ksec)   #Tgts\n";
+  print OFILE "------------------\n";
+
+  @results = dbby_target_time($dbh);
+  $tott=0;
+  foreach $stmp (@results) {
+    @row = split($dbdelim,$stmp);
+    printf OFILE ("%s  %4d\n",@row);
+    $tott += $row[1];
+  }
+
+  print  OFILE "              -----\n";
+  printf OFILE "              %5d\n",$tott;
+} 
+
+# ----------------------------------------------------------------------
+sub by_proposal_time  
+{
+  my($ii) = @_;
+  my(@results,@row,$stmp,$tott);
+
+
+  print OFILE "\n\n$ii.  Proposals by $param{t} Exposure Time Range\n\n";
+  print OFILE "$param{t}\n";
+  print OFILE "Time(ksec)   #Props\n";
+  print OFILE "-------------------\n";
+
+  @results = dbby_proposal_time($dbh);
+  foreach $stmp (@results) {
+    @row = split($dbdelim,$stmp);
+    printf OFILE ("%s  %4d\n",@row);
+    $tott += $row[1];
+  }
+ 
+  print  OFILE "              -----\n";
+  printf OFILE "              %5d\n",$tott;
+  
+} 
+
+
+
+# ----------------------------------------------------------
+# parse input parameters
+# ----------------------------------------------------------
+sub parse_input
+{
+  my($pwd,$gto);
+  my $err = 0;
+
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+             o=> undef,
+             a=> "$ENV{ASCDS_PROP_AO}"
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "o=s",
+          "a=s",
+          "q=s",
+          "g",
+          "d",
+          "w",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter '$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+  $param{q} = $pwd;
+  
+  if ($param{g}) {
+     $gto = qq (and proposal.type not like "%GTO%");
+  } else {
+     $gto = " ";
+  }
+    
+  if (!$param{w}) {
+    $param{s} = qq((proposal.status like "PROPOSED" or proposal.rank is not null) and proposal.joint not like "%CXO-%" and proposal.type != "CAL" and proposal.type != "DDT" $gto);
+    $param{t} = "Requested";
+    $param{f} = "prop_exposure_time";
+    $param{n1} = "est_time_cycle_n1";
+    $param{n2} = "est_time_cycle_n2";
+    $alttab = "#dreqalt";
+  }
+  else {
+    $param{s} = qq( proposal.rank >= 3.5  $gto);
+    $param{t} = "Approved";
+    $param{f} = "approved_exposure_time";
+    $param{n1} = "app_time_cycle_n1";
+    $param{n2} = "app_time_cycle_n2";
+    $alttab = "#dappalt";
+  }
+}
+
+sub usage
+{
+    print STDERR "\nUSAGE: prop_all_stats.pl -Uo [-Sagw]\n";
+    print STDERR "       -U database user name\n";
+    print STDERR "       -o output filename \n";
+    print STDERR "       -S database server, default is DB_PROP_SQLSRV\n";
+    print STDERR "       -a AO , default is current ASCDS_PROP_AO\n";
+    print STDERR "       -g If present, ignores ALL GTO proposals.\n";
+    print STDERR "       -w Flag indicating process only winners from peer review\n";
+}
+

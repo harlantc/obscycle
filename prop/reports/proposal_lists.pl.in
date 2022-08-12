@@ -1,0 +1,253 @@
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 1995,2019 Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: proposal_lists.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION: #	Executes proposal lists that are useful even 
+#                       before the panel assignments:
+#
+#	prop_all_stats.pl
+#	prop_proposal_lists.pl
+#       prop_gto_stats.pl
+#       prop_joint_stats.pl
+#       prop_lp_xvp_stats.pl
+#       prop_tc.pl
+#       prop_too_lists.pl
+#       prop_rps_checks.pl
+#	prop_submission_cnts.pl
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use vars qw (%param $dbh @panels $lockfile @reqfiles $reqfile
+	);
+
+
+use strict;
+use Carp;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+
+@reqfiles = (
+        "prop_routines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+sub catch_warn {
+  my ($estr);
+  my($signame);
+
+  if ($lockfile && -e $lockfile) {
+     unlink($lockfile);
+  }
+}
+
+
+# -------------------------- MAIN ----------------------------------
+{
+  my ($pwd,$curdate,$dsn,$stmp,$savdir,$param_str,$ofile);
+
+  $SIG{__DIE__} = \&catch_warn;
+
+  ($pwd,$param_str) = parse_input();
+
+
+
+  #database connection - verify 
+  $dbh = dbProposalConnection($param{U}, $param{S}, $pwd);
+  $dbh->disconnect();
+
+
+  $curdate = get_date();
+
+
+
+  if (!-d $param{d}) {
+    print STDERR "creating output directory $param{d}\n";
+    mkdir($param{d},02770);
+    chgroup($param{d});
+    chmod(02770,$param{d});
+  }
+  else {
+      
+    $stmp = $curdate;
+    while ($stmp =~ s/\//_/) {;}
+    while ($stmp =~ s/ /_/) {;}
+    while ($stmp =~ s/\://) {;}
+    $savdir = $param{d} . "/proposal_lists_" . $stmp ."/";
+    print STDERR "Moving existing files to $savdir \n";
+    mkdir($savdir,02770);
+    chgroup($savdir);
+    chmod(02770,$savdir);
+    `mv $param{d}/*.* $savdir `;
+  }  
+
+
+  $ofile = $param{d} . "/.tmpplist";
+  `prop_proposal_lists.pl $param_str -o $param{d} -l $ofile`;
+  `cat $ofile > $param{o}`;
+
+  open LFILE,">> $param{o}" or die "Unable to open $param{o} for writing.\n";
+  $ofile = "$param{d}/all_stats.txt";
+  print LFILE "$ofile\n";
+  `prop_all_stats.pl $param_str -o $ofile`;
+  $ofile = "$param{d}/all_multi_stats.txt";
+  print LFILE "$ofile\n";
+  `prop_all_multi.pl $param_str -o $ofile`;
+  $ofile = "$param{d}/gto_stats.txt";
+  print LFILE "$ofile\n";
+  `prop_gto_stats.pl $param_str -o $ofile`;
+  $ofile = "$param{d}/joint_stats.txt";
+  print LFILE "$ofile\n";
+  `prop_joint_stats.pl $param_str -o $ofile`;
+
+  if (int($param{a}) > 12 && int($param{a}) < 17) {
+    $ofile = "$param{d}/lp_xvp_stats.txt";
+  } else {
+    $ofile = "$param{d}/lp_vlp_stats.txt";
+  }
+  print LFILE "$ofile\n";
+  `prop_lp_vlp_stats.pl $param_str -o $ofile`;
+  $ofile = "$param{d}/cycle$param{a}\_time\_critical.txt";
+  print LFILE "$ofile\n";
+  `prop_tc.pl $param_str -o $ofile 2>>$param{o}`;
+  $ofile = "$param{d}/cycle$param{a}\_time\_critical_all.txt";
+  print LFILE "$ofile\n";
+  `prop_tc.pl $param_str -e -o $ofile 2>>$param{o}`;
+
+  $ofile = $param{d};
+  `prop_too_lists.pl $param_str -o $ofile -t peer 2>> $param{o}`;
+  `prop_too_lists.pl $param_str -o $ofile -t gto 2>> $param{o}`;
+  `prop_too_lists.pl $param_str -o $ofile -t all 2>> $param{o}`;
+
+  print LFILE "$ofile/proposals_nn_nn_abstract.txt  where nn=science category\n";
+  `prop_science_category_abstract.pl $param_str -o $ofile `;
+
+  # with no abstracts
+  print LFILE "$ofile/proposals_nn_nn.txt  where nn=science category\n";
+  `prop_science_category_abstract.pl $param_str -n -o $ofile`;
+
+  $ofile = "$param{d}/cycle$param{a}\_multicycle_checks.txt";
+  print LFILE "$ofile\n";
+  `prop_multicycle_checks.pl $param_str -o $ofile 2>>$param{o}`;
+
+  $ofile = "$param{d}/proposal_checks.txt";
+  print LFILE "$ofile\n";
+  `prop_rps_checks.pl $param_str -o $ofile`;
+
+  $ofile = $param{d} . "/cycle$param{a}_submission_counts.txt";
+  print LFILE "$ofile\n";
+  `prop_receiver_stats.pl $param_str -o $ofile 2>>$param{o}`;
+
+
+  close LFILE;
+  unlink($param{q});
+  unlink($lockfile);
+
+  chmod (0660,$param{o});
+}
+
+
+
+sub parse_input { 
+  my ($pwd,$pstr);
+  my $err = 0;
+
+  %param = ( U => undef,
+             S => $ENV{DB_PROP_SQLSRV},
+             o => "$ENV{ASCDS_PROP_DIR}/reports/.proposal_lists",
+             d => "$ENV{ASCDS_PROP_DIR}/reports/proposal_lists",
+             a => $ENV{ASCDS_PROP_AO}
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "a=s",
+          "d=s",
+          "o=s",
+          "q=s",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val;
+      warn("parameter '$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+  $lockfile = $param{d} . "/.proposal_lists_lock";
+  if (-e $lockfile)  {
+    print STDERR "Lock file exists: $lockfile, command not executed\n";
+    exit 1;
+  }
+  open LFILE,">$lockfile" ;
+  print LFILE "locked by $param{U}, $ENV{USER}\n";
+  close LFILE;
+  chmod (0660,$lockfile);
+
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+    $param{q} = "$param{d}/.$ENV{USER}.peer";
+    write_password($param{q},$pwd);
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+
+
+  while ( my ( $par, $val ) = each ( %param ) ) {
+     if ($par !~ /o/ && $par !~ /d/) {
+       $pstr .= " -$par $val ";
+     }
+  }
+  return ($pwd,$pstr);
+}
+
+sub usage {
+  print STDERR <<ENDL; 
+USAGE: proposal_lists.pl -U [Sado] 
+       -U  database user name 
+       -S  sql server, default is DB_PROP_SQLSRV
+       -a  AO , default is ASCDS_PROP_AO
+       -d  output directory, default is ASCDS_PROP_DIR/reports/proposal_lists
+       -o  output file, provides list of files created
+           default is ASCDS_PROP_DIR/reports/.proposal_lists
+ENDL
+
+}
+
+

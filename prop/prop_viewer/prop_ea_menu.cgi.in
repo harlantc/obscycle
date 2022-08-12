@@ -1,0 +1,255 @@
+#!@PERL@ 
+
+use Cwd qw( abs_path );
+use File::Basename qw( dirname );
+use lib dirname(abs_path($0));
+
+require 'prop_ea_ao.pl';
+
+1;
+
+sub prop_ea_menu
+{
+  my($inputList) = @_;
+
+  @inputParams = split(/,/, $inputList);
+  $ii=1;
+  $selectedFile = $inputParams[$ii++];
+  $selectedFile2 = $inputParams[$ii++];
+  $ao1 = int($inputParams[$ii++]);
+  $ao2 = int($inputParams[$ii++]);
+  $color1 = $inputParams[$ii++];
+  $color2 = $inputParams[$ii++];
+  $minXValue = $inputParams[$ii++];
+  $maxXValue = $inputParams[$ii++];
+  $minYValue = $inputParams[$ii++];
+  $maxYValue = $inputParams[$ii++];
+  $lineWidth = $inputParams[$ii++];
+  $xscale = lc($inputParams[$ii++]);
+  $yscale = lc($inputParams[$ii++]);
+  $canvasX = $inputParams[$ii++];
+  $canvasY = $inputParams[$ii++];
+
+  $minXValue = verify_number($minXValue,$def_minX,0,$def_maxXY);
+  $maxXValue = verify_number($maxXValue,$def_maxX,0,$def_maxXY);
+  $minYValue = verify_number($minYValue,$def_minY,0,$def_maxXY);
+  $maxYValue = verify_number($maxYValue,$def_maxY,0,$def_maxXY);
+  $lineWidth = verify_number($lineWidth,$def_lineWidth,0,20);
+  $canvasX = verify_number($canvasX,$def_canvasX,0,5000);
+  $canvasY = verify_number($canvasY,$def_canvasY,0,5000);
+  $color1 = verify_number($color1,1,1,($#colorStyle+1));
+  $color2 = verify_number($color2,2,1,($#colorStyle+1));
+
+  if ($xscale ne "log" && $xscale ne "linear") {
+       $xscale="linear";
+  }
+  if ($yscale ne "log" && $yscale ne "linear") {
+       $yscale="linear";
+  }
+
+
+
+@fileTypeArray = ("ACIS-I", "ACIS-S", "ACIS-I-LETG-ORDER0", "ACIS-I-HETG-ORDER0",
+                  "ACIS-S-LETG-LETG1", "ACIS-S-LETG-ORDER0", "ACIS-S-HETG-HEG1",
+                  "ACIS-S-HETG-HEGMEG1", "ACIS-S-HETG-MEG1", "ACIS-S-HETG-ORDER0",
+                  "HRC-I", "HRC-S",  "HRC-S-LETG-ORDER0", "HRC-S-LETG-LETG1", 
+                  "HRC-S-LETG-LETGHI", "HRC-I-LETG-ORDER0");
+
+
+
+  #Use a table to space out the fields
+
+
+  #$theHtml= "Content-type: text/html" . "\n\n";
+  $theHtml .=  "<p><form  action=\"build_viewer.cgi?ea \" target=\"_parent\" method=\"post\">\n";
+  $theHtml .=  qq(<table border="0" width="100%" >\n);
+  $theHtml .=  "<tr>\n";
+  $theHtml .=  "<th>Line 1:</th><td>&nbsp;</td></tr>\n";
+  #The drop-down box for the filename
+  $theHtml .=  "<tr><td>Detector: </td>\n";
+  $theHtml .=  qq(<td><select  class="select" name="fileType">\n);
+  $index = 0;
+  $numFileTypes = @fileTypeArray;
+  for($index=0; $index < $numFileTypes; $index++) {
+    $currentFile = $fileTypeArray[$index];
+    $fileValue = $currentFile; #Need to change the string to lowercase
+    $fileValue =~ tr/A-Z/a-z/;
+    
+    if($selectedFile =~ /$currentFile/i) {
+      $theHtml .=  "<option value=\"$fileValue\" selected> $currentFile \n";
+    } else {
+      $theHtml .=   "<option value=\"$fileValue\"> $currentFile \n";
+    }
+  }
+  $theHtml .=  "</select>\n";
+  $theHtml .=  "</td></tr>\n";
+
+  #The drop-down box for cycle 1
+  $theHtml .=  "<tr><td>Cycle:</td>";
+  $theHtml .=  qq(<td><select class="select"  name="cycle1">\n);
+  $currentCycle = 3; #Start with cycle 3, current_ao taken from file
+  for(; $currentCycle <= $def_cycle; $currentCycle++) {
+    if($currentCycle == $ao1) {
+      $theHtml .=  "<option value=\"$currentCycle\" selected> Cycle $currentCycle \n";
+    } else {
+      $theHtml .=   "<option value=\"$currentCycle\"> Cycle $currentCycle \n";
+    }
+  }
+  $theHtml .=  "</select>\n";
+  $theHtml .=  "</td></tr>\n";
+  $theHtml .=  "<tr><td>Color:</td>\n";
+  $theHtml .=  qq(<td><select  class="select" name="color1">\n);
+  my $cc = 0;
+  $currentColor = $color1; # GET FROM INPUT PARAM
+  for (; $cc <= $#colorStyle;$cc++) {
+    if($currentColor == $colorStyle[$cc]) {
+      $theHtml .=  "<option value=\"$colorStyle[$cc]\" selected> $colorArray[$cc] \n";
+    } else {
+      $theHtml .=  "<option value=\"$colorStyle[$cc]\" > $colorArray[$cc] \n";
+    }
+  }
+
+  $theHtml .= "</select></td></tr>\n";
+  $theHtml .= "</table><hr>";
+
+  $theHtml .=  qq(<table border="0" width="100%" >\n);
+  $theHtml .=  "<tr>\n";
+  $theHtml .=  "<th>Line 2:</th><td>&nbsp;</td></tr>\n";
+  #The drop-down box for the filename
+  $theHtml .=  "<tr><td>Detector: </td>\n";
+  $theHtml .=  qq(<td><select class="select"  name="fileType2">\n);
+  $index = 0;
+  $numFileTypes = @fileTypeArray;
+  for($index=0; $index < $numFileTypes; $index++) {
+    $currentFile = $fileTypeArray[$index];
+    $fileValue = $currentFile; #Need to change the string to lowercase
+    $fileValue =~ tr/A-Z/a-z/;
+    
+    if($selectedFile2 =~ /$currentFile/i) {
+      $theHtml .=  "<option value=\"$fileValue\" selected> $currentFile \n";
+    } else {
+      $theHtml .=   "<option value=\"$fileValue\"> $currentFile \n";
+    }
+  }
+  $theHtml .=  "</select>\n";
+  $theHtml .=  "</td></tr>\n";
+
+  #The drop-down box for cycle 1
+  $theHtml .=  "<tr><td>Cycle:</td>";
+  $theHtml .=  qq(<td><select  class="select" name="cycle2">\n);
+  $currentCycle = 3; #Start with cycle 3, current_ao taken from file
+  for(; $currentCycle <= $def_cycle; $currentCycle++) {
+    if($currentCycle == $ao2) {
+      $theHtml .=  "<option value=\"$currentCycle\" selected> Cycle $currentCycle \n";
+    } else {
+      $theHtml .=   "<option value=\"$currentCycle\"> Cycle $currentCycle \n";
+    }
+  }
+  $theHtml .=  "</select>\n";
+  $theHtml .=  "</td></tr>\n";
+  $theHtml .=  "<tr><td>Color:</td>\n";
+  $theHtml .=  qq(<td><select  class="select" name="color2">\n);
+  my $cc = 0;
+  $currentColor = $color2; # GET FROM INPUT PARAM
+  for (; $cc <= $#colorStyle;$cc++) {
+    if($currentColor == $colorStyle[$cc]) {
+      $theHtml .=  "<option value=\"$colorStyle[$cc]\" selected> $colorArray[$cc] \n";
+    } else {
+      $theHtml .=  "<option value=\"$colorStyle[$cc]\" > $colorArray[$cc] \n";
+    }
+  }
+
+  $theHtml .= "</select></td></tr>\n";
+  $theHtml .= "</table><hr>";
+
+  $theHtml .= qq(<b>Minimum Energy</b>);
+  $theHtml .= qq(<input type="text" size="4" name="lowEnergy" value="$minXValue">\n);
+  $theHtml .= qq(<font class="tiny">(keV)</font>);
+  $theHtml .= qq(<br><b>Maximum Energy</b>);
+  $theHtml .= qq(<input type="text" size="4" name="highEnergy" value="$maxXValue">\n);
+  $theHtml .= qq(<font class="tiny">(keV)</font>);
+  $theHtml .= qq(<p><b>Minimum Effective Area</b>);
+  $theHtml .= qq(<input type="text" size="4" name="lowEA" value="$minYValue">\n);
+  $theHtml .= qq(<font class="tiny">(cm^2)</font>);
+  $theHtml .= qq(<br><b>Maximum Effective Area</b>);
+  $theHtml .= qq(<input type="text" size="4" name="highEA" value="$maxYValue">\n);
+  $theHtml .= qq(<font class="tiny">(cm^2)</font>);
+  
+  $theHtml .= "<br><hr>";
+  
+  $theHtml .= qq(<p><b>Line Width</b>:);
+  $theHtml .= qq(<select  class="select" name="lineWidth">);
+  for ($ii=1;$ii<10; $ii++) {
+    if ($lineWidth == $ii) {
+      $theHtml .= qq(<option value="$ii" selected>$ii);
+    } else {
+      $theHtml .= qq(<option value="$ii" >$ii);
+    }
+  }
+  $theHtml .= "</select>";
+
+
+  # No longer required per Antonella, cycle 16
+  #$theHtml .= qq(<p><b>Plot Scale </b>:);
+  #$theHtml .= qq(<select  class="select" name="plotScale">);
+  #for ($ii=1;$ii>0.1; ) {
+     #if ($scale eq $ii) {
+      #$theHtml .= qq(<option value="$ii" selected>$ii);
+    #} else {
+      #$theHtml .= qq(<option value="$ii" >$ii);
+    #}
+    #$ii -= .20;
+  #}
+  #$theHtml .= "</select>";
+
+  $theHtml .= qq(<p><b>X Scale </b>:);
+  $theHtml .= qq(<select  class="select" name="xScale">);
+  my(@logscales)=("Linear","Log");
+  for ($ii=0;$ii<=$#logscales;$ii++ ) {
+     my($lval) = $logscales[$ii];
+     if ($xscale eq lc($lval)) {
+      $theHtml .= qq(<option value="$lval" selected>$lval);
+    } else {
+      $theHtml .= qq(<option value="$lval" >$lval);
+    }
+  }
+  $theHtml .= "</select>";
+
+  $theHtml .= qq(<p><b>Y Scale </b>:);
+  $theHtml .= qq(<select  class="select" name="yScale">);
+  my(@logscales)=("Linear","Log");
+  for ($ii=0;$ii<=$#logscales;$ii++ ) {
+     my($lval) = $logscales[$ii];
+     if ($yscale eq lc($lval)) {
+      $theHtml .= qq(<option value="$lval" selected>$lval);
+    } else {
+      $theHtml .= qq(<option value="$lval" >$lval);
+    }
+  }
+  $theHtml .= "</select>";
+  #$theHtml .= qq(<input type="text" size="1" name="plotScale" value="$scale">\n);
+
+  #$theHtml .= qq(<input type="hidden" size="4" name="canvasX" value="$canvasX">\n);
+  #$theHtml .= qq(<input type="hidden" size="4" name="canvasY" value="$canvasY">\n);
+  #$theHtml .= qq(<p><b>Canvas Size</b>:);
+  #$theHtml .= qq(<br><b>X:</b><input type="text" size="4" name="canvasX" value="$canvasX">\n);
+  #$theHtml .= qq(&nbsp;<b>Y:</b><input type="text" size="4" name="canvasY" value="$canvasY">\n);
+
+
+
+
+
+
+  #The submit button
+  $theHtml .= "<br><hr>";
+  $theHtml .=  qq(<input class="button" type="submit" value="Plot">&nbsp;&nbsp;);
+  
+  $theHtml .=  qq(<input class="button" type="reset" value="Reset">);
+  $theHtml .=  "</form>\n";
+  $theHtml .=  "</body></html>";
+
+  return $theHtml;
+}
+
+
+

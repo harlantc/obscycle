@@ -1,0 +1,36 @@
+#!@PERL@ 
+#*H****************************************************************************
+#* Copyright (c) 1995, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_rps_receiver_died.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script sends mail to specified address when prop_rps_reciever dies 
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+#
+
+$logfile = $ARGV[0];
+$msg = "NOTE: prop_rps_receiver has terminated. Please view the log in\n\
+   $logfile";
+
+$addr = $ENV{ASCDS_PROP_RPS_EMAIL};
+if ($addr) {
+  `echo "$msg" | mailx -s "prop_rps_receiver has terminated" $ENV{ASCDS_PROP_RPS_EMAIL}`;
+}
+else {
+  print "ASCDS_PROP_RPS_EMAIL environment not set.\n"
+}

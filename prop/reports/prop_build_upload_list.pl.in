@@ -1,0 +1,226 @@
+#!@PERLDB@ 
+#
+#*H****************************************************************************
+#* Copyright (c) 1995, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_build_upload_list.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#   List all files for specified proposal number in the upload queue!
+#   and conflict file  and technical review file
+#
+#
+#* NOTES:
+#
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+
+
+use vars qw ( %param  @Proposals   @reqfiles $reqfile
+	);
+
+use strict;
+use Carp;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+
+@reqfiles = (
+        "prop_routines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+{
+  my($pno,$fname,@filenames,$printdir,$hh);
+  my($conflictFile);
+  my($stmp,$ii);
+
+  parse_input();
+  get_proposals();
+    
+
+  open OFILE,">$param{o}" or die "Unable to open $param{o} for writing\n";
+  print OFILE "\tProposal\tTechnical Review\tTarget Conflicts\tProposer Input\tAdditional Input\n";
+
+  $printdir = $param{d} . "/merged/";
+  foreach $pno (@Proposals) {
+     print OFILE "$pno\t";
+    
+     $fname = sprintf("%d",$pno);
+
+     # first look for the merged proposal files (SJ, RPS and Previous/CV)
+     #getFilename ("merged",$fname,"_merged","Proposal",1,1);
+     getFilename ("merged",$fname,"pdf","Proposal",1,1);
+
+     # now look for any technical reviews 
+     getFilename ($param{t},$fname,"txt|pdf","Technical Review",0,1);
+
+     # now conflicts
+     $conflictFile = "$param{d}/$param{c}/$pno.conflicts";
+     if (!-e $conflictFile) {
+       $conflictFile = " ";
+     }
+     print OFILE "$param{c}/$pno.conflicts\t";
+
+     # now look for any proposer input files
+     getFilename ($param{i},$fname,"txt|pdf","Proposer Input",0,2);
+
+     print OFILE "\n";
+
+  }
+}
+
+
+sub get_proposals
+{
+  my($str,$fname,$ii,$ss);
+  my($sql,@row,$sth,$dbh,$stmp,$dsn);
+
+  $dbh = dbProposalConnection($param{U}, $param{S}, $param{q});
+
+  $sql = qq(select distinct proposal_number from proposal,panel_proposal
+	where proposal.proposal_id = panel_proposal.proposal_id and
+	proposal.ao_str = "$param{a}"
+        );
+  if ($param{p}) {
+     $sql .= qq( and proposal_number like "%$param{p}%");
+  }
+  $sth = $dbh->prepare($sql);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+    push @Proposals,$row[0];
+  }
+  $dbh->disconnect();
+
+}
+
+sub getFilename
+{
+
+  my($pdir,$pno,$ftype,$mtype,$req,$maxFiles) = @_;
+  my($thedir,@filenames,$stmp,$ii);
+
+  $thedir = $param{d} . "/" . $pdir;
+  opendir PDIR,"$thedir";
+  @filenames =  grep /$pno/ , readdir PDIR;
+  closedir PDIR;
+
+  $ii=0;
+  foreach $stmp ( @filenames){
+    next unless ($stmp =~ /$ftype/);
+    next unless ($stmp !~ /~/);
+    next unless ($stmp =~ /^$param{a}/);
+    $ii++;
+    if ($ii <= $maxFiles) {
+      print OFILE "$pdir/$stmp\t";
+    } else {
+      print STDERR "Ignored file: $pdir/$stmp\n";
+    }
+  }
+  if ($ii <= 0) {
+    if ($req > 0) {
+      print STDERR "No $mtype file found for $pno.\n";
+    }
+    print OFILE " \t";
+  } elsif ($ii > $maxFiles) {
+      print STDERR "More than $maxFiles $mtype file found for $pno.\n";
+  }
+}
+
+
+
+sub parse_input {
+
+  my($pwd);
+  my $err = 0;
+
+  %param = ( U => undef,
+             S => $ENV{DB_PROP_SQLSRV},
+             o => "./proposal_files.list",
+	     c => "conflict_files",
+	     t => "technical_reviews",
+	     i => "proposer_input",
+             a => $ENV{ASCDS_PROP_AO},
+             d=> "$ENV{ASCDS_PROP_UPLOAD}",
+        );
+
+  GetOptions( \%param,
+          "d=s",
+          "c=s",
+          "U=s",
+          "S=s",
+          "o=s",
+          "a=s",
+          "i=s",
+          "t=s",
+          "p=s",
+          "q=s",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter `$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+  if ($param{d}) {
+    $param{d} .= "/CHANDRA";
+  }
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+  $param{q} = $pwd;
+
+}
+
+
+
+sub usage {
+  print STDERR "prop_build_upload_list.pl U[Sacdopt]\n";
+  print STDERR "        -U  database user name \n";
+  print STDERR "        -S  sql server, default is DB_PROP_SQLSRV\n";
+  print STDERR "        -a  AO, default is ASCDS_PROP_AO\n";
+  #print STDERR "        -c  directory path of conflict files. \n";
+  #print STDERR "            Default=ASCDS_PROP_UPLOAD/CHANDRA/conflict_files \n";
+  print STDERR "        -d  directory path of upload files. \n";
+  print STDERR "            Default=ASCDS_PROP_UPLOAD/CHANDRA \n";
+  print STDERR "        -o  output file. Default is ./proposal_files.list\n";
+  print STDERR "        -p  optional proposal number \n";
+  #print STDERR "        -t  directory path of technical review files. \n";
+  #print STDERR "            Default=ASCDS_PROP_UPLOAD/CHANDRA/technical_reviews \n";
+  #print STDERR "        -i  directory path of proposer input files. \n";
+  #print STDERR "            Default=ASCDS_PROP_UPLOAD/CHANDRA/proposer_input \n";
+  print STDERR "\nNote:  Only retrieves proposals going to the peer review\n";
+}

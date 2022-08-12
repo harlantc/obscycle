@@ -1,0 +1,29 @@
+%s:  %s request from %s; Paging urgency %s.
+
+Status for tag number: %d
+RA :   %s 
+Dec:  %s 
+
+
+[x] First Notification
+[] Acknowledged, Pending
+[] Approved
+[] NOT Approved
+[] Request Withdrawn
+
+
+%s
+
+POC: %s
+
+
+                                  Requested     Approved
+Tgt Target Name                  Time   #Obs   Time   #Obs
+-----------------------------------------------------------
+%s                                    
+
+%s
+
+%s
+
+

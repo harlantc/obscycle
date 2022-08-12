@@ -1,0 +1,46 @@
+#!/bin/tcsh
+ 
+#/*****************************************************
+# This script does a pgdump of the Peer Review tables.
+# It is meant to be run as a cron job.
+# The most current dumps are placed in $HOME/dbbak.
+# Older versions are first moved to $HOME/dbbak/old.  
+# The dump files contain a timestamp so as not to overwrite
+# older versions
+# *****************************************************/
+
+set user = `/usr/bin/whoami`
+
+set backupdir = "$HOME/dbbak/mod"
+
+set year = `date +%Y`
+set mon = `date +%m`
+set mday = `date +%d`
+set day = ${year}_${mon}_${mday}
+set time = `date +%T`
+set timestamp = ${day}_${time}
+
+cd $backupdir
+
+/usr/bin/pg_dump $user --data-only --table proposal --no-owner \
+    --file ${user}_proposal
+/usr/bin/pg_dump $user --data-only --table target --no-owner \
+    --file ${user}_target
+/usr/bin/pg_dump $user --data-only --table too --no-owner \
+    --file ${user}_too
+/usr/bin/pg_dump $user --data-only --table alternate_target_group --no-owner \
+    --file ${user}_alternate_target_group
+/usr/bin/pg_dump $user --data-only --table final_comments --no-owner \
+    --file ${user}_final_comments
+/usr/bin/pg_dump $user --data-only --table phasereq --no-owner \
+    --file ${user}_phasereq
+/usr/bin/pg_dump $user --data-only --table rollreq --no-owner \
+    --file ${user}_rollreq
+/usr/bin/pg_dump $user --data-only --table timereq --no-owner \
+    --file ${user}_timereq
+/usr/bin/pg_dump $user --data-only --table views --no-owner \
+    --file ${user}_views
+/usr/bin/pg_dump $user --data-only --table bpp_panel_grades --no-owner \
+    --file ${user}_bpp_panel_grades
+
+

@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<tree id="myroot">
+<item nocheckbox="1" text="Keywords - Please select 5 or more keywords." id="myroot2" >
+<item nocheckbox="1" text="Generic Keywords" id="gen_0" >
+<item text="Absorption Lines" id="gen_1"></item>                
+<item text="Accretion" id="gen_2a"></item>
+<item text="Accretion Disks" id="gen_2"></item>
+<item text="Astrometry" id="gen_3"></item>
+<item text="Atmospheres" id="gen_3a"></item>
+<item text="Black Holes" id="gen_4"></item>
+<item text="Black Hole Spin" id="gen_4a"></item>
+<item text="Calibration" id="gen_5"></item>
+<item text="Chemical Abundances" id="gen_6"></item>
+<item text="Cores" id="gen_6a"></item>
+<item text="Coronae" id="gen_7"></item>
+<item text="Crusts" id="gen_8"></item>
+<item text="Deep Fields" id="gen_9"></item>
+<item text="Dust" id="gen_10"></item>
+<item text="Dust Scattering Halos" id="gen_11"></item>
+<item text="Dynamics" id="gen_12"></item>
+<item text="Ejecta" id="gen_12a"></item>
+<item text="Emission Lines" id="gen_13"></item>
+<item text="Evolution" id="gen_14"></item>
+<item text="Extragalactic Survey" id="gen_15"></item>
+<item text="Gravitational Lens" id="gen_16"></item>
+<item text="Grating Spectroscopy" id="gen_17"></item>
+<item text="High Energy Processes" id="gen_17a"></item>
+<item text="Intergalactic Medium" id="gen_18"></item>
+<item text="Jets" id="gen_19"></item>
+<item text="Localization" id="gen_19a"></item>
+<item text="Luminosity Functions" id="gen_20"></item>
+<item text="Magnetic Fields" id="gen_20a"></item>
+<item text="Metallicity" id="gen_20b"></item>
+<item text="Metal Absorption Systems" id="gen_21"></item>
+<item text="Microlensing" id="gen_22"></item>
+<item text="Multiwavelength Study" id="gen_23"></item>
+<item text="Obscured Objects" id="gen_23a"></item>
+<item text="Orientation Effects" id="gen_23b"></item>
+<item text="Plasma" id="gen_23c"></item>
+<item text="Radiative Transfer" id="gen_24"></item>
+<item text="Shocks" id="gen_25"></item>
+<item text="Simulations" id="gen_25a"></item>
+<item text="Spectroscopy" id="gen_25b"></item>
+<item text="Spectral Energy Distributions" id="gen_25c"></item>
+<item text="Synchrotron Emission" id="gen_25a"></item>
+<item text="Synchrotron Absorption" id="gen_25e"></item>
+<item text="Theory" id="gen_26"></item>
+<item text="Transients" id="gen_26a"></item>
+<item text="Unidentified Objects" id="gen_27"></item>
+<item text="Variability" id="gen_28"></item>
+<item text="X-ray Flares" id="gen_29"></item>
+</item>
+<item nocheckbox="1" text="Solar System and Exoplanets" id="ss_0">
+<item text="Aurorae" id="ss_1"></item>
+<item text="Charge Exchange" id="ss_2"></item>
+<item text="Comets" id="ss_3"></item>
+<item text="Exoplanets" id="ss_4"></item>
+<item text="Planets" id="ss_5"></item>
+</item>
+<item nocheckbox="1" text="Stars" id="s_0">
+<item text="Atmospheres and Chromospheres" id="s_1"></item>
+<item text="Colliding Wind Binaries" id="s_1a"></item>
+<item text="Detached Binaries" id="s_2"></item>
+<item text="Dynamos" id="s_2a"></item>
+<item text="Eclipsing Binaries" id="s_3"></item>
+<item text="Giants and AGB Stars" id="s_4"></item>
+<item text="HII Regions" id="s_5"></item>
+<item text="Low-Mass and Cool Stars" id="s_6"></item>
+<item text="Magnetic Activity" id="s_6a"></item>
+<item text="Main Sequence Stars" id="s_7"></item>
+<item text="Massive Stars" id="s_8"></item>
+<item text="Planetary Nebulae" id="s_9"></item>
+<item text="Planetary Nebulae Central Stars" id="s_10"></item>
+<item text="Protoplanetary Disks" id="s_11"></item>
+<item text="Resolved Stellar Populations" id="s_13"></item>
+<item text="RS CVn Stars" id="s_14"></item>
+<item text="Star Formation" id="s_15"></item>
+<item text="Stellar Activity" id="s_17"></item>
+<item text="Stellar Evolution and Models" id="s_18"></item>
+<item text="Stellar Jets" id="s_19"></item>
+<item text="Survey" id="s_20"></item>
+<item text="T Tauri Stars" id="s_21"></item>
+<item text="Variable and Pulsating Stars" id="s_22"></item>
+<item text="Very Low Mass Stars and Brown Dwarfs" id="s_23"></item>
+<item text="White Dwarfs" id="s_24"></item>
+<item text="Winds/Outflows/Mass-Loss" id="s_25"></item>
+<item text="Wolf-Rayet Stars" id="s_26"></item>
+<item text="X-ray Transients" id="s_27"></item>
+<item text="Young Stars and Protostellar Objects" id="s_28"></item>
+</item>
+<item nocheckbox="1" text="Compact Object Binaries" id="cob_0">
+<item text="Anomalous X-ray Pulsars" id="cob_1a"></item>
+<item text="Black Hole Binaries" id="cob_1"></item>
+<item text="Cataclysmic Variables" id="cob_1b"></item>
+<item text="Cluster Binary Stars and Blue Stragglers" id="cob_2"></item>
+<item text="Eclipsing Binaries" id="cob_3"></item>
+<item text="Eruptive Binary Stars and Cataclysmic Variables" id="cob_4"></item>
+<item text="HMXB" id="cob_5"></item>
+<item text="Intermediate Mass Black Holes" id="cob_6a"></item>
+<item text="Intermediate Polar (DQ HER)" id="cob_6"></item>
+<item text="LMXB" id="cob_7"></item>
+<item text="Mass Transfer" id="cob_7a"></item>
+<item text="Microquasars" id="cob_7b"></item>
+<item text="Novae" id="cob_8"></item>
+<item text="Peculiar Binary Stars" id="cob_9"></item>
+<item text="Soft Gamma Repeaters" id="cob_10"></item>
+<item text="Super-Soft Sources" id="cob_11"></item>
+<item text="Survey" id="cob_12"></item>
+<item text="Tidal Disruption Events" id="cob_13"></item>
+<item text="Ultra Compact Binaries" id="cob_14"></item>
+<item text="Ultra Luminous X-ray Sources" id="cob_15"></item>
+<item text="X-ray Binaries" id="cob_16"></item>
+<item text="X-ray Populations" id="cob_17"></item>
+</item>
+<item nocheckbox="1" text="Exploding Stars: SN, SNR, NS and Pulsars, GRBs, GWs" id="es_0">
+<item text="Circumstellar Medium" id="es_1a"></item>
+<item text="Core Collapse SN" id="es_1b"></item>
+<item text="Gamma-ray Bursts" id="es_1"></item>
+<item text="Gravitational Wave Events" id="es_1c"></item>
+<item text="Magnetars" id="es_1d"></item>
+<item text="Neutron Stars and Pulsars" id="es_2"></item>
+<item text="Novae" id="es_3"></item>
+<item text="Pulsar Wind Nebulae" id="es_3a"></item>
+<item text="Short GRB" id="es_3b"></item>
+<item text="Supernovae" id="es_4"></item>
+<item text="Supernova Remnants" id="es_5"></item>
+<item text="Type 1a Supernovae" id="es_6"></item>
+</item>
+<item nocheckbox="1" text="Local Star Clusters and the Milky Way" id="lsc_0">
+<item text="Dark Clouds" id="lsc_1"></item>
+<item text="Diffuse X-ray Background" id="lsc_2"></item>
+<item text="Galactic Center" id="lsc_3"></item>
+<item text="Galactic Disk" id="lsc_4"></item>
+<item text="Galactic Halo" id="lsc_5"></item>
+<item text="Galactic Survey" id="lsc_6"></item>
+<item text="Globular Clusters" id="lsc_7"></item>
+<item text="HII Regions" id="lsc_8"></item>
+<item text="Interstellar Medium" id="lsc_9"></item>
+<item text="Molecular Clouds" id="lsc_10"></item>
+<item text="OB Association" id="lsc_11"></item>
+<item text="Open Star Clusters" id="lsc_12"></item>
+<item text="Resolved Stellar Populations" id="lsc_13"></item>
+<item text="Star Formation" id="lsc_15"></item>
+<item text="Survey" id="lsc_16"></item>
+</item>
+<item nocheckbox="1" text="External Galaxies" id="eg_0">
+<item text="Black Hole Formation" id="eg_1a"></item>
+<item text="Diffuse Emission" id="eg_1b"></item>
+<item text="Dwarf Galaxies" id="eg_1"></item>
+<item text="Elliptical Galaxies" id="eg_2"></item>
+<item text="Extragalactic Survey" id="eg_3"></item>
+<item text="Feedback" id="eg_4"></item>
+<item text="Galaxy Bulges" id="eg_5"></item>
+<item text="Galaxy Centers" id="eg_6"></item>
+<item text="Galaxy Disks" id="eg_7"></item>
+<item text="Galaxy Formation and Evolution" id="eg_8"></item>
+<item text="Galaxy Halos" id="eg_9"></item>
+<item text="Galaxy Morphology and Structure" id="eg_10"></item>
+<item text="Galaxy Winds/Outflows" id="eg_11"></item>
+<item text="Gravitational Lens" id="eg_12"></item>
+<item text="High Redshift Galaxies" id="eg_13"></item>
+<item text="Infrared Galaxies" id="eg_13a"></item>
+<item text="Interacting/Merging Galaxies" id="eg_13b"></item>
+<item text="Irregular Galaxies" id="eg_14"></item>
+<item text="Liners" id="eg_15"></item>
+<item text="Local Group Galaxies" id="eg_16"></item>
+<item text="Low Metallicity Galaxies" id="eg_17"></item>
+<item text="Spiral Galaxies" id="eg_19"></item>
+<item text="Starburst Galaxies" id="eg_20"></item>
+<item text="Stellar Populations in External Galaxies" id="eg_21"></item>
+<item text="Young Star Clusters in External Galaxies" id="eg_22"></item>
+</item>
+<item nocheckbox="1" text="Active Galaxies and Quasars" id="agq_0">
+<item text="AGN Jets" id="agq_1"></item>
+<item text="BAL Quasars" id="agq_2"></item>
+<item text="BL LAC Objects and Blazars" id="agq_3"></item>
+<item text="Dual/Binary AGN" id="agq_3a"></item>
+<item text="Extragalactic Survey" id="agq_4"></item>
+<item text="Evolution" id="agq_5"></item>
+<item text="Gravitational Lens" id="agq_6"></item>
+<item text="High Redshift" id="agq_7"></item>
+<item text="Host Galaxies" id="agq_8"></item>
+<item text="Radio Galaxies" id="agq_9"></item>
+<item text="Radio-Loud Quasars" id="agq_10"></item>
+<item text="Radio-Quiet Quasars" id="agq_11"></item>
+<item text="Quasars" id="agq_12"></item>
+<item text="Seyfert Galaxies" id="agq_13"></item>
+<item text="Tidal Disruption Events" id="agq_14"></item>
+</item>
+
+<item nocheckbox="1" text="Cosmology" id="c_0">
+<item text="Cosmological Parameters" id="c_1"></item>
+<item text="Dark Matter" id="c_2"></item>
+<item text="Dark Energy" id="c_1"></item>
+<item text="Large Scale Structure" id="c_4"></item>
+</item>
+
+<item nocheckbox="1" text="Clusters of Galaxies" id="cg_0">
+<item text="Brightest Cluster Galaxies" id="cg_1"></item>
+<item text="Bubble/Cavities" id="cg_2"></item>
+<item text="Cool Cores" id="cg_3"></item>
+<item text="Cooling Flows" id="cg_4"></item>
+<item text="Cold Fronts" id="cg_5"></item>
+<item text="Cosmology" id="cg_6"></item>
+<item text="Extragalactic Survey" id="cg_7"></item>
+<item text="Gravitational Lens" id="cg_8"></item>
+<item text="Groups of Galaxies" id="cg_9"></item>
+<item text="High-Redshift Cluster" id="cg_10"></item>
+<item text="Intracluster Medium" id="cg_11"></item>
+<item text="Poor Cluster" id="cg_12"></item>
+<item text="Rich Cluster (Low-Redshift)" id="cg_13"></item>
+<item text="Sloshing" id="cg_14"></item>
+</item>
+
+</item>
+</tree>

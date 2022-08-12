@@ -1,0 +1,488 @@
+#!@PERLDB@
+#*H****************************************************************************
+#* Copyright (c) 1995-2015,2019 Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_proposal_lists.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#    Create lists before panels are even created
+#     - archival proposals
+#     - theory proposals
+#     - joint proposals - all, plus separately for each institution
+#     - LPs
+#     - VLPs
+#
+#  Lists of prop#,PI,type,joint,chandra time,joint time
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+
+use strict;
+use Carp;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+
+use vars qw (%param $dbh $curdate @reqfiles $reqfile $titlestr
+	);
+
+@reqfiles = (
+        "prop_routines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+{
+  my ($password,$dsn,$stmp);
+
+# -------------------------- MAIN ----------------------------------
+  my($pwd,$param_str)=parse_input();
+
+
+  #database connection
+  $dbh = dbProposalConnection($param{U}, $param{S}, $pwd);
+
+
+  $curdate = get_date();
+  open LFILE,"> $param{l}" or die "Unable to open $param{l} for writing.\n";
+  print LFILE "Proposal Lists created on $curdate\n\n";
+
+  proposal_list("ALL",qq(type like "%"));
+  proposal_list("ARCHIVE",qq(type like "ARCH%"));
+  proposal_list("THEORY",qq(type like "THEO%"));
+  proposal_list("LP",qq(type like "%LP%" and type not like "%VLP%"));
+  # no xvp panel in cycle 17 or 18
+  #my($rcnt) = proposal_list("XVP",qq((type like "%XVP%"  or type like "%VLP%")));
+  my($rcnt) = 0;
+  my($xname);
+  if (int($param{a}) > 12 && int($param{a}) < 17) {
+    $titlestr="XVP";
+    $xname = $param{o} . "/xvp_pi_coi.txt";
+  } else {
+    $titlestr="VLP";
+    $xname = $param{o} . "/vlp_pi_coi.txt";
+  }
+  $rcnt = proposal_list($titlestr,qq((type like "%$titlestr%"  )));
+  if ($rcnt > 0) {
+    xvp_pi_coi($xname,0);
+  }
+  $titlestr="LP";
+  $xname = $param{o} . "/lp_pi_coi.txt";
+  xvp_pi_coi($xname,1);
+
+  proposal_list("GO",qq(type not like "%LP%" and type not like "%XVP%" and type not like "%THE%" and type not like "%ARCH%" and type not like "%GTO%" and type not like "DDT" and type not like "CAL" and (joint="None" or joint is null)));
+  proposal_list("GTO",qq(type not like "%LP%" and type like "%GTO%" and 
+  (joint="None" or joint is null)));
+
+  my($ofile) = "$param{o}";
+  #print LFILE "$ofile/joint_*.txt  \n";
+  open PFILE,"peer_joint_lists.pl -p  $param_str -o $ofile 2>&1 | ";
+  while ($stmp = <PFILE>) {
+    $stmp =~ s/Output file: //; 
+    print LFILE "$stmp";
+  }
+
+
+
+  gratings();
+  multicycle_list();
+  hrc();
+
+  `prop_acis_lists.pl $param_str -o $param{o}`;
+  print LFILE "$param{o}/cycle$param{a}" . "_high_cnt_rate.txt\n";
+  print LFILE "$param{o}/cycle$param{a}" . "_no_optional_acis_chips.txt\n";
+  print LFILE "$param{o}/cycle$param{a}" . "_acis_chips.txt\n";
+
+  $ofile = "$param{o}" . "/possible_reviewers.csv";
+  print LFILE "$ofile\n";
+  `prop_possible_reviewers.pl $param_str -o $ofile `;
+  $dbh->disconnect;
+  close LFILE;
+  chgroup($param{l});
+  chmod 0660,$param{l};
+
+
+  if ($param{z}) {
+    unlink($param{z});
+  }
+
+}
+
+
+
+sub xvp_pi_coi
+{
+  my($fname,$flg) = @_;
+  my($sql);
+  my($sth,@row,$ii,$str);
+  my($mystat);
+  my($qstr);
+
+  if ($flg ==0) {
+    $qstr = qq( (type like "%VLP%" or type like "%XVP%"));
+  } else {
+    $qstr = qq( (type like "%LP%" and type not like "%VLP%"));
+  }
+
+  open (OFILE,">$fname")  || 
+	die "Unable to open $fname for writing.\n";
+  print LFILE "$fname\n";
+ 
+  printf OFILE ("\n\n$titlestr PI/CoI \n\n");
+  $sql = qq(select lower(last),(last + "," +convert(char(1),first)),"PI" from
+	proposal , axafusers..person_short
+	where piid = pers_id
+	and $qstr
+        and proposal.ao_str like "$param{a}" 
+        and (proposal.status = "PROPOSED" or rank is not null) 
+	UNION
+	select lower(last),(last + "," + convert(char(1),first)),"COI" from
+	proposal , axafusers..person_short ps,coin
+	where proposal.proposal_id = coin.proposal_id
+	and coin.pers_id = ps.pers_id
+	and $qstr
+        and proposal.ao_str like "$param{a}" 
+        and (proposal.status = "PROPOSED" or rank is not null) 
+	order by lower(last)
+	);
+
+
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  printf OFILE ("%-32.32s  %s \n",
+	"Name","Type");
+
+  printf OFILE ("-----------------------------------------------------------\n");
+  while (@row = $sth->fetchrow_array) {
+    printf OFILE ("%-32.32s  %s \n",$row[1],$row[2]);
+  }
+  
+  close OFILE;
+  chgroup($fname);
+  chmod 0660,$fname;
+}
+
+
+
+
+sub proposal_list
+{
+  my($hdr,$query) = @_;
+  my($sql,$fname);
+  my($sth,@row,$ii,$str);
+  my($mystat);
+  my($retcnt);
+
+  $fname = $param{o} . "/$hdr\_proposal.txt";
+  open OFILE,"> $fname" or die "Unable to open $fname for writing.\n";
+  printf OFILE "\n%-50.50s    $curdate\n\n","$hdr list for Chandra Cycle $param{a}";
+  print LFILE "$fname\n";
+  $sql = qq(select distinct proposal_number,last,type,
+        total_time,title
+        from proposal,axafusers..person_short ps
+        where 
+        proposal.piid = ps.pers_id
+        and proposal.ao_str like "$param{a}" and
+        (proposal.status = "PROPOSED" or rank is not null) and
+	$query
+        order by proposal_number);
+
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  if ($hdr !~ /ARCHIVE/i && $hdr !~ /THEORY/i) {
+    printf OFILE ("%8.8s  %-20.20s  %9.9s  %10.10s  %s \n",
+        "Proposal","P.I.","Type","Req.Time","Title");
+  }
+  else {
+    printf OFILE ("%8.8s  %-20.20s  %9.9s  %10.10s  %s \n",
+        "Proposal","P.I.","Type","Req.Amount.","Title");
+  }
+
+  $retcnt=0;
+  printf OFILE ("------------------------------------------------------------------------------------------\n");
+  while (@row = $sth->fetchrow_array) {
+    $retcnt++;
+    if ($hdr !~ /ARCHIVE/i && $hdr !~ /THEORY/i) {
+      printf OFILE ("%8.8s  %-20.20s  %9.9s  %10.2f  %s \n",@row);
+    } else {
+      printf OFILE ("%8.8s  %-20.20s  %9.9s  %10.3f  %s \n",@row);
+    }
+  }
+  
+  close OFILE;
+  chgroup ($fname);
+  chmod 0660,$fname;
+  
+  return $retcnt;
+}
+
+sub multicycle_list
+{
+  my($sql,$sth,@row,$stmp,$fname);
+  my($ctime,$n,$n1,$n2);
+  my($tt,$t0,$t1,$t2,$dd);
+
+  $n  = $param{a};
+  $n1 = $n + 1;
+  $n2 = $n + 2;
+  $tt=0;
+  $t0=0;
+  $t1=0;
+  $t2=0;
+
+
+  $stmp="Multicycle Proposals for Chandra Cycle $param{a}";
+  $fname = "$param{o}/multicycle_proposals.txt";
+  open OFILE,"> $fname" or die "Unable to open $fname for writing.\n";
+  printf OFILE "\n%-50.50s    $curdate\n\n",$stmp;
+  print LFILE "$fname\n";
+  printf  OFILE ("%-9.9s  %-15.15s   %-10.10s  %-10.10s  %-10.10s  %-10.10s\n",
+        "Proposal","P.I.","ReqTime","Cycle $n","Cycle $n1","Cycle $n2");
+  printf OFILE "-----------------------------------------------------------------------------------\n";
+
+  $sql = qq(select distinct
+        proposal_number,last,
+        sum(prop_exposure_time),
+	null,
+        sum(est_time_cycle_n1),sum(est_time_cycle_n2)
+        from proposal,target,axafusers..person_short ps
+        where proposal.ao_str = "$param{a}"
+        and proposal.type not like ("ARC%")
+        and proposal.type not like ("THE%")
+        and piid = pers_id
+        and proposal.proposal_id = target.proposal_id
+        and ((proposal.status = "PROPOSED" or rank is not null) or
+	(proposal.status="APPROVED" and target.status = "accepted"))
+        and proposal.multi_cycle = "Y"
+        group by proposal.proposal_number,last
+        order by proposal_number);
+  $sth = $dbh->prepare($sql);
+  #print STDERR "$sql\n";
+  $sth->execute();
+  while (@row = $sth->fetchrow_array) {
+     $row[3] = $row[2] - $row[4] - $row[5];
+     $tt += $row[2];
+     $t0 += $row[3];
+     $t1 += $row[4];
+     $t2 += $row[5];
+     printf OFILE ("%-9.9s  %-15.15s %10.2f  %10.2f  %10.2f  %10.2f\n",@row);
+  }
+  $dd = "----------";
+     printf OFILE ("%-9.9s  %-15.15s %10s  %10s  %10s  %10s\n"," "," ",$dd,$dd,$dd,$dd);
+     printf OFILE ("%-9.9s  %-15.15s %10.2f  %10.2f  %10.2f  %10.2f\n"," "," ",$tt,$t0,$t1,$t2);
+  close OFILE;
+  chgroup($fname);
+  chmod 0660,$fname;
+
+
+}
+
+
+sub gratings
+{
+  my($sql,$fname);
+  my($sth,@row,$ii,$str);
+
+  $fname = $param{o} . "/gratings_by_category_stats\.txt";
+  open OFILE,"> $fname" or die "Unable to open $fname for writing.\n";
+  printf OFILE "\n%-50.50s    $curdate\n\n","Gratings by Science Category for Chandra Cycle $param{a}";
+  print LFILE "$fname\n";
+  $sql = qq( select substring(proposal_number,3,2) ,
+	grating_name, count(distinct proposal.proposal_id)
+	from proposal,target,grating
+	where use_grating_id = grating.grating_id 
+	and target.proposal_id=proposal.proposal_id and
+	proposal.ao_str = "$param{a}"  and
+	(proposal.status="PROPOSED" or  rank is not null)
+	group by substring(proposal_number,3,2),grating_name
+	order by substring(proposal_number,3,2),grating_name);
+
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  printf OFILE ("%8.8s  %-7.7s  %s \n", 
+	"Category","Grating","#Proposals");
+
+  printf OFILE ("-------------------------------------------------------\n");
+  while (@row = $sth->fetchrow_array) {
+    printf OFILE ("%-8.8s  %-7.7s  %3d \n", @row);
+  }
+  $sth->finish;
+  
+  $fname = $param{o} . "/cycle$param{a}_grating_props.txt";
+  open OFILE,"> $fname" or die "Unable to open $fname for writing.\n";
+  #printf OFILE "\n%-50.50s    $curdate\n\n","Proposals with Gratings for $param{a}";
+  print LFILE "$fname\n";
+  $sql = qq( select distinct proposal_number,last,targname,instrument_name,grating_name,
+	prop_exposure_time
+	from proposal,target,grating,instrument,axafusers..person_short ps
+	where use_grating_id = grating.grating_id 
+	and grating_name != "NONE"
+	and use_instrument_id = instrument.instrument_id 
+        and piid = pers_id
+	and target.proposal_id=proposal.proposal_id and
+	proposal.ao_str = "$param{a}"  and
+	(proposal.status="PROPOSED" or  rank is not null)
+	order by proposal_number,targ_num);
+
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  printf OFILE ("%s,%s,%s,%s,%s,%s\n", 
+	"Proposal","P.I.","Target","Detector","Grating","expTime");
+
+  while (@row = $sth->fetchrow_array) {
+    printf OFILE ("%s,\"%s\",\"%s\",%s,%s,%7.2f\n", @row);
+  }
+  $sth->finish;
+  
+  close OFILE;
+  chgroup ($fname);
+  chmod 0660,$fname;
+  
+}
+
+
+sub hrc
+{
+  my($sql,$fname);
+  my($sth,@row,$ii,$str);
+
+  $fname = $param{o} . "/cycle$param{a}_HRC_proposals\.txt";
+  open OFILE,"> $fname" or die "Unable to open $fname for writing.\n";
+  printf OFILE "\n%-50.50s    $curdate\n\n","HRC Proposals for Chandra Cycle $param{a}";
+  print LFILE "$fname\n";
+  $sql = qq( select distinct proposal_number
+	from proposal,target,instrument
+	where use_instrument_id = instrument.instrument_id 
+	and instrument_name like "HRC%" 
+	and target.proposal_id=proposal.proposal_id 
+	and proposal.ao_str = "$param{a}"  and
+	(proposal.status="PROPOSED" or  rank is not null)
+	order by proposal_number);
+
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  printf OFILE ("%s\n", "Proposal");
+
+  printf OFILE ("--------\n");
+  while (@row = $sth->fetchrow_array) {
+    printf OFILE ("%-8.8s\n", @row);
+  }
+  
+  close OFILE;
+  chgroup ($fname);
+  chmod 0660,$fname;
+  
+}
+
+    
+sub parse_input { 
+  my ($pwd,$pstr);
+  my $err = 0;
+
+  %param = ( U => undef,
+             S => $ENV{DB_PROP_SQLSRV},
+             o => "$ENV{ASCDS_PROP_DIR}/reports",
+             a => $ENV{ASCDS_PROP_AO},
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "o=s",
+          "l=s",
+	  "a=s",
+	  "q=s",
+	  "g",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val;
+      warn("parameter '$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+  if(!$param{l}) {
+    $param{l} = $param{o} . "/.proposal_lists";
+  }
+
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+    $param{q} = "$param{o}/.$ENV{USER}.peerj";
+    $param{z} = $param{q};
+    write_password($param{q},$pwd);
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+
+  while ( my ( $par, $val ) = each ( %param ) ) {
+     if ($par =~ /S/ || $par =~ /U/ || $par =~ /a/) {
+       $pstr .= " -$par $val ";
+     }
+  }
+  $pstr .= " -q $param{q} ";
+  return ($pwd,$pstr);
+
+}
+
+sub usage {
+  print STDERR "\nUSAGE: prop_proposal_lists.pl -U [Saod] \n";
+  print STDERR "        -U  database user name \n";
+  print STDERR "        -S  sql server, default is DB_PROP_SQLSRV\n";
+  print STDERR "        -a  AO, default is ASCDS_PROP_AO\n";
+  print STDERR "        -o  output directory, default is ASCDS_PROP_DIR/reports\n";
+  print STDERR "        -l  log file, default is output_directory/.proposal_lists\n";
+  print STDERR "\n\nOutput files are:\n";
+  print STDERR <<ENDL;
+ALL_proposal.txt
+GTO_proposal.txt
+GO_proposal.txt
+XVP/VLP_proposal.txt 
+LP_proposal.txt
+THEORY_proposal.txt
+ARCHIVE_proposal.txt
+joint_*.txt
+gratings_by_category_stats.txt
+multicycle_proposals.txt
+cyclenn_high_cnt_rate.txt
+cyclenn_no_optional_acis_chips.txt
+cyclenn_acis_chips.txt
+cyclenn_HRC_proposals.txt
+ENDL
+
+}
+
+
+

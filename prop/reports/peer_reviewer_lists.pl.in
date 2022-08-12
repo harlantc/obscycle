@@ -1,0 +1,279 @@
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 1995,2019 Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: peer_reviewer_lists.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script extracts the primary/secondary proposals for each
+#     reviewer.
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use vars qw ($dbh %param @REVTABLE @PRITABLE @SECTABLE @reqfiles $reqfile
+	@ALLTABLE $dbg
+
+);
+
+$dbg = 0;
+use strict;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+
+@reqfiles = (
+        "prop_routines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+
+
+# -------------------------- MAIN ----------------------------------
+
+{
+  my($sth,$stmp,$fname,$curdate,$dotitle);
+
+  &parse_input;
+
+  #database connection
+  $dbh = dbProposalConnection($param{U}, $param{S}, $param{q});
+
+
+  $curdate = get_date();
+  #build summary list
+  $fname = $param{o} . "/proposal_reviewers";
+  if ($param{p} !~ /%/) {
+    $fname .= "_" . $param{p};
+  }
+  if ($param{f} =~ /,/) {
+    $fname .= ".csv";
+  } else {
+    $fname .= ".txt";
+  }
+  print STDERR "Output file: $fname\n";
+  open (OFILE,">$fname")  ||
+        die "Unable to open $fname for writing.\n";
+
+  #printf OFILE "%-50.50s    $curdate\n\n","Full Reviewer list for Chandra Cycle $param{a}";
+  if ($param{t}) {
+    $dotitle=0;
+  } else {
+    $dotitle=1;
+  }
+  if ($dotitle) {
+    printf OFILE ("%-3.3s$param{f}%-8.8s$param{f}\"%-20.20s\"$param{f}%-8.8s$param{f}\"%-20.20s\"$param{f}\"%-20.20s\"$param{f}\"%s\"\n",
+	  "Pnl","Proposal","P.I.","Type","Primary Reviewer","Secondary Reviewer","Title");
+  } else {
+    printf OFILE ("%-3.3s$param{f}%-8.8s$param{f}\"%-20.20s\"$param{f}%-8.8s$param{f}\"%-20.20s\"$param{f}\"%-20.20s\"\n",
+	  "Pnl","Proposal","P.I.","Type","Primary Reviewer","Secondary Reviewer");
+  }
+  summary_list($param{p},"proposal_number",$dotitle);
+  close OFILE;
+  chgroup($fname);
+  chmod 0660,$fname;
+
+  $fname = $param{o} . "/proposal_reviewers_chairs";
+  if ($param{f} =~ /,/) {
+    $fname .= ".csv";
+  } else {
+    $fname .= ".txt";
+  }
+  print STDERR "Output file: $fname\n";
+  open (OFILE,">$fname")  ||
+        die "Unable to open $fname for writing.\n";
+
+  printf OFILE ("%-3.3s$param{f}%-25.25s$param{f}%-8.8s$param{f}\"%-20.20s\"$param{f}%-8.8s$param{f}\"%-20.20s\"$param{f}\"%-20.20s\"$param{f}\"%s\"$param{f}%s\n",
+	  "Pnl","Chair","Proposal","P.I.","Type","Primary Reviewer","Secondary Reviewer","Title","Category");
+  summary_chair_list("panel_name,proposal_number");
+  close OFILE;
+  chgroup($fname);
+  chmod 0660,$fname;
+
+}
+
+# -------------------------------------------------------------------
+# query to retrieve all reviewers for all proposals in all panels
+# -------------------------------------------------------------------
+sub summary_list
+{    
+  my($pname,$ordr,$dotitle) = @_;
+  my($sql,@row,$sth,$fname);
+
+  $sql = qq( select distinct panel_name,proposal_number,
+        axafusers..person_short.last,type,
+	(p2.last + ','+ substring(p2.first,1,1)),
+	(p3.last + ',' + substring(p3.first,1,1)),
+	title
+	from panel,proposal,panel_proposal,proposal_review,
+	axafusers..person_short,
+	axafusers..person_short p2,
+	axafusers..person_short p3
+	where
+	proposal.ao_str = "$param{a}" and
+	panel_name like "$pname"  and
+	proposal.proposal_id = proposal_review.proposal_id and
+	proposal.piid = axafusers..person_short.pers_id and
+	proposal.proposal_id = panel_proposal.proposal_id and
+	panel.panel_id = panel_proposal.panel_id and
+	proposal_review.panel_id = panel_proposal.panel_id and
+	proposal_review.primary_reviewer *= p2.pers_id and
+	proposal_review.secondary_reviewer *= p3.pers_id 
+	order by
+	);
+    $sql .= $ordr; 
+
+   print STDERR "Summary for $pname: $ordr\n" if $dbg;
+   $sth = $dbh->prepare($sql);
+   $sth->execute;
+   while((@row) = $sth->fetchrow_array()) {
+      if ($dotitle == 1) {
+        printf OFILE ("%-3.3s$param{f}%-8.8s$param{f}\"%-20.20s\"$param{f}%-8.8s$param{f}\"%-20.20s\"$param{f}\"%-20.20s\"$param{f}\"%s\"\n",@row);
+      } else {
+        printf OFILE ("%-3.3s$param{f}%-8.8s$param{f}\"%-20.20s\"$param{f}%-8.8s$param{f}\"%-20.20s\"$param{f}\"%-20.20s\"$param{f}\n",@row);
+      }
+   }
+}
+
+# -------------------------------------------------------------------
+# query to retrieve all reviewers for all proposals in all panels
+# -------------------------------------------------------------------
+sub summary_chair_list
+{    
+  my($ordr) = @_;
+  my($sql,@row,$sth,$fname);
+
+  $sql = qq( select distinct panel_name,
+	(p4.last + ',' + substring(p4.first,1,1)),
+	proposal_number,
+        axafusers..person_short.last,type,
+	(p2.last + ','+ substring(p2.first,1,1)),
+	(p3.last + ',' + substring(p3.first,1,1)),
+	title,category_descrip
+	from panel,proposal,panel_proposal,proposal_review,panel_member,
+	axafusers..person_short,
+	axafusers..person_short p2,
+	axafusers..person_short p3,
+	axafusers..person_short p4
+	where
+	proposal.ao_str = "$param{a}" and
+	proposal.proposal_id = proposal_review.proposal_id and
+	proposal.piid = axafusers..person_short.pers_id and
+	proposal.proposal_id = panel_proposal.proposal_id and
+	panel.panel_id = panel_proposal.panel_id and
+	proposal_review.panel_id = panel_proposal.panel_id and
+	proposal_review.panel_id *= panel_member.panel_id and
+	panel_member.member_type='Chair' and 
+	panel_member.pers_id *= p4.pers_id and
+	proposal_review.primary_reviewer *= p2.pers_id and
+	proposal_review.secondary_reviewer *= p3.pers_id 
+	order by
+	);
+    $sql .= $ordr; 
+
+   print STDERR "All Proposals: $ordr\n" if $dbg;
+   $sth = $dbh->prepare($sql);
+   $sth->execute;
+   while((@row) = $sth->fetchrow_array()) {
+      printf OFILE ("%-3.3s$param{f}\"%-25.25s\"$param{f}%-8.8s$param{f}\"%-25.25s\"$param{f}%-8.8s$param{f}\"%-25.25s\"$param{f}\"%-25.25s\"$param{f}\"%s\"$param{f}\"%s\"\n",@row);
+   }
+}
+
+
+# ----------------------------------------------------------
+# parse input parameters
+# ----------------------------------------------------------
+sub parse_input
+{
+  my($pwd);
+  my $err = 0;
+
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+             o=> ".",
+             a=> "$ENV{ASCDS_PROP_AO}",
+             p=> "%",
+             f=> ",",
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "a=s",
+          "o=s",
+          "f=s",
+          "p=s",
+          "q=s",
+          "t",
+          "z",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter '$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+  $param{q} = $pwd;
+
+  if ($param{z}) { $dbg = 1; }
+
+}
+
+sub usage
+{
+    print STDERR "\nUSAGE: peer_reviewer_lists.pl -U -o [ -Sapz]\n";
+    print STDERR "       -U database user name\n";
+    print STDERR "       -S database server, default is DB_PROP_SQLSRV\n";
+    print STDERR "       -a AO , default is ASCDS_PROP_AO\n";
+    print STDERR "       -f delimiter, default is comma\n";
+    print STDERR "       -o output directory\n";
+    print STDERR "       -p panel name, default is all\n";
+    print STDERR "       -z if set, display progress messages\n";
+    print STDERR "       -t if set, don't display title\n";
+    print STDERR "\n\nOutput files:\n";
+    print STDERR "    proposal_reviewers.*  - panel,prop#,PI,priRev,secRev,title\n";
+}
+
+

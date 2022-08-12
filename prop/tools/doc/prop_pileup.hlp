@@ -1,0 +1,85 @@
+ 
+===============================================================================
+
+		            HELP FILE for prop_pileup
+
+===============================================================================
+
+prop_pileup
+--------------
+
+This application estimates and reports the percentage of arriving photons 
+that will "pile up" (and therefore not be counted) in the ACIS detector, 
+given the photon arrival rate (computed by PIMMS, e.g.) and the frame time.  
+The application also reports the resulting (reduced) count rate, in counts 
+per frame and in counts per second.
+
+
+PARAMETERS
+----------
+
+Application specific command line arguments:
+
+prop_pileup [-q] cts_per_sec_given [frame_time]
+
+          cts_per_sec_given is a count rate (from PIMMS),
+
+          frame_time is the frame time in seconds (default = 3.2), and
+
+          "-q" is an optional flag requesting "quiet" output
+              (less text explaining the numbers)
+
+
+INPUT/OUTPUT
+-------------
+
+1) Input Data Files:  N/A
+
+
+2) Output Data Files: N/A
+
+
+3) Output Data Files for Archive: N/A
+
+
+SETUP AND USAGE
+---------------
+
+The prop_pileup code consists of a single C source file (pileup.c) which
+creates prop_pileup_exe, and wrapper script prop_pileup for the user.
+
+This application uses no data files, and no special environment other
+than setting up for the release is required.
+
+Execute the application:
+   prop_pileup [-q] cts_per_sec_given [frame_time]
+  
+
+DETAILED prop_pileup DESCRIPTION - GENERAL INSTRUCTIONS
+----------------------------------------------------------
+
+The algorithm is coded as a function called by the main program.  
+Given a photon arrival rate and ACIS frame time, it returns the fraction 
+of photons piled up, the resulting counts per frame and counts per second, 
+and a flag if the pileup fraction exceeds 0.75.
+
+The main program provides input checking and feedback, and either "verbose" 
+or "terse" output.  The "verbose" mode is provided for ease of reading by a 
+person.  The "terse" or "quiet" mode allows easy parsing when the output is 
+to be piped to another program (such as the WWW Toolkit GUI).
+
+
+SIDE EFFECTS AND RESTRICTIONS
+-----------------------------
+
+None at this time.
+
+
+REFERENCES
+----------
+
+The requirement for the pileup computation was identified by scientists in the 
+User Support Group / Chandra Director's Office.  The requirement is a response 
+to hardware characteristics whose implications for proposal planning were not 
+identified in earlier specifications of requirements.  The algorithm was 
+provided to CXCDS by Eric Schlegel. 

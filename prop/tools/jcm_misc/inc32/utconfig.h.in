@@ -1,0 +1,48 @@
+/*
+ *  The file Makevars.in determines basic system properties using
+ *  autoconf 2.52 or later and the configure.ac script in this directory.
+ *  Configure it to make the system-specific file 'Makevars'.
+ *  1) Create configure.ac
+ *  2) Run autoconf to create ./configure
+ *      >  autoconf
+ *     Autoconf requires the presence of the INIT file.
+ *  3) Run ./configure 
+ *      >  ./configure
+ *     This uses config.guess, config.sub and install-sh  
+ *     It generates config.log and config.status (which can both be ignored)
+ *     and it generates Makevars, which this file is the template for.
+ *  (c) Jonathan McDowell 2001
+ *  
+ */
+
+/*
+ *  System architecture
+ */
+
+#ifndef UT_ARCH
+#define UT_ARCH    "@systype@"
+#define UT_SYSTEM  "@target@"
+#define UT_UNAME   "@uname@"
+
+
+#define UT_SOURCE_ROOT "@top@"
+#endif
+
+#ifndef UT_SZ_SHORT
+/* Numerical architecture */
+
+#define UT_SZ_SHORT  @ac_cv_sizeof_short@
+#define UT_SZ_DOUBLE @ac_cv_sizeof_double@
+#define UT_SZ_FLOAT  @ac_cv_sizeof_float@
+#define UT_SZ_INT    @ac_cv_sizeof_int@
+#define UT_SZ_CHAR   @ac_cv_sizeof_char@
+
+/* ./configure --with-opt32  */
+/* Special hack to allow Opteron compilation with -m32 -DCOMPAT32 */
+#define UT_SZ_LONG   @ut_sz_long@
+#define UT_SZ_P      @ut_sz_p@
+#endif
+
+#define UT_BIGEND  @bigendian@
+#define UT_INT32T  @fourbyte@
+#define integer4 int

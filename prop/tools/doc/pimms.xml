@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE cxchelptopics SYSTEM "CXCHelp.dtd">
+<cxchelptopics>
+
+   <ENTRY context="proposaltools" key="pimms" refkeywords="pimms prop_pimms simulator" seealsogroups="prop-tools">
+
+   <SYNOPSIS>
+    PIMMS (Portable, Interactive Multi-Mission Simulator)
+    converts source fluxes and count rates between missions.  
+   </SYNOPSIS>
+
+<ADDRESS><URL>pimms.html</URL></ADDRESS>
+<ADDRESS><URL>http://cxc.harvard.edu/ciao/ahelp/pimms.html</URL></ADDRESS>
+    
+
+
+   <DESC>
+      <PARA>
+	PIMMS can be run over the web using a browser or run locally
+	using the command-line interface (CLI). Note that as of
+	Chandra Cycle 13 (December 2010), PIMMS is not part of the CIAO Proposal
+	toolkit and users wishing to use the CLI version need to
+	download PIMMS from HEASARC at 
+	<HREF link="http://heasarc.gsfc.nasa.gov/docs/software/tools/pimms.html">http://heasarc.gsfc.nasa.gov/docs/software/tools/pimms.html</HREF>.
+      </PARA>
+
+      <PARA>
+	PIMMS is a tool for estimating the source flux or count rate
+	for a specific mission from either a count rate estimated by a
+	previous mission or flux in some energy bound. It is very
+	useful for simple source spectra, but not for complicated
+	spectral or spatial structures. PIMMS also estimates the
+	amount of Chandra ACIS pile-up assuming a point source
+	on-axis, and accounts for this when estimating count
+	rates. The tool was developed at NASA-GSFC, and the CXC
+	implemented its own version for use as a Chandra proposal
+	planning tool. Detailed information concerning PIMMS is available at:
+        <HREF link="http://heasarc.gsfc.nasa.gov/docs/software/tools/pimms.html">http://heasarc.gsfc.nasa.gov/docs/software/tools/pimms.html</HREF>.
+      </PARA>
+
+      <PARA title="Latest Effective Areas">
+	The latest Chandra effective area
+	curves are always included in the CXC web version of PIMMS as
+	well as in the CLI version downloadable from HEASARC. The CXC
+	web version of PIMMS also includes Chandra  effective area
+	curves for past proposing cycles going back to cycle 3. Users
+	wishing to install older versions of Chandra effective area
+	curves on top of the HEASARC CLI version of PIMMS should
+	contact the Chandra Helpdesk. 
+      </PARA>
+
+      <PARA title="ACIS Pile-up">
+        As mentioned above, PIMMS estimates the effect of pile-up on
+	ACIS counting rates. However, if a grating is inserted, the
+	impacts of pile up are only estimated for the counting rate of 
+	the zeroth order image.The pile-up fraction in PIMMS software
+	is defined as the ratio of the number of frames with two or
+	more spurious pile-up events to the number of frames with a
+	single, unpiled event. Note that the command-line version of
+	PIMMS assumes that the entire ACIS bandpass is used. 
+      </PARA>
+
+      <PARA title="Raymond-Smith Models">		
+	(1) The calculation only extends to 8 keV regardless of output
+	AND input energy ranges. Any input model will be truncated at
+	8 keV, no attempt will be made to "convert" counts above 8  
+	keV. Similarly, the output gives flux/counts up to 8 keV. (2)
+	The available temperatures are listed in a pop-up menu from
+	which the user selects that closest to the desired
+	temperature. 
+      </PARA>
+
+      <PARA title="Running PIMMS Over the Web">
+	 PIMMS can be accessed via the URL:
+      </PARA>
+
+      <PARA>
+	<HREF link="http://cxc.harvard.edu/toolkit/pimms.jsp">http://cxc.harvard.edu/toolkit/pimms.jsp</HREF>
+      </PARA>
+
+      <PARA>
+	A general help file for the Proposal Planning Toolkit is
+	available by clicking the 'HELP' button.  Descriptions for
+	each parameter may be found by clicking the appropriate
+	parameter name. The web version of PIMMS has some features not
+	found in the command-line version, such as background count
+	rates for Chandra mission, the ACIS frame time option, and the
+	truncation of energy at 8 keV in Raymond-Smith Models. 
+      </PARA>
+
+      <PARA title="Background Count Rates">
+        The web version of PIMMS provides background in a 1.5" radius 
+	circle for imaging (ACIS or HRC) observations. Extended source
+	size specification affects only background determination.
+	PIMMS also estimates the background per resolution element for
+	HRC-S/LETG spectra. 
+      </PARA>
+
+      <PARA title="ACIS Frame Time">
+	In the web version of PIMMS, the user can either enter the
+	ACIS frame time or choose to have PIMMS calculate the most
+	efficient frame time for a given number of CCDs and
+	sub-array. In the latter case, PIMMS will calculate the frame
+	time that results in the least amount of pile-up and will
+	present the corresponding results. The actual frame time used
+	in performing these calculations can be examined using the
+	"View Output" button.  
+      </PARA>
+
+
+      <PARA title="Running PIMMS from the Command Line">
+	The command-line version of PIMMS can be downloaded from 
+	<HREF link="http://heasarc.gsfc.nasa.gov/docs/software/tools/pimms.html">http://heasarc.gsfc.nasa.gov/docs/software/tools/pimms.html</HREF>
+      </PARA>
+
+      <PARA>
+	The HEASARC web site also
+	includes <HREF link="http://heasarc.gsfc.nasa.gov/docs/software/tools/pimms.html#user">a PIMMS user guide</HREF>, and there is a 'HELP' command in
+	PIMMS. Contact the CXC Helpdesk for any problems related to
+	running the CLI version of PIMMS with Chandra data. 
+     </PARA>
+
+     </DESC>
+
+<VERSION>CIAO 4.5</VERSION>
+<LASTMODIFIED>December 2012</LASTMODIFIED>
+
+</ENTRY>
+</cxchelptopics>

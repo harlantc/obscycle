@@ -1,0 +1,457 @@
+===============================================================================
+
+	            HELP FILE for prop_rps_receiver
+
+===============================================================================
+
+
+General
+-------
+
+The prop_rps_receiver processes the submitted proposals mailed by the RPS 
+system, logs the received message, mails an initial confirmation message,
+and copies the file to the receiver queue. The submitted proposals 
+include requests during the regular cycle(AO) and out-of-cycle requests:
+unanticipated TOO's, peer-reviewed TOO's, and director's discretionary time
+(DDT).  For out-of-cycle requests, status messages will be sent to the 
+appropriate people (director, mission planning, and user support group). 
+In general, personnel are paged every hour for out-of-cycle requests 
+with an urgency of One Day, and every 2 hours for urgencies of Three Days, 
+One Week and One Month.  No paging is done for routine DDT requests.
+
+This process should be started using the prop_start_rps_receiver.pl or 
+prop_start_rps_too_receiver.pl scripts which capture any screen output 
+and write it to a log file.  
+
+
+PERL SCRIPTS 
+-------------
+
+1. prop_start_rps_receiver.pl
+
+   The prop_start_rps_receiver.pl script starts the prop_rps_receiver process 
+   which processes and logs submitted proposals received from the RPS system 
+   during the normal cycle.  Mail is included and logged in the 
+   $ASCDS_PROP_RPS_LOG directory.  A short confirmation message is sent to 
+   the user, identified by the "NETWORK.ADDRESS" field in the RPS message.  
+   The incoming mail is then moved to the $ASCDS_PROP_RPS_RECV directory to 
+   await ingest into the database.
+
+
+2. prop_start_rps_too_receiver.pl
+
+   The prop_start_rps_too_receiver.pl script starts the prop_rps_receiver 
+   process which processes and logs submitted proposals received from the 
+   RPS system for out-of-cycle requests.  These requests include unanticipated 
+   TOO's, peer-reviewed TOO's  and director's discretionary time.
+
+   The process checks for incoming mail.  If the mail is a submitted proposal, 
+   it is logged in the $ASCDS_PROP_RPS_LOG directory.  A short confirmation 
+   message is sent to the user, identified by the "NETWORK.ADDRESS" field in 
+   the RPS message.  The incoming mail is then moved to the $ASCDS_RPS_TOO_RECV 
+   directory to await ingest into the database. A status message showing 
+   the PI, Urgency, RA, and Dec is created and sent to the appropriate CXC 
+   staff.
+
+   If the mail is a status reply to an out-of-cycle request, the mail is logged 
+   and sent to the appropriate CXC staff (director,MP, USG personnel). 
+
+
+3. prop_kill_rps_receiver.pl  
+
+   The prop_kill_rps_receiver.pl script kills any outstanding prop_rps_receiver
+   processes by issuing the UNIX kill command. This script is executed from 
+   the prop_start_rps_receiver.pl and prop_start_rps_too_receiver.pl scripts.
+   
+
+4. prop_rps_receiver_died.pl  
+
+   The prop_rps_receiver_died.pl script is called from the prop_rps_receiver 
+   process. It is used to notify the user identified by the 
+   $ASCDS_PROP_RPS_EMAIL environment variable that the prop_rps_receiver 
+   process has terminated.
+
+
+5. prop_rpsinc.pl            
+
+   The prop_rpsinc.pl script is called from the prop_rps_receiver process.  
+   It is used to verify existence of incoming mail and to incorporate new 
+   mail by issuing the "inc" command. It captures any errors and redirects 
+   them to STDOUT.
+   
+
+6. prop_rps_too_mail.pl  
+
+   The prop_rps_too_receiver.pl script is called from the prop_rps_receiver 
+   process for out-of-cycle requests.  It logs, monitors, and sends pager/email
+   messages for the out-of-cycle requests. More information is provided in the 
+   DETAILED DESCRIPTION section.
+
+
+
+PARAMETERS
+----------
+
+-d [duration]   OPTIONAL  - sleep duration for incorporating mail 
+  ie: prop_start_rps_receiver.pl  -d 30  (wait 30 seconds between cycles)
+
+
+
+INPUT/OUTPUT
+-------------
+
+1) Input Files: 
+
+$ASCDS_PROP_RPS_LOG/tag_number.rps  -  this file contains an ascii integer 
+   number.  The number is incremented for each incoming proposal read, and 
+   the file is re-written with the updated tag number. In general, this
+   file should not be needed in cycle 2.  The tag number (last 4 digits of
+   the proposal number) are now assigned by RPS. 
+
+$ASCDS_PROP_RPS_LOG/too_tag_number.rps  -  this file contains an ascii integer 
+   number.  The number is incremented for each incoming proposal read, and 
+   the file is re-written with the updated tag number.
+
+$HOME/Mail/inbox -  name/value pair e-mail files sent from the RPS system.
+
+$ASCDS_OBS_TEMPLATE  - templates for status message for out-of-cycle 
+   submissions.  The pager limitations for e-mail require this file to be a 
+   maximum of 500 characters.
+
+   rps_too.template - unanticipated TOO requests
+   rps_too_nra.template - peer-reviewed TOO requests
+   rps_ddt.template - request for Director's discretionary time
+
+$ASCDS_PROP_RPS_NOTIFY - files containing pager/email addresses for 
+   out-of-cycle proposal submissions. (Files under SCCS control)
+
+   mp1_pager.addr - pager address of director/alternate.
+   mp2_pager.addr - pager address of on-call mission planning and USG personnel.
+   mp_usg.addr    - email addresses of mission planning,USG, and FOT personnel.
+   sw_pager.addr  - email or pager addresses of software personnel that should 
+                    be notified in event of problems.
+
+
+2) Output Files:
+  
+$HOME/Mail/deleted/*  - copy of all received email
+
+$ASCDS_PROP_RPS_LOG/prop_rps_receiver.log  - this file contains the
+  processing log for the receiver application.  It contains start and
+  termination messages, results from the mail "inc" command, etc.
+
+$ASCDS_PROP_RPS_LOG/prop_rps_too_receiver.log  - this file contains the
+  processing log for the receiver application.  It contains start and
+  termination messages, results from the mail "inc" command, etc.
+
+$ASCDS_PROP_RPS_LOG/received_proposal.log - this file contains formatted 
+  output keywords for all received proposals during the normal cycle.  
+  This format is as follows:
+
+  <timestamp>  FILE== <filename>
+    PI== <principal investigator>
+    CATEGORY== <subject category>
+    TITLE== <proposal title>
+
+$ASCDS_PROP_RPS_LOG/received_too_proposal.log - this file contains formatted 
+  output keywords for all out-of-cycle proposals.  This format is as follows:
+
+  <timestamp>  FILE== <filename>
+    PI== <principal investigator>
+    URGENCY==<TOO urgency>
+    CATEGORY== <subject category>
+    TITLE== <proposal title>
+
+
+$ASCDS_PROP_RPS_RECV/<tag_number>.prop -  Received proposal files that have
+    passed the keyword validation check for the normal cycle.
+
+$ASCDS_RPS_TOO_RECV/<tag_number>.prop -  Received proposal files that have
+    passed the keyword validation check for the out-of-cycle TOO's.
+
+$ASCDS_PROP_RPS_ERR/<tag_number>.prop - Received proposal files that have
+    failed the keyword validation check.
+
+$ASCDS_PROP_RPS_ERR/<tag_number>.err - Associated error message for the
+   proposal file identified by the same tag_number.
+
+
+$ASCDS_PROP_RPS_NOTIFY/rps_too_status.log - Log file used by the
+   prop_rps_too_mail.pl script to track paging/receipt of status messages
+   for the out-of-cycle RPS requests. This is an ascii file, but should
+   not be edited by hand!  
+
+   The format is a follows: tag number, urgency, mail status,date(seconds), 
+   ascii date,filename,and proposal status . The caret(^) is used as the 
+   delimeter.  
+
+   Urgency codes: E=One Day,I=Three Days,U=One Week,P=One Month,R=Routine(DDT)
+   Status codes:  
+     0 - pager mail sent initially
+     1 - response received
+     2 - rejected response received
+     3 - delayed message, send only to mp/usg during normal hours
+     4 - delayed message, send to director & mp/usg during normal hours
+     5 - sent Emergency message to director
+     6 - resent Emergency message to director,next time through notify everyone
+     7 - delayed response message, send to mp/usg during normal hours
+     8 - queued message, was sent during normal working hours(new entry added
+         with 0 status)
+     9 - timed out, new entry appended with new timestamp
+
+
+
+3) Output Files for Archive: NONE
+
+
+
+SETUP AND USAGE
+---------------
+
+prop_start_rps_receiver.pl and prop_start_rps_too_receiver.pl use the 
+environment variables that are set in the file 'ascds_setup_prop'.  
+These environment variables are:
+
+	$ASCDS_PROP_DIR       - home directory for proposal related files
+	$ASCDS_PROP_RPS_DIR   - home directory for RPS related files
+	$ASCDS_PROP_RPS_RECV  - received files (normal cycle)
+	$ASCDS_RPS_TOO_RECV   - received files (out-of-cycle)
+	$ASCDS_PROP_RPS_ERR   - received files that contain errors such as
+	                        missing keywords.
+	$ASCDS_PROP_RPS_LOG   - all process logs, received proposal log
+	$ASCDS_PROP_RPS_USER  - valid user for receiving e-mail from RPS
+ 	                        (this user should match the RPS user in
+	                        $RPSHOME/project/<mission>.paf)
+        $ASCDS_RPS_TOO_USER   - valid user for receiving RPS out-of-cycle 
+	                        submitted proposals.
+	                        (this user should match the RPS user in
+                                $RPSHOME/project/<mission>.paf)
+	$ASCDS_PROP_RPS_EMAIL - notify this user of termination of 
+	                        prop_rps_receiver process
+        $ASCDS_OBS_TEMPLATE   - directory path for template files used by the 
+	                        out-of-cycle RPS code.
+        $ASCDS_PROP_OUTMAIL   - directory path for storing "sent" mail messages
+        $ASCDS_PROP_NOTIFY    - directory path for address files for the paging/
+ 	                        notification system for out-of-cycle proposals.
+	                        Also, contains the log file used by the paging/
+	                        notification script.
+
+The user should not ordinarily change their values. The '~rps_prop/.cshrc.user'
+and '~rps_too/.cshrc.user' files have already been setup to execute the 
+appropriate ASCDS scripts to set the working environment.
+
+The scripts assume that all directories have been created and permissions
+properly set.  All directories above should exist with the following UNIX
+permissions set: drwxrws--.  The directories should belong to the UNIX
+group 'prop'.
+
+Only those users having permissions to read proposals should have access to 
+these directories.  Authorized users should belong to the group 'prop'.  
+If you need access, contact the system administrator.
+
+
+To start the RPS receiver process for the normal cycle:
+  	> su - rps_prop
+  	> Password: <enter password>
+  	> prop_start_rps_receiver.pl
+
+
+To start the RPS receiver process for the out-of-cycle TOO's:
+  	> su - rps_too
+  	> Password: <enter password>
+  	> prop_start_rps_too_receiver.pl
+
+
+NEW CYCLE PROCEDURES
+--------------------
+1. set value in $ASCDS_PROP_RPS_LOG/tag_number.rps  file to 0.
+     - or -
+   set value in $ASCDS_PROP_RPS_LOG/too_tag_number.rps  file to 7999.
+
+2. make sure the mail queue is clear:
+   > inc  (include any mail in queue)
+   > cd ~/Mail/inbox
+   > less *  (CHECK THE FILES THAT ARE IN THE DIRECTORY)
+   > rm ?    (REMOVE inappropriate  files)
+
+3. clear $ASCDS_PROP_RPS_RECV or $ASCDS_RPS_TOO_RECV directory of any
+   inappropriate files. 
+
+4. save, then clear the prop_rps_receiver.log and received_proposal.log files
+     - or -
+   save, then clear the prop_rps_too_receiver.log and received_too_proposal.log
+   files
+
+5. save, then clear the $ASCDS_PROP_NOTIFY/rps_too_status.log file
+   NOTE:  make sure there are no outstanding requests! Outstanding
+   requests are any entries with a 0,3,4,5, or 6 as the 3rd parameter, i.e.:   
+           
+   9137^E^3^812526303^Tue Dec  1 10:31:43 1998^/proj/ascr4/dmh/data/prop/out_mail/09137.prop.mail_pager_too^Unanticipated TOO Request^First Notification
+
+
+
+
+DETAILED DESCRIPTION - GENERAL INSTRUCTIONS
+-------------------------------------------------------------------
+
+The prop_rps_receiver process incorporates new mail and then
+processes all files found in the specified 'inbox' mail directory.
+During the open proposal season for RPS, this process should be running
+24 hours a day, 7 days a week.  
+
+For the out-of-cycle TOO requests, this process should be running 24 hours
+a day, 7 days a week.  
+
+Nothing is lost if the process is not running.  The only affect, will be a 
+delay in the proposer receiving a proposal submission confirmation message. 
+However, for out-of-cycle TOO requests, this causes a delay in the notifcation
+procedures. If the prop_rps_receiver process terminates, the 
+prop_rps_receiver_died.pl script is executed which sends an e-mail message to 
+$ASCDS_PROP_RPS_EMAIL notifying the recipient of termination of the process.
+
+
+
+--------------------------------------------------------------------
+prop_rps_receiver
+
+  TOO = unanticipated TOO request
+  DDT = Director's Discretionary TIme request
+  NRA_TOO - peer-reviewed TOO request
+
+  ON exit - sends email to notify $ASCDS_PROP_RPS_EMAIL recipient of 
+            termination of prop_rps_receiver (handles signals).
+--------------------------------------------------------------------
+log start of receiver
+while (FOREVER) {
+
+   incorporate mail and log results (prop_rpsinc.pl script)
+   process each entry in the Mail/inbox {
+     read in the first 4096 bytes of the incoming proposal file
+     if message is response to TOO (status msg) {
+       invoke prop_rps_mail_too.pl script to log incoming message and
+       forward this message to approriate recipients.
+     } 
+     else {
+       get the next tag number
+       find key fields (PI (last,first), Proposal Title,Category)
+       if (key words found) {
+         log entry in received_proposal.log
+         if not NRA_TOO, copy file to official receive directory 
+         log keyword data in prop_rps_receiver.log
+         mail initial confirmation message 
+         if ( out-of-cycle proposal) {
+           invoke prop_rps_mail_too.pl script to log incoming message and
+           notify appropriate ASC personnel.
+         }
+       }
+       else {
+         copy file to error directory
+         create associated error message file using tag number
+       }
+       if (file successfully copied)
+         refile current mail file to 'deleted' directory
+     }
+   sleep for specified duration
+   check for overdue status response for out-of-cycle TOO's
+}
+    
+log termination of receiver
+send termination email message (prop_rps_receiver_died)
+EXIT
+
+
+---------------------------------------------------------------------
+prop_rps_too_mail.pl -  out-of cycle paging/notification requirements
+---------------------------------------------------------------------
+
+Upon Receipt of out-of-cycle proposal submissions, a status message
+is created and sent using the appropriate rps*.template file.  As 
+defined by the Urgency and working hours, users are paged until a reply 
+to a status message has been received.  Normal working hours are defined 
+as 8:00A.M. - 9:59P.M. local time, 7 days a week.  In addition, status 
+messages received(these should be replies to the initial status message) 
+are forwarded to the appropriate user.
+
+Routine messages (all DDT) are only sent to the active users in the 
+mp_usg.addr files.  Messages are NOT sent to the pager.
+
+During normal working hours, the status message is sent to active users in
+the mp1_pager.addr,mp2_pager.addr, and mp_usg.addr files for all non-routine
+messages.   
+
+For non-routine messages, outside of normal working hours, the status message 
+is sent based on the urgency. Initially, the active user(s) in mp1_pager.addr 
+is notified.  If the urgency is "One Day" and no reply is received within 1 
+hour, then the active user(s) in mp1_pager.addr is notified again. If no reply 
+is received within 1 hour of that page, then all active users in 
+mp1_pager.addr and mp2_pager.addr are notified.  If the urgency is greater 
+than one day and no reply is received within 2 hours, the active user(s) in 
+mp1_pager.addr and mp2_pager.addr are notified.  
+
+During normal working hours, the status message replies are sent to all active 
+users in mp_usg.addr.  Outside of normal working hours, if the urgency is
+"One Day", these messages are sent to the mp1_pager.addr and mp2_pager.addr 
+if the status is not "NOT APPROVED".
+
+-------------PAGING SYSTEM FOR TOOS---------------
+
+  - Email everyone in the mp_usg.addr file.  This file should contain
+    email addresses for Director, MP, USG and FOT personnel.
+
+  - No paging for routine messages (DDT).
+
+  - Normal working hours are 8:00A.M. - 9:59P.M. local time, 7 days a week
+
+  - Paging for initial receipt of TOO request (First Notification):
+
+    One Day request during normal working hours:
+       Page Director and MP/USG  immediately.
+       If no reply within 1 hour page Director/MP/USG again
+       Continue paging every hour until a response is received
+
+    One Day request after normal working hours:
+       Page Director immediately.
+       If no reply within 1 hour page Director again
+       If no reply within 1 hour again, page Director,MP,USG
+       Continue paging every hour until a response is received
+       
+    Other requests during normal working hours:
+       Page Director and MP/USG  immediately.
+       If no reply within 2 hours page Director/MP/USG again
+       Continue paging every 2 hours until a response is received
+
+    Other requests after normal working hours :
+       Queue page to be sent at start of normal working hours
+       If no reply within 2 hours, page Director,MP,USG
+       Continue paging every 2 hours until a response is received
+
+
+  - All status updates are mailed to everyone in the mp_usg.addr file.
+  
+  - Paging for status update messages:
+  
+    All updates during Normal Working Hours:
+       Page Director and MP/USG with updates.
+     
+    One day requests after normal working hours:
+       Page only MP/USG (not director, the Director does receive the 
+       regular email request)
+       
+    Other requests after normal working hours:
+       Queue page to be sent to MP/USG at start of normal working hours
+
+
+
+
+
+
+RESTRICTIONS
+------------
+
+REFERENCES
+----------
+
+See the prop_rps.hlp file for a description of the RPS system.
+
+See the Proposal section of the Data System Software Design Document 
+(DS01) for more detail about the proposal submission cycle. 

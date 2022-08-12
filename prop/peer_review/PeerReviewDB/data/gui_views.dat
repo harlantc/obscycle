@@ -1,0 +1,544 @@
+VIEW	Facilitator View	Y
+SECTION	PropNum PI	prop_id	null
+COLUMN	PropNum
+SECTION	Totals	spreadsheet	null
+COLUMN	Tag
+COLUMN	Grp
+COLUMN	Type
+COLUMN	Sub Type
+COLUMN	Joint
+COLUMN	MCOP
+COLUMN	RC Total (24)
+COLUMN	Tot App HEL (24)
+COLUMN	Grade Avg
+COLUMN	Grade Stdev
+COLUMN	StatP
+COLUMN	MonP
+COLUMN	GridP
+VIEW	Comprehensive View (24)	Y
+SECTION	PropNum PI	prop_id	null
+COLUMN	PropNum
+SECTION	Identification	proposal	4
+COLUMN	Grp
+COLUMN	Cat
+COLUMN	Tag
+SECTION	Classification	proposal	20
+COLUMN	Type
+COLUMN	Sub Type
+COLUMN	Joint
+SECTION	Constraint/Conflict	proposal	6
+COLUMN	TC
+COLUMN	Num Obs Req (24)
+COLUMN	Num Obs App (24)
+COLUMN	Conflict
+COLUMN	Joint ReqT
+COLUMN	Joint AppT
+SECTION	Allocation	proposal	7
+COLUMN	Req Time (24)
+COLUMN	App Time (24)
+COLUMN	Num Targ Req (24)
+COLUMN	Num Targ App (24)
+COLUMN	StatP
+COLUMN	Triage
+COLUMN	MCOP
+SECTION	Running Totals	spreadsheet	null
+COLUMN	Run App Time (24)
+COLUMN	Run App HEL (24)
+COLUMN	Run Arc$
+COLUMN	Run The$
+COLUMN	Run RC (24)
+COLUMN	Run <5 TOO
+COLUMN	Run 5-20 TOO
+COLUMN	Run 20-40 TOO
+COLUMN	Run HST
+COLUMN	Run XMM
+COLUMN	Run NOAO
+COLUMN	Run NRAO
+COLUMN	Run SWIFT
+COLUMN	Run NUSTAR
+SECTION	PGrade Summary	proposal	4
+COLUMN	PGrade Avg
+COLUMN	PGrade Median
+COLUMN	PGrade Stdev
+SECTION	Grade Summary	proposal	4
+COLUMN	Grade Avg
+COLUMN	Grade Median
+COLUMN	Grade Stdev
+COLUMN	Grade Norm
+SECTION	Target Information	target	null
+COLUMN	Targ Num
+COLUMN	Target
+COLUMN	Req Time (24)
+COLUMN	App Time (24)
+COLUMN	StatT (24)
+COLUMN	Inst
+COLUMN	Grat
+COLUMN	Targ RC (24)
+SECTION	Title	title	20
+COLUMN	Title
+SECTION	Short Title	short_ttl	20
+COLUMN	Short Title
+SECTION	Abstract	abstract	40
+COLUMN	Abstract
+VIEW	Proposal Spreadsheet (no target info) (24)	Y
+SECTION	PropNum PI	prop_id	null
+COLUMN	PropNum
+SECTION	Proposal Columns	spreadsheet	null
+COLUMN	Grp
+COLUMN	TC
+COLUMN	Conflict
+COLUMN	Type
+COLUMN	Sub Type
+COLUMN	Joint
+COLUMN	StatP
+SECTION	Running Totals	spreadsheet	null
+COLUMN	Run App Time (24)
+COLUMN	Run App HEL (24)
+SECTION	MCOP	spreadsheet	null
+COLUMN	MCOP
+SECTION	Running Totals	spreadsheet	null
+COLUMN	Run Arc$
+COLUMN	Run The$
+COLUMN	Run RC (24)
+COLUMN	Run <5 TOO
+COLUMN	Run 5-20 TOO
+COLUMN	Run 20-40 TOO
+COLUMN	Run HST
+COLUMN	Run XMM
+COLUMN	Run NOAO
+COLUMN	Run NRAO
+COLUMN	Run SWIFT
+COLUMN	Run NUSTAR
+SECTION	Totals	combo_cols	null
+COLUMN	Tot Time App/Req (24)
+COLUMN	Num Targ App/Req (24)
+COLUMN	Num Obs App/Req (24)
+SECTION	Proposal Columns	spreadsheet	null
+COLUMN	PGrade Avg
+COLUMN	PGrade Median
+COLUMN	PGrade Stdev
+COLUMN	Triage
+COLUMN	Grade Avg
+COLUMN	Grade Median
+COLUMN	Grade Stdev
+COLUMN	Grade Norm
+VIEW	Running Totals + Description (24)	Y
+SECTION	PropNum PI	prop_id	null
+COLUMN	PropNum
+SECTION	Proposal Columns	spreadsheet	null
+COLUMN	Grp
+COLUMN	Type
+COLUMN	Sub Type
+COLUMN	Joint
+COLUMN	TC
+COLUMN	Conflict
+COLUMN	StatP
+COLUMN	Grade Avg
+COLUMN	Grade Median
+COLUMN	Grade Norm
+SECTION	Running Totals	spreadsheet	null
+COLUMN	Run App Time (24)
+COLUMN	Run App HEL (24)
+COLUMN	Run Arc$
+COLUMN	Run The$
+COLUMN	Run RC (24)
+COLUMN	Run <5 TOO
+COLUMN	Run 5-20 TOO
+COLUMN	Run 20-40 TOO
+COLUMN	Run HST
+COLUMN	Run XMM
+COLUMN	Run NOAO
+COLUMN	Run NRAO
+COLUMN	Run SWIFT
+COLUMN	Run NUSTAR
+SECTION	Totals	combo_cols	null
+COLUMN	Tot Time App/Req (24)
+COLUMN	Num Targ App/Req (24)
+COLUMN	Num Obs App/Req (24)
+SECTION	MCOP	spreadsheet	null
+COLUMN	MCOP
+VIEW	Running Totals + Description (25)	Y
+SECTION	PropNum PI	prop_id	null
+COLUMN	PropNum
+SECTION	Proposal Columns	spreadsheet	null
+COLUMN	Grp
+COLUMN	Type
+COLUMN	Sub Type
+COLUMN	Joint
+COLUMN	TC
+COLUMN	Conflict
+COLUMN	StatP
+COLUMN	Grade Avg
+COLUMN	Grade Median
+COLUMN	Grade Norm
+SECTION	Running Totals	spreadsheet	null
+COLUMN	Run App Time (25)
+COLUMN	Run App HEL (25)
+COLUMN	Run Arc$
+COLUMN	Run The$
+COLUMN	Run RC (25)
+COLUMN	Run <5 TOO
+COLUMN	Run 5-20 TOO
+COLUMN	Run 20-40 TOO
+COLUMN	Run HST
+COLUMN	Run XMM
+COLUMN	Run NOAO
+COLUMN	Run NRAO
+COLUMN	Run SWIFT
+COLUMN	Run NUSTAR
+SECTION	Totals	combo_cols	null
+COLUMN	Tot Time App/Req (25)
+COLUMN	Num Targ App/Req (25)
+COLUMN	Num Obs App/Req (25)
+SECTION	MCOP	spreadsheet	null
+COLUMN	MCOP
+VIEW	Running Totals + Description (26)	Y
+SECTION	PropNum PI	prop_id	null
+COLUMN	PropNum
+SECTION	Proposal Columns	spreadsheet	null
+COLUMN	Grp
+COLUMN	Type
+COLUMN	Sub Type
+COLUMN	Joint
+COLUMN	TC
+COLUMN	Conflict
+COLUMN	StatP
+COLUMN	Grade Avg
+COLUMN	Grade Median
+COLUMN	Grade Norm
+SECTION	Running Totals	spreadsheet	null
+COLUMN	Run App Time (26)
+COLUMN	Run App HEL (26)
+COLUMN	Run Arc$
+COLUMN	Run The$
+COLUMN	Run RC (26)
+COLUMN	Run <5 TOO
+COLUMN	Run 5-20 TOO
+COLUMN	Run 20-40 TOO
+COLUMN	Run HST
+COLUMN	Run XMM
+COLUMN	Run NOAO
+COLUMN	Run NRAO
+COLUMN	Run SWIFT
+COLUMN	Run NUSTAR
+SECTION	Totals	combo_cols	null
+COLUMN	Tot Time App/Req (26)
+COLUMN	Num Targ App/Req (26)
+COLUMN	Num Obs App/Req (26)
+SECTION	MCOP	spreadsheet	null
+COLUMN	MCOP
+VIEW	Finalize Time Allocation	F
+SECTION	PropNum PI	prop_id	null
+COLUMN	PropNum
+SECTION	Proposal Columns	spreadsheet	null
+COLUMN	Type
+COLUMN	Grade Avg
+SECTION	Rank	prop_edit	null
+COLUMN	Rank
+SECTION	Status	prop_status	null
+COLUMN	Final Status
+SECTION	Totals	combo_cols	null
+COLUMN	Tot Time App/Req (24)
+COLUMN	Num Targ App/Req (24)
+SECTION	Running Totals	spreadsheet	null
+COLUMN	Run App Time (24)
+COLUMN	Run App HEL (24)
+COLUMN	Run RC (24)
+COLUMN	Run App Time (25)
+COLUMN	Run App HEL (25)
+COLUMN	Run RC (25)
+COLUMN	Run App Time (26)
+COLUMN	Run App HEL (26)
+COLUMN	Run RC (26)
+COLUMN	Run <5 TOO
+COLUMN	Run 5-20 TOO
+COLUMN	Run Arc$
+COLUMN	Run The$
+COLUMN	Run HST
+SECTION	NONE	spreadsheet	null
+VIEW	Finalize Time Allocation	B
+SECTION	PropNum PI	prop_id	null
+COLUMN	PropNum
+SECTION	Proposal Columns	spreadsheet	null
+COLUMN	Sub Type
+COLUMN	Grade Avg
+SECTION	Rank	prop_edit	null
+COLUMN	Rank
+SECTION	Status	prop_status	null
+COLUMN	Final Status
+SECTION	Totals	combo_cols	null
+COLUMN	Tot Time App/Req (24)
+COLUMN	Num Targ App/Req (24)
+SECTION	Running Totals	spreadsheet	null
+COLUMN	Run App Time (24)
+COLUMN	Run App HEL (24)
+COLUMN	Run RC (24)
+COLUMN	Run App Time (25)
+COLUMN	Run App HEL (25)
+COLUMN	Run RC (25)
+COLUMN	Run App Time (26)
+COLUMN	Run App HEL (26)
+COLUMN	Run RC (26)
+COLUMN	Run <5 TOO
+COLUMN	Run 5-20 TOO
+COLUMN	Run HST
+VIEW	Post Finalize View	Y
+SECTION	PropNum PI	prop_id	null
+COLUMN	PropNum
+SECTION	Grade	spreadsheet	null
+COLUMN	Grade Avg
+COLUMN	Grade Norm
+COLUMN	StatP
+SECTION	Totals	combo_cols	null
+COLUMN	Tot Time App/Req (24)
+COLUMN	Num Targ App/Req (24)
+SECTION	Totals1	combo_cols	null
+COLUMN	Tot Time App/Req (25)
+COLUMN	Num Targ App/Req (25)
+SECTION	Totals2	combo_cols	null
+COLUMN	Tot Time App/Req (26)
+COLUMN	Num Targ App/Req (26)
+SECTION	Running Totals	spreadsheet	null
+COLUMN	Run App Time (24)
+COLUMN	Run App HEL (24)
+COLUMN	Run RC (24)
+COLUMN	Run App Time (25)
+COLUMN	Run App HEL (25)
+COLUMN	Run RC (25)
+COLUMN	Run App Time (26)
+COLUMN	Run App HEL (26)
+COLUMN	Run RC (26)
+COLUMN	Run <5 TOO
+COLUMN	Run 5-20 TOO
+COLUMN	Run Arc$
+COLUMN	Run The$
+COLUMN	Run HST
+SECTION	Proposal Columns	spreadsheet	null
+COLUMN	Grp
+VIEW	Running Totals View (24)	Y
+SECTION	PropNum PI	prop_id	null
+COLUMN	PropNum
+SECTION	Classification Properties	spreadsheet	null
+COLUMN	Type
+COLUMN	Sub Type
+COLUMN	StatP
+COLUMN	Grade Avg
+COLUMN	Grade Median
+COLUMN	Grade Stdev
+COLUMN	MCOP
+SECTION	Running Totals	spreadsheet	null
+COLUMN	Run App Time (24)
+COLUMN	Run App HEL (24)
+COLUMN	Run Arc$
+COLUMN	Run The$
+COLUMN	Run RC (24)
+COLUMN	Run <5 TOO
+COLUMN	Run 5-20 TOO
+COLUMN	Run 20-40 TOO
+COLUMN	Run HST
+COLUMN	Run XMM
+COLUMN	Run NOAO
+COLUMN	Run NRAO
+COLUMN	Run SWIFT
+COLUMN	Run NUSTAR
+VIEW	Running Totals View (25)	Y
+SECTION	PropNum PI	prop_id	null
+COLUMN	PropNum
+SECTION	Classification Properties	spreadsheet	null
+COLUMN	Type
+COLUMN	Sub Type
+COLUMN	StatP
+COLUMN	Grade Avg
+COLUMN	Grade Median
+COLUMN	Grade Stdev
+COLUMN	MCOP
+SECTION	Running Totals (MCOP)	spreadsheet	null
+COLUMN	Run App Time (25)
+COLUMN	Run App HEL (25)
+COLUMN	Run RC (25)
+VIEW	Running Totals View (26)	Y
+SECTION	PropNum PI	prop_id	null
+COLUMN	PropNum
+SECTION	Classification Properties	spreadsheet	null
+COLUMN	Type
+COLUMN	Sub Type
+COLUMN	StatP
+COLUMN	Grade Avg
+COLUMN	Grade Median
+COLUMN	Grade Stdev
+COLUMN	MCOP
+SECTION	Running Totals (MCOP)	spreadsheet	null
+COLUMN	Run App Time (26)
+COLUMN	Run App HEL (26)
+COLUMN	Run RC (26)
+VIEW	Preliminary Grades View 	Y
+SECTION	PropNum PI	prop_id	null
+COLUMN	PropNum
+SECTION	ProposalColumns	spreadsheet	null
+COLUMN	Grp
+COLUMN	Triage
+COLUMN	PGrade Avg
+COLUMN	PGrade Stdev
+COLUMN	Type
+COLUMN	Sub Type
+COLUMN	Joint
+COLUMN	Conflict
+SECTION	Totals	multi_cols	null
+COLUMN	Num Targ Req 24/25/26
+COLUMN	Num Obs Req 24/25/26
+SECTION	TC	spreadsheet	null
+COLUMN	TC
+COLUMN	RC Total (24)
+COLUMN	Tot App HEL (24)
+SECTION	Times	multi_cols	null
+COLUMN	Req Time 24/25/26
+SECTION	Running Totals	spreadsheet	null
+COLUMN	Run App Time (24)
+COLUMN	Run App HEL (24)
+COLUMN	Run App Time (25)
+COLUMN	Run App HEL (25)
+COLUMN	Run App Time (26)
+COLUMN	Run App HEL (26)
+VIEW	Beginning Discussion	Y
+SECTION	PropNum PI	prop_id	null
+COLUMN	PropNum
+SECTION	Proposal Columns	spreadsheet	null
+COLUMN	Grp
+COLUMN	Triage
+COLUMN	PGrade Avg
+COLUMN	PGrade Stdev
+COLUMN	Type
+COLUMN	Sub Type
+COLUMN	Joint
+COLUMN	TC
+COLUMN	RC Total (24)
+COLUMN	Tot App HEL (24)
+COLUMN	Conflict
+SECTION	Totals	multi_cols	null
+COLUMN	Req Time 24/25/26
+COLUMN	Num Targ Req 24/25/26
+VIEW	Root for Proposal-Based Views
+SECTION	PropNum PI	prop_id	null
+COLUMN	PropNum
+SECTION	Proposal Columns	spreadsheet	null
+COLUMN	Grp
+COLUMN	Type
+COLUMN	Sub Type
+COLUMN	Triage
+COLUMN	MCOP
+COLUMN	Joint
+VIEW	Basics With No Grades
+SECTION	PropNum PI	prop_id	null
+COLUMN	PropNum
+SECTION	Totals	spreadsheet	null
+COLUMN	Grp
+COLUMN	Type
+COLUMN	Sub Type
+COLUMN	Joint
+COLUMN	MCOP
+COLUMN	StatP
+VIEW	Basics, No Grades w/ Running Totals
+SECTION	PropNum PI	prop_id	null
+COLUMN	PropNum
+SECTION	Totals	spreadsheet	null
+COLUMN	StatP
+COLUMN	Tot App Time (24)
+COLUMN	MCOP
+COLUMN	Grp
+COLUMN	Type
+COLUMN	Sub Type
+COLUMN	Conflict
+COLUMN	Joint
+SECTION	Total Time	multi_cols	null
+COLUMN	Tot App Time 24/25/26
+SECTION	Running Totals	spreadsheet	null
+COLUMN	Run App Time (24)
+COLUMN	Run App HEL (24)
+COLUMN	Run RC (24)
+COLUMN	Run App Time (25)
+COLUMN	Run App HEL (25)
+COLUMN	Run RC (25)
+COLUMN	Run App Time (26)
+COLUMN	Run App HEL (26)
+COLUMN	Run RC (26)
+COLUMN	Run Arc$
+COLUMN	Run The$
+VIEW	Basics, No Grades w/ Targets (24)
+SECTION	PropNum PI	prop_id	null
+COLUMN	PropNum
+SECTION	Totals	spreadsheet	null
+COLUMN	StatP
+COLUMN	Tot App Time (24)
+COLUMN	MCOP
+COLUMN	Grp
+COLUMN	Type
+COLUMN	Sub Type
+COLUMN	Conflict
+COLUMN	Joint
+SECTION	Target Information	target	null
+COLUMN	StatT (24)
+COLUMN	Targ Num
+COLUMN	Target
+COLUMN	App Time (24)
+COLUMN	Targ Tax (24)
+COLUMN	Targ RC (24)
+COLUMN	Time Const
+COLUMN	Mon
+COLUMN	Grid
+VIEW	Grading View	Y
+SECTION	PropNum PI	prop_id	null
+COLUMN	PropNum
+SECTION	ProposalCols	spreadsheet	null
+COLUMN	Grp
+COLUMN	Triage
+COLUMN	Grade Avg
+COLUMN	Grade Stdev
+COLUMN	Type
+COLUMN	Sub Type
+COLUMN	Joint
+COLUMN	Conflict
+SECTION	Totals	multi_cols	null
+COLUMN	Num Targ App 24/25/26
+COLUMN	Num Obs App 24/25/26
+SECTION	TC	spreadsheet	null
+COLUMN	TC
+SECTION	AppTime	multi_cols	null
+COLUMN	App Time 24/25/26
+SECTION	Running Totals	spreadsheet	null
+COLUMN	Run App Time (24)
+COLUMN	Run App HEL (24)
+COLUMN	Run RC (24)
+COLUMN	Run App Time (25)
+COLUMN	Run App HEL (25)
+COLUMN	Run RC (25)
+COLUMN	Run App Time (26)
+COLUMN	Run App HEL (26)
+COLUMN	Run RC (26)
+VIEW	Final Summary w/Multi TC 	Y
+SECTION	PropNum PI	prop_id	null
+COLUMN	PropNum
+SECTION	Grade	spreadsheet	null
+COLUMN	Grade Avg
+SECTION	Stat	spreadsheet	null
+COLUMN	StatP
+SECTION	Total	combo_cols	null
+COLUMN	Tot Time App/Req (24)
+COLUMN	Num Targ App/Req (24)
+SECTION	Running Totals	spreadsheet	null
+COLUMN	Run App Time (24)
+COLUMN	Run App HEL (24)
+COLUMN	Run RC (24)
+COLUMN	Run App Time (25)
+COLUMN	Run App HEL (25)
+COLUMN	Run RC (25)
+COLUMN	Run App Time (26)
+COLUMN	Run App HEL (26)
+COLUMN	Run RC (26)
+COLUMN	Run <5 TOO
+COLUMN	Run 5-20 TOO
+COLUMN	Run Arc$
+COLUMN	Run The$
+COLUMN	Run HST
+SECTION	Proposal Columns	spreadsheet	null
+COLUMN	Grp
+COLUMN	Type

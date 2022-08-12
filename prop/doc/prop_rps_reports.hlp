@@ -1,0 +1,419 @@
+===============================================================================
+
+	            HELP FILE for prop_rps_reports
+
+===============================================================================
+
+
+General
+-------
+
+The prop_rps_reports application prints either the internal RPS format or
+the confirmation message format reports for the requested proposals. 
+
+Proposals can be specified by a file containing a list of proposals(-f),
+by a specific proposal number(-prop), by a panel name(-panel), or the
+user may request all proposals(-all).  This list of proposals may then
+be further refined by specifying the type of observer(-t GTO,TOO,CAL,GO)
+and/or the status of the proposal(-s APPROVED,PROPOSED). The defaults
+are all types with a status of PROPOSED.
+
+The different report types are shown in the Detailed Description section.
+
+
+PARAMETERS
+----------
+
+Use proposals that match the following criteria:
+-f     [filename]        OPTIONAL  - file of proposal numbers
+-prop  [proposal number] OPTIONAL  - specific proposal number
+-panel [panel id ]       OPTIONAL  - specific panel id
+-all                     OPTIONAL  - all proposals from any cycle
+                                     with any status.
+
+Limit proposals to the following specified values:
+-ao     [AO ]            OPTIONAL  - AO cycle
+-status [status ]        OPTIONAL  - status PROPOSED or APPROVED
+-type   [observer type ] OPTIONAL  - type of observer, default is all
+
+Report Types: 
+-rps            Print RPS format
+-confirm        Print confirmation format
+
+-U [user]       REQUIRED  - proposal database user name
+-S [server]     OPTIONAL  - proposal database server 
+                            default is ASCDS_SQLOC_SERVER
+-p              OPTIONAL  - print parameters
+
+
+
+INPUT/OUTPUT
+-------------
+
+1) STDIN:  
+
+   >Enter Password:  User must enter password for access to the database.
+
+2) Input Files: 
+
+   File containing proposal numbers when using the -f input parameter option.
+   This file contains proposal numbers separated by white-space characters
+   (blanks, tabs, new-lines, or form-feeds).
+
+
+
+3) Output Files:
+
+   For the -confirm option, output is written to STDOUT.
+
+   For the -rps option, output is written to a file in the current directory.
+   The filename is proposal_number.prop. The format is described in the
+   Detailed Description section.
+
+4) Output Files for Archive: 
+
+   N/A
+
+
+SETUP AND USAGE
+---------------
+
+prop_rps_reports uses the environment variables that are set in the file 
+'ascds_setup_prop' and 'ascds_setup_db'.  These proposal environment 
+variables include :
+
+        ASCDS_PROP_DIR       - top level proposal directory
+        ASCDS_PROP_AO        - current open proposal cycle number
+        ASCDS_ARCOC_SERVER   - database archive server.
+        ASCDS_SQLOC_SERVER   - database sybase server.
+
+The user should not ordinarily change their values. 
+
+Only those users having permissions to read proposals should have access to
+the proposal database and any files that contain proposal data.
+All files created should belong to the group 'prop'.  Permission should
+be set so that only the owner and group have permissions to access these
+files.  If you need access, contact the system administrator.
+
+
+
+
+DETAILED DESCRIPTION - GENERAL INSTRUCTIONS
+-------------------------------------------------------------------
+
+The different report formats are described here.
+
+1. -rps
+   Notes: Prints RPS internal format of database values for specified
+   proposals.
+
+   
+NAME.TITLE[A12]=
+NAME.FIRST[A17]=
+NAME.MIDDLE[A12]=
+NAME.LAST[A27]=
+DEPARTMENT[A60]=
+INSTITUTE[A60]=
+ADDRESS.STREET[A60]=
+ADDRESS.CITY[A32]=
+POSTAL.STATE[A32]=
+POSTAL.CODE[A10]=
+POSTAL.COUNTRY[A10]=
+NUMBER.TELEPHONE[A24]=
+NUMBER.FAX[A24]=
+NETWORK.ADDRESS[A60]=
+UPDATE.ADDR[A1]=
+DISTRIB.MEDIUM[A7]=
+MULTITEL.YESNO[A1]=
+MULTITEL.OBS[A60]=
+SUBJECT.CATEGORY[A60]=
+OBSERVER.TYPE[A5]=
+DATA.RIGHTS[A1]=
+PROPOSAL.TITLE[A120]=
+ABSTRACT[A800]=
+NUMBER.OF.TARGETS[I3]=
+TOTAL.TIME[F8.2]=
+PROPOSAL.NUMBER[I8]=
+COICON.CONTACT[A1]=
+COICON.TELEPHONE[A24]=
+COI.FNAME(1)[A17]=
+COI.LNAME(1)[A27]=
+COI.EMAIL(1)[A60]=
+COI.INSTITUTE(1)[A60]=
+COI.COUNTRY(1)[A10]=
+COI.FNAME(2)[A17]=
+COI.LNAME(2)[A27]=
+COI.EMAIL(2)[A60]=
+COI.INSTITUTE(2)[A60]=
+COI.COUNTRY(2)[A10]=
+COI.FNAME(3)[A17]=
+COI.LNAME(3)[A27]=
+COI.EMAIL(3)[A60]=
+COI.INSTITUTE(3)[A60]=
+COI.COUNTRY(3)[A10]=
+COI.FNAME(4)[A17]=
+COI.LNAME(4)[A27]=
+COI.EMAIL(4)[A60]=
+COI.INSTITUTE(4)[A60]=
+COI.COUNTRY(4)[A10]=
+COI.FNAME(5)[A17]=
+COI.LNAME(5)[A27]=
+COI.EMAIL(5)[A60]=
+COI.INSTITUTE(5)[A60]=
+COI.COUNTRY(5)[A10]=
+COI.FNAME(6)[A17]=
+COI.LNAME(6)[A27]=
+COI.EMAIL(6)[A60]=
+COI.INSTITUTE(6)[A60]=
+COI.COUNTRY(6)[A10]=
+COI.FNAME(7)[A17]=
+COI.LNAME(7)[A27]=
+COI.EMAIL(7)[A60]=
+COI.INSTITUTE(7)[A60]=
+COI.COUNTRY(7)[A10]=
+COI.FNAME(8)[A17]=
+COI.LNAME(8)[A27]=
+COI.EMAIL(8)[A60]=
+COI.INSTITUTE(8)[A60]=
+COI.COUNTRY(8)[A10]=
+COI.FNAME(9)[A17]=
+COI.LNAME(9)[A27]=
+COI.EMAIL(9)[A60]=
+COI.INSTITUTE(9)[A60]=
+COI.COUNTRY(9)[A10]=
+COI.FNAME(10)[A17]=
+COI.LNAME(10)[A27]=
+COI.EMAIL(10)[A60]=
+COI.INSTITUTE(10)[A60]=
+COI.COUNTRY(10)[A10]=
+COI.FNAME(11)[A17]=
+COI.LNAME(11)[A27]=
+COI.EMAIL(11)[A60]=
+COI.INSTITUTE(11)[A60]=
+COI.COUNTRY(11)[A10]=
+ADMIN.NAME[A60]=
+ADMIN.POST[A60]=
+ADMIN.INSTITUTE[A60]=
+TARGET.NUMBER[I3]=
+TARGET.POSITION.FLAG[A1]=
+TARGET.NAME[A20]=
+COORD.EPOCH[I4]=
+COORD.RA[A9]=
+COORD.DEC[A9]=
+TARGET.YDET[D8.4]=
+TARGET.ZDET[D8.4]=
+TARGET.RADIAL[D8.4]=
+RASTER.SCAN[A1]=
+SS.OBJECT[A12]=
+SS.NUDGE[A1]=
+TOTAL.OBS.TIME[D7.2]=
+TIME.CRITICAL[A1]=
+PHOTOMETRY.FLAG[A1]=
+TARGET.VMAG[D4.2]=
+INST.DETECTOR[A6]=
+INST.GRATING[A4]=
+EST.DET.CR[D10.5]=
+FIRST.ORDER.CR[D10.5]=
+DITHER.FLAG[A1]=
+DEFOCUS.MODE[D10.4]=
+HRC.FLAG[A1]=
+HRC.CONFIG[A6]=
+HRC.CHOP[A12]=
+HRC.FRACTION[D6.4]=
+HRC.CHOPNO[I3]=
+HRC.ZEROBLOCK[A1]=
+ACIS.FLAG[A1]=
+ACIS.MODE[A40]=
+EXP.MODE[A2]=
+BEP.PACK[A3]=
+STANDARD.CHIPS[A1]=
+CCDI0.ON[A1]=
+CCDI1.ON[A1]=
+CCDI2.ON[A1]=
+CCDI3.ON[A1]=
+CCDS0.ON[A1]=
+CCDS1.ON[A1]=
+CCDS2.ON[A1]=
+CCDS3.ON[A1]=
+CCDS4.ON[A1]=
+CCDS5.ON[A1]=
+ONCHIP.ROWS[I4]=
+ONCHIP.COLUMNS[I4]=
+FRAME.TIME[D4.1]=
+SUBARRAY.TYPE[A6]=
+SUBARRAY.START[A4]=
+SUBARRAY.ROWS[A4]=
+SUBARRAY.TIME[D4.1]=
+EVENTTHSH.YESNO[A1]=
+EVENT.THRESHOLD[D8.4]=
+DUTY.YESNO[A1]=
+DUTY.NUMBER[I2]=
+DUTY.TPRIME[D6.3]=
+DUTY.TSEC[D6.3]=
+ONCHIP.SUM[A1]=
+EVENTFILT.YESNO[A1]=
+EVENTFILT.LOWER[D8.3]=
+EVENTFILT.RANGE[D8.3]=
+SPATWIN.YESNO[A1]=
+SPATWIN.STARTROW[I4]=
+SPATWIN.STARTCOL[I4]=
+SPATWIN.WIDTH[I4]=
+SPATWIN.HEIGHT[I4]=
+SPATWIN.LOWER[D8.3]=
+SPATWIN.PHARANGE[D8.3]=
+SPATWIN.SAMPLE[I4]=
+BIAS.YESNO[A1]=
+BIAS.FREQ[D3.1]=
+BIAS.AFTER[A1]=
+ROLL.CONSTRAINT[A1]=
+ROLL.ANGLE[D8.4]=
+ROLL.TOLERANCE[D8.4]=
+WINDOW.OBS[A1]=N
+WINDOW.START.Y[I4]=
+WINDOW.START.MO[I2]=
+WINDOW.START.D[I2]=
+WINDOW.START.H[I2]=
+WINDOW.START.MI[I2]=
+WINDOW.STOP.Y[I4]=
+WINDOW.STOP.MO[I2]=
+WINDOW.STOP.D[I2]=
+WINDOW.STOP.H[I2]=
+WINDOW.STOP.MI[I2]=
+MONITOR.OBS[A1]=N
+NUMBER.OBS[I3]=1
+MONITOR.MIN.INT[D9.5]=
+MONITOR.MAX.INT[D9.5]=
+PHASE.DEPENDENT[A1]=N
+PHASE.EPOCH[D12.6]=
+PHASE.PERIOD[D10.5]=
+PHASE.MIN[D6.4]=
+PHASE.MIN.ERR[D6.4]=
+PHASE.MAX[D6.4]=
+PHASE.MAX.ERR[D6.4]=
+UNINTERRUPT.REQ[A1]=
+REMARKS[A400]=
+
+
+2.  -confirm
+   Notes: Proposals are sorted by proposal number.  The following is a
+   sample only, not all fields are displayed.
+
+Proposal Number   :
+Number of Targets :
+
+Principal Investigator -
+Title             :
+First Name        :
+Middle Name       :
+Last Name         :
+Department        :
+Institute         :
+Address/Street    :
+City/Town         :
+State/Province    :
+Zip/Postal Code   :
+Country           :
+Telephone Number  :
+Fax Number        :
+E-Mail Address    :
+Update Address    :
+
+Distrib. Medium   :
+Multi-Telescope Observations:
+Telescopes        :
+Subject Category  :
+Observation Type  :
+Proprietary Rights:
+Proposal Title    :
+
+
+Abstract          :
+
+
+Co-Investigators         :
+
+1st Co-I doing observing :
+Obs. Investigator Phone  :
+
+Name of Administrator    :
+Administrative Authority :
+Administrative Institute :
+
+Total Number Targets:
+Total Time          :
+
+
+===============================================================================
+Target Number            :
+Target Name              :
+Target Position Flag     :
+Solar System Object      :
+Total Observing Time     :
+Constrained Observation  :
+Optical Monitor Data     :
+  V Magnitude            :
+Detector                 :
+Grating                  :
+Count Rate               :
+1st Order Count Rate     :
+Total Field Count Rate   :
+Extended Source ?        :
+HRC Parameters           :
+ACIS Parameters          :
+---------------
+
+Required ACIS Parameters -
+  Exposure Mode          :
+  Event Telemetry Format :
+  Use Standard 6 Chips   :
+  CCDs I0 On             :
+  CCDs I1 On             :
+  CCDs I2 On             :
+  CCDs I3 On             :
+  CCDs S0 On             :
+  CCDs S1 On             :
+  CCDs S2 On             :
+  CCDs S3 On             :
+  CCDs S4 On             :
+  CCDs S5 On             :
+
+Optional Custom ACIS Parameters that affect PILEUP -
+  Subarray Type          :
+  Use Alternating Exposure Readout    :
+
+Optional Custom ACIS Parameters that affect TELEMETRY-
+  On-chip Summing           :
+  Use Event Filter          :
+  Use defined spatial windows :
+
+              Start Start                 Lower      Energy  Sampling
+  Chip  Type  Row   Column  Width  Height Threshold  Range   Rate
+  ---------------------------------------------------------------------
+
+  Use special spatial windows :
+  Definition for spatial windows :
+
+CONSTRAINTS:
+-----------
+Window Constraint         : N
+Roll Constraint           : N
+Monitoring Observation    : N
+
+Phase Dependent           : N
+
+Uninterrupted Observation : N
+
+REMARKS :
+
+
+
+
+RESTRICTIONS
+------------
+
+
+REFERENCES
+----------
+
+See the Proposal section of the Data System Software Design Document 
+(DS01) for more detail about the proposal submission cycle. 

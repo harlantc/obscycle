@@ -1,0 +1,217 @@
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 2016, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_pre_conflicts.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+
+#     First, retrieve the list of panel members and then go find the
+#     corresponding preliminary grades files for that member.  If run before
+#     the PAS is open for preliminary grades, then this reflects the conflict 
+#     info saved. Alternatively, you could just retrieve "personal" conflicts
+#     from the database but this won't show the users that checked but had
+#     no conflicts.
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+BEGIN
+{
+	$ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use vars qw ($dbh %param @reqfiles $reqfile $thedate
+	);
+
+use strict;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+use lib "/home/ascds/DS.release/bin";
+
+
+@reqfiles = (
+        "prop_routines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+
+# -------------------------- MAIN ----------------------------------
+{
+  my($dsn,$stmp,$fname);
+  my($sth,$sql,@row,$lockfile);
+  &parse_input;
+
+
+  #database connection
+  $dbh = dbProposalConnection($param{U}, $param{S}, $param{q});
+
+  if (!$param{a} ) {
+    $sql = "select current_ao_str from context";
+    $sth = $dbh->prepare($sql);
+    $sth->execute;
+    while (@row = $sth->fetchrow_array()) {
+       $param{a} = $row[0];
+    }
+  }
+
+  
+    
+    $thedate = get_date();
+
+    open OFILE,"> $param{o}" or die "Unable to open $param{o} for writing.";
+    print OFILE "PAS conflicts/grades received as of $thedate\n\n";
+
+    # find all the grades for all members in every panel
+    do_panel_members(); 
+  
+    close OFILE;
+    chmod(0660,$param{o});
+
+}
+
+
+# -----------------------------------------------------------------
+# find the panel members and create the correct filename to
+# read (panelName_persID.pgrade) from the web reports directory.
+# Then for each file, go read in the grades into the proposal array
+# -----------------------------------------------------------------
+sub do_panel_members
+{
+  my($idx) = @_;
+  my($sth,$sql,@row,$fname);
+  my(@file_stat,@day_time,$retdate);
+
+  $sql = qq(select pm.panel_id,panel_name,ps.pers_id,ps.last
+	from panel p,panel_member pm,ao,axafusers..person_short ps
+ 	where p.ao = ao.ao_id and ao.ao_str = "$param{a}"
+	and p.panel_id = pm.panel_id
+	and pm.pers_id = ps.pers_id
+	order by panel_name,last);
+
+  $sth = $dbh->prepare($sql);
+  $sth->execute();
+  printf OFILE "Panel\t%-25s\tLast Modified\n", "Reviewer";
+  printf OFILE "-----\t%-25s\t-------------\n", "--------";
+  while (@row = $sth->fetchrow_array) {
+    # read in the file for this user 
+    $fname = $param{d} . "/$row[1]\_$row[2]" . ".pgrade";
+    $retdate="";
+    if (-e $fname) {
+      @file_stat = stat "$fname";
+      @day_time =localtime($file_stat[9]);
+      $day_time[4] += 1;        # add 1 to the month
+      $day_time[5] -= 100;      # subtract 100 from year
+      $retdate = sprintf("%02.2d/%02.2d/%02.2d %02.2d:%02.2d",
+        $day_time[4],$day_time[3],$day_time[5],$day_time[2],$day_time[1]);
+
+    }
+    printf OFILE "%-3s\t%-25s\t$retdate\n", $row[1],$row[3];
+  }
+}
+
+# ----------------------------------------------------------
+# parse input parameters
+# ----------------------------------------------------------
+sub parse_input
+{
+  my($pwd,$tmp,$str,$key);
+  my $err = 0;
+
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+             o=> "$ENV{ASCDS_PROP_DIR}/reports/pre_conflicts.txt",
+             d=> "$ENV{ASCDS_PROP_EL}/webreports/grades"
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "o=s",
+          "a=s",
+	  "d=s",
+          "q=s",
+          "w=s",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    if ($param{w}) {
+      $tmp = $param{w} . "/.htreport";
+      open PFILE,"< $tmp";
+      while ($tmp = <PFILE>) {
+        chomp($tmp);
+        ($key,$str) = split(/=/,$tmp);
+        if ($key =~ /user/i) {
+          $param{U} = $str;
+        }
+        if ($key =~ /server/i) {
+          $param{S} = $str;
+        }
+      }
+      close PFILE;
+      $tmp = $param{w} . "/.htreportp";
+      open PFILE,"< $tmp";
+      while ($tmp = <PFILE>) {
+        chomp($tmp);
+        $pwd = $tmp;
+      }
+      close PFILE;
+    }
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter '$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+  if(!$param{q} && !$param{w}) {
+   $pwd = get_password($param{U},$param{S});
+  }
+  elsif (!$param{w}) {
+   $pwd = read_password($param{q});
+  }
+  $param{q} = $pwd;
+
+}
+
+sub usage
+{
+    print STDERR "\nUSAGE: prop_pre_conflicts.pl -U [-Sadosw]\n";
+    print STDERR "       -U database user name\n";
+    print STDERR "       -S database server, default is DB_PROP_SQLSRV\n";
+    print STDERR "       -a AO , default is ASCDS_PROP_AO\n";
+    print STDERR "       -d web grades directory, default is /data/rpc/prop/webreports/grades/\n";
+    print STDERR "       -o output file, default is ASCDS_PROP_DIR/reports/pre_conflicts.txt \n";
+    print STDERR "       -w if exists, use -d to find correct database params\n";
+    print STDERR qq(\n\nOutput file will be:\n
+    pre_conflicts.txt\n);
+
+}
+

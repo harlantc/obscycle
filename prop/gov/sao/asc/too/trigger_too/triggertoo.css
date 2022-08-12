@@ -1,0 +1,119 @@
+#cxcfootercenter {
+  width:60%!important;
+}
+#cxcfooter {
+}
+.grecaptcha-badge {
+     z-index: 99999999999999999;
+}
+
+
+textarea {background-color:#ffffff; }
+input {background-color:#ffffff; }
+select {background-color:#ffffff; }
+td.small { text-align:left; font-size:small; }
+th.hdr { text-align:center; background-color:#1f2569; color:#ffffff;}
+th.label { text-align:left; }
+th.bigLabel { text-align:left; font-size:x-large; font-weight:bold; }
+td.list { text-align:center; }
+td.field { text-align:left; }
+tr.alt1 {background-color:#e4e9f1; }
+tr.alt2 {background-color:#ffffff; }
+tr.hover {background-color:#cccccc; }
+a { color:#0000cc;text-decoration:none; }
+a:hover { text-decoration:underline; }
+
+td.left { text-align:left; }
+td.rightb { text-align:right; font-weight:bold; }
+.error { color:#aa0000; text-align:left;  }
+
+font.tiny { font-size:small; }
+font.bigLabel { font-size:large; font-weight:bold; }
+font.error { color:#aa0000; font-style:italic; }
+
+img.hdrimg { border-width:0; }
+
+.errdiv {
+  clear:both;
+  float:left;
+  color:#aa0000;
+  display:none;
+  padding-bottom:3px;
+}
+
+.errmsg { 
+  border-style:none; 
+  color:#aa0000; 
+  font-style:italic; 
+  font-size:larger; 
+  background-color:#eeeeee;
+}
+
+.submitBtn {
+   background-color:#1c2260;
+   color:#ffffff;
+   border-width:0;
+}
+.submitBtn:hover {
+   background-color:#2c3399;
+   color:#ffffff;
+   border-width:0;
+}
+
+.hdrbar { 
+  background-color: #eef2ff;
+  text-align:left;
+  border: solid 3px #1c2260;
+  clear:both;
+  width:95%;
+  padding:10px;
+  margin:auto;
+}
+
+
+.msgbar {
+  background-color: #eef2ff;
+  text-align:left;
+  border: solid 3px #1c2260;
+  clear:both;
+  width:97%;
+  margin:auto;
+  padding:5px;
+  overflow: hidden;
+  border-top-right-radius: 1em;
+  border-top-left-radius: 1em;
+  -moz-border-radius-topleft: 1em;
+  -moz-border-radius-topright: 1em;
+  -webkit-border-top-left-radius: 1em;
+  -webkit-border-top-right-radius: 1em;
+  border-bottom-right-radius: 1em;
+  border-bottom-left-radius: 1em;
+  -moz-border-radius-bottomleft: 1em;
+  -moz-border-radius-bottomright: 1em;
+  -webkit-border-bottom-left-radius: 1em;
+  -webkit-border-bottom-right-radius: 1em;
+
+}
+
+.trigbtn:hover {
+   background-color:#dddddd;
+}
+.btnDiv {
+   padding: 10px;
+   background-color: #1c2260;
+   display: inline;
+
+}
+
+.txtcmt {
+  width:80%;
+  height:100px;
+  overflow:visible;
+  background-color:#ffffff;
+}
+.helplbl {
+  font-weight:bold;
+  text-decoration:none;
+  color:black;
+}
+

@@ -1,0 +1,32 @@
+(
+:ao 22
+:observer Turner
+:prop-num 22700141
+:seq-nbr 999999
+:id 68241
+:name MCG-03-34-64
+:type GO
+:ra 200.602042
+:dec -16.728358
+:prop-exp-time 50.000000
+:si ACIS-S
+:requested-chip-count 4
+:optional-chip-count 0
+:ccdi0 N
+:ccdi1 N
+:ccdi2 N
+:ccdi3 N
+:ccds0 N
+:ccds1 Y
+:ccds2 Y
+:ccds3 Y
+:ccds4 Y
+:ccds5 N
+:uninterrupt N
+:pointing_constraint N
+:phase-constr-flag N
+:multi-tel-flag Y
+:multi-telescopes-interval 364.000000
+:monitor N
+:monitor N
+)

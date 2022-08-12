@@ -1,0 +1,174 @@
+#!@PERLDB@
+#*H****************************************************************************
+#* Copyright (c) 2017, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_assign_bpp.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script adds proposals from file to specified panel
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use vars qw ($dbh %param %cats @catcodes 
+	);
+
+use strict;
+use Getopt::Long;
+use DBI;
+use DBD::Sybase;
+
+# -------------------------- MAIN ----------------------------------
+{
+  my($str,$tmp,$cat,$ii,$stmp,$dsn);
+  my($sqlstmt,$dbh,$sth,$retval);
+  my($panel_id,$proposal_id,@row);
+
+  &parse_input;
+
+  #database connection
+  $stmp = "server=$param{S};database=proposal";
+  $dsn = "DBI:Sybase:$stmp";
+  $dbh = DBI->connect($dsn, $param{U}, $param{q}, {
+        PrintError => 1,
+        RaiseError => 1});
+  if ( !defined $dbh) {
+    exit 1;
+  }
+
+  # get the panel id
+ $sqlstmt .= qq(select panel_id from panel,context
+	where panel_name='$param{p}' 
+	and panel.ao = context.current_ao_id);
+  $panel_id=0;
+  $sth = $dbh->prepare($sqlstmt);
+  $sth->execute();
+  while (@row = $sth->fetchrow_array()) {
+    $panel_id = $row[0];
+  }
+  if ($panel_id <= 0) {
+     print STDERR "\nERROR: Failed to find $param{p} for AO $param{a}\n";
+      exit;
+  }
+
+  # now assign the proposals
+  open (PFILE,"< $param{i}") or 
+	die "Unable to open $param{i} for reading.\n";
+  while ($str = <PFILE> ){ 
+    if ($str !~ /#/)  {
+      chomp($str);
+      while ($str=~ s/ //) {;}
+    
+      $sth = $dbh->prepare("select proposal_id from proposal where 
+	proposal_number = '$str'");
+      $sth->execute();
+      while (@row = $sth->fetchrow_array()) {
+         $proposal_id = $row[0];
+      } 
+      $stmp = qq(exec panel_add_proposal $panel_id,$proposal_id);
+      print STDERR "Adding panel: $stmp\n";
+      $dbh->do($stmp);
+      $stmp = qq(exec proposal_review_ingest $proposal_id,$panel_id,
+ 	null,null,null,null,null,null	);
+      #print STDERR "Adding review: $stmp\n";
+      $dbh->do($stmp);
+    }
+  }
+
+  close PFILE;
+}
+
+# ----------------------------------------------------------
+# parse input parameters
+# ----------------------------------------------------------
+sub parse_input
+{
+
+  my($pwd);
+  my $err = 0;
+
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+             i=> undef,
+             p=> "LP",
+             a=> "$ENV{ASCDS_PROP_AO}"
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "i=s",
+          "a=s",
+          "q=s",
+          "p=s",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter `$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+  if(!$param{q}) {
+    use Term::ReadKey;
+     {
+       ReadMode 'noecho';
+       print "Enter password for $param{U} on $param{S}: ";
+       $pwd = ReadLine( 0 );
+       chomp $pwd;
+       ReadMode 'restore';
+       print "\n";
+     }
+  }
+  else {
+    open PFILE,"< $param{q}";
+    while ( <PFILE> ){
+      chomp;
+      $pwd = $_;
+    }
+  }
+  $param{q} = $pwd;
+  
+}
+
+sub usage
+{
+    print STDERR "\nUSAGE: prop_assign_bpp.pl -U [ -Siap]\n";
+    print STDERR "       -U database user name\n";
+    print STDERR "       -i input proposal file (1 prop# per line)\n";
+    print STDERR "       -a AO, default ASCDS_PROP_AO \n";
+    print STDERR "       -p panel , default is LP\n";
+    print STDERR "       -S database server, default is ASCDS_PROP_SQLSRV\n";
+}
+
+

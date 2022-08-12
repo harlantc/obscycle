@@ -1,0 +1,98 @@
+#----------------------------------
+# Copyright (c) 2013,2019 Smithsonian Astrophysical Observatory
+# You may do anything you like with this file.
+#
+# FILE NAME:  prop_utils.pl
+#
+# DEVELOPMENT:
+#   support propsearch tool
+#
+# NOTES:
+#
+# INPUT:
+#
+# REVISION HISTORY:
+#
+# Date:
+#---------------------------------------------------------
+#
+
+1;
+use Sys::Hostname;
+
+sub dbConnect()
+{
+  my($dbh) = 0;
+  my $myenv = $ENV{'OBSCYCLE_DATA_PATH'};
+  if (!$myenv) {
+    $myenv = "/data/rpc";
+  }
+  $myenv .= "/mp/";
+  if (open PFILE,"<$myenv/.htpwd" ) {
+    $pwd = <PFILE>;
+    close PFILE;
+    chomp($pwd);
+  }
+  else {
+    print STDERR "PropSearch: Unable to open configuration file(p)\n";
+  }
+  if (open PFILE,"<$myenv/.htdb" ) {
+    $stmp = <PFILE>;
+    close PFILE;
+    chomp($stmp);
+    ($user,$server) = split(/ /,$stmp,2);
+    $server =~ s/ //g;
+  }
+  else {
+    print STDERR "PropSearch: Unable to open configuration file(s)\n";
+  }
+
+  my $db  = "server=$server;database=axafocat";
+  my $dsn = "DBI:Sybase:$db";
+  $dbh = DBI->connect($dsn, $user, $pwd,{
+      PrintError => 1,
+      RaiseError => 0});
+
+
+  return $dbh;
+
+}
+
+sub debug
+{
+  my ($msg)=@_;
+  my ($q) = new CGI;
+  my($fmsg) = $q->remote_host(); ## print the user ip address
+  $fmsg .= " [" . $q->user_agent() . "] ";
+  my($log_file);
+  $fmsg .= ":: " . $msg;
+  my($tt,@dtmp);
+  my($lname) = hostname;
+  $lname = "" if (!$lname) ;
+  if ( "$ENV{'OBSCYCLE_DATA_PATH'}") {
+    $log_file = "$ENV{'OBSCYCLE_DATA_PATH'}";
+    $log_file .= "/mp";
+  } else {
+    $log_file = "/data/rpc/mp";
+  }
+  $log_file .= "/$lname" . "_propsearch.log";
+
+
+  @dtmp = localtime;
+  $tt = sprintf( "%d/%02.2d/%02.2d:%02.2d%02.2d%02.2d",
+        $dtmp[5] + 1900,$dtmp[4]+1,$dtmp[3],$dtmp[2],$dtmp[1],$dtmp[0]);
+
+  open(DBG_FILE,">> $log_file") ||
+        die ("Unable to open $log_file \n");
+  print DBG_FILE "$tt--> $fmsg";
+  close DBG_FILE;
+  chmod(0660,$log_file);
+}
+
+sub catch_warn {
+  my $signame = shift;
+
+  &debug("$signame\n"); 
+
+}
+

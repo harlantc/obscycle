@@ -1,0 +1,60 @@
+body { 
+	color:black; 
+	background-color:#efefef; 
+}
+.plotbody { 
+	color:black; 
+	background-color:#cccccc; 
+}
+.btnbody {
+        color:black;
+        background-color:#1f2569;
+}
+
+.header {
+	color: #333399;
+	text-align: center;
+	font-weight: bold; 
+}
+
+.plottable {
+	border-width: 1;
+	width: 100%;
+	height: 100%;
+}
+
+.pbold {
+  font-weight:bold;
+}
+.sbold {
+  font-weight:bold;
+}
+.xsbold {
+  font-weight:bold;
+}
+.opttable {
+  text-align: left;
+  width: 100%;
+}
+.opttablehdr {
+  text-align: left;
+  width: 100%;
+  font-size:.8em;
+}
+.inputtable {
+  text-align: left;
+  width: 100%;
+  font-size:.9em;
+  border: 0px;
+  border-spacing: 0px;
+  padding:0px;
+}
+.datetable {
+  text-align: left;
+  font-size:.8em;
+  border: 0px;
+  border-spacing: 0px;
+  padding:0px;
+}
+
+

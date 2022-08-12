@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE table SYSTEM "table.dtd">
+
+<table name="grant_recipient" key="id">
+  <column name="id">
+    <type>INTEGER</type>
+    <tooltip>Database index for grant_recipient table</tooltip>
+  </column>
+  <column name="grant_id">
+    <type>INTEGER</type>
+    <tooltip>Database index for grant_info table</tooltip>
+    <foreignKeyTable>grant_info</foreignKeyTable>
+  </column>
+  <column name="pers_id">
+    <type>INTEGER</type>
+    <tooltip>Associated axafusers person id  </tooltip>
+    <foreignKeyTable>axafusers..person_short</foreignKeyTable>
+  </column>
+</table>

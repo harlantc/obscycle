@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE cxchelptopics SYSTEM "CXCHelp.dtd">
+<cxchelptopics>
+<ENTRY context="proposaltools" key="colden" refkeywords="hydrogen column density prop_colden  galactic neutral hydrogen" seealsogroups="prop-tools">
+<SYNOPSIS>
+
+COLDEN is an interactive program to evaluate the neutral hydrogen column density at a given direction on the sky
+
+</SYNOPSIS>
+<ADDRESS>
+<URL>
+colden.html
+</URL>
+
+</ADDRESS>
+<ADDRESS>
+<URL>
+http://cxc.harvard.edu/ciao/ahelp/colden.html
+</URL>
+
+</ADDRESS>
+<DESC>
+<PARA>
+
+COLDEN can be run over the web using a browser or
+run locally using the command-line interface (CLI). The CLI version will
+accept a text file with a list of positions as input. 
+
+</PARA>
+
+<PARA title="Supported Datasets">
+There are two datasets supported: Bell and NRAO.
+</PARA>
+<PARA>
+
+Bell is the Stark, et al, velocity-resolved Bell Labs survey. An
+early version of the spectra from 1984 is used. Please note that these
+have not been checked in detail against the published FITS data (ApJ
+Suppl. 79, p77, 1992). There are two data files, one integrated over
+velocity and one with the velocity-resolved spectra. Note that the
+Stark et al data only covers Dec &gt; -40 degrees.
+
+</PARA>
+<PARA>
+
+NRAO is the Dickey and Lockman 1990 (ARA&amp;A, 28, p.215) all-sky
+interpolation of Stark, et al, and several other surveys. This dataset
+is not velocity-resolved.
+
+</PARA>
+<PARA title="Available Coordinate Systems">
+The available coordinate systems are: Equatorial or Ecliptic with
+Besselian Epoch (specify as 'BXXXX'), Equatorial Julian Epoch (specify as 'JXXXX'), or Galactic.
+For a detailed description of the available coordinate systems, see
+the ahelp file for prop-coords.
+
+</PARA>
+<PARA title="Running COLDEN Online">
+
+COLDEN can be accessed via the URL 
+
+<HREF link="http://cxc.harvard.edu/toolkit/colden.jsp">
+http://cxc.harvard.edu/toolkit/colden.jsp
+</HREF>
+
+
+</PARA>
+<PARA>
+
+General help information is available by clicking the 'HELP' button. 
+
+</PARA>
+<PARA title="Running COLDEN from the Command Line">
+
+The syntax for processing a file of coordinates is:
+
+</PARA>
+<PARA>
+
+prop_colden commands:infile:outfile
+
+</PARA>
+<PARA>
+
+The syntax for evaluating a single position is:
+
+</PARA>
+<PARA>
+
+prop_colden data dataset eval position
+
+</PARA>
+<PARA>
+
+See the EXAMPLES section for more information.
+
+</PARA>
+<PARA>
+
+To run COLDEN in the interactive CLI  mode, type 'prop_colden' at the Unix
+prompt. This enters an interactive command mode for setting program
+parameters. The command level prompt is Colden[Setup]&gt;:. Within the
+command level, type '?' or 'help' to see a list of the available
+commands, and type 'list' or 'l' to display the current program
+settings.
+
+</PARA>
+<PARA title="Input Commands">
+
+The most usual command sequence is 'data', 'from', and 'convert', which can be
+abbreviated as 'd', 'f', and 'c', respectively. The 'data' command selects
+the survey source, either 'Bell' or 'NRAO'. When using the Bell
+survey, you can select the velocity range using the command 'vlims
+[vlmin] [vlmax]'. The command 'vlims *' returns the velocity slice to
+its default (maximum) range of -550 km/s to +550 km/s. The from
+command defines the Input coordinate system.
+
+</PARA>
+<PARA>
+
+The 'convert' command enters the processing level. Within the processing level,
+enter the Input coordinates in the appropriate format, either both
+coordinates on the same line separated by spaces or a comma, or the
+x-coordinate on one line and the y-coordinate on the next. The default
+format for RA and DEC is hh mm ss.ss and dd mm ss.ss. The default
+format for the other coordinate systems is decimal degrees.
+
+</PARA>
+<PARA title="Other Commands">
+
+The 'p' command sets the output display mode: use 'p0' for terse, 'p1'
+for normal, or 'p2' for verbose display. The default output display
+mode is p1.
+
+</PARA>
+<PARA>
+
+To leave the processing level and return to the command level, type
+'q' or 'quit'. Type 'q' or 'quit' at the command level to exit the
+program.
+
+</PARA>
+<PARA title="COLDEN Results">
+
+COLDEN computes three values: Galactic L2 (in decimal degrees), B2 (in
+decimal degrees), and NH (in units of 1e+20 per cm**2). COLDEN
+also provides a comment that describes the computation. The possible
+comments are:
+
+</PARA>
+<LIST>
+<ITEM>
+Interpolated - Value interpolated from four nearest measurement
+directions.
+</ITEM>
+<ITEM>
+At target - Measurement in exactly the specified column
+direction. 
+</ITEM>
+<ITEM>
+At closest point - Measurement in observed direction closest to
+the specified column direction; the specified direction does not have
+four nearest measurement directions suitable for
+interpolation. 
+</ITEM>
+<ITEM>
+Gain uncertain -  Specified column direction is less than 0.2
+deg from the equator (B1950); measurements near the equator in the
+Stark, et al Bell survey (ApJ Suppl. 79, p77, 1992) may suffer from
+large gain fluctuations. 
+</ITEM>
+<ITEM>
+Too far south - No value computed -- Specified column direction
+is at least 40.0 deg south of the equator (B1950); the Stark, et al
+Bell survey (ApJ Suppl. 79, p77, 1992) used a Northern Hemisphere telescope.
+
+</ITEM>
+
+</LIST>
+
+</DESC>
+<QEXAMPLELIST>
+<QEXAMPLE>
+<DESC>
+<PARA>
+
+Compute the column density using equatorial coordinates and
+the Bell survey (the default dataset).
+
+</PARA>
+<VERBATIM>
+
+unix prompt&gt; prop_colden
+-------------------- Colden --------------------
+ You are now in setup mode.
+ Type "c" to enter conversion mode,
+      "?" to list setup mode commands,
+ or   "q" to quit the program.
+The default conversion is from J2000.
+
+Colden[Setup]&gt;:c 
+
+RA (J2000): 02 20 20.1 -00 00 23
+
+-------------------------------------------------------------------------
+Input coords:  02 20 20.10 -00 00 23.00
+Target RA,Dec: 02 17 46.429 -00 14 06.398   (l,b):164.800707   -55.479362
+Density integrated from   -550.000 to    550.000 km/s
+Hydrogen density (10^20 cm**(-2)):   2.97 (Interpolated)
+-------------------------------------------------------------------------
+</VERBATIM>
+
+</DESC>
+
+</QEXAMPLE>
+<QEXAMPLE>
+<DESC>
+<PARA>
+Set the conversion to use B1950 instead of J2000, then compute a column 
+density, restricting the velocity range  from -200 km/s to +100 km/s.   
+
+</PARA>
+<VERBATIM>
+Colden[Setup]&gt;:F B1950
+Colden[Setup]&gt;:vlims -200 +100 
+Colden[Setup]&gt;:c 
+
+RA  B1950.0: 86.655
+Dec B1950.0: 40.979
+------------------------------------------------------------------------------------------
+Input coords:  14 39 18.00 +40 58 44.40
+Target RA,Dec: 14 39 18.000 +40 58 44.400   (l,b): 71.123387    63.625465
+Density integrated from   -200.000 to    100.000 km/s
+Hydrogen density (10^20 cm**(-2)):   1.27 (Interpolated)
+------------------------------------------------------------------------------------------
+</VERBATIM>
+
+</DESC>
+
+</QEXAMPLE>
+<QEXAMPLE>
+<DESC>
+<PARA>
+
+Compute the column density for a file of coordinates, s.cat,
+using the syntax 'prop_colden commands:infile:outfile'. The file s.cat
+contains the following.
+
+</PARA>
+<VERBATIM>
+
+00 01 12.3 -00 02 23.4 
+02 59 59.9 23 12 22.1
+02 23 0 11 23 12
+23 48 48.23 -2 11 14.123 
+
+Store the results in the file cd_s.cat.
+
+unix prompt&gt; prop_colden :s.cat:cd_s.cat
+Opened input file s.cat
+Opened output file cd_s.cat
+unix prompt&gt; 
+</VERBATIM>
+<PARA>
+
+The output file, cd_s.cat, contains the following.
+
+</PARA>
+<VERBATIM>
+00 01 12.30 -00 02 23.40     96.863631   -60.344074   3.44  (Interpolated)
+02 59 59.90 +23 12 22.10    157.653803   -30.860527  10.86  (Interpolated)
+02 23 00.00 +11 23 12.00    155.916678   -45.539934   7.21  (Interpolated)
+23 48 48.23 -02 11 14.12     89.255836   -60.895829   3.36  (Interpolated)
+</VERBATIM>
+
+</DESC>
+
+</QEXAMPLE>
+<QEXAMPLE>
+<SYNTAX>
+<LINE>
+unix prompt&gt; prop_colden d nrao eval 14 11 30 20 11 10
+</LINE>
+</SYNTAX>
+<DESC>
+<PARA>
+Use the eval command to evaluate a single position
+using the NRAO dataset. The general syntax is: 'prop_colden d dataset
+eval position'. eval runs the colden convert command using the
+specified input and then exits.
+</PARA>
+<VERBATIM>
+NRAO INTERP WTS 0.487390 0.426964  MAPS 2.460000 2.550000 2.520000 2.320000 VAL 2.466981
+------------------------------------------------------------------------------------------
+Input coords:  14 11 30.00 +20 11 10.00
+Target RA,Dec: 14 09 09.543 +20 25 14.385   (l,b): 16.455152    70.426964
+Density integrated from   -550.000 to    550.000 km/s
+Hydrogen density (10^20 cm**(-2)):   2.47
+------------------------------------------------------------------------------------------
+</VERBATIM>
+
+</DESC>
+</QEXAMPLE>
+
+
+<QEXAMPLE>
+<SYNTAX>
+<LINE>
+unix prompt&gt; prop_colden f j/deg d nrao eval 212.875000 20.186111
+</LINE>
+</SYNTAX>
+<DESC>
+<PARA>
+Similar to above, but with decimal degress.
+</PARA>
+<VERBATIM>
+------------------------------------------------------------------------------------------
+Input coords:  212.875000    20.186111
+Target RA,Dec: 14 09 09.543 +20 25 14.384   (l,b): 16.455151    70.426964
+Density integrated from   -550.000 to    550.000 km/s
+Hydrogen density (10^20 cm**(-2)):   2.47
+------------------------------------------------------------------------------------------
+</VERBATIM>
+<PARA>
+Note:  The RA and Dec values have been converted from J2000 to B1950 to match the
+values in the NRAO database.
+</PARA>
+</DESC>
+</QEXAMPLE>
+
+
+
+
+
+</QEXAMPLELIST>
+
+
+<VERSION>CIAO 4.5</VERSION>
+<LASTMODIFIED>December 2012</LASTMODIFIED>
+
+</ENTRY>
+
+</cxchelptopics>

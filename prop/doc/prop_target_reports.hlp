@@ -1,0 +1,231 @@
+===============================================================================
+
+	            HELP FILE for prop_target_reports
+
+===============================================================================
+
+
+General
+-------
+
+The prop_target_reports application will print reports based on information
+for the targets of the requested proposals. If the information requested 
+needs to be organized on a per proposal basis, please see the prop_reports.hlp 
+file.
+
+Targets can be specified by a file containing a list of database target 
+id's(-tf). Target can also be specified by identifying the proposals
+by a file containing a list of proposals(-f), by a specific proposal 
+number(-prop), by a panel name(-panel), or the user may request all 
+proposals(-all).  This list of proposals may then be further refined by 
+specifying the type of observer(-t GTO,TOO,CAL,GO) and/or the status of 
+the proposal(-s APPROVED,PROPOSED). The defaults are all types with a 
+status of PROPOSED.
+
+The targets can be limited to those targets with a specified status of
+accepted or rejected.  The default is all targets.
+
+The different report types are shown in the Detailed Description section.
+
+
+PARAMETERS
+----------
+
+Use targets that match the following criteria.
+If no option is entered, the default is all targets for all proposals
+with a status of PROPOSED for the current proposal AO cycle.
+-tf    [target filename] OPTIONAL  - file of target database id's
+-f     [filename]        OPTIONAL  - file of proposal numbers
+-prop  [proposal number] OPTIONAL  - specific proposal number
+-panel [panel id ]       OPTIONAL  - specific panel id
+-all                     OPTIONAL  - all proposals from any cycle
+                                     with any status.
+
+Limit proposals to the following specified values:
+-ao     [AO ]            OPTIONAL  - AO cycle
+-status [status ]        OPTIONAL  - status PROPOSED or APPROVED
+-tstatus [target status] OPTIONAL  - target status 'accepted' or'rejected'
+-type   [observer type ] OPTIONAL  - type of observer, default is all
+
+Use the following format options:
+-pno                     OPTIONAL  - append proposal number to output format
+-pi                      OPTIONAL  - append PI to output format
+
+
+Report Types:  The default is the standard target list.
+-app                     OPTIONAL  - print approved target list 
+-mp                      OPTIONAL  - print special mission planning report 
+-c                       OPTIONAL  - print conflicts 
+
+
+-U [user]       REQUIRED  - proposal database user name
+-S [server]     OPTIONAL  - proposal database server 
+                            default is ASCDS_SQLOC_SERVER
+-p              OPTIONAL  - print parameters
+
+
+
+
+INPUT/OUTPUT
+-------------
+
+1) STDIN:  
+
+   >Enter Password:  User must enter password for access to the database.
+
+2) Input Files: 
+
+   File containing database target id's when using the -tf input parameter 
+   option. This file contains target id's separated by white-space characters
+   (blanks, tabs, new-lines, or form-feeds).
+
+   File containing proposal numbers when using the -f input parameter option.
+   This file contains proposal numbers separated by white-space characters
+   (blanks, tabs, new-lines, or form-feeds).
+
+
+
+3) Output Files:
+
+   The output is written to STDOUT.
+
+
+4) Output Files for Archive: 
+
+   N/A
+
+
+SETUP AND USAGE
+---------------
+
+prop_target_reports uses the environment variables that are set in the file 
+'ascds_setup_prop' and 'ascds_setup_db'.  These proposal environment 
+variables include :
+
+        ASCDS_PROP_DIR       - top level proposal directory
+        ASCDS_PROP_AO        - current open proposal cycle number
+        ASCDS_ARCOC_SERVER   - database archive server.
+        ASCDS_SQLOC_SERVER   - database sybase server.
+
+The user should not ordinarily change their values. 
+
+Only those users having permissions to read proposals should have access to
+the proposal database and any files that contain proposal data.
+All files created should belong to the group 'prop'.  Permission should
+be set so that only the owner and group have permissions to access these
+files.  If you need access, contact the system administrator.
+
+
+
+
+DETAILED DESCRIPTION - GENERAL INSTRUCTIONS
+-------------------------------------------------------------------
+
+The different report formats are described here.
+
+1. -pno -pi with the STANDARD default display
+   Notes: This is the default display. The target may displayed with
+   the standard information with either/both/neither the principal 
+   investigator and proposal number appended
+
+R.A.          Dec.         Target Name           Det.  Grating  Exp.Time  Principal Investigator          Proposal#
+---------------------------------------------------------------------------------------------------------------------
+
+
+2. -c
+   Notes: Prints results of the database routine to find_nearest_neighbors 
+   for specified targets.  
+
+R.A.          Dec.         Target Name           Det.  Grating  Exp.Time  Principal Investigator        
+-----------------------------------------------------------------------------------------------------------
+observation data goes here
+*********************************************************************************************************
+  conflict results go here
+*********************************************************************************************************
+
+
+
+3. -app 
+   Notes: Prints the approved target list. 
+
+R.A.         Dec.          Target Name         Detector Grating  Time(ks)     P.I.  
+-----------------------------------------------------------------------------------------------
+
+
+4. -mp 
+   Notes: Prints a subset of the target data from the proposal for the 
+   mission planning group. Observer and abstract data are NOT displayed.
+   An example is displayed below.
+
+Id :      
+Target Position Flag     : 
+Total Observing Time     :
+Constrained Observation  :
+Optical Monitor Data     :
+  V Magnitude            : 
+Detector                 :
+Grating                  : 
+Count Rate               :
+1st Order Count Rate     : 
+Total Field Count Rate   : 
+Extended Source ?        : 
+HRC Parameters           : 
+
+ACIS Parameters          : 
+---------------        
+
+Required ACIS Parameters -  
+  Exposure Mode          : 
+  Event Telemetry Format : 
+  Use Standard 6 Chips   : 
+  CCDs I0 On             : 
+  CCDs I1 On             : 
+  CCDs I2 On             : 
+  CCDs I3 On             : 
+  CCDs S0 On             : 
+  CCDs S1 On             : 
+  CCDs S2 On             : 
+  CCDs S3 On             : 
+  CCDs S4 On             : 
+  CCDs S5 On             : 
+
+Optional Custom ACIS Parameters that affect PILEUP -
+  Subarray Type          : 
+  Use Alternating Exposure Readout    : 
+
+Optional Custom ACIS Parameters that affect TELEMETRY-
+  On-chip Summing           : 
+  Use Event Filter          :
+  Use defined spatial windows : 
+
+              Start Start                 Lower      Energy  Sampling
+  Chip  Type  Row   Column  Width  Height Threshold  Range   Rate
+  ---------------------------------------------------------------------
+
+  Use special spatial windows :
+  Definition for spatial windows : 
+
+
+CONSTRAINTS:
+-----------
+Window Constraint         : N
+Roll Constraint           : N
+Monitoring Observation    : N
+
+Phase Dependent           : N
+
+Uninterrupted Observation : N
+
+REMARKS : 
+
+
+
+RESTRICTIONS
+------------
+
+
+REFERENCES
+----------
+
+See the Proposal section of the Data System Software Design Document 
+(DS01) for more detail about the proposal submission cycle. 

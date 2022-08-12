@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE cxchelptopics SYSTEM "CXCHelp.dtd">
+<cxchelptopics>
+<ENTRY context="proposaltools" key="prop-coords" refkeywords="coordinates" seealsogroups="prop-tools">
+<SYNOPSIS>
+
+Defines available coordinate systems for Chandra Proposal Tools
+
+</SYNOPSIS>
+<ADDRESS>
+<URL>
+prop-coords.html
+</URL>
+
+</ADDRESS>
+<ADDRESS>
+<URL>
+http://cxc.harvard.edu/ciao/ahelp/prop-coords.html
+</URL>
+
+</ADDRESS>
+<DESC>
+<PARA title="Equatorial Coordinates">
+
+Equatorial coordinates consist of a longitudinal Right Ascension (RA)
+and a latitudinal Declination (Dec). The plane of zero declination is
+the projection of the Earth's equator onto the celestial sphere, and the
+zero of RA is marked by the intersection of the ecliptic (Earth
+orbital) plane with the equatorial plane. This definition depends on
+epoch because of precession; its practical implementation also depends
+on the set of fundamental reference stars used to measure
+coordinates. There are two fundamental frames of reference currently
+in use: the FK4 and FK5 systems. The FK4 system is tied to the
+equatorial coordinate system for Besselian epoch B1950.0, while the
+more accurate FK5 system is tied to the equatorial system for Julian
+epoch J2000.0. The International Astronomical Union (IAU) has
+recommended that J2000.0 coordinates be used.  
+
+</PARA>
+<PARA>
+
+Note that since the FK4 and FK5 reference frames rotate relative to
+one another, the transformation from B1950 to J2000 affects not only
+the coordinates but the proper motions of stars. An object with zero
+proper motion in B1950 will have a nonzero proper motion in J2000 and
+vice versa. Since this program does not deal with proper motions,
+coordinate conversions have been adopted which assume that the object
+in question has zero proper motion in the J2000 system. Note further,
+however, that the difference between J2000 and B2000 is typically less
+than one arc second. 
+
+</PARA>
+<PARA title="Galactic Coordinates">
+
+Defined conceptually by the Galactic plane and the Galactic center,
+galactic longitude l and galactic latitude b are the IAU 1958 system,
+formerly called lII and bII. The system is defined in terms of B1950
+equatorial coordinates as RA of (l=0) = 192.25 degrees, inclination of
+galactic equator to B1950 equator = 62.6 degrees, longitude of
+ascending node 33 degrees. 
+
+</PARA>
+<VERBATIM>
+
+ Galactic l, b        B1950 RA, Dec	           J2000 RA, Dec
+----------------------------------------------------------------------
+    0	    0	17 42 26.58  -28 55 00.43    17 45 37.20  -28 56 10.22
+    0	  +90	12 49 00.00  +27 24 00.00    12 51 26.28  +27 07 41.70
+ 33.0	    0	18 49 00.00   00 00 00.00    18 51 33.73  +00 03 38.13
+123.0	+27.4	12 00.00 00  +90 00 00.00    12 01 16.85  +89 43 17.74
+
+The J2000 north celestial pole is at l=122.932, b=27.128.
+</VERBATIM>
+<PARA title="Supergalactic Coordinates">
+
+With the advent of large scale structure studies, the supergalactic
+coordinate system introduced by de Vaucouleurs is coming into more
+widespread use. The supergalactic equator is conceptually defined by
+the plane of the local (Virgo-Hydra-Centaurus) supercluster, and the
+origin of supergalactic longitude is at the intersection of the
+supergalactic and galactic planes. Supergalactic longitude and
+latitude, SGL and SGB, are defined by 
+
+</PARA>
+<VERBATIM>
+
+ SGL,  SGB    Galactic l, b          J2000 RA, Dec
+--------------------------------------------------------
+ 
+   0     0    137.37      0    02 49 14.43  +59 31 42.05
+   0   +90     47.37  +6.32    18 55 00.98  +15 42 32.17
+90.0  6.32         0    +90    12 51 26.28  +27 07 41.70
+</VERBATIM>
+<PARA title="Ecliptic Coordinates">
+
+Ecliptic coordinates are defined by the earth's orbital plane. The
+B1950 north ecliptic pole is at B1950 RA 18 00 00, Dec +66 33
+15. Since ecliptic coordinates are weakly epoch dependent, you can use
+a specific epoch to define the orbital plane other than the default
+B1950.0.  In PRECESS and COLDEN, to select Besselian epoch Bxxxx, use
+the from/to option ECxxxx. Julian epochs are not provided. EC is
+equivalent to EC1950. 
+
+</PARA>
+<PARA title="Constellations">
+
+B1950 coordinates are precessed to B1875.0 and compared with the
+Delporte (1935) constellation definitions.
+
+</PARA>
+
+</DESC>
+<VERSION>CIAO 4.5</VERSION>
+<LASTMODIFIED>December 2012</LASTMODIFIED>
+
+
+</ENTRY>
+
+</cxchelptopics>

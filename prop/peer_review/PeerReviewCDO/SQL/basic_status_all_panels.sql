@@ -1,0 +1,1 @@
+select panel_id as pan, prop_id, big_proj as BPP, type, prop_status as status, cdo_approval as cdo, total_app_time as tot_time, fg_avg, fg_stdev, fg_norm from proposal order by panel_id, fg_norm DESC;

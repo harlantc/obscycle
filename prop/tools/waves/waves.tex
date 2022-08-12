@@ -1,0 +1,110 @@
+\documentclass[12pt]{article}
+\hoffset -0.5truein
+\voffset -0.5truein
+\textheight 8.0truein
+\textwidth  7.0truein
+\newcommand{\pr}{{\it waves}~}
+\newcommand{\prompt}{Waves[Setup]$>$:~}
+\begin{document}
+
+\title {The \pr program}
+
+\author{Jonathan McDowell}
+
+\date{1997 Aug 4}
+
+
+\maketitle
+
+
+
+
+\section{Introduction}
+
+\pr is an interactive program to evaluate the neutral hydrogen
+column density at a given direction on the sky.
+
+\section{ Using \pr interactively}
+
+Type \pr to run the program in interactive mode.
+You will enter the \pr {\bf command level} which allows you to set the
+program parameters. You know you are at the command level when you see the
+prompt
+\begin{quote}
+\prompt
+\end{quote}
+
+To see a list of available commands, type {\bf ?} or {\bf help}. The most
+usual command sequence is to use {\bf from } and {\bf to } to select the
+input and output systems and {\bf convert } to enter the main calculation loop. These
+ may be abbreviated
+{\bf f, t} and {\bf c}.  
+Once you type {\bf c} or {\bf convert}, you will be 
+in the processing level, and you will see the processing level prompt. The processing level
+prompt is the name of the input system. You then
+type in the value and the program prints the converted value.
+Repeat this until you want to change the setup, type 'q' to get back to the
+setup level and 'q' again to leave the program entirely.
+
+The P command sets the output format: you can type P0 (terse), P1 (normal)
+or P2 (verbose).
+
+\section{Supported conversions}
+
+The following are valid choices for FROM and TO:
+\begin{itemize}
+\item A  - wavelength in Angstrom.
+\item mu - wavelength in microns
+\item nm - wavelength in nanometer
+\item keV - energy in keV
+\item K - energy in Kelvin  (with h = c = 1 )
+\item lognu - log frequency in Hz
+\item Hz - frequency in Hz
+\end{itemize}
+
+
+The default input system is lognu. This system also supports
+a generic string input, recognizing '100.3 A', '40 mu', '6.4 keV'.
+So you often won't bother to do a FROM, just use the
+default and select the output system using TO.
+
+\section{Using \pr on a file}
+
+You can convert an ASCII file of values (one value per line)
+
+\begin{verbatim}
+waves from A to keV : infile : outfile
+\end{verbatim}
+
+The general syntax is 
+\begin{quote} \pr  commands:infile:outfile \end{quote}
+where {\it commands} is a string of \pr commands separated
+by spaces, and the input and output files default to 
+standard input and output. The {\bf c} command is assumed automatically,
+as are {\bf q} commands at the end, so {\it commands} usually
+consists of a {\bf from} and {\bf to} specification. 
+
+This syntax is also useful for interactive mode, to go directly into
+the processing level. For example:
+\begin{quote} \pr {\it from A to keV }\end{quote}
+%where the {\bf list} command makes the program echo
+%the choice of input and output system to the terminal prior to
+%the start of processing.
+
+
+\section{Using \pr for a single evaluation}
+
+The EVAL command evaluates a single position and exits.
+Example:
+\begin{verbatim}
+waves from keV to lognu p0 eval 6.4
+ or
+waves to lognu p0 eval 6.4 keV
+\end{verbatim}
+Note the use of the p0 command to force terse output.
+
+\section{Bugs}
+
+Please report all bugs to me, preferably by email (jcm@urania.harvard.edu)
+Comments on the documentation are also welcome.
+\end{document}

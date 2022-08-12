@@ -1,0 +1,49 @@
+--------------------------------------------------------------
+- included in dofinal_stats used by Andrea after the review
+- appr_allot_tallies.pl(newstats)  is also used before Peer review to 
+  review allotments and at the Peer Review to check topical panel usage
+  before the BPP
+--------------------------------------------------------------
+dofinal_stats    -- Runs all scripts listed below:
+PanelStats.pl    -- running total by proposal of approved counts/amounts for
+                    joint, archive, theory, time, tc+too (sorted by normalized 
+                    grade)
+appr_allot_tallies.pl -- creates the StatsCycle*.txt files with single line. 
+                    All fields are value,allotment,value,allotment,......
+tc_tallies.pl    -- time critical totals from topical panels (including GTO)  
+                    and file of Y/G time critical proposals
+joint.pl         -- joint totals from topical panels (including GTO)  
+                    and file of all Y/G joint proposals
+final_checks.pl  -- checks on various time reductions, higher rank TC/TOOs not
+                    approved. Files produced: trigger_reject, joint_diffs,
+                    arc_the_reduction, prop_time_reduction, tgt_time_reduction,
+                    tc_hirank_unapp, too_hirank_unapp, too_vf, too_f,
+                    time_no_joint_reduction
+
+dofinal_lists    -- runs SQL for target, joint, archive, theory, multicycle, 
+                    BPP, alternate targets, monitor and raster lists.
+ 
+-----------------------------------------------------
+used by WebReports and PR GUI
+-----------------------------------------------------
+comments.pl      -- used by PR gui to dump comments and 
+                    run after the peer review to dump final comments
+conflicts.pl     -- simple/cross conflicts by panel for Y/G.  
+	            If run before peer review starts, this has all conflicts 
+                    and produces files displayed in WebReports
+tc_summaries.pl  -- produce WebReports files for time critcal by panel
+ 
+--------------
+Miscellaneous
+--------------
+get_grades_for_proposal.pl  -- prints out grades,fg_avg,fg_med,fg_stdev for 
+                     specified proposal
+gui2tab.pl        -- used by CDO to get tab-delimited values from PR database
+msfcReport.pl     -- run after peer review results are finalized 
+ranked_BPP.pl     -- ranked list of LPs (bpp_pass,bpp_gray) in format for 
+                     Wednesday nite spreadsheet
+peer_conflicts.pl -- conflicts with NormG and status (Y/G) in single file. 
+                     Used at the hotel to review conflicts.
+               
+
+

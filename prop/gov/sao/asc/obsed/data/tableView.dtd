@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!ELEMENT tableView (key, columnView+)>
+
+<!ELEMENT key (tableName, columnName)>
+<!ELEMENT tableName (#PCDATA)>
+<!ELEMENT columnName (#PCDATA)>
+
+<!ELEMENT columnView (heading, width?, database)>
+<!ELEMENT heading (#PCDATA)>
+<!ELEMENT width (#PCDATA)>
+<!ELEMENT database (tableName, columnName)>
+<!ELEMENT tableName (#PCDATA)>
+<!ELEMENT columnName (#PCDATA)>

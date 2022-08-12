@@ -1,0 +1,37 @@
+(
+:ao 22
+:observer Wijnands
+:prop-num 22400495
+:seq-nbr 999999
+:id 69753
+:name Quiescent source
+:type TOO
+:ra 
+:dec 
+:prop-exp-time 150.000000
+:si ACIS-S
+:requested-chip-count 1
+:optional-chip-count 0
+:ccdi0 N
+:ccdi1 N
+:ccdi2 N
+:ccdi3 N
+:ccds0 N
+:ccds1 N
+:ccds2 N
+:ccds3 Y
+:ccds4 N
+:ccds5 N
+:uninterrupt N
+:pointing_constraint N
+:window-constr-flag-1 Y
+:window-constr-start-1 2022:001:00:00:00.000
+:window-constr-stop-1 2022:365:00:00:00.000
+:window-constr-flag-2 Y
+:window-constr-start-2 2023:060:00:00:00.000
+:window-constr-stop-2 2023:365:00:00:00.000
+:phase-constr-flag N
+:multi-tel-flag N
+:monitor N
+:monitor N
+)

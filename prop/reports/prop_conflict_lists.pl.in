@@ -1,0 +1,1035 @@
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 1995, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#* FILE NAME: prop_conflict_lists.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION: Create all the necessary conflict files/lists
+#               propconflict and parse_propconflict.pl. 
+#
+# Requires *_iconflicts.tsv:
+#   parse_propconflict.pl(in clearcase) creates the _tconflict.tmp file
+#   which is sorted by the doparse script and renamed to *_conflict.list.txt
+#
+#
+#------------------------------------------------------------------------
+
+
+use vars qw (  @reqfiles $reqfile
+	%param $dbh @proposalTable @conflictTable $tabname
+	@subcat @ctgtTable %panelFiles
+	);
+
+use strict;
+no strict "refs";
+use Carp;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+
+@reqfiles = (
+        "prop_routines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+
+# panel category groupings  (VERIFY each cycle)
+@subcat = ("10 20","50","30 40 62","61 80 91","70 90"," ");
+
+{
+  my ($stmp,$dsn,$curdate,$prefix);
+  my (@panels,$pname,$fname,$savdir);
+
+  # parse input
+  parse_input();
+
+
+  #database connection
+  $dbh = dbProposalConnection($param{U}, $param{S}, $param{q});
+
+
+  $curdate = get_date();
+
+  if (!-d $param{d}) {
+    print STDERR "creating output directory $param{d}\n";
+    mkdir($param{d});
+    chgroup($param{d});
+    chmod(02770,$param{d});
+  }
+  else {
+    $stmp = $curdate;
+    while ($stmp =~ s/\//_/) {;}
+    while ($stmp =~ s/ /_/) {;}
+    while ($stmp =~ s/\://) {;}
+    $savdir = $param{d} . "/conflict_lists_" . $stmp ."/";
+    print STDERR "Moving existing files to $savdir \n";
+    mkdir($savdir);
+    chgroup($savdir);
+    chmod(02770,$savdir);
+    `\\mv $param{d}/*clump*.* $savdir `;
+    `\\mv $param{d}/*cross_conflicts.* $savdir `;
+    `\\mv $param{d}/*conflict_issues.* $savdir `;
+    `\\mv $param{d}/*peer_conflicts.bcp $savdir `;
+  }
+
+
+
+  # create the table using the same name as the input conflict file
+  $tabname = "#dconflict";
+  &create_table();
+  print STDERR "New table (proposal..$tabname) created !\n";
+
+  ##read in the conflict data and populate the temp table
+  print STDERR "Reading conflict data and populating temp table\n";
+  &readConflictData();
+
+  print STDERR "\nOutput Files:\n";
+
+  # creates file for peer review GUI 
+  dump_table();
+  gto_updates();
+
+
+  @panels = get_panels();
+  # open the various output files
+  $prefix = $param{d} .  "/cycle" . $param{a} . "_" ;
+  open_OutputFiles($prefix,$curdate,@panels);
+
+  print STDERR "\nConflicts that aren't on same panel regardless of whether they could be or not:\n";
+  print STDERR "  $prefix" . "cross_conflicts_panel##.txt\n";
+  for $pname (@panels) {
+    $fname = $prefix;
+    $fname .= "cross_conflicts_panel" . $pname . ".txt";
+    get_target_conflicts($fname,$curdate,$pname);
+  }
+
+  print STDERR "\nConflicts by target that could be on same panel but aren't\n";
+  print STDERR "Should be used to check panel assignments of proposals:\n";
+  print STDERR "  $prefix" . "conflict_issues_panel##.txt\n";
+  for $pname (@panels) {
+    $fname = $prefix;
+    $fname .= "conflict_issues_panel" . $pname . ".txt";
+    get_direct_conflicts($fname,$curdate,$pname);
+  }
+
+
+  # get the list of proposals we want
+  #print STDERR "determining proposal list \n";
+  &get_conflictProposalList();
+
+  # now process the clumps
+  #print STDERR "processing clumps....\n";
+  &processClumps();
+
+  close_files();
+  $dbh->disconnect;
+}
+
+sub getPanelInfoForProposal
+{
+  my($pno,$cflg) =  @_;
+  my($last,$pname);
+  my($sql_stmt,$sth,@row);
+
+  # prepare sql statement to retrieve proposal info 
+  if (!$cflg) {
+    $sql_stmt = qq( select distinct last, panel
+	  from $tabname
+	  where propnum = "$pno");
+  }
+  else {
+    $sql_stmt = qq( select distinct conflict_last, conflict_panel
+	  from $tabname
+	  where conflict_propnum = "$pno");
+  }
+  #print STDERR "$sql_stmt\n";
+  $sth = $dbh->prepare($sql_stmt);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+     $pname = $row[1]; 
+     $last = $row[0];
+  }
+
+  return ($last,$pname);
+}
+
+  
+
+
+sub processClumps
+{
+  my($pstr,$cstr);
+  my($is_first, $p1,$l1,$t1);
+  my($p2,$l2,$t2,$ii,$gotSamePanel);
+
+  #now process the clumps for each proposal that has a conflict
+  foreach $pstr (@proposalTable) {
+      @conflictTable = ();
+      &get_clumps($pstr);
+      $is_first = 0;
+      #print STDERR "get panel info\n";
+      ($l1,$p1) = &getPanelInfoForProposal($pstr,0);
+      printf CCFILE ("$pstr  %-5.5s  %-12.12s\t",$p1,$l1);
+      printf SFILE ("$pstr  %-5.5s  %-12.12s\t",$p1,$l1);
+      $gotSamePanel = 0;
+      foreach $cstr (@conflictTable) {
+        #print STDERR "processing $pstr for $cstr .....\n";
+        print CFILE "$pstr $cstr\n";
+        ($l2,$p2) = &getPanelInfoForProposal($cstr,1);
+        printf CCFILE ("$cstr  %-5.5s  $l2\n              %-12.12s\t",$p2," ");
+        if (couldBeOnSamePanel($pstr,$cstr)) {
+          printf SFILE ("$cstr  %-5.5s  $l2\n              %-12.12s\t",$p2," ");
+          $gotSamePanel = 1;
+        }
+        $is_first = 1;
+      }
+      print CCFILE "\n";
+      if ($gotSamePanel == 0) {
+         print SFILE "-";
+      }
+      print SFILE "\n";
+      processTargets($pstr,$p1);
+
+  }
+}
+#  -----------------------------------------------------------------
+#  retrieve all the conflict proposal numbers for the given proposal.
+#  Then, retrieve all the conflict proposal numbers for those proposals
+#  keep adding to the list until there's no more
+#  -----------------------------------------------------------------
+
+sub get_clumps
+{
+  my ($pno) = @_;
+  my ($stmp,$ocnt,@stab,$oprop);
+  my ($sth,$sql_stmt,@row);
+
+  # retrieve distinct proposal numbers that have conflicts with
+  # specfied proposal
+  $sql_stmt = qq(select distinct conflict_propnum from $tabname 
+	where propnum = "$pno" 
+	order by conflict_propnum);
+  #print STDERR "$sql_stmt\n";
+  $sth = $dbh->prepare($sql_stmt);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+       push(@conflictTable,$row[0]);
+  }
+
+   
+  # now find all the clumps
+  $ocnt = -1;
+  while ($ocnt ne $#conflictTable) {
+    $ocnt = $#conflictTable;
+    # build long string of proposal numbers
+    $stmp = join(qq(","),@conflictTable);
+
+    # get the conflict proposal numbers for all proposals in conflict
+    # with the given proposal number.  Exclude the proposal numbers that
+    # have a direct conflict with given proposal.
+    $sql_stmt = qq( select distinct conflict_propnum
+        from $tabname where
+        propnum in ("$stmp") and
+        conflict_propnum not in ("$stmp","$pno"));
+    #print STDERR "\n$sql_stmt \n";
+    $sth = $dbh->prepare($sql_stmt);
+    $sth->execute;
+    # now add these 'clumps' to the conflict list for the given proposal
+    while (@row = $sth->fetchrow_array) {
+        push(@conflictTable,$row[0]);
+    }
+  }
+ @conflictTable = sort @conflictTable;
+}
+
+#  -----------------------------------------------------------------
+#  -----------------------------------------------------------------
+
+sub processTargets
+{
+  my ($pno,$panel1) = @_;
+  my ($sth,$sql_stmt,@row);
+  my ($ii,$jj);
+  my ($is_first,$is_first2);
+  my ($cstr,$p2,$t2,$t1);
+  my($ss,$s1,$s2,$s3);
+  my(%tnames,$done1,$done2);
+  my($tidx,$tidx2,@mytgts);
+  my($plast,$tlast) = "bleh";
+
+  # retrieve distinct proposal numbers that have conflicts with
+  # specfied proposal
+  $sql_stmt = qq(select distinct targname from $tabname
+	where propnum = "$pno"
+	order by targname);
+  #print STDERR "$sql_stmt\n";
+  $sth = $dbh->prepare($sql_stmt);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+    $tnames{$pno} .= $row[0] . "\t";
+  }
+
+  @ctgtTable = ();
+  @mytgts = split("\t",$tnames{$pno});
+  #print STDERR "processing $pno ... $mytgts[0]\n";
+  get_target_clumps($pno,$mytgts[0]);
+
+  $is_first = $is_first2 = 0;
+  $done1 = 0;
+  $done2 = 0;
+  $tidx = 0;
+  $tidx2 = 0;
+
+  for ($ii=0; $ii <= $#ctgtTable; $ii++) {
+    ($cstr,$t2,$p2) = split("\t",$ctgtTable[$ii]);
+
+    if ($pno ne $cstr) {
+      if ($tidx <= $#mytgts) {
+        $t1 = $mytgts[$tidx];
+        $tidx++;
+      }
+      else {
+        $t1 = " ";
+      }
+      &print_by_panel($is_first,$pno,$panel1,$t1,$cstr,$p2,$t2);
+      $done1 = 1;
+    }
+
+    if (!isOnSamePanel($panel1,$p2)) {
+      if (couldBeOnSamePanel($pno,$cstr)) {
+        if ($is_first2 == 0) {
+          printf CHFILE ("%-8.8s  %-5.5s  ",$pno,$panel1);
+        }
+        else  {
+          printf CHFILE ("%-8.8s  %-5.5s  "," "," ");
+        }
+        if ($tidx2 <= $#mytgts) {
+          printf CHFILE ("%-20.20s",$mytgts[$tidx2]);
+          $tidx2++;
+        }
+        else  {
+          printf CHFILE ("%-20.20s"," ");
+        }
+ 
+        printf CHFILE ("\t$cstr  %-5.5s  %-s\n",$p2,$t2);
+        $done2 = 1;
+      }
+    }
+    if ($done1) {
+      $is_first = 1;
+    }
+    if ($done2) {
+      $is_first2 = 1;
+    }
+  }
+  if ($done1) {
+    for (; $tidx <= $#mytgts;$tidx++) {
+      print_by_panel(1,$pno,$panel1,$mytgts[$tidx]," "," "," ");
+    }
+  }
+  if ($done2) {
+    for (; $tidx2 <= $#mytgts;$tidx2++) {
+       printf CHFILE ("%-8.8s  %-5.5s  "," "," ");
+       printf CHFILE ("%-20.20s\n",$mytgts[$tidx2]);
+    }
+  }
+}
+
+
+sub get_target_clumps
+{
+  my ($pno,$tname) = @_;
+  my ($stmp,$cpno,$ctgt,$cpanel,$ocnt);
+  my ($sth,$sql_stmt,@row,$ii,$jj);
+
+  $tname =~ s/"/""/g;
+  # these are the direct conflicts for the proposal/target name
+  $sql_stmt = qq(select distinct conflict_propnum,
+	conflict_targname,
+	conflict_panel
+	from $tabname 
+	where propnum = "$pno"  and targname="$tname"
+	order by conflict_targname);
+  #print STDERR "$sql_stmt\n";
+  $sth = $dbh->prepare($sql_stmt);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+       $stmp = join("\t",@row);
+       push(@ctgtTable,$stmp);
+  }
+
+   
+  # now find all the clumps
+  $ocnt = -1;
+  $ii = 0;
+  while ($ocnt ne $#ctgtTable) {
+    $ocnt = $#ctgtTable ;
+    # get the conflict proposal numbers for all proposals in conflict
+    # with the given proposal number.  Exclude the proposal numbers that
+    # have a direct conflict with given proposal.
+    ($cpno,$ctgt,$cpanel) = split("\t",$ctgtTable[$ii]);
+    $sql_stmt = qq( select distinct conflict_propnum,conflict_targname,
+	conflict_panel
+        from $tabname
+	where propnum = "$cpno");
+	#and targname = "$ctgt";
+    #print STDERR "\n$sql_stmt \n";
+    $sth = $dbh->prepare($sql_stmt);
+    $sth->execute;
+    # now add these 'clumps' to the conflict list for the given proposal
+    while (@row = $sth->fetchrow_array) {
+       $stmp = join("\t",@row);
+       for ($jj=0;$jj<= $#ctgtTable;$jj++) {
+          if ($stmp eq $ctgtTable[$jj]) {
+             $jj = 99999;
+          }
+       }
+       if ($jj < 99999) {
+          push(@ctgtTable,$stmp);
+	#print STDERR "adding $stmp---\n";
+       }
+    }
+    $ii++;
+  }
+ @ctgtTable = sort @ctgtTable;
+
+}
+
+
+#----------------------------------------------------------
+# create the new table for this conflict file
+#----------------------------------------------------------
+sub create_table
+{
+  my($sql_stmt);
+
+
+  $sql_stmt = qq(create table $tabname
+	(
+	propnum varchar(8) NOT NULL,
+	panel varchar(10) NULL,
+	last varchar(50) NULL,
+	targid int NULL,
+	targnum int NOT NULL,
+	targname varchar(30)  NULL,
+	conflict_propnum varchar(8),
+	conflict_panel varchar(10) NULL,
+	conflict_last varchar(50) NULL,
+	conflict_targid int NULL,
+	conflict_targnum int,
+	conflict_targname varchar(30) NULL,
+	conflict_type varchar(4),
+	conflict_sep varchar(20) 
+	)
+  );
+  #print STDERR "$sql_stmt\n";
+  $dbh->do($sql_stmt);
+}
+
+
+#--------------------------------------------------------
+sub readConflictData
+{
+  my($stmp,@conflicts,$sql_stmt,$sth,$cnt,@row);
+  my(@pnos,$ii,$last,$pname,$sth2,@row2);
+
+  open (IFILE,"<$param{i}") or
+	die "Unable to open $param{i} for reading.\n";
+  $cnt =0;
+
+  $sql_stmt = qq(insert $tabname values(?,NULL,NULL,NULL,?,NULL,?,NULL,NULL,NULL,?,NULL,?,?));
+   $sth = $dbh->prepare($sql_stmt);
+
+  # process the conflicts
+  while ($stmp = <IFILE>) {
+     chomp($stmp);
+     @conflicts = split(/	/,$stmp);
+     $conflicts[1] =~ s/ //g;
+#print STDERR "$conflicts[1] $conflicts[2]  $conflicts[3]  $conflicts[4] 7=$conflicts[7] 8=$conflicts[8]\n";
+
+     # insert new record in conflict table
+     $sth->bind_param(1,"$conflicts[1]");
+     $sth->bind_param(2,"$conflicts[2]");
+     $sth->bind_param(3,"$conflicts[3]");
+     $sth->bind_param(4,"$conflicts[4]");
+     $sth->bind_param(5,"$conflicts[7]");
+     $sth->bind_param(6,"$conflicts[8]");
+
+     $cnt += 1;
+     $sth->execute;
+     
+  }
+
+  print STDERR "inserted $cnt records into conflict table\n";
+  
+
+  $sql_stmt = qq(select distinct proposal_number from proposal
+	where ao_str = "$param{a}");
+  $sth=$dbh->prepare($sql_stmt);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+     push(@pnos,$row[0]);
+  }
+  for ($ii=0; $ii<=$#pnos; $ii++) {
+    $sql_stmt = qq(select panel_name,last from
+	proposal,panel_proposal,panel,axafusers..person_short ps
+	where proposal.proposal_id *= panel_proposal.proposal_id
+	and panel_proposal.panel_id *= panel.panel_id
+	and proposal.piid = ps.pers_id
+	and proposal_number ="$pnos[$ii]");
+    #print STDERR "$sql_stmt\n";
+    $sth2=$dbh->prepare($sql_stmt);
+    $sth2->execute;
+    $pname ="";
+    while (@row2 = $sth2->fetchrow_array) {
+      $pname .= $row2[0] . ",";
+      $last = $row2[1];
+    }
+    chop $pname;
+    if (length($pname) <= 0)  {
+       $pname = "";
+    } 
+
+     # update the panel for this proposal
+     $sql_stmt = qq(update $tabname set panel="$pname",last="$last"
+	where propnum="$pnos[$ii]");
+     #print STDERR "$sql_stmt\n";
+     $sth = $dbh->prepare($sql_stmt);
+     $sth->execute;
+
+     # update the conflicted panel for this proposal
+     $sql_stmt = qq(update $tabname set conflict_panel="$pname",
+	conflict_last="$last" 
+	where conflict_propnum="$pnos[$ii]");
+     $sth = $dbh->prepare($sql_stmt);
+     $sth->execute;
+  }
+ 
+  print STDERR "Updating target names in conflict table \n";
+  # update the target name
+  $sql_stmt = qq(update $tabname set 
+	$tabname.targname=target.targname,
+	$tabname.targid=target.targid
+	from $tabname,proposal,target
+	where $tabname.propnum = proposal_number 
+	and $tabname.targnum = targ_num
+	and proposal.proposal_id = target.proposal_id
+	);
+  #print STDERR ($sql_stmt);
+  $dbh->do($sql_stmt);
+
+  # update the conflicted target name
+  print STDERR "Updating conflicted target names in conflict table \n";
+  $sql_stmt = qq(update $tabname set 
+	$tabname.conflict_targname=target.targname,
+	$tabname.conflict_targid=target.targid
+	from $tabname,proposal,target
+	where $tabname.conflict_propnum = proposal_number 
+	and $tabname.conflict_targnum = targ_num
+	and proposal.proposal_id = target.proposal_id
+	);
+  $dbh->do($sql_stmt);
+  
+  print STDERR "Done building $tabname for conflict checking.\n";
+
+  close IFILE;
+}
+
+
+# ------------------------------------------------------------
+# This can be used by the Peer Review GUI
+# ------------------------------------------------------------
+sub dump_table 
+{
+  my($sql_stmt,$sth,@row,$str,$fname);
+  my(@pnls,$ii);
+
+  $fname = $param{d} . "/cycle" . $param{a} . "_peer_conflicts.bcp";
+  open(PRFILE,"> $fname") or die "Unable to open $fname for writing.";
+  print STDERR "  $fname    -- input to Peer Review GUI\n";
+
+  $sql_stmt = qq(select $tabname.propnum,
+	$tabname.targid,
+	$tabname.conflict_propnum ,
+ 	$tabname.conflict_targid , 
+  	$tabname.conflict_type,
+ 	$tabname.conflict_sep   
+	from $tabname
+	);
+  #print STDERR "$sql_stmt\n";
+  $sth= $dbh->prepare($sql_stmt);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+    $str = join("|",@row);
+    my($tsep) = $row[5];
+    $tsep =~ s/sep=//;
+    $tsep =~ s/'//;
+    if ($tsep <= $param{r}) {
+      printf PRFILE "$str\n";
+    }
+    else {
+      print STDERR "Excluding $row[0] -- $row[5] for bcp output\n";
+    }
+  }
+  close PRFILE;
+}
+# ------------------------------------------------------------
+# This can be used by the GTO interface
+# ------------------------------------------------------------
+sub gto_updates 
+{
+  my($sql_stmt,$sth,@row,$str,$fname);
+  my(%gtoconf,$ii,$tname,$tkey);
+
+  $fname = $param{d} . "/cycle" . $param{a} . "_conflicts_gto.mysql";
+  open(PRFILE,"> $fname") or die "Unable to open $fname for writing.";
+  print STDERR "  $fname   -- input for GTO interface\n";
+
+  $sql_stmt = qq(select distinct $tabname.propnum,
+	$tabname.targid,
+	$tabname.conflict_propnum ,
+ 	$tabname.conflict_sep   
+	from $tabname,proposal
+	where $tabname.propnum = proposal.proposal_number
+	and proposal.type like "%GTO%"
+	order by propnum,$tabname.targid
+	);
+  #print STDERR "$sql_stmt\n";
+  $sth= $dbh->prepare($sql_stmt);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+    my($tsep) = $row[3];
+    $tsep =~ s/sep=//;
+    $tsep =~ s/'//;
+    if ($tsep <= $param{r}) {
+      $tkey = $row[0] . "_" . $row[1];
+      $gtoconf{$tkey} .= $row[2] . ",";
+    } else {
+       print STDERR "Excluding $row[0] -- $row[3] for GTOs\n";
+    }
+
+  }
+  $sth->finish;
+
+  $sql_stmt = qq(select distinct lower(substring($tabname.last,1,3)),
+	$tabname.propnum, $tabname.targid
+	from $tabname,proposal
+	where $tabname.propnum = proposal.proposal_number
+	and proposal.type like "%GTO%"
+	order by propnum,$tabname.targid
+	);
+  $sth= $dbh->prepare($sql_stmt);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+     $tkey = $row[1] . "_" . $row[2];
+     if (length($gtoconf{$tkey} > 5)) { 
+       $tname=$row[0] . "_targ";
+       print PRFILE qq(update $tname set conf='$gtoconf{$tkey}'
+	where prop_num='$row[1]' and targid='$row[2]';\n);
+     }
+  }
+
+  close PRFILE;
+}
+
+
+# -----------------------------------------------------------
+# get conflicts from database
+# creates output file *_panel_conflicts.list
+# -----------------------------------------------------------
+sub get_conflictProposalList
+{
+  my ($last_prop,$sth,@row,$sql_stmt,$cnt);
+
+
+  $cnt=0;
+  $sql_stmt = qq(select distinct propnum,conflict_propnum
+        from $tabname
+        order by propnum
+        );
+  #print STDERR "$sql_stmt\n";
+  $sth = $dbh->prepare($sql_stmt);
+  $sth->execute;
+  while (@row = $sth->fetchrow_array) {
+    # Only want proposals that have conflicts and only
+    # want them in the ptab once
+    if ($last_prop !~ /$row[0]/) {
+          push(@proposalTable,$row[0]);
+          $last_prop = $row[0];
+          $cnt += 1;
+    }
+  }
+
+}
+
+# -----------------------------------------------------------
+# all  direct conflicts by panel
+# -----------------------------------------------------------
+sub get_target_conflicts
+{
+  my($fname,$curdate,$pname) = @_;
+  my($stmp);
+  my ($sth,@row);
+  my ($lpno,$ltno);
+
+  #open output file
+  open(OFILE,"> $fname") or
+        die "ERROR: Unable to open $fname for writing.\n";
+
+  printf OFILE "%-60.60s    %s\n\n","Panel $pname Target Cross Conflicts for Cycle $param{a}",$curdate;
+
+  printf OFILE ("%-8.8s %-3.3s %-22.22s Conflict Information\n");
+  printf OFILE ("%-8.8s %-3.3s %-22.22s %-8.8s %-3.3s %s\n",
+           "Proposal","Tgt","Target Name","Proposal" ,"Tgt","Panel");
+  printf OFILE ("--------------------------------------------------------------------\n");
+
+  $stmp = qq( select distinct
+	c1.propnum ,c1.targnum, c1.targname,
+	c1.conflict_propnum , c1.conflict_targnum , c2.panel,
+	c1.panel
+        from $tabname c1 ,$tabname c2
+        where c1.panel like "%$pname%" and
+        c1.conflict_propnum = c2.propnum
+        and c1.conflict_targnum = c2.targnum
+        and c2.panel != c1.panel
+        order by c1.targname,c1.propnum);
+  #print STDERR "$stmp\n";
+
+  $sth = $dbh->prepare($stmp);
+  $sth->execute();
+  while((@row) = $sth->fetchrow_array()) {
+     if (!isOnSamePanel($row[6],$row[5])) {
+       #if ($lpno != $row[0] || $ltno != $row[1]) {
+         printf OFILE ("%-8.8s %-3.3s %-22.22s %-8.8s %-3.3s %s\n", @row);
+         #$lpno = $row[0];
+         #$ltno = $row[1];
+       #}
+       #else {
+         #printf OFILE ("%-8.8s %-3.3s %-22.22s %-8.8s %-3.3s %s\n", 
+		#" "," "," ",$row[3],$row[4],$row[5]);
+       #}
+     }
+  }
+  close OFILE;
+  chgroup($fname);
+  chmod 0660,$fname;
+}
+
+
+# -----------------------------------------------------------
+# all  direct conflicts that could be on the same panel
+# but aren't!
+# -----------------------------------------------------------
+sub get_direct_conflicts
+{
+  my($fname,$curdate,$pname) = @_;
+  my($stmp);
+  my ($sth,@row);
+  my ($lpno,$ltno);
+
+  #open output file
+  open(OFILE,"> $fname") or
+        die "ERROR: Unable to open $fname for writing.\n";
+
+  printf OFILE "Direct Target Conflicts that could be on the same panel as of $curdate\n\n";;
+
+  printf OFILE ("%-8.8s %-5.5s %-3.3s %-22.22s Conflict Information\n",
+	" "," "," "," ");
+  printf OFILE ("%-8.8s %-5.5s %-3.3s %-22.22s %-8.8s %-3.3s %s\n",
+           "Proposal","Panel","Tgt","Target Name","Proposal" ,"Tgt#","Panel");
+  printf OFILE ("--------------------------------------------------------------------\n");
+
+  $stmp = qq( select distinct
+	c1.propnum ,c1.panel,c1.targnum, c1.targname,
+	c1.conflict_propnum , c1.conflict_targnum , c2.panel
+        from $tabname c1 ,$tabname c2
+        where c1.panel like "%$pname%" and
+        c1.conflict_propnum = c2.propnum
+        and c1.conflict_targnum = c2.targnum
+        and c2.panel != c1.panel
+        order by c1.targname,c1.propnum);
+  #print STDERR "$stmp\n";
+
+  $sth = $dbh->prepare($stmp);
+  $sth->execute();
+  while((@row) = $sth->fetchrow_array()) {
+    if (couldBeOnSamePanel($row[0],$row[4]) ) {
+      if (!isOnSamePanel($row[1],$row[6])) {
+        if ($lpno != $row[0] || $ltno != $row[2]) {
+          printf OFILE ("%-8.8s %-5.5s %-3.3s %-22.22s %-8.8s %-3.3s %s\n", @row);
+          $lpno = $row[0];
+          $ltno = $row[2];
+        }
+        else {
+          printf OFILE ("%-8.8s %-5.5s %-3.3s %-22.22s %-8.8s %-3.3s %s\n", 
+               " "," "," "," ",$row[4],$row[5],$row[6]);
+        }
+      }
+    }
+  }
+  close OFILE;
+  chgroup($fname);
+  chmod 0660,$fname;
+}
+
+
+
+
+
+#----------------------------------------------
+# retrieve array of panels for specified cycle
+#----------------------------------------------
+sub get_panels
+{
+  my($stmp,$sth,@row,@panels);
+
+    $stmp = qq(select panel_name from panel,ao where
+        ao.ao_str = "$param{a}" and
+        ao.ao_id = panel.ao
+        order by panel_name
+        );
+    $sth = $dbh->prepare($stmp);
+    $sth->execute;
+
+    @panels = ();
+    while((@row) = $sth->fetchrow_array()) {
+      push @panels,$row[0];
+    }
+
+    return @panels;
+}
+
+# ----------------------------------------------------------
+# Open a bunch of output files for conflicts 
+# ----------------------------------------------------------
+sub open_OutputFiles()
+{
+  my($prefix,$curdate,@panels) = @_;
+  my($cfile);
+
+
+  # opens all the output files
+  $prefix = $param{d} .  "/cycle" . $param{a} . "_" ;
+
+  # this file is used by the prop_panel_create application
+  $cfile = $prefix . "panel_clumps.txt";
+  open (CFILE,"> $cfile") ||
+        die "Unable to open $cfile for writing.\n";
+  print STDERR "  $cfile      -- used by prop_panel_create application\n";
+
+  # this file is used by prop_panel_gui
+  $cfile = $prefix . "clumps.txt";
+  open (CCFILE,"> $cfile") ||
+        die "Unable to open $cfile for writing.\n";
+  printf CCFILE "Proposal/Panel/Conflict Data for Cycle $param{a} as of  $curdate\n\n";
+  printf CCFILE ("                 %-12.12s\tConflict Information\n"," ");
+  printf CCFILE ("Proposal  Panel  %-12.12s\tProposal  Panel  P.I.\n","P.I.");
+  print CCFILE "----------------------------------------------------------------\n";
+  print STDERR "  $cfile            -- used by prop_panel_gui\n";
+
+
+  # this file should be reviewed by CDO
+  $cfile = $prefix . "same_panel_clump.txt";
+  open (SFILE,"> $cfile") ||
+        die "Unable to open $cfile for writing.\n";
+  print SFILE "Conflict Clumps which could be on the same panel         $curdate\n\n";
+  print SFILE "                                   Conflict Information\n";
+  print SFILE "Proposal  Panel  P.I.           Proposal  Panel  P.I.\n";
+  print SFILE "---------------------------------------------------------------\n";
+
+  print STDERR "  $cfile  -- clumps that could be on same panel\n";
+
+  # this file should be reviewed by CDO
+  $cfile = $prefix . "conflict_issues.txt";
+  open (CHFILE,"> $cfile") ||
+      die "Unable to open $cfile for writing.\n";
+  print CHFILE "Clumps by Target (could be on same panel)              $curdate\n\n";
+  print CHFILE "                                           Conflict Information\n";
+  print CHFILE "Proposal  Panel  Target Name            Proposal  Panel  Target Name\n";
+  print CHFILE "-------------------------------------------------------------------------------\n";
+  print STDERR "  $cfile   -- could be on same panel but aren't\n";
+
+  &open_by_panel($prefix,$curdate,@panels);
+}
+
+# -----------------------------------------------------------
+# open individual panel files
+# ------------------------------------------------------------
+sub open_by_panel
+{
+  my($prefix,$curdate,@panels) = @_;
+  my ($bfile,$cfile,$title,$pan,$fh);
+
+  $bfile .= $prefix . "clumps_panel";
+  print STDERR "   $cfile\n";
+  $title  = "Panel Clumped Conflicts for Cycle $param{a} as of $curdate\n\n";
+  $title .= "                                          Conflict Information\n"; 
+  $title .= "Proposal  Panel  Target Name            Proposal  Panel  TargetName\n";
+  $title .= "----------------------------------------------------------------------------\n";
+
+  foreach $pan (@panels) {
+    $cfile = $bfile . "$pan.txt";
+    $fh = $pan . "FILE";
+    open ($fh,"> $cfile") || die "Unable to open $cfile\n";
+    print $fh $title;
+    $panelFiles{$pan} = $fh;
+  }
+}
+
+# ------------------------------------------------------------
+# now close all the files
+# ------------------------------------------------------------
+sub close_files {
+  close CFILE;
+  close CCFILE;
+  close CHFILE;
+  close SFILE;
+
+  my(@fh) = %panelFiles;
+  for (my $ii=0;$ii<=$#fh;$ii+=2) {
+      close $fh[$ii+1];
+  }
+}
+
+# ------------------------------------------------------------
+# check if any of the panels match
+# ------------------------------------------------------------
+sub isOnSamePanel
+{
+  my($p1,$p2) = @_;
+  my($panelmatch);
+  my(@t1,$s1);
+
+  $panelmatch = 0;
+  @t1 = split(/,/,$p1);
+  foreach $s1 (@t1) {
+    if ($p2 =~ /$s1/) {
+      $panelmatch = 1;
+    }
+  }
+  return $panelmatch;
+}
+# ------------------------------------------------------------
+# check if 2 proposals could be on the same panel based on
+# their subject category code.
+# Return 1 if they could be on same panel, else 0
+# ------------------------------------------------------------
+sub couldBeOnSamePanel
+{
+  my($pstr,$cstr) = @_;
+  my($s1,$s2,$ss,$s3,$retval);
+
+  $retval=0;
+  $s1 = substr($pstr,2,2);
+  $s2 = substr($cstr,2,2);
+  for ($ss=0;$ss<= $#subcat;$ss++) {
+    $s3 = $subcat[$ss];
+    if (($s3 =~ /$s1/) && ($s3 =~ /$s2/)) {
+        $retval = 1;
+    }
+  }
+  return $retval;
+}
+
+# ------------------------------------------------------------
+# print data to individual files
+# if a proposal is in more than 1 panel, info will be
+# written to both panel files
+# ------------------------------------------------------------
+sub print_by_panel
+{
+  my($is_first,$pstr,$p1,$t1,$cstr,$p2,$t2) = @_;
+  my($astr,$tstr,$stmp);
+
+  $tstr = $t1;
+  if ($is_first == 0) {
+    $astr = sprintf("%-8.8s  %-5.5s",$pstr,$p1);
+  }
+  else {
+    $astr = sprintf("%-8.8s  %-5.5s"," "," ");
+  }
+  $stmp = sprintf("$astr  %-20.20s\t$cstr  %-5.5s  %-s\n",$tstr,$p2,$t2);
+  
+  my @arr = split(/,/,$p1);
+  foreach my $xx (@arr) {
+    print {$panelFiles{$xx}} $stmp;
+  }
+}
+
+
+
+
+# ----------------------------------------------------------
+sub parse_input
+{
+  my ($pwd);
+  my $err = 0;
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+             i=> undef,
+             d=> undef,
+             r=> 12.0,
+             a=> "$ENV{ASCDS_PROP_AO}",
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "a=s",
+          "i=s",
+          "r=f",
+          "q=s",
+          "d=s",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter '$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+  $param{q} = $pwd;
+
+}
+
+#----------------------------------------------------------
+#----------------------------------------------------------
+sub usage
+{
+  print STDERR "\nUSAGE: prop_conflict_lists.pl\n";
+  print STDERR "       -U database user name\n";
+  print STDERR "       -S database SQL server\n";
+  print STDERR "       -a AO. Default is ASCDS_PROP_AO.\n";
+  print STDERR "       -i conflict file name: ";
+  print STDERR "          eg: /data/obs/prop/reports/conflicts/xxxxx_conflict.tsv\n";
+  print STDERR "       -d output directory for conflicts.\n";
+  print STDERR "       -r max radius of conflict for bcp output, default 6\n";
+}
+
+

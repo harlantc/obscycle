@@ -1,0 +1,253 @@
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 1995, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_approved_observers.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script extracts approved observers and their targets
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+
+use vars qw ($dbh  %param  @reqfiles $reqfile
+	);
+
+use strict;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+
+@reqfiles = (
+        "prop_routines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+
+
+# -------------------------- MAIN ----------------------------------
+{
+  my($dsn,$stmp,$special);
+  &parse_input;
+
+  #database connection
+  $dbh = dbProposalConnection($param{U}, $param{S}, $param{q});
+
+
+  if ($param{l})  {
+    $special =  qq( and (upper(p1.institution) like "SAO" or
+                upper(p1.institution) like "%SMITHSONIAN%" or
+                upper(p1.institution) like "%MIT%" or
+                upper(p1.institution) like "%M.I.T.%" or
+                (upper(p1.institution) like "MASS%" and upper(p1.institution) like "%INST%"
+                 and upper(p1.institution) like "%TECH%") or
+                upper(p1.institution) like "%CFA%" or
+                upper(p1.institution) like "%CXC%"));
+   }
+   elsif ($param{g}) {
+     $special = qq( and proposal.type like "%GTO%");
+   }
+
+
+
+  open (OFILE,"> $param{o}") or
+	die "Unable to open $param{o} for writing\n";
+  print STDERR "Creating file: $param{o}\n";
+  &p_header();
+
+  &do_tgts($special);
+  print OFILE "\n";
+
+
+  close OFILE;
+}
+
+
+# -------------------------------------------------------------------
+# query to retrieve the proposal/targets for a proposal
+# -------------------------------------------------------------------
+sub do_tgts
+{    
+  my($special) = @_;
+  my($olast,$oinst,$oemail,$cpersid,$firstone);
+  my($sth,@row,$mquery);
+
+    $mquery = qq(select distinct proposal_number, type,coi_contact,
+	p1.last,p1.email,p1.institution,approved_exposure_time,
+	targname,null "pi"
+	from axafusers..person_short p1,proposal, target where
+	(proposal.status="APPROVED"  or rank >= 3.5 or joint like "%CXO-%") and 
+	proposal.proposal_id = target.proposal_id and
+	target.status= "accepted" 
+	$special
+	and proposal.ao_str = "$param{a}"
+	and (coi_contact is null or coi_contact = "N")
+	and proposal.piid = p1.pers_id 
+	UNION
+   	  select distinct proposal_number, type,coi_contact,
+	p1.last,p1.email,p1.institution,approved_exposure_time,
+	targname,p2.last "pi"
+	from axafusers..person_short p1,proposal, target,coin,
+	axafusers..person_short p2 
+	where proposal.proposal_id = target.proposal_id 
+	and target.status= "accepted" 
+	and piid = p2.pers_id	
+	$special
+	and proposal.ao_str = "$param{a}"
+	and coi_contact = "Y"
+	and proposal.proposal_id = coin.proposal_id 
+	and coin.coin_number = 1
+	and coin.pers_id = p1.pers_id
+	order by coi_contact,p1.last,proposal_number,targname);
+    if ($param{z}) {
+      print STDERR "$mquery\n";
+    }
+    $sth = $dbh->prepare($mquery);
+    $firstone=1;
+    $sth->execute;
+    while( (@row) = $sth->fetchrow_array()) {
+         # checking if this is the first one where Co-I is observer
+         # if so, printout the coi header 
+         if ($row[2] =~ /y/i) {
+           if($firstone) {
+             &c_header();
+             $firstone = 0;
+           }
+         }
+         
+           $olast = $row[3];
+           $oinst = $row[4];
+           $oemail = $row[5];
+        
+        
+       printf OFILE "%-8.8s %8.8s %3.3s %-17.17s %-35.35s  %-50.50s  %7.2f  %-20.20s  %s\n", @row;
+     }
+}
+
+# -------------------------------------------------------------------
+# header for the output
+# -------------------------------------------------------------------
+sub p_header()
+{
+printf OFILE ("\nProposal  Type    CoI Observer          Email                                Institute                                          ApprTime  Target Name   \n");
+printf OFILE ("------------------------------------------------------------------------------------------------------------------------------------\n");
+
+}
+sub c_header()
+{
+printf OFILE ("\nProposal  Type    CoI Observer          Email                                Institute                                          ApprTime  Target Name             P.I.                     \n");
+printf OFILE ("------------------------------------------------------------------------------------------------------------------------------------\n");
+
+}
+
+
+
+
+sub coi_query {
+  my($pno) = @_;
+  my($tquery,$sth2,@row2);
+  my($clast,$cinst,$cemail,$cpersid);
+  
+  $tquery = qq(select last,institution,email,coin.pers_id from
+	proposal,coin,axafusers..person_short p1 where
+	proposal_number = "$pno" and
+	proposal.proposal_id = coin.proposal_id and
+	coin.pers_id = p1.pers_id and
+	coin_number = 1); 
+  $sth2 = $dbh->prepare($tquery);
+  $sth2->execute;
+    
+  while((@row2) = $sth2->fetchrow_array()) {
+    ($clast,$cinst,$cemail,$cpersid) = @row2;
+  }
+
+  return ($clast,$cinst,$cemail,$cpersid);
+   
+}
+
+sub parse_input
+{
+  my ($pwd);
+  my $err = 0;
+  %param = (
+             U=> undef,
+             S=> "$ENV{DB_PROP_SQLSRV}",
+             o=> "$ENV{ASCDS_PROP_DIR}/reports",
+             a=> "$ENV{ASCDS_PROP_AO}",
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "o=s",
+          "a=s",
+          "q=s",
+	  "g",
+	  "l",
+	  "z",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val && $val ne "";
+      warn("parameter `$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+
+  $param{q} = $pwd;
+
+}
+
+
+sub usage
+{
+    print STDERR "\nUSAGE: prop_approved_observsers.pl -U -o [ Sagl ]\n";
+    print STDERR "       -U database user name\n";
+    print STDERR "       -o output file \n";
+    print STDERR "       -S database server, default is DB_PROP_SQLSRV\n";
+    print STDERR "       -a AO , default is ASCDS_PROP_AO\n";
+    print STDERR "       -g create list for GTO proposals only\n";
+    print STDERR "       -l create list for internal users (SAO,MIT)\n";
+
+}
+

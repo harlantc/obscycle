@@ -1,0 +1,10 @@
+# arg 1 =>  database    arg 2 => cycle#  arg3 => path
+$3/PanelStats.pl -U $1
+$3/appr_allot_tallies.pl -U $1 -hst -xmm -nrao -noao -swift -nustar -cycle $2 
+$3/tc_tallies.pl  -U $1 -out tc_tallies -lp
+$3/joint.pl  -U $1 -out joint -lp
+$3/final_checks.pl  -U $1 
+$3/peer_conflicts.pl  -U $1 
+$3/megalist.pl -U $1 -out megalist.txt
+
+

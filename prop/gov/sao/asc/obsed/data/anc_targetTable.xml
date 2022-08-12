@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE table SYSTEM "table.dtd">
+
+<table name="anc_target" key="targid">
+  <column name="targid">
+    <type>INTEGER</type>
+    <tooltip>Target Identifier in the proposal database</tooltip>
+  </column>
+  <column name="targ_num">
+    <type>INTEGER</type>
+    <tooltip>Target Number in the proposal database</tooltip>
+  </column>
+  <column name="ss_nudge">
+    <type>BOOLEAN</type>
+    <tooltip>Solar System Nudge Mode flag</tooltip>
+  </column>
+  <column name="coord_epoch">
+    <type>INTEGER</type>
+    <tooltip>Coord Epoch</tooltip>
+  </column>
+</table>

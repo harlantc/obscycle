@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE formView SYSTEM "formView.dtd">
+
+<formView>
+  <title>New Dither</title>
+
+  <info>
+    <supportsNew>true</supportsNew>
+  </info>
+
+  <key>
+    <tableName>dither</tableName>
+    <columnName>obsid</columnName>
+  </key>
+
+  <navigation>
+    <display>
+      <name>Observation ID</name>
+      <tableName>dither</tableName>
+      <columnName>obsid</columnName>
+    </display>
+  </navigation>
+
+  <GUI>
+    <obsidcombobox tag="11">
+      <labelText>Obs ID</labelText>
+      <size>6</size>
+      <row>
+        <number>0</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>dither</tableName>
+        <columnName>obsid</columnName>
+	<queryString>SELECT target.obsid FROM target WHERE NOT EXISTS (SELECT 1 FROM locked WHERE locked.obsid = target.obsid) AND NOT EXISTS (SELECT 1 FROM dither WHERE dither.obsid = target.obsid)</queryString>
+      </database>
+    </obsidcombobox>
+    
+    <textfield tag="21">
+      <labelText>Y Amp</labelText>
+      <size>8</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>dither</tableName>
+        <columnName>y_amp</columnName>
+      </database>
+    </textfield>
+    
+    <textfield tag="22">
+      <labelText>Y Freq</labelText>
+      <size>8</size>
+      <database>
+        <tableName>dither</tableName>
+        <columnName>y_freq</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="23">
+      <labelText>Y Phase</labelText>
+      <size>8</size>
+      <database>
+        <tableName>dither</tableName>
+        <columnName>y_phase</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="31">
+      <labelText>Z Amp</labelText>
+      <size>8</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>dither</tableName>
+        <columnName>z_amp</columnName>
+      </database>
+    </textfield>
+    
+    <textfield tag="32">
+      <labelText>Z Freq</labelText>
+      <size>8</size>
+      <database>
+        <tableName>dither</tableName>
+        <columnName>z_freq</columnName>
+      </database>
+    </textfield>
+
+    <textfield tag="33">
+      <labelText>Z Phase</labelText>
+      <size>8</size>
+      <database>
+        <tableName>dither</tableName>
+        <columnName>z_phase</columnName>
+      </database>
+    </textfield>
+
+  </GUI>
+
+</formView>

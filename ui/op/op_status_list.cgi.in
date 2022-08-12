@@ -1,0 +1,513 @@
+#!@PERLDB@ 
+#----------------------------------
+# Copyright (c) 1995, Smithsonian Astrophysical Observatory
+# You may not do anything you like with this file. 
+#
+# FILE NAME:  op_status_lists.cgi
+# DEVELOPMENT:
+#
+# NOTES:       
+#             
+#
+# INPUT:       user input
+#
+# REVISION HISTORY:
+#
+# Date: 
+#---------------------------------------------------------
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+use CGI ':standard';
+use File::Basename;
+use strict;
+use DBI;
+use DBD::Sybase;
+
+
+unless (eval {require "op_config.pl"}) {
+    print "Unable to find op_config.pl\n"; exit(1);
+}
+unless (eval {require "op_subroutines.pl"}) {
+    print "Unable to find op_subroutines.pl\n"; exit(1);
+}
+unless (eval {require "op_status_routines.pl"}) {
+    print "Unable to find op_status_routines.pl\n"; exit(1);
+}
+
+use vars qw($dsn $dbh $db $srv $pwd  $uid $dbg
+	$stmp $report_fmt  @hdr $note @lists $cur_hdr 
+	$sql_date_fmt $sql_time_fmt $sql_order  $sql_order2
+	%order_list @order_fields @oarray @list_params
+	$tmp_host $tmp_date $tmp_file $dlm $tmp_err
+	$hdr_line
+ 	%list_hdrs %list_labels
+ );
+
+
+%list_hdrs = (
+list_sched  =>  "ObsId,Type,Sched Date",
+list_ap     =>  "ObsId,Type,ObsDate",
+list_ingest =>  "ObsId,Type,ObsDate,L2 Version,L2 AP Date",
+list_vv     =>  "ObsId,Type,ObsDate,L2 Version,L2 AP Date,Good Time,Charge Time,V&V Version,V&V Creation Date",
+list_cdo    =>  "ObsId,Type,ObsDate,L2 Version,L2 AP Date,Good Time,Charge Time,V&V State,V&V Version,Review Requested,V&V Creation Date"   ,
+list_aspect =>  "ObsId,Type,ObsDate,L2 Version,L2 AP Date,Good Time,Charge Time,V&V State,V&V Version,Review Requested,V&V Creation Date"   ,
+list_dd     =>  "ObsId,Type,ObsDate,L2 Version,L2 AP Date,Good Time,Charge Time,V&V State,V&V Version,V&V Date",
+list_sap    =>  "ObsId,Type,ObsDate,L2 Version,L2 AP Date,Good Time,Charge Time,V&V State,V&V Version,V&V Date,DD Date"
+);
+
+%list_labels = (
+list_sched  => "Scheduled observations not yet processed (no record in APStat)",
+list_ap     => "Scheduled observations with APStat but no science_2 ",
+list_ingest => "Science_2 observations awaiting ingest into archive",
+list_vv     => "Observations awaiting V&V",
+list_cdo    => "Observations awaiting CDO review",
+list_aspect => "Observations awaiting Aspect review",
+list_dd     => "Observations awaiting Distribution",
+list_sap    => "Observations in SAP",
+	);
+@list_params  = (
+	"list_sched","list_ap","list_ingest","list_vv",
+	"list_cdo","list_aspect","list_dd","list_sap");
+
+{
+  my($str);
+  $SIG{__WARN__} = \&catch_warn;
+
+  $stmp = "server=$srv;database=$db";
+  $dsn = "DBI:Sybase:$stmp";
+  $dbh = DBI->connect($dsn, $uid, $pwd, {
+        PrintError => 1,
+        RaiseError => 0});
+  if ( !defined $dbh) {
+     display_file($tmp_err,1);
+     exit 1;
+  }
+
+  # determine which lists were requested
+  my($lstr) ="";
+  foreach $str (@list_params) {
+    if (param($str)) {
+      $lstr .= $str . " ";
+      &debug("status list: $str\n");
+      push(@lists,$str);
+    }
+  }
+  logit("op_status_list: $lstr\n");
+
+  &get_order_by_fields;
+
+  # this routine sets up the correct report type and opens the output file!
+  $report_fmt = "HTML";
+  &open_output_file;
+  &print_html_header;
+
+  # add the table header
+  $dlm = ',';
+
+  foreach $cur_hdr (@lists) {
+
+    # go retrieve the info for all the tables
+    &build_order_by_clause($cur_hdr);
+    &retrieve_list_data($cur_hdr);
+
+  }
+
+  &print_html_footer;
+
+  close OFILE;
+  chmod(0777,"$tmp_file");
+
+  display_file($tmp_file,1);
+  unlink($tmp_file);
+
+  $dbh->disconnect;
+
+}
+
+  
+#--------------------------------------------------------------
+# get order by fields
+#--------------------------------------------------------------
+sub  get_order_by_fields 
+{
+
+  local(%order_list = (
+        "ObsId","target_info.obsid",
+	"L2 AP Date","science_2.ap_date",
+        "ObsDate", "date_obs",
+        "V&V Status","vvrpt.vv_state",
+	"V&V Date","vvrpt.completion_date",
+	"Type", "target_info.type",
+	"Sched Date","axafocat..target.soe_st_sched_date",
+	));
+
+  local(@order_fields = ("order_one","order_two"));
+  my ($otmp,$ii);
+
+  @oarray = ();
+  $sql_order = "";
+  $sql_order2 = "";
+  for ($ii=0;$ii<=$#order_fields;$ii++) {
+    if (param($order_fields[$ii]) && (param($order_fields[$ii]) !~ /None/)) {
+      $otmp = param($order_fields[$ii]);
+      &debug("order: $otmp\n") if $dbg;
+      push(@oarray,$order_list{$otmp});
+    }
+  }
+ } 
+
+
+
+sub build_order_by_clause 
+{
+  my ($rtype) = @_;
+  my ($ii);
+
+  $sql_order = "";
+  for ($ii=0;$ii<=$#oarray;$ii++) {
+    if (($oarray[$ii] !~ /None/) && ($sql_order !~ /$oarray[$ii]/)) {
+       
+       if (
+        ($oarray[$ii] =~ /science\_2/ && ($rtype =~ /sched/ || $rtype =~ /ap/)) ||
+        ($oarray[$ii] =~ /vvrpt/  && ($rtype =~ /sched/ || $rtype =~ /ap/ || $rtype=~/ingest/)) ||
+	   ($oarray[$ii] =~ /axafocat/ && $rtype !~ /sched/  )) {
+          # skip it because we can't query on the field for this report type
+       }
+       else {
+         if ($sql_order) {
+           $sql_order .= ",";
+         }
+         $sql_order .= $oarray[$ii];
+      }
+    }
+  }
+
+  if (!$sql_order) {
+    $sql_order = "target_info.obsid";
+  }
+
+
+  
+}
+
+#--------------------------------------------------------------
+# build the headers
+#--------------------------------------------------------------
+sub build_list_header 
+{
+  my($hh) = @_;
+  my($h );
+
+  @hdr = split(/,/,$list_hdrs{$hh});
+  #&debug("LIST: $hh @hdr\n") if $dbg;
+
+  print OFILE "<hr><br><center><b>$list_labels{$hh}</b></center><br>\n";
+  print OFILE qq(<center><table class="plain"  ><tr class="header">\n);
+  foreach $h (@hdr) {
+    $h =~ s/&/&amp;/;
+    print OFILE "<th align=\"center\">$h</th>\n";
+  }
+  print OFILE "</tr>";
+
+  $hdr_line = join("\_\_",@hdr);
+  $hdr_line =~ s/ /&nbsp;/g;
+
+
+}
+
+#-----------------------------------------------------------------------
+# vvreport link needs: $obsid,$version,$vv_version,$ocat_status,$type  
+# however since this is supposed to be internal, I think I can dummy up
+# the ocat_status,type 
+#
+#-----------------------------------------------------------------------
+sub display_list_entry 
+{
+  my ($myentry) = @_;
+  my ($ii,$tstr,@myarr,$vvlink,@tarr);
+
+  @myarr = split($dlm,$myentry);
+  $myentry = join("\_\_",@myarr);
+  $myentry =~ s/ /&nbsp;/g;
+  push(@tarr,$myarr[0],$myarr[3],$myarr[9],"dummy","dummy");
+  $vvlink = join("\_\_",@tarr);
+  $vvlink =~ s/ /&nbsp;/g;
+
+  print OFILE "<tr>";
+  for ($ii=0;$ii <=$#myarr;$ii++ ) {
+    $tstr = $myarr[$ii];
+    if (!$tstr || $tstr eq ' ') { 
+      $tstr = "&nbsp;";
+    }
+    if ($hdr[$ii] =~ /ObsId/ && $cur_hdr > 1) {
+      $tstr = qq(<A HREF="/cgi-bin/op/op_status_obsid.cgi?$hdr_line^^$myentry^^$vvlink">);
+      $tstr .= $myarr[$ii];
+      $tstr .= "</A>";
+    }
+  
+    if ($hdr[$ii] =~ /V Status/) {
+      $tstr = add_html_vvreport_link($myarr[$ii],$myarr[0],$myarr[3],
+	 $myarr[9],," "," ");
+    }
+    print OFILE "<td align=\"center\">$tstr</td>\n";
+  }
+
+  if ($#myarr < $#hdr) {
+    print OFILE "<td>&nbsp;</td";
+  }
+  print OFILE "</tr>";
+}
+
+
+#----------------------------------------------------------------------------
+#----------------------------------------------------------------------------
+sub print_html_header
+{
+  my(@dtmp,$yy,$mm,$thedate,$hstr);
+  
+  @dtmp = localtime;
+  $yy = $dtmp[5] + 1900;
+  $mm = $dtmp[4] + 1;
+  $thedate = sprintf("%-04.4d/%-02.2d/%-02.2d %-02.2d:%-02.2d",
+	$yy, $mm, $dtmp[3],
+	$dtmp[2], $dtmp[1]);
+  $hstr = cxc_header("Status List Results as of $thedate",
+                     "/soft/op/op_lhelp.html");
+  
+    print OFILE <<header;
+$hstr
+<center>
+$note
+</center>
+header
+}
+
+
+
+#----------------------------------------------------------------------------
+#----------------------------------------------------------------------------
+sub retrieve_list_data
+{
+  my($hh) = @_;
+  my($sth,$sql_stmt,@row,$ii,$str,$where);
+
+  #Scheduled
+  if ($hh =~ /list_sched/) {
+    $sql_stmt = qq(select distinct axafocat..target.obsid,
+	axafocat..target.type , 
+	convert(varchar(10),axafocat..target.soe_st_sched_date,$sql_date_fmt) 
+	from axafocat..target 
+    	where axafocat..target.status = "scheduled" and
+	axafocat..target.obsid not in 
+	(select distinct obsid from target_info));
+    $sql_order =~ s/target_info/axafocat\.\.target/g;
+    $sql_stmt .= " order by $sql_order";
+  }
+  #AP no/L2
+  elsif ($hh =~ /list_ap/) {
+    $sql_stmt = qq( select distinct target_info.obsid ,target_info.type,
+	(convert(varchar(10),date_obs,$sql_date_fmt)
+         + " " + convert(varchar(5),date_obs,$sql_time_fmt))
+	from target_info,obidet_0_5 where 
+	target_info.ocat_status = "scheduled" and
+        target_info.obsid = obidet_0_5.obsid and
+        target_info.datamode != "RAW" and
+        target_info.pipeline_config like "primary%" and
+        obidet_0_5.obi = (select min(obi) from obidet_0_5 o1 where
+        o1.obsid = obidet_0_5.obsid) and
+        obidet_0_5.revision = (select max(revision) from obidet_0_5 o2 where
+        o2.obsid = obidet_0_5.obsid and o2.obi = obidet_0_5.obi) and
+	target_info.obsid not in (select distinct obsid from science_2)
+	order by $sql_order);
+  }
+  #Awaiting Ingest
+  elsif ($hh eq "list_ingest") {
+    $sql_stmt = qq(select distinct science_2.obsid,target_info.type,
+	(convert(varchar(10),date_obs,$sql_date_fmt)
+         + " " + convert(varchar(5),date_obs,$sql_time_fmt)),
+	science_2.revision,
+	convert(varchar(10),science_2.ap_date,$sql_date_fmt)
+	from science_2,obidet_0_5,target_info where 
+        science_2.obsid = target_info.obsid and
+        science_2.obsid = obidet_0_5.obsid and
+        obidet_0_5.obi = (select min(obi) from obidet_0_5 o1 where
+        o1.obsid = obidet_0_5.obsid) and
+        obidet_0_5.revision = (select max(revision) from obidet_0_5 o2 where
+        o2.obsid = obidet_0_5.obsid and o2.obi = obidet_0_5.obi) and
+	(science_2.ingested = "N"  or science_2.ingested is null)
+	order by $sql_order);
+  }
+  #Awaiting V&V
+  elsif ($hh eq "list_vv") {
+    $sql_stmt = qq(select distinct science_2.obsid,target_info.type,
+	(convert(varchar(10),date_obs,$sql_date_fmt)
+         + " " + convert(varchar(5),date_obs,$sql_time_fmt)),
+	science_2.revision ,
+	convert(varchar(10),science_2.ap_date,$sql_date_fmt),
+        convert(decimal(7,2),vvrpt.good_time),
+        convert(decimal(7,2),vvrpt.charge_time),
+        vvrpt.vv_version,
+        convert(varchar(10),vvrpt.creation_date,$sql_date_fmt)
+        from science_2,obidet_0_5,target_info, 
+	axafvv..vvreport vvrpt
+  	where science_2.obsid = target_info.obsid and
+	science_2.obsid = obidet_0_5.obsid and
+        obidet_0_5.obi = (select min(obi) from obidet_0_5 o1 where
+        o1.obsid = obidet_0_5.obsid) and
+        obidet_0_5.revision = (select max(revision) from obidet_0_5 o2 where
+        o2.obsid = obidet_0_5.obsid and o2.obi = obidet_0_5.obi) and
+	science_2.revision = (select max(revision) from science_2 s2 where
+        science_2.obsid = s2.obsid ) and
+	science_2.obsid = vvrpt.obsid and
+	science_2.revision = vvrpt.l2_version and
+	vvrpt.completion_date is null and
+        (vvrpt.vvid not in (select vvid from axafvv..vvreview ) or
+	vvrpt.vvid not in (select vvid from axafvv..vvreview vvrev
+	where vvrpt.vvid  = vvrev.vvid and vvrev.completion_date is null))
+	order by $sql_order);
+  }
+  #Awaiting CDO
+  elsif ($hh eq "list_cdo") {
+    $sql_stmt = qq(select distinct science_2.obsid,target_info.type,
+	(convert(varchar(10),date_obs,$sql_date_fmt)
+         + " " + convert(varchar(5),date_obs,$sql_time_fmt)),
+	science_2.revision ,
+	convert(varchar(10),science_2.ap_date,$sql_date_fmt),
+        convert(decimal(7,2),vvrpt.good_time),
+        convert(decimal(7,2),vvrpt.charge_time),
+	vvrpt.vv_state, 
+        vvrpt.vv_version,
+        convert(varchar(10),vvrev.creation_date,$sql_date_fmt),
+        convert(varchar(10),vvrpt.creation_date,$sql_date_fmt)
+        from science_2,obidet_0_5,target_info, 
+	axafvv..vvreport vvrpt,axafvv..vvreview vvrev
+  	where science_2.obsid = target_info.obsid and
+	science_2.obsid = obidet_0_5.obsid and
+        obidet_0_5.obi = (select min(obi) from obidet_0_5 o1 where
+        o1.obsid = obidet_0_5.obsid) and
+        obidet_0_5.revision = (select max(revision) from obidet_0_5 o2 where
+        o2.obsid = obidet_0_5.obsid and o2.obi = obidet_0_5.obi) and
+	science_2.obsid = vvrpt.obsid and
+        vvrpt.l2_version = science_2.revision and
+        vvrpt.completion_date is null and
+        vvrev.vvid = vvrpt.vvid and
+	vvrev.review_type = "CDO" and
+	vvrev.completion_date is null
+	order by $sql_order);
+  }
+  #Awaiting aspect
+  elsif ($hh eq "list_aspect") {
+    $sql_stmt = qq(select distinct science_2.obsid,target_info.type,
+	(convert(varchar(10),date_obs,$sql_date_fmt)
+         + " " + convert(varchar(5),date_obs,$sql_time_fmt)),
+	science_2.revision ,
+	convert(varchar(10),science_2.ap_date,$sql_date_fmt),
+        convert(decimal(7,2),vvrpt.good_time),
+        convert(decimal(7,2),vvrpt.charge_time),
+	vvrpt.vv_state, 
+        vvrpt.vv_version,
+        convert(varchar(10),vvrev.creation_date,$sql_date_fmt),
+        convert(varchar(10),vvrpt.creation_date,$sql_date_fmt)
+        from science_2,obidet_0_5,target_info, 
+	axafvv..vvreport vvrpt,axafvv..vvreview vvrev
+  	where science_2.obsid = target_info.obsid and
+	science_2.obsid = obidet_0_5.obsid and
+        obidet_0_5.obi = (select min(obi) from obidet_0_5 o1 where
+        o1.obsid = obidet_0_5.obsid) and
+        obidet_0_5.revision = (select max(revision) from obidet_0_5 o2 where
+        o2.obsid = obidet_0_5.obsid and o2.obi = obidet_0_5.obi) and
+	science_2.obsid = vvrpt.obsid and
+        vvrpt.l2_version = science_2.revision and
+        vvrpt.completion_date is null and
+        vvrev.vvid = vvrpt.vvid and
+	vvrev.review_type = "Aspect" and
+	vvrev.completion_date is null
+	order by $sql_order);
+  }
+  #Awaiting Distribution
+  elsif ($hh eq "list_dd") {
+    $sql_stmt = qq(select distinct science_2.obsid,target_info.type,
+	(convert(varchar(10),date_obs,$sql_date_fmt)
+         + " " + convert(varchar(5),date_obs,$sql_time_fmt)),
+	science_2.revision ,
+	convert(varchar(10),science_2.ap_date,$sql_date_fmt),
+        convert(decimal(7,2),vvrpt.good_time),
+        convert(decimal(7,2),vvrpt.charge_time),
+	vvrpt.vv_state, 
+        vvrpt.vv_version,
+        convert(varchar(10),vvrpt.completion_date,$sql_date_fmt)
+        from science_2,obidet_0_5,target_info, 
+	axafvv..vvreport vvrpt,
+        axafobstat..view_email_notification ven 
+  	where science_2.obsid = target_info.obsid and
+	science_2.obsid = obidet_0_5.obsid and
+        obidet_0_5.obi = (select min(obi) from obidet_0_5 o1 where
+        o1.obsid = obidet_0_5.obsid) and
+        obidet_0_5.revision = (select max(revision) from obidet_0_5 o2 where
+        o2.obsid = obidet_0_5.obsid and o2.obi = obidet_0_5.obi) and
+        science_2.max_vv = vvrpt.vvid  and
+        target_info.type != "CAL" and
+	(vvrpt.vv_state = "OK" or vvrpt.vv_state="Repr+DD") and
+	vvrpt.completion_date < target_info.public_date and
+        vvrpt.l2_version >= (select (max(v2.l2_version)) 
+	from axafvv..vvreport v2,axafobstat..view_email_notification ven2 where 
+	vvrpt.obsid = v2.obsid and vvrpt.obsid = ven2.obsid and 
+	vvrpt.l2_version = ven2.l2_version and
+	ven2.email_notification_date is not NULL)  and 
+	vvrpt.l2_version = ven.l2_version and
+	vvrpt.obsid = ven.obsid and
+        ven.email_notification_date is NULL
+	order by $sql_order);
+  }
+  #SAP
+  elsif ($hh eq "list_sap") {
+    $sql_stmt = qq(select distinct science_2.obsid,target_info.type,
+	(convert(varchar(10),date_obs,$sql_date_fmt)
+         + " " + convert(varchar(5),date_obs,$sql_time_fmt)),
+	science_2.revision ,
+	convert(varchar(10),science_2.ap_date,$sql_date_fmt),
+        convert(decimal(7,2),vvrpt.good_time),
+        convert(decimal(7,2),vvrpt.charge_time),
+	vvrpt.vv_state, 
+        vvrpt.vv_version,
+        convert(varchar(10),vvrpt.completion_date,$sql_date_fmt),
+        convert(varchar(10),ven.email_notification_date,$sql_date_fmt)
+        from science_2,obidet_0_5,target_info, 
+	axafvv..vvreport vvrpt,
+        axafobstat..view_email_notification ven 
+  	where science_2.obsid = target_info.obsid and
+	science_2.obsid = obidet_0_5.obsid and
+        obidet_0_5.obi = (select min(obi) from obidet_0_5 o1 where
+        o1.obsid = obidet_0_5.obsid) and
+        obidet_0_5.revision = (select max(revision) from obidet_0_5 o2 where
+        o2.obsid = obidet_0_5.obsid and o2.obi = obidet_0_5.obi) and
+ 	science_2.max_vv = vvrpt.vvid  and
+	vvrpt.obsid *= ven.obsid and
+	vvrpt.l2_version *= ven.l2_version and
+     	(vvrpt.vv_state = "ReprNoDD" or vvrpt.vv_state="Repr+DD")
+     	and vvrpt.l2_version =
+     	(select (max(s2.revision)) from science_2 s2
+     	where vvrpt.obsid = s2.obsid  )
+        order by $sql_order);
+  }
+
+  &debug("Status List : $sql_stmt\n") if $dbg;
+  $sth = $dbh->prepare($sql_stmt);
+  if ($sth->execute) {
+    &build_list_header($hh);
+    while (@row = $sth->fetchrow_array) {
+       $str = join($dlm,@row);
+       display_list_entry($str);
+    }
+    $ii = $sth->rows;
+    print OFILE "</table>Retrieved $ii entries<p></center>";
+    &debug("$list_labels{$hh}: retrieved $ii rows.\n") if $dbg;
+  }
+  else {
+    &build_list_header($hh);
+    print OFILE "</table>Retrieved 0 entries</center><p>";
+  }
+}

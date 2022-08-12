@@ -1,0 +1,61 @@
+#!@PERL@ 
+#*H****************************************************************************
+#* Copyright (c) 1995, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: prop_kill_rps_receiver.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION:
+#
+#     This script stops the RPS receiver process.
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+$tooflg = "";
+if ($#ARGV == 0) {
+  $tooflg = "too";
+}
+$otsdir = "/bin";
+
+#
+# Seek and destroy the prop_rps_receiver process !
+#
+@rps_id = `$otsdir/ps -e -o "pid,comm,args" | grep prop_rps_receiv`;
+
+#print "PROCESSES: \n@rps_id\n\n";
+
+# There could (although there shouldn't really) be several of these 
+# executables running. Attempt to find them all and process each one
+#
+foreach $id (@rps_id) {
+
+   # get rid of leading whitespace
+   $id =~ s/^\s//;
+
+   # split the line on whitespaces
+   @fields = split(/\s/, $id);
+
+   # now the 1st field holds the PID of the related process, and the
+   # 2nd field is the command 
+   if ( ( $tooflg =~ /too/ && $id =~ /$tooflg/) ||
+        ( $tooflg !~ /too/ && $id !~ /too/) ) {
+       if ( $fields[1] =~ /prop_rps_receiv/ ) {
+         system("$otsdir/kill -9 $fields[0]");
+         print "issuing: $otsdir/kill -9 $fields[0] : $fields[1]\n";
+       }
+   }
+
+}
+
+exit 0;

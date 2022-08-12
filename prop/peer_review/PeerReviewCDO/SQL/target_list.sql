@@ -1,0 +1,2 @@
+select t.ra as "RA", t.dec as "Dec", rpad(targ_name, 21) as "Target", rpad(detector, 7) as "Inst", grating as "Grating", app_time as "AppTime", alt_id as "Alternate", t.prop_id as "Proposal", rpad(last_name, 27) as "PI", institution as "Institution" from proposal p, target t where p.prop_id = t.prop_id and p.panel_id = t.panel_id and targ_status = 'Y' and prop_status = 'Y' order by t.ra, t.dec,t.prop_id,t.targ_num;
+

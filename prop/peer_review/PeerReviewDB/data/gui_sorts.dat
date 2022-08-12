@@ -1,0 +1,70 @@
+groupby	sortby	sort_name
+null	prop_id	PropNum
+null	rank	Rank
+null	tc_prop	TC
+null	mcop	MCOP
+null	conflict	Conflict
+null	group_id	Grp
+null	category	Cat
+null	scicat	SciCat
+null	mon_flag	MonP
+null	grid_flag	GridP
+null	tag_num	Tag
+null	last_name	PI
+null	type_sort	Type
+null	big_proj_sort	Sub Type
+null	total_req_time	Req Time (24)
+null	total_app_time	App Time (24)
+null	total_req_time_1	Req Time (25)
+null	total_app_time_1	App Time (25)
+null	total_req_time_2	Req Time (26)
+null	total_app_time_2	App Time (26)
+null	prop_req_time	Tot Req Time (24)
+null	prop_app_time	Tot App Time (24)
+null	prop_app_hel	Tot App HEL (24)
+null	prop_req_time_1	Tot Req Time (25)
+null	prop_app_time_1	Tot App Time (25)
+null	prop_app_hel_1	Tot App HEL (25)
+null	prop_req_time_2	Tot Req Time (26)
+null	prop_app_time_2	Tot App Time (26)
+null	prop_app_hel_2	Tot App HEL (26)
+null	tax_tot	Total Tax (24)
+null	tax_tot_1	Total Tax (25)
+null	tax_tot_2	Total Tax (26)
+null	rc_score_app	RC Total (24)
+null	rc_score_app_1	RC Total (25)
+null	rc_score_app_2	RC Total (26)
+null	num_targ_req	Num Targ Req (24)
+null	num_targ_app	Num Targ App (24)
+null	num_targ_req_1	Num Targ Req (25)
+null	num_targ_app_1	Num Targ App (25)
+null	num_targ_req_2	Num Targ Req (26)
+null	num_targ_app_2	Num Targ App (26)
+null	num_obs_req	Num Obs Req (24)
+null	num_obs_app	Num Obs App (24)
+null	num_obs_req_1	Num Obs Req (25)
+null	num_obs_app_1	Num Obs App (25)
+null	num_obs_req_2	Num Obs Req (26)
+null	num_obs_app_2	Num Obs App (26)
+null	joint_flag	Joint
+null	prop_status	StatP
+null	pg_avg     	PGrade Avg
+null	pg_med     	PGrade Median
+null	pg_stdev	PGrade Stdev
+null	fg_avg     	Grade Avg
+null	fg_med     	Grade Median
+null	fg_stdev	Grade Stdev
+null	fg_norm     	Grade Norm
+null	triage_sort	Triage
+null	group_id,fg_avg DESC   	Grp+GradeAvg
+group_id	fg_avg DESC	GradeAvg+GroupedByGrp
+group_id	pg_avg DESC	PGradeAvg+GroupedByGrp
+null	type_sort,fg_avg DESC	Type+GradeAvg
+type	fg_avg DESC	GradeAvg+GroupedByType
+null	joint_flag,fg_avg DESC	Joint+GradeAvg
+joint_flag	fg_avg DESC	GradeAvg+GroupedByJoint
+null	category,fg_avg DESC	Cat+GradeAvg
+category	fg_avg DESC	GradeAvg+GroupedByCat
+big_proj	fg_avg DESC	GradeAvg+GroupedBySubType
+big_proj	pg_avg DESC	PGradeAvg+GroupedBySubType
+big_proj	rank	Rank+GroupedBySubType

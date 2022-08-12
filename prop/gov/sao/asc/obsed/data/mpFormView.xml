@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<!DOCTYPE formView SYSTEM "formView.dtd">
+
+<formView>
+
+  <title>MP Form</title>
+
+  <info>
+    <supportsNew>nil</supportsNew>
+  </info>
+
+  <key>
+    <tableName>mp</tableName>
+    <columnName>obsid</columnName>
+  </key>
+
+  <navigation>
+    <display>
+      <name>Observation ID</name>
+      <tableName>mp</tableName>
+      <columnName>obsid</columnName>
+    </display>
+  </navigation>
+
+  <GUI>
+    <label tag="11">
+      <labelText>Mission Planning</labelText>
+      <row>
+        <number>0</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+    </label>
+
+   <textfield tag="21">
+      <labelText>Counter</labelText>
+      <size>8</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>mp</tableName>
+	<columnName>counter</columnName>
+      </database>
+    </textfield>
+
+   <textfield tag="22">
+      <labelText>Sequence Number</labelText>
+      <size>8</size>
+      <database>
+        <tableName>mp</tableName>
+	<columnName>seq_nbr</columnName>
+      </database>
+    </textfield>
+
+   <textfield tag="31">
+      <labelText>Priority</labelText>
+      <size>8</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>mp</tableName>
+	<columnName>mp_priority</columnName>
+      </database>
+    </textfield>
+
+   <textfield tag="32">
+      <labelText>Roll</labelText>
+      <size>8</size>
+      <database>
+        <tableName>mp</tableName>
+	<columnName>mp_roll</columnName>
+      </database>
+    </textfield>
+
+   <textfield tag="33">
+      <labelText>Roll Tolerance</labelText>
+      <size>8</size>
+      <database>
+        <tableName>mp</tableName>
+	<columnName>mp_roll_tolerance</columnName>
+      </database>
+    </textfield>
+
+   <textfield tag="41">
+      <labelText>Star Fidlight File</labelText>
+      <size>8</size>
+      <row>
+        <number>+</number>
+      </row>
+      <column>
+        <number>0</number>
+      </column>
+      <database>
+        <tableName>mp</tableName>
+	<columnName>star_fidlight_file</columnName>
+      </database>
+    </textfield>
+
+   <timestampbutton tag="42">
+      <labelText>LT Plan</labelText>
+      <size>8</size>
+      <database>
+        <tableName>mp</tableName>
+	<columnName>lt_plan</columnName>
+      </database>
+    </timestampbutton>
+
+   <textfield tag="43">
+      <labelText>Duration</labelText>
+      <size>8</size>
+      <database>
+        <tableName>mp</tableName>
+	<columnName>duration</columnName>
+      </database>
+    </textfield>
+
+ </GUI>
+
+</formView>

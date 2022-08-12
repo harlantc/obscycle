@@ -1,0 +1,209 @@
+#!@PERLDB@ 
+#*H****************************************************************************
+#* Copyright (c) 1995, Smithsonian Astrophysical Observatory
+#  You may do anything you like with this file except remove this
+#  copyright.
+#
+#* FILE NAME: post_peer_lists.pl
+#
+#* DEVELOPMENT: ObsCycle
+#
+#* DESCRIPTION: #	Executes lists for peer review:
+#       prop_approved_lists.pl
+#	all_stats.pl
+#	winner_stats.pl
+#	prop_joint_stats.pl
+#	prop_final_checks.pl
+#
+#
+#* NOTES:
+#
+#        <None>
+#
+#* REVISION HISTORY:
+#
+#
+#H****************************************************************************/
+
+BEGIN
+{
+    $ENV{SYBASE} = "@SYBASE_DEFAULT@";
+}
+
+
+
+use vars qw (%param $dbh @panels @reqfiles $reqfile
+	);
+
+use strict;
+use Carp;
+use Getopt::Long;
+use DBI;
+use lib $ENV{'ASCDS_BIN'};
+
+@reqfiles = (
+        "prop_routines.pl",
+);
+foreach $reqfile (@reqfiles) {
+  unless (eval {require $reqfile}) {
+    print "Unable to find $reqfile\n"; exit(1);
+  }
+}
+
+
+# -------------------------- MAIN ----------------------------------
+{
+  my ($pwd,$curdate,$dsn,$stmp,$savdir,$param_str);
+  my($odir);
+
+  ($pwd) = parse_input();
+
+  #database connection - verify 
+  $dbh = dbProposalConnection($param{U}, $param{S}, $pwd);
+
+  $dbh->disconnect;
+
+  $curdate = get_date();
+
+  if (!-d $param{o}) {
+    print STDERR "creating output directory $param{o}\n";
+    mkdir($param{o},02770);
+    chgroup($param{o});
+    chmod(02770,$param{o});
+  }
+  else {
+    $stmp = $curdate;
+    while ($stmp =~ s/\//_/) {;}
+    while ($stmp =~ s/ /_/) {;}
+    while ($stmp =~ s/\://) {;}
+    $savdir = $param{o} . "/post_peer_" . $stmp ."/";
+    print STDERR "Moving existing files to $savdir \n";
+    mkdir($savdir,02770);
+    chgroup($savdir);
+    chmod(02770,$savdir);
+    `\\mv $param{o}/*.* $savdir `;
+  }  
+
+  #output to directory
+  $param_str = param_string();
+  `prop_approved_lists.pl $param_str`;
+  
+   
+  #output to file
+  $odir  = $param{o};
+
+  $param{o} = $odir . "/cycle$param{a}_peer_results_stats.txt";
+  $param_str = param_string();
+  `prop_all_stats.pl $param_str  -w`;
+
+  $param{o} = $odir . "/cycle$param{a}_peer_results.multi_stats.txt";
+  $param_str = param_string();
+  `prop_all_multi.pl $param_str  -w`;
+
+  $param{o} = $odir . "/cycle$param{a}_peer_results_stats.html";
+  $param_str = param_string();
+  `prop_winner_stats.pl $param_str`;
+
+  $param{o} = $odir . "/cycle$param{a}_peer_country_stats.txt";
+  $param_str = param_string();
+  `prop_country_stats.pl $param_str`;
+
+  $param{o} = $odir . "/cycle$param{a}_joint_stats.txt";
+  $param_str = param_string();
+  `prop_joint_stats.pl $param_str `;
+
+
+  $param{o} = $odir . "/cycle$param{a}_time_critical.txt";
+  $param_str = param_string();
+  `prop_approved_tc.pl $param_str `;
+
+  $param{o} = $odir . "/cycle$param{a}_approved_observers.txt";
+  $param_str = param_string();
+  `prop_approved_observers.pl $param_str `;
+
+  $param{o} = $odir . "/cycle$param{a}_approved_observers_sao_mit.txt";
+  $param_str = param_string();
+  `prop_approved_observers.pl $param_str -l `;
+
+
+  $param{o} = $odir;
+  $param_str = param_string() ;
+  `prop_too_lists.pl $param_str  -w -t all`;
+  `prop_too_lists.pl $param_str  -w -t peer`;
+  `prop_too_lists.pl $param_str  -w -t gto`;
+
+  $param{o} = $odir . "/cycle$param{a}_final_checks.txt";
+  $param_str = param_string();
+  `prop_final_checks.pl $param_str `;
+
+  unlink($param{q});
+}
+
+
+
+sub parse_input { 
+  my ($pwd,$pstr);
+  my $err = 0;
+
+  %param = ( U => undef,
+             S => $ENV{DB_PROP_SQLSRV},
+             o => ".",
+             a => $ENV{ASCDS_PROP_AO}
+        );
+
+  GetOptions( \%param,
+          "U=s",
+          "S=s",
+          "a=s",
+          "o=s",
+          "q=s",
+          "h"
+        ) or exit (1);
+
+  if (!$param{h} ) {
+    while ( my ( $par, $val ) = each ( %param ) ) {
+      next if defined $val;
+      warn("parameter '$par' not set\n");
+      $err++;
+    }
+  }
+  else {
+    &usage;
+    exit(0);
+  }
+
+  if ($err) {
+    &usage;
+    exit(1);
+  }
+
+  if(!$param{q}) {
+    $pwd = get_password($param{U},$param{S});
+    $param{q} = "$param{o}/.$ENV{USER}.peer";
+    write_password($param{q},$pwd);
+  }
+  else {
+    $pwd = read_password($param{q});
+  }
+  
+  return ($pwd);
+}
+
+sub param_string()
+{
+  my($pstr,$par,$val);
+
+  while ( my ( $par, $val ) = each ( %param ) ) {
+     $pstr .= " -$par $val ";
+  }
+  return $pstr;
+}
+
+sub usage {
+  print STDERR "\nUSAGE: post_peer_lists.pl -U [Sao] \n";
+  print STDERR "        -U  database user name \n";
+  print STDERR "        -S  sql server, default is DB_PROP_SQLSRV\n";
+  print STDERR "        -a  AO , default is ASCDS_PROP_AO\n";
+  print STDERR "        -o  output directory, default is current directory\n";
+}
+
